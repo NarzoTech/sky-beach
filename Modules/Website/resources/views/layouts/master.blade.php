@@ -1,29 +1,65 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <title>Website Module - {{ config('app.name', 'Laravel') }}</title>
-
-    <meta name="description" content="{{ $description ?? '' }}">
-    <meta name="keywords" content="{{ $keywords ?? '' }}">
-    <meta name="author" content="{{ $author ?? '' }}">
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    {{-- Vite CSS --}}
-    {{-- {{ module_vite('build-website', 'resources/assets/sass/app.scss') }} --}}
+    <title>@yield('title', 'CTAKE - Food & Restaurant')</title>
+    <link rel="icon" type="image/png" href="{{ asset('website/images/favicon.png') }}">
+    
+    {{-- CSS Files --}}
+    <link rel="stylesheet" href="{{ asset('website/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/slick.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/ranger_slider.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/animate.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/scroll_button.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/custom_spacing.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/colorfulTab.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/responsive.css') }}">
+    
+    @stack('styles')
 </head>
 
 <body>
+    {{-- Header Navigation --}}
+    @include('website::partials.header')
+
+    {{-- Main Content --}}
     @yield('content')
 
-    {{-- Vite JS --}}
-    {{-- {{ module_vite('build-website', 'resources/assets/js/app.js') }} --}}
+    {{-- Footer --}}
+    @include('website::partials.footer')
+
+    {{-- Scroll Button --}}
+    <div class="progress-wrap">
+        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+            <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+        </svg>
+    </div>
+
+    {{-- JavaScript Files --}}
+    <script src="{{ asset('website/js/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ asset('website/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('website/js/Font-Awesome.js') }}"></script>
+    <script src="{{ asset('website/js/slick.min.js') }}"></script>
+    <script src="{{ asset('website/js/jquery.waypoints.min.js') }}"></script>
+    <script src="{{ asset('website/js/jquery.countup.min.js') }}"></script>
+    <script src="{{ asset('website/js/scroll_button.js') }}"></script>
+    <script src="{{ asset('website/js/ranger_jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('website/js/ranger_slider.js') }}"></script>
+    <script src="{{ asset('website/js/select2.min.js') }}"></script>
+    <script src="{{ asset('website/js/wow.min.js') }}"></script>
+    <script src="{{ asset('website/js/colorfulTab.min.js') }}"></script>
+    <script src="{{ asset('website/js/gsap.min.js') }}"></script>
+    <script src="{{ asset('website/js/ScrollSmoother.min.js') }}"></script>
+    <script src="{{ asset('website/js/ScrollTrigger.min.js') }}"></script>
+    <script src="{{ asset('website/js/script.js') }}"></script>
+    
+    @stack('scripts')
 </body>
+
+</html>

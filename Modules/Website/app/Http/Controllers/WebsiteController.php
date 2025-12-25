@@ -3,14 +3,12 @@
 namespace Modules\Website\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class WebsiteController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the home page.
      */
     public function index()
     {
@@ -18,50 +16,130 @@ class WebsiteController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the about page.
      */
-    public function create()
+    public function about()
     {
-        return view('website::create');
+        return view('website::about');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display the menu page.
      */
-    public function store(Request $request): RedirectResponse
+    public function menu()
     {
-        //
+        return view('website::menu');
     }
 
     /**
-     * Show the specified resource.
+     * Display the menu details page.
      */
-    public function show($id)
+    public function menuDetails()
     {
-        return view('website::show');
+        return view('website::menu_details');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Display the blogs page.
      */
-    public function edit($id)
+    public function blogs()
     {
-        return view('website::edit');
+        return view('website::blogs');
     }
 
     /**
-     * Update the specified resource in storage.
+     * Display the blog details page.
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function blogDetails()
     {
-        //
+        return view('website::blog_details');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Display the contact page.
      */
-    public function destroy($id)
+    public function contact()
     {
-        //
+        return view('website::contact');
+    }
+
+    /**
+     * Display the chefs page.
+     */
+    public function chefs()
+    {
+        return view('website::chefs');
+    }
+
+    /**
+     * Display the cart view page.
+     */
+    public function cartView()
+    {
+        return view('website::cart_view');
+    }
+
+    /**
+     * Display the checkout page.
+     */
+    public function checkout()
+    {
+        return view('website::checkout');
+    }
+
+    /**
+     * Display the FAQ page.
+     */
+    public function faq()
+    {
+        return view('website::faq');
+    }
+
+    /**
+     * Display the reservation page.
+     */
+    public function reservation()
+    {
+        return view('website::reservation');
+    }
+
+    /**
+     * Display the service page.
+     */
+    public function service()
+    {
+        return view('website::service');
+    }
+
+    /**
+     * Display the service details page.
+     */
+    public function serviceDetails()
+    {
+        return view('website::service_details');
+    }
+
+    /**
+     * Display the privacy policy page.
+     */
+    public function privacyPolicy()
+    {
+        return view('website::privacy_policy');
+    }
+
+    /**
+     * Display the terms and conditions page.
+     */
+    public function termsCondition()
+    {
+        return view('website::terms_condition');
+    }
+
+    /**
+     * Display the error/404 page.
+     */
+    public function error()
+    {
+        return view('website::error');
     }
 }
