@@ -77,4 +77,29 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
 
     // Warehouse
     Route::resource('warehouse', WarehouseController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    // Restaurant/Website Management Routes
+    Route::prefix('restaurant')->name('restaurant.')->group(function () {
+        // Blogs Management
+        Route::resource('blogs', \Modules\Website\app\Http\Controllers\Admin\BlogController::class)->except('show');
+        
+        // Chefs Management
+        Route::resource('chefs', \Modules\Website\app\Http\Controllers\Admin\ChefController::class)->except('show');
+        
+        // Website Services Management
+        Route::resource('website-services', \Modules\Website\app\Http\Controllers\Admin\WebsiteServiceController::class)->except('show');
+        
+        // Bookings Management
+        Route::resource('bookings', \Modules\Website\app\Http\Controllers\Admin\BookingController::class)->only(['index', 'show', 'destroy']);
+        Route::put('bookings/{booking}/status', [\Modules\Website\app\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.update-status');
+        
+        // CMS Pages Management
+        Route::resource('cms-pages', \Modules\Website\app\Http\Controllers\Admin\CmsPageController::class)->except('show');
+        
+        // FAQs Management
+        Route::resource('faqs', \Modules\Website\app\Http\Controllers\Admin\FaqController::class)->except('show');
+        
+        // Restaurant Menu Items Management
+        Route::resource('menu-items', \Modules\Website\app\Http\Controllers\Admin\RestaurantMenuItemController::class)->except('show');
+    });
 });

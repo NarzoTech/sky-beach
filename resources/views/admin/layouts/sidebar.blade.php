@@ -140,6 +140,54 @@
         @if (Module::isEnabled('Attendance'))
             @include('attendance::sidebar')
         @endif
+
+        {{-- Restaurant/Website Management Menu --}}
+        @if (Module::isEnabled('Website'))
+            <li class="menu-item {{ request()->is('admin/restaurant/*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class='menu-icon tf-icons bx bx-restaurant'></i>
+                    <div class="text-truncate" data-i18n="{{ __('Restaurant') }}">{{ __('Restaurant') }}</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->is('admin/restaurant/blogs*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.blogs.index') }}">
+                            {{ __('Blogs') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/chefs*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.chefs.index') }}">
+                            {{ __('Chefs') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/website-services*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.website-services.index') }}">
+                            {{ __('Services') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/bookings*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.bookings.index') }}">
+                            {{ __('Bookings') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/cms-pages*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.cms-pages.index') }}">
+                            {{ __('CMS Pages') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/faqs*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.faqs.index') }}">
+                            {{ __('FAQs') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/restaurant/menu-items*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.restaurant.menu-items.index') }}">
+                            {{ __('Menu Items') }}
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
         @if (checkAdminHasPermission('setting.view') ||
                 checkAdminHasPermission('admin.view') ||
                 checkAdminHasPermission('role.view') ||
