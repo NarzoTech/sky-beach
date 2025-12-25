@@ -27,6 +27,12 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             AdminInfoSeeder::class,
             DemoDataSeeder::class,
+            // Restaurant/Website Module Seeders
+            BlogSeeder::class,
+            ChefSeeder::class,
+            WebsiteServiceSeeder::class,
+            FaqSeeder::class,
+            RestaurantMenuItemSeeder::class,
         ]);
     }
 }

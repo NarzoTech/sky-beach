@@ -40,7 +40,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -61,7 +61,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -82,7 +82,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -103,7 +103,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -124,7 +124,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -145,7 +145,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -166,7 +166,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -187,7 +187,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>
@@ -208,7 +208,7 @@
                                     <p>We brew delicious, award-winning beers and fry up the crispiest, juiciest hot
                                         chicken
                                         aroun We serve it with.</p>
-                                    <a class="common_btn" href="{{ route('website.service-details') }}">
+                                    <a class="common_btn" href="{{ route('website.service-details', 'sample-service') }}">
                                         <span class="icon">
                                             <img src="{{ asset('website/images/eye.png') }}" alt="order" class="img-fluid w-100">
                                         </span>

@@ -1,4 +1,4 @@
-<!--==========MENU START===========-->
+﻿<!--==========MENU START===========-->
 <nav class="navbar navbar-expand-lg main_menu">
     <div class="container">
         <a class="navbar-brand" href="{{ route('website.index') }}">
@@ -25,14 +25,13 @@
                     <a class="nav-link" href="#">Pages <i class="fal fa-plus"></i></a>
                     <ul class="droap_menu">
                         <li><a href="{{ route('website.blogs') }}">blogs</a></li>
-                        <li><a href="{{ route('website.blog-details') }}">blog details</a></li>
                         <li><a href="{{ route('website.chefs') }}">chefs</a></li>
                         <li><a href="{{ route('website.cart-view') }}">cart view</a></li>
                         <li><a href="{{ route('website.checkout') }}">checkout</a></li>
                         <li><a href="{{ route('website.faq') }}">FAQ's</a></li>
                         <li><a href="{{ route('website.reservation') }}">reservation</a></li>
                         <li><a href="{{ route('website.service') }}">service</a></li>
-                        <li><a href="{{ route('website.service-details') }}">service details</a></li>
+                        <li><a href="{{ route('website.service-details', 'sample-service') }}">service details</a></li>
                         <li><a href="{{ route('website.privacy-policy') }}">privacy policy</a></li>
                         <li><a href="{{ route('website.terms-condition') }}">terms & condition</a></li>
                         <li><a href="{{ route('website.error') }}">error/404</a></li>

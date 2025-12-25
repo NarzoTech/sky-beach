@@ -142,112 +142,47 @@
                                 <div class="col-12">
                                     <div class="colorful-tab-content active" id="item_1">
                                         <div class="row">
-                                            <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                                                <div class="single_menu">
-                                                    <div class="single_menu_img">
-                                                        <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="menu"
-                                                            class="img-fluid w-100">
-                                                        <ul>
-                                                            <li><a href="#"><i class="far fa-eye"></i></a></li>
-                                                            <li><a href="#"><i class="far fa-heart"></i></a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="single_menu_text">
-                                                        <p class="rating">
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                        </p>
-                                                        <a class="category" href="#">Chicken</a>
-                                                        <a class="title" href="{{ route('website.menu-details') }}">Daria Shevtsova</a>
-                                                        <p class="descrption">Homemade pizza crust, pizza sauce</p>
-                                                        <div class="d-flex flex-wrap align-items-center">
-                                                            <a class="add_to_cart" href="{{ route('website.menu-details') }}">buy now</a>
-                                                            <h3>$40 <del>$50</del></h3>
+                                            @forelse($featuredMenuItems->take(8) as $item)
+                                                <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
+                                                    <div class="single_menu">
+                                                        <div class="single_menu_img">
+                                                            @if($item->image)
+                                                                <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                                            @else
+                                                                <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                                            @endif
+                                                            <ul>
+                                                                <li><a href="#"><i class="far fa-eye"></i></a></li>
+                                                                <li><a href="#"><i class="far fa-heart"></i></a></li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="single_menu_text">
+                                                            <p class="rating">
+                                                                <i class="fas fa-star"></i>
+                                                                <i class="fas fa-star"></i>
+                                                                <i class="fas fa-star"></i>
+                                                                <i class="fas fa-star"></i>
+                                                                <i class="fas fa-star"></i>
+                                                            </p>
+                                                            <a class="category" href="#">{{ $item->category ?? 'Main Course' }}</a>
+                                                            <a class="title" href="{{ route('website.menu-details') }}">{{ $item->name }}</a>
+                                                            <p class="descrption">{{ Str::limit($item->description, 50) }}</p>
+                                                            <div class="d-flex flex-wrap align-items-center">
+                                                                <a class="add_to_cart" href="{{ route('website.menu-details') }}">buy now</a>
+                                                                @if($item->discount_price)
+                                                                    <h3>${{ number_format($item->discount_price, 0) }} <del>${{ number_format($item->price, 0) }}</del></h3>
+                                                                @else
+                                                                    <h3>${{ number_format($item->price, 0) }}</h3>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                                                <div class="single_menu">
-                                                    <div class="single_menu_img">
-                                                        <img src="{{ asset('website/images/menu_img_2.jpg') }}" alt="menu"
-                                                            class="img-fluid w-100">
-                                                        <ul>
-                                                            <li><a href="#"><i class="far fa-eye"></i></a></li>
-                                                            <li><a href="#"><i class="far fa-heart"></i></a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="single_menu_text">
-                                                        <p class="rating">
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                        </p>
-                                                        <a class="category" href="#">Biryani</a>
-                                                        <a class="title" href="{{ route('website.menu-details') }}">Hyderabadi Biryani</a>
-                                                        <p class="descrption">Homemade pizza crust, pizza sauce</p>
-                                                        <div class="d-flex flex-wrap align-items-center">
-                                                            <a class="add_to_cart" href="{{ route('website.menu-details') }}">buy now</a>
-                                                            <h3>$30 <del>$45</del></h3>
-                                                        </div>
-                                                    </div>
+                                            @empty
+                                                <div class="col-12 text-center">
+                                                    <p>No menu items available at the moment.</p>
                                                 </div>
-                                            </div>
-
-                                            <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                                                <div class="single_menu">
-                                                    <div class="single_menu_img">
-                                                        <img src="{{ asset('website/images/menu_img_3.jpg') }}" alt="menu"
-                                                            class="img-fluid w-100">
-                                                        <ul>
-                                                            <li><a href="#"><i class="far fa-eye"></i></a></li>
-                                                            <li><a href="#"><i class="far fa-heart"></i></a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="single_menu_text">
-                                                        <p class="rating">
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                        </p>
-                                                        <a class="category" href="#">Burger</a>
-                                                        <a class="title" href="{{ route('website.menu-details') }}">Spicy Burger</a>
-                                                        <p class="descrption">Homemade pizza crust, pizza sauce</p>
-                                                        <div class="d-flex flex-wrap align-items-center">
-                                                            <a class="add_to_cart" href="{{ route('website.menu-details') }}">buy now</a>
-                                                            <h3>$59 <del>$65</del></h3>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                                                <div class="single_menu">
-                                                    <div class="single_menu_img">
-                                                        <img src="{{ asset('website/images/menu_img_4.jpg') }}" alt="menu"
-                                                            class="img-fluid w-100">
-                                                        <ul>
-                                                            <li><a href="#"><i class="far fa-eye"></i></a></li>
-                                                            <li><a href="#"><i class="far fa-heart"></i></a></li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="single_menu_text">
-                                                        <p class="rating">
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                            <i class="fas fa-star"></i>
-                                                        </p>
-                                                        <a class="category" href="#">Pizza</a>
-                                                        <a class="title" href="{{ route('website.menu-details') }}">Mexican Pizza</a>
-                                                        <p class="descrption">Homemade pizza crust, pizza sauce</p>
+                                            @endforelse
                                                         <div class="d-flex flex-wrap align-items-center">
                                                             <a class="add_to_cart" href="{{ route('website.menu-details') }}">buy now</a>
                                                             <h3>$36 <del>$40</del></h3>
@@ -1603,70 +1538,41 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                            <div class="single_chef">
-                                <a href="chefs_details.html" class="single_chef_img">
-                                    <img src="{{ asset('website/images/chef_img_1.jpg') }}" alt="Chef" class="img-fluid w-100">
-                                    <span>Main Chef</span>
-                                </a>
-                                <div class="single_chef_text">
-                                    <a class="title" href="chefs_details.html">Nathaneal Down</a>
-                                    <ul>
-                                        <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                                        <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                                    </ul>
+                        @forelse($featuredChefs as $chef)
+                            <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
+                                <div class="single_chef">
+                                    <a href="{{ route('website.chefs') }}" class="single_chef_img">
+                                        @if($chef->image)
+                                            <img src="{{ asset($chef->image) }}" alt="{{ $chef->name }}" class="img-fluid w-100">
+                                        @else
+                                            <img src="{{ asset('website/images/chef_img_1.jpg') }}" alt="{{ $chef->name }}" class="img-fluid w-100">
+                                        @endif
+                                        <span>{{ $chef->designation }}</span>
+                                    </a>
+                                    <div class="single_chef_text">
+                                        <a class="title" href="{{ route('website.chefs') }}">{{ $chef->name }}</a>
+                                        <ul>
+                                            @if($chef->facebook)
+                                                <li><a class="facebook" href="{{ $chef->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                                            @endif
+                                            @if($chef->twitter)
+                                                <li><a class="twitter" href="{{ $chef->twitter }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
+                                            @endif
+                                            @if($chef->linkedin)
+                                                <li><a class="linkedin" href="{{ $chef->linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
+                                            @endif
+                                            @if($chef->instagram)
+                                                <li><a class="instagram" href="{{ $chef->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                            <div class="single_chef">
-                                <a href="chefs_details.html" class="single_chef_img">
-                                    <img src="{{ asset('website/images/chef_img_2.jpg') }}" alt="Chef" class="img-fluid w-100">
-                                    <span>Executive Chef</span>
-                                </a>
-                                <div class="single_chef_text">
-                                    <a class="title" href="chefs_details.html">Pelican Steve</a>
-                                    <ul>
-                                        <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                                        <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                                    </ul>
-                                </div>
+                        @empty
+                            <div class="col-12 text-center">
+                                <p>No chefs available at the moment.</p>
                             </div>
-                        </div>
-                        <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                            <div class="single_chef">
-                                <a href="chefs_details.html" class="single_chef_img">
-                                    <img src="{{ asset('website/images/chef_img_3.jpg') }}" alt="Chef" class="img-fluid w-100">
-                                    <span>Master Chef</span>
-                                </a>
-                                <div class="single_chef_text">
-                                    <a class="title" href="chefs_details.html">Dylan Meringue</a>
-                                    <ul>
-                                        <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                                        <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
-                            <div class="single_chef">
-                                <a href="chefs_details.html" class="single_chef_img">
-                                    <img src="{{ asset('website/images/chef_img_4.jpg') }}" alt="Chef" class="img-fluid w-100">
-                                    <span>Executive Chef</span>
-                                </a>
-                                <div class="single_chef_text">
-                                    <a class="title" href="chefs_details.html">Fergus Douchebag</a>
-                                    <ul>
-                                        <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                                        <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+                        @endforelse
                         <div class="col-12 text-center mt_60 wow fadeInUp">
                             <a class="common_btn" href="{{ route('website.chefs') }}">
                                 <span class="icon">
@@ -1802,72 +1708,43 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Burger</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">WHAT IS THE DIFFERENCE BETWEEN
-                                        HAMBURGERS & BURGERS?</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_2.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Snacks</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">PAIRING WINE WITH INDIAN FOOD:
-                                        TIPS FROM A SOMMELIER</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
+                        @forelse($recentBlogs as $blog)
+                            <div class="col-lg-4 col-sm-6 wow fadeInUp">
+                                <div class="single_blog">
+                                    <div class="single_blog_img">
+                                        @if($blog->image)
+                                            <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
+                                        @else
+                                            <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
+                                        @endif
+                                        @if($blog->tags)
+                                            <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
+                                        @else
+                                            <a class="category" href="#">Blog</a>
+                                        @endif
+                                    </div>
+                                    <div class="single_blog_text">
+                                        <ul>
+                                            <li>
+                                                <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
+                                                        class="img-fluid"></span>
+                                                {{ $blog->published_at ? $blog->published_at->format('F d, Y') : $blog->created_at->format('F d, Y') }}
+                                            </li>
+                                            <li>BY {{ $blog->author ?? 'Admin' }}</li>
+                                        </ul>
+                                        <a class="title" href="{{ route('website.blog-details', $blog->slug) }}">
+                                            {{ Str::upper($blog->title) }}
+                                        </a>
+                                        <a class="read_btn" href="{{ route('website.blog-details', $blog->slug) }}">Read More <i
+                                                class="far fa-arrow-right"></i></a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_3.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Taste</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">THE WONDERS OF THAI CUISINE
-                                        SWEET, SALTY & SOUR</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
-                                </div>
+                        @empty
+                            <div class="col-12 text-center">
+                                <p>No blogs available at the moment.</p>
                             </div>
-                        </div>
+                        @endforelse
                     </div>
                 </div>
             </section>

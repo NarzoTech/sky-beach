@@ -27,7 +27,7 @@ Route::group([], function () {
     
     // Blog Pages
     Route::get('/blogs', [WebsiteController::class, 'blogs'])->name('website.blogs');
-    Route::get('/blog-details', [WebsiteController::class, 'blogDetails'])->name('website.blog-details');
+    Route::get('/blog/{slug}', [WebsiteController::class, 'blogDetails'])->name('website.blog-details');
     
     // Contact Page
     Route::get('/contact', [WebsiteController::class, 'contact'])->name('website.contact');
@@ -47,7 +47,7 @@ Route::group([], function () {
     
     // Service Pages
     Route::get('/service', [WebsiteController::class, 'service'])->name('website.service');
-    Route::get('/service-details', [WebsiteController::class, 'serviceDetails'])->name('website.service-details');
+    Route::get('/service/{slug}', [WebsiteController::class, 'serviceDetails'])->name('website.service-details');
     
     // Privacy Policy & Terms
     Route::get('/privacy-policy', [WebsiteController::class, 'privacyPolicy'])->name('website.privacy-policy');

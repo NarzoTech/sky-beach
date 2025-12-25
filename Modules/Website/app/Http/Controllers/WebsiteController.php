@@ -4,6 +4,11 @@ namespace Modules\Website\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Website\app\Models\Blog;
+use Modules\Website\app\Models\Chef;
+use Modules\Website\app\Models\WebsiteService;
+use Modules\Website\app\Models\Faq;
+use Modules\Website\app\Models\RestaurantMenuItem;
 
 class WebsiteController extends Controller
 {
@@ -12,7 +17,26 @@ class WebsiteController extends Controller
      */
     public function index()
     {
-        return view('website::index');
+        $featuredMenuItems = RestaurantMenuItem::active()
+            ->forWebsite()
+            ->featured()
+            ->ordered()
+            ->take(6)
+            ->get();
+            
+        $featuredChefs = Chef::active()
+            ->featured()
+            ->ordered()
+            ->take(4)
+            ->get();
+            
+        $recentBlogs = Blog::active()
+            ->published()
+            ->latest()
+            ->take(3)
+            ->get();
+        
+        return view('website::index', compact('featuredMenuItems', 'featuredChefs', 'recentBlogs'));
     }
 
     /**
@@ -28,7 +52,18 @@ class WebsiteController extends Controller
      */
     public function menu()
     {
-        return view('website::menu');
+        $menuItems = RestaurantMenuItem::active()
+            ->forWebsite()
+            ->ordered()
+            ->get();
+            
+        $categories = RestaurantMenuItem::active()
+            ->forWebsite()
+            ->pluck('category')
+            ->unique()
+            ->filter();
+        
+        return view('website::menu', compact('menuItems', 'categories'));
     }
 
     /**
@@ -44,15 +79,41 @@ class WebsiteController extends Controller
      */
     public function blogs()
     {
-        return view('website::blogs');
+        $blogs = Blog::active()
+            ->published()
+            ->latest()
+            ->paginate(9);
+            
+        $featuredBlogs = Blog::active()
+            ->published()
+            ->featured()
+            ->take(3)
+            ->get();
+        
+        return view('website::blogs', compact('blogs', 'featuredBlogs'));
     }
 
     /**
      * Display the blog details page.
      */
-    public function blogDetails()
+    public function blogDetails($slug = null)
     {
-        return view('website::blog_details');
+        $blog = Blog::active()
+            ->published()
+            ->where('slug', $slug)
+            ->firstOrFail();
+            
+        // Increment views
+        $blog->increment('views');
+        
+        $relatedBlogs = Blog::active()
+            ->published()
+            ->where('id', '!=', $blog->id)
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
+        
+        return view('website::blog_details', compact('blog', 'relatedBlogs'));
     }
 
     /**
@@ -68,7 +129,11 @@ class WebsiteController extends Controller
      */
     public function chefs()
     {
-        return view('website::chefs');
+        $chefs = Chef::active()
+            ->ordered()
+            ->get();
+        
+        return view('website::chefs', compact('chefs'));
     }
 
     /**
@@ -92,7 +157,12 @@ class WebsiteController extends Controller
      */
     public function faq()
     {
-        return view('website::faq');
+        $faqs = Faq::active()
+            ->ordered()
+            ->get()
+            ->groupBy('category');
+        
+        return view('website::faq', compact('faqs'));
     }
 
     /**
@@ -108,15 +178,33 @@ class WebsiteController extends Controller
      */
     public function service()
     {
-        return view('website::service');
+        $services = WebsiteService::active()
+            ->ordered()
+            ->get();
+            
+        $featuredServices = WebsiteService::active()
+            ->featured()
+            ->ordered()
+            ->get();
+        
+        return view('website::service', compact('services', 'featuredServices'));
     }
 
     /**
      * Display the service details page.
      */
-    public function serviceDetails()
+    public function serviceDetails($slug = null)
     {
-        return view('website::service_details');
+        $service = WebsiteService::active()
+            ->where('slug', $slug)
+            ->firstOrFail();
+            
+        $relatedServices = WebsiteService::active()
+            ->where('id', '!=', $service->id)
+            ->take(3)
+            ->get();
+        
+        return view('website::service_details', compact('service', 'relatedServices'));
     }
 
     /**

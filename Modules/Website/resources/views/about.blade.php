@@ -404,9 +404,9 @@
                                         </li>
                                         <li>BY Admin</li>
                                     </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">WHAT IS THE DIFFERENCE BETWEEN
+                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">WHAT IS THE DIFFERENCE BETWEEN
                                         HAMBURGERS & BURGERS?</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
+                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
                                             class="far fa-arrow-right"></i></a>
                                 </div>
                             </div>
@@ -426,9 +426,9 @@
                                         </li>
                                         <li>BY Admin</li>
                                     </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">PAIRING WINE WITH INDIAN FOOD:
+                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">PAIRING WINE WITH INDIAN FOOD:
                                         TIPS FROM A SOMMELIER</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
+                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
                                             class="far fa-arrow-right"></i></a>
                                 </div>
                             </div>
@@ -448,9 +448,9 @@
                                         </li>
                                         <li>BY Admin</li>
                                     </ul>
-                                    <a class="title" href="{{ route('website.blog-details') }}">THE WONDERS OF THAI CUISINE
+                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">THE WONDERS OF THAI CUISINE
                                         SWEET, SALTY & SOUR</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details') }}">Read More <i
+                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
                                             class="far fa-arrow-right"></i></a>
                                 </div>
                             </div>

@@ -225,7 +225,7 @@
                                             </div>
                                             <div class="text">
                                                 <p><i class="far fa-calendar-alt"></i> May 06, 2026</p>
-                                                <a class="title" href="{{ route('website.blog-details') }}">Freshly Served Exploring
+                                                <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">Freshly Served Exploring
                                                     the World of Fresh</a>
                                             </div>
                                         </li>
@@ -236,7 +236,7 @@
                                             </div>
                                             <div class="text">
                                                 <p><i class="far fa-calendar-alt"></i> May 06, 2026</p>
-                                                <a class="title" href="{{ route('website.blog-details') }}">Innovative Hot Chess raw
+                                                <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">Innovative Hot Chess raw
                                                     Make Creator.</a>
                                             </div>
                                         </li>
@@ -247,7 +247,7 @@
                                             </div>
                                             <div class="text">
                                                 <p><i class="far fa-calendar-alt"></i> May 06, 2026</p>
-                                                <a class="title" href="{{ route('website.blog-details') }}">This So Trendy Restaurant
+                                                <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">This So Trendy Restaurant
                                                     That Everyone</a>
                                             </div>
                                         </li>
