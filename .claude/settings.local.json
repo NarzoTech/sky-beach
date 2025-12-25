@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(php artisan:*)",
+      "Bash(cat:*)",
+      "Bash(mysql:*)"
+    ]
+  }
+}

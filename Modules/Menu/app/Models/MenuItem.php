@@ -1,0 +1,273 @@
+<?php
+
+namespace Modules\Menu\app\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
+use Modules\Product\app\Models\Product;
+
+class MenuItem extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'short_description',
+        'long_description',
+        'category_id',
+        'image',
+        'gallery',
+        'base_price',
+        'cost_price',
+        'preparation_time',
+        'calories',
+        'is_vegetarian',
+        'is_vegan',
+        'is_spicy',
+        'spice_level',
+        'allergens',
+        'is_featured',
+        'is_available',
+        'status',
+        'sku',
+        'barcode',
+        'display_order',
+    ];
+
+    protected $casts = [
+        'gallery' => 'array',
+        'allergens' => 'array',
+        'base_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
+        'is_vegetarian' => 'boolean',
+        'is_vegan' => 'boolean',
+        'is_spicy' => 'boolean',
+        'is_featured' => 'boolean',
+        'is_available' => 'boolean',
+        'status' => 'boolean',
+    ];
+
+    protected $appends = ['image_url', 'final_price', 'profit_margin'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->slug)) {
+                $model->slug = Str::slug($model->name);
+            }
+            if (empty($model->sku)) {
+                $model->sku = 'MENU-' . strtoupper(Str::random(8));
+            }
+        });
+
+        static::updating(function ($model) {
+            if ($model->isDirty('name') && empty($model->slug)) {
+                $model->slug = Str::slug($model->name);
+            }
+        });
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return asset('assets/images/placeholder.png');
+    }
+
+    public function getGalleryUrlsAttribute()
+    {
+        if ($this->gallery && is_array($this->gallery)) {
+            return array_map(function ($img) {
+                return asset('storage/' . $img);
+            }, $this->gallery);
+        }
+        return [];
+    }
+
+    public function getFinalPriceAttribute()
+    {
+        return $this->base_price;
+    }
+
+    public function getProfitMarginAttribute()
+    {
+        if ($this->cost_price > 0) {
+            return round((($this->base_price - $this->cost_price) / $this->base_price) * 100, 2);
+        }
+        return 100;
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(MenuCategory::class, 'category_id')->withDefault();
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(MenuVariant::class);
+    }
+
+    public function activeVariants(): HasMany
+    {
+        return $this->hasMany(MenuVariant::class)->where('status', 1);
+    }
+
+    public function addons(): BelongsToMany
+    {
+        return $this->belongsToMany(MenuAddon::class, 'menu_item_addons', 'menu_item_id', 'addon_id')
+            ->withPivot('max_quantity', 'is_required')
+            ->withTimestamps();
+    }
+
+    public function activeAddons(): BelongsToMany
+    {
+        return $this->belongsToMany(MenuAddon::class, 'menu_item_addons', 'menu_item_id', 'addon_id')
+            ->where('menu_addons.status', 1)
+            ->withPivot('max_quantity', 'is_required')
+            ->withTimestamps();
+    }
+
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(Recipe::class);
+    }
+
+    public function ingredients(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'recipes', 'menu_item_id', 'product_id')
+            ->withPivot('quantity_required', 'unit_id', 'notes')
+            ->withTimestamps();
+    }
+
+    public function branchPrices(): HasMany
+    {
+        return $this->hasMany(BranchMenuPrice::class);
+    }
+
+    public function branchAvailability(): HasMany
+    {
+        return $this->hasMany(BranchMenuAvailability::class);
+    }
+
+    public function translations(): HasMany
+    {
+        return $this->hasMany(MenuItemTranslation::class);
+    }
+
+    public function translation($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+        return $this->translations()->where('locale', $locale)->first();
+    }
+
+    public function getTranslatedNameAttribute()
+    {
+        $translation = $this->translation();
+        return $translation ? $translation->name : $this->name;
+    }
+
+    public function getTranslatedShortDescriptionAttribute()
+    {
+        $translation = $this->translation();
+        return $translation ? $translation->short_description : $this->short_description;
+    }
+
+    public function getTranslatedLongDescriptionAttribute()
+    {
+        $translation = $this->translation();
+        return $translation ? $translation->long_description : $this->long_description;
+    }
+
+    public function comboItems(): HasMany
+    {
+        return $this->hasMany(ComboItem::class);
+    }
+
+    public function getPriceForBranch($warehouseId, $variantId = null)
+    {
+        $branchPrice = $this->branchPrices()
+            ->where('warehouse_id', $warehouseId)
+            ->where('variant_id', $variantId)
+            ->first();
+
+        if ($branchPrice) {
+            return $branchPrice->price;
+        }
+
+        if ($variantId) {
+            $variant = $this->variants()->find($variantId);
+            if ($variant) {
+                return $this->base_price + $variant->price_adjustment;
+            }
+        }
+
+        return $this->base_price;
+    }
+
+    public function isAvailableAtBranch($warehouseId)
+    {
+        $availability = $this->branchAvailability()
+            ->where('warehouse_id', $warehouseId)
+            ->first();
+
+        if ($availability) {
+            return $availability->is_available;
+        }
+
+        return $this->is_available;
+    }
+
+    public function calculateCostFromRecipe()
+    {
+        $totalCost = 0;
+        foreach ($this->recipes as $recipe) {
+            if ($recipe->product) {
+                $totalCost += $recipe->product->cost * $recipe->quantity_required;
+            }
+        }
+        return $totalCost;
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function scopeAvailable($query)
+    {
+        return $query->where('is_available', 1);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', 1);
+    }
+
+    public function scopeVegetarian($query)
+    {
+        return $query->where('is_vegetarian', 1);
+    }
+
+    public function scopeVegan($query)
+    {
+        return $query->where('is_vegan', 1);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('display_order')->orderBy('name');
+    }
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+}

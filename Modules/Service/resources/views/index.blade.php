@@ -1,0 +1,248 @@
+@extends('admin.layouts.master')
+@section('title')
+    <title>{{ __('Service Category List') }}</title>
+@endsection
+
+
+@section('content')
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body pb-0">
+                    <form class="search_form" action="" method="GET">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6"">
+                                <div class="form-group search-wrapper">
+                                    <input type="text" name="keyword" value="{{ request()->get('keyword') }}"
+                                        class="form-control" placeholder="Search..." autocomplete="off">
+                                    <button type="submit">
+                                        <i class='bx bx-search'></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6"">
+                                <div class="form-group">
+                                    <select name="order_by" id="order_by" class="form-control">
+                                        <option value="">{{ __('Order By') }}</option>
+                                        <option value="asc" {{ request('order_by') == 'asc' ? 'selected' : '' }}>
+                                            {{ __('ASC') }}
+                                        </option>
+                                        <option value="desc" {{ request('order_by') == 'desc' ? 'selected' : '' }}>
+                                            {{ __('DESC') }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6"">
+                                <div class="form-group">
+                                    <select name="par-page" id="par-page" class="form-control">
+                                        <option value="">{{ __('Per Page') }}</option>
+                                        <option value="10" {{ '10' == request('par-page') ? 'selected' : '' }}>
+                                            {{ __('10') }}
+                                        </option>
+                                        <option value="50" {{ '50' == request('par-page') ? 'selected' : '' }}>
+                                            {{ __('50') }}
+                                        </option>
+                                        <option value="100" {{ '100' == request('par-page') ? 'selected' : '' }}>
+                                            {{ __('100') }}
+                                        </option>
+                                        <option value="all" {{ 'all' == request('par-page') ? 'selected' : '' }}>
+                                            {{ __('All') }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <button type="button" class="btn bg-danger form-reset">Reset</button>
+                                    <button type="submit" class="btn bg-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-header">
+            <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
+                <h4 class="section_title">{{ __('Service Category List') }}</h4>
+            </div>
+            @adminCan('service.category.create')
+                <div class="btn-actions-pane-right actions-icon-btn">
+                    <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#addcategory" class="btn btn-primary"><i
+                            class="fa fa-plus"></i>
+                        {{ __('Add Service Category') }}</a>
+                </div>
+            @endadminCan
+        </div>
+        <div class="card-body">
+            <div class="table-responsive list_table">
+                <table style="width: 100%;" class="table">
+                    <thead>
+                        <tr>
+                            <th>{{ __('SN') }}</th>
+                            <th>{{ __('Name') }}</th>
+                            <th>{{ __('Action') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($categories as $index => $category)
+                            <tr>
+                                <td>{{ $loop->first + $index }}</td>
+                                <td>{{ $category->name }}</td>
+                                <td>
+                                    @if (checkAdminHasPermission('service.category.edit') || checkAdminHasPermission('service.category.delete'))
+                                        <div class="btn-group" role="group">
+                                            <button id="btnGroupDrop{{ $category->id }}" type="button"
+                                                class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                                {{ __('Action') }}
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $category->id }}">
+                                                @adminCan('service.category.edit')
+                                                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal"
+                                                        data-bs-target="#editcategory{{ $category->id }}">{{ __('Edit') }}</a>
+                                                @endadminCan
+                                                @adminCan('service.category.delete')
+                                                    <a href="javascript:;"class="dropdown-item"
+                                                        onclick="deleteData({{ $category->id }})">
+                                                        {{ __('Delete') }}</a>
+                                                @endadminCan
+                                            </div>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <x-empty-table :name="__('Category')" route="" create="no" :message="__('No data found!')"
+                                colspan="3"></x-empty-table>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if (request()->get('par-page') !== 'all')
+                <div class="float-right">
+                    {{ $categories->onEachSide(0)->links() }}
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- add area --}}
+    <div class="modal fade" id="addcategory">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">{{ __('Add Service Category') }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body py-0">
+                    <form action="{{ route('admin.serviceCategory.store') }}" method="POST" id="add-category-form">
+                        @csrf
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="name">{{ __('Name') }}<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="name">{{ __('Status') }}<span class="text-danger">*</span></label>
+                                    <select name="status" id="status" class="form-control" required>
+                                        <option value="1">{{ __('Active') }}</option>
+                                        <option value="0">{{ __('Inactive') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" form="add-category-form">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    {{-- edit area --}}
+    @foreach ($categories as $index => $category)
+        <div class="modal fade" id="editcategory{{ $category->id }}">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">{{ __('Edit Service Category') }}</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <form action="{{ route('admin.serviceCategory.update', $category->id) }}" method="POST"
+                            id="edit-category-form{{ $category->id }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="name">{{ __('Name') }}<span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name"
+                                            value="{{ $category->name }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="status">{{ __('Status') }}<span
+                                                class="text-danger">*</span></label>
+                                        <select name="status" id="status" class="form-control" required>
+                                            <option value="1" {{ $category->status == 1 ? 'selected' : '' }}>
+                                                {{ __('Active') }}
+                                            </option>
+                                            <option value="0" {{ $category->status == 0 ? 'selected' : '' }}>
+                                                {{ __('Inactive') }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger"
+                            data-bs-dismiss="modal">{{ __('Close') }}</button>
+                        <button type="submit" class="btn btn-primary"
+                            form="edit-category-form{{ $category->id }}">{{ __('Update') }}</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    @push('js')
+        <script>
+            function deleteData(id) {
+                let url = "{{ route('admin.serviceCategory.destroy', ':id') }}"
+                url = url.replace(':id', id);
+                $("#deleteForm").attr("action", url);
+                $('#deleteModal').modal('show');
+            }
+        </script>
+    @endpush
+@endsection
