@@ -11,12 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_sales', function (Blueprint $table) {
-            $table->unsignedBigInteger('unit_id')->nullable()->after('product_id');
-            $table->decimal('base_quantity', 20, 4)->nullable()->after('quantity')->comment('Quantity converted to product base unit');
-            
-            $table->foreign('unit_id')->references('id')->on('unit_types')->onDelete('set null');
-        });
+        if (Schema::hasTable('ingredient_sales') && Schema::hasTable('unit_types')) {
+            Schema::table('ingredient_sales', function (Blueprint $table) {
+                if (!Schema::hasColumn('ingredient_sales', 'unit_id')) {
+                    $table->unsignedBigInteger('unit_id')->nullable()->after('ingredient_id');
+                }
+                if (!Schema::hasColumn('ingredient_sales', 'base_quantity')) {
+                    $table->decimal('base_quantity', 20, 4)->nullable()->after('quantity')->comment('Quantity converted to product base unit');
+                }
+            });
+
+            // Add foreign key separately to avoid issues
+            if (Schema::hasColumn('ingredient_sales', 'unit_id')) {
+                Schema::table('ingredient_sales', function (Blueprint $table) {
+                    $table->foreign('unit_id')->references('id')->on('unit_types')->onDelete('set null');
+                });
+            }
+        }
     }
 
     /**
@@ -24,9 +35,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('product_sales', function (Blueprint $table) {
-            $table->dropForeign(['unit_id']);
-            $table->dropColumn(['unit_id', 'base_quantity']);
-        });
+        if (Schema::hasTable('ingredient_sales')) {
+            Schema::table('ingredient_sales', function (Blueprint $table) {
+                if (Schema::hasColumn('ingredient_sales', 'unit_id')) {
+                    $table->dropForeign(['unit_id']);
+                    $table->dropColumn(['unit_id']);
+                }
+                if (Schema::hasColumn('ingredient_sales', 'base_quantity')) {
+                    $table->dropColumn(['base_quantity']);
+                }
+            });
+        }
     }
 };

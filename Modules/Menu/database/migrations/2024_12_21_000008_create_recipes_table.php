@@ -14,14 +14,13 @@ return new class extends Migration
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('menu_item_id');
-            $table->unsignedBigInteger('product_id')->comment('Product used as ingredient');
+            $table->unsignedBigInteger('ingredient_id')->comment('Ingredient used in recipe');
             $table->decimal('quantity_required', 12, 4)->default(0);
             $table->unsignedBigInteger('unit_id')->nullable();
             $table->text('notes')->nullable();
             $table->foreign('menu_item_id')->references('id')->on('menu_items')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            $table->foreign('unit_id')->references('id')->on('unit_types')->onDelete('set null');
-            $table->unique(['menu_item_id', 'product_id']);
+            // Foreign keys for ingredient_id and unit_id will be handled separately due to migration order
+            $table->unique(['menu_item_id', 'ingredient_id']);
             $table->timestamps();
         });
     }

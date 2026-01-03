@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sales_return_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sale_return_id');
-            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->unsignedBigInteger('service_id')->nullable();
             $table->tinyInteger('source')->default(1)->comment(
                 '1: From Stock, 2: From Out side'
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('price');
             $table->string('sub_total');
             $table->foreign('sale_return_id')->references('id')->on('sales_return')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            // Foreign key for ingredient_id will be handled by the ingredient module
             $table->timestamps();
         });
     }

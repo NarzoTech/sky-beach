@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('order_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->unsignedBigInteger('seller_id')->nullable();
             $table->tinyInteger('rating');
             $table->text('comment')->nullable();
             $table->boolean('status')->default(true);
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            // Foreign key for ingredient_id will be handled by the ingredient module
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });

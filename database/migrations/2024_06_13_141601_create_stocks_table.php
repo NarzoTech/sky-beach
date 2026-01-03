@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedBigInteger('ingredient_id')->nullable();
             $table->unsignedBigInteger('purchase_id')->nullable();
             $table->unsignedBigInteger('sale_id')->nullable();
             $table->unsignedBigInteger('purchase_return_id')->nullable();
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('admins');
             $table->foreignId('updated_by')->nullable()->constrained('admins');
 
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            // Foreign key for ingredient_id will be handled by the ingredient module
             $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');
             $table->foreign('warehouse_id')->references('id')->on('warehouses')->onDelete('cascade');
             $table->softDeletes();

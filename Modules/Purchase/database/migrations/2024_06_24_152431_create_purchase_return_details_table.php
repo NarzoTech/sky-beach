@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('purchase_return_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('purchase_return_id');
-            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('ingredient_id');
             $table->unsignedBigInteger('purchase_id');
             $table->integer('quantity')->default(0);
             $table->float('total', 10, 0);

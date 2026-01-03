@@ -18,7 +18,7 @@ class OrderReview extends Model
     protected $fillable = [
         'order_id',
         'user_id',
-        'product_id',
+        'ingredient_id',
         'seller_id',
         'rating',
         'comment',
@@ -34,7 +34,7 @@ class OrderReview extends Model
 
     public function product()
     {
-        return $this->belongsTo(Ingredient::class)->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 
     public function user()

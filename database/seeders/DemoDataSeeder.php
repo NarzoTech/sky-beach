@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Modules\Ingredient\app\Models\IngredientCategory;
+use Modules\Ingredient\app\Models\Category;
 use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Ingredient\app\Models\IngredientBrand;
 use Modules\Ingredient\app\Models\UnitType;
@@ -78,7 +78,7 @@ class DemoDataSeeder extends Seeder
 
         $createdCategories = [];
         foreach ($categories as $category) {
-            $createdCategories[] = IngredientCategory::firstOrCreate(
+            $createdCategories[] = Category::firstOrCreate(
                 ['name' => $category['name']],
                 $category
             );

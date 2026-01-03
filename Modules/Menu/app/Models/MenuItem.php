@@ -142,7 +142,7 @@ class MenuItem extends Model
 
     public function ingredients(): BelongsToMany
     {
-        return $this->belongsToMany(Ingredient::class, 'recipes', 'menu_item_id', 'product_id')
+        return $this->belongsToMany(Ingredient::class, 'recipes', 'menu_item_id', 'ingredient_id')
             ->withPivot('quantity_required', 'unit_id', 'notes')
             ->withTimestamps();
     }

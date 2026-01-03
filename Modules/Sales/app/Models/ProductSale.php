@@ -12,13 +12,13 @@ class ProductSale extends Model
 {
     use HasFactory;
 
-    protected $table = 'product_sales';
+    protected $table = 'ingredient_sales';
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'sale_id',
-        'product_id',
+        'ingredient_id',
         'service_id',
         'quantity',
         'sale_unit_id',
@@ -43,7 +43,7 @@ class ProductSale extends Model
 
     public function product()
     {
-        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 
     public function service()

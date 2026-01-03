@@ -20,5 +20,6 @@
     "Report": true,
     "Attendance": true,
     "Menu": true,
-    "Website": true
+    "Website": true,
+    "Ingredient": true
 }

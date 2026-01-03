@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreignId('product_id')->constrained();
+            $table->unsignedBigInteger('ingredient_id');
+            // Foreign key for ingredient_id will be handled by the ingredient module
             $table->integer('qty');
             $table->float('price');
             $table->float('total');

@@ -12,7 +12,7 @@ class Recipe extends Model
 
     protected $fillable = [
         'menu_item_id',
-        'product_id',
+        'ingredient_id',
         'quantity_required',
         'unit_id',
         'notes',
@@ -31,7 +31,7 @@ class Recipe extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Ingredient::class);
+        return $this->belongsTo(Ingredient::class, 'ingredient_id');
     }
 
     public function unit(): BelongsTo

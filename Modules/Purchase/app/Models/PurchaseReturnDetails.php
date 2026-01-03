@@ -18,7 +18,7 @@ class PurchaseReturnDetails extends Model
      */
     protected $fillable = [
         'purchase_return_id',
-        'product_id',
+        'ingredient_id',
         'purchase_id',
         'quantity',
         'total',
@@ -31,7 +31,7 @@ class PurchaseReturnDetails extends Model
     }
     public function product()
     {
-        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 
     public function purchase()

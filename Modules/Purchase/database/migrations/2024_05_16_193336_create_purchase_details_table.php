@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('purchase_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('purchase_id')->constrained('purchases');
-            $table->foreignId('product_id')->constrained('products');
+            $table->unsignedBigInteger('ingredient_id');
+            // Foreign key for ingredient_id will be handled by the ingredient module
             $table->integer('quantity');
             $table->decimal('purchase_price', 10, 2);
             $table->decimal('sub_total', 10, 2);

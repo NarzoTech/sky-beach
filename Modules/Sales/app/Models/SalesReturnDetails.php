@@ -16,7 +16,7 @@ class SalesReturnDetails extends Model
      */
     protected $fillable = [
         'sale_return_id',
-        'product_id',
+        'ingredient_id',
         'service_id',
         'source',
         'quantity',
@@ -32,6 +32,6 @@ class SalesReturnDetails extends Model
 
     public function product()
     {
-        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 }

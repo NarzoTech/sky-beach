@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->string('warranty')->nullable()->after('stock_alert');
-        });
+        if (Schema::hasTable('ingredients') && !Schema::hasColumn('ingredients', 'warranty')) {
+            Schema::table('ingredients', function (Blueprint $table) {
+                $table->string('warranty')->nullable()->after('stock_alert');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('warranty');
-        });
+        if (Schema::hasTable('ingredients') && Schema::hasColumn('ingredients', 'warranty')) {
+            Schema::table('ingredients', function (Blueprint $table) {
+                $table->dropColumn('warranty');
+            });
+        }
     }
 };
