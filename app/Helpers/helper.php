@@ -581,11 +581,6 @@ if (! function_exists('routeList')) {
                 'permission' => 'brand.view',
             ],
             (object) [
-                'name'       => 'Print Barcode / Label',
-                'route'      => 'ingredient.barcode',
-                'permission' => 'ingredient.barcode',
-            ],
-            (object) [
                 'name'       => 'Add Purchase',
                 'route'      => 'purchase.create',
                 'permission' => 'purchase.create',

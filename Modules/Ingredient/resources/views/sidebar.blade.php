@@ -2,7 +2,6 @@
         checkAdminHasPermission('ingredient.unit.view') ||
         checkAdminHasPermission('ingredient.category.view') ||
         checkAdminHasPermission('ingredient.brand.view') ||
-        checkAdminHasPermission('ingredient.barcode.print') ||
         checkAdminHasPermission('ingredient.create'))
 
 
@@ -46,14 +45,6 @@
                 <li class="menu-item {{ Route::is('admin.brand.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.brand.index') }}" class="menu-link">
                         <div class="text-truncate" data-i18n="Help Center">{{ __('Brand') }}</div>
-                    </a>
-                </li>
-            @endadminCan
-            @adminCan('ingredient.barcode.print')
-                <li class="menu-item {{ Route::is('admin.ingredient.barcode') ? 'active' : '' }}">
-                    <a href="{{ route('admin.ingredient.barcode') }}" class="menu-link">
-                        <div class="text-truncate" data-i18n="Help Center">{{ __('Print Barcode') }} / {{ __('Label') }}
-                        </div>
                     </a>
                 </li>
             @endadminCan

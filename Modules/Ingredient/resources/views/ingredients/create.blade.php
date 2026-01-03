@@ -204,9 +204,9 @@
     </div>
 
     {{-- category create modal --}}
-    @include('product::products.category.create-modal')
-    @include('product::products.brand.create-modal')
-    @include('product::unit-types.unit-modal')
+    @include('ingredient::ingredients.category.create-modal')
+    @include('ingredient::ingredients.brand.create-modal')
+    @include('ingredient::unit-types.unit-modal')
 @endsection
 
 @push('js')

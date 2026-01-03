@@ -1,7 +1,7 @@
-@extends('product::layouts.master')
+@extends('ingredient::layouts.master')
 
 @section('content')
     <h1>Hello World</h1>
 
-    <p>Module: {!! config('product.name') !!}</p>
+    <p>Module: {!! config('ingredient.name') !!}</p>
 @endsection
