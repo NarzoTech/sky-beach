@@ -326,8 +326,8 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <p class="stat-label">{{ __('Total Products') }}</p>
-                                    <h3 class="stat-value">{{ number_format($data['totalProducts']) }}</h3>
+                                    <p class="stat-label">{{ __('Total Ingredients') }}</p>
+                                    <h3 class="stat-value">{{ number_format($data['totalIngredients']) }}</h3>
                                 </div>
                                 <div class="stat-icon">
                                     <i class='bx bx-box'></i>
@@ -580,9 +580,9 @@
                                         aria-selected="true">
                                         <i class="bx bx-error-circle me-1"></i>
                                         {{ __('Low Stock') }}
-                                        @if (count($data['low_stock_products']) > 0)
+                                        @if (count($data['low_stock_ingredients']) > 0)
                                             <span
-                                                class="badge bg-danger ms-1">{{ count($data['low_stock_products']) }}</span>
+                                                class="badge bg-danger ms-1">{{ count($data['low_stock_ingredients']) }}</span>
                                         @endif
                                     </button>
                                 </li>
@@ -618,7 +618,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse ($data['low_stock_products'] as $index => $product)
+                                            @forelse ($data['low_stock_ingredients'] as $index => $product)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
                                                     <td>
@@ -642,7 +642,7 @@
                                                 <tr>
                                                     <td colspan="5" class="text-center py-4">
                                                         <i class="bx bx-check-circle text-success fs-1"></i>
-                                                        <p class="mb-0 mt-2">{{ __('All products are well stocked!') }}
+                                                        <p class="mb-0 mt-2">{{ __('All ingredients are well stocked!') }}
                                                         </p>
                                                     </td>
                                                 </tr>

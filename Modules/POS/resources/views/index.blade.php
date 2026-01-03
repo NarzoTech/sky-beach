@@ -1718,7 +1718,7 @@
 
         function wishlist(event, id, type) {
             event.stopPropagation();
-            let url = "{{ route('admin.product.wishlist', ':id') }}";
+            let url = "{{ route('admin.ingredient.wishlist', ':id') }}";
 
             url = url.replace(':id', id);
 

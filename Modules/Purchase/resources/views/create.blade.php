@@ -410,7 +410,7 @@
         // Load unit family for purchase unit dropdown
         function loadUnitFamily(productId, selectElement) {
             $.ajax({
-                url: '{{ route("admin.product.unit-family") }}',
+                url: '{{ route("admin.ingredient.unit-family") }}',
                 type: 'GET',
                 data: { product_id: productId },
                 success: function(response) {

@@ -13,7 +13,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4>
-                                    <a href="{{ route('admin.product.create') }}" class="btn btn-primary"><i
+                                    <a href="{{ route('admin.ingredient.create') }}" class="btn btn-primary"><i
                                             class="fa fa-plus"></i>
                                         {{ __('Add Product') }}</a>
                                 </h4>
@@ -72,7 +72,7 @@
                                                         @endif
                                                     </td>
                                                     <td class="d-flex justify-content-center align-items-center">
-                                                        <a href="{{ route('admin.product.edit', ['product' => $product->id]) }}"
+                                                        <a href="{{ route('admin.ingredient.edit', ['product' => $product->id]) }}"
                                                             class="btn btn-primary btn-sm me-2"><i class="fa fa-edit"
                                                                 aria-hidden="true"></i></a>
 
@@ -144,7 +144,7 @@
 
         function deleteData(id) {
             var id = id;
-            var url = '{{ route('admin.product.destroy', ':id') }}';
+            var url = '{{ route('admin.ingredient.destroy', ':id') }}';
             url = url.replace(':id', id);
             $("#deleteForm").attr('action', url);
             $('#deleteModal').modal('show');

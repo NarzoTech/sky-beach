@@ -15,7 +15,7 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h4>{{ __('Product Gallery Images') }}</h4>
                                 <div>
-                                    <a href="{{ route('admin.product.index') }}" class="btn btn-primary"><i
+                                    <a href="{{ route('admin.ingredient.index') }}" class="btn btn-primary"><i
                                             class="fa fa-arrow-left"></i>{{ __('Back') }}</a>
                                 </div>
                             </div>

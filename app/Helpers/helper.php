@@ -555,15 +555,15 @@ if (! function_exists('routeList')) {
             (object) ['name' => 'Customer Group', 'route' => 'customerGroup.index', 'permission' => 'customerGroup.view'],
             (object) ['name' => 'Area List', 'route' => 'area.index', 'permission' => 'area.view'],
             (object) [
-                'name'       => 'Product List',
-                'route'      => 'product.index',
-                'permission' => 'product.view',
-                'children'   => ['product.edit', 'product.show'],
+                'name'       => 'Ingredient List',
+                'route'      => 'ingredient.index',
+                'permission' => 'ingredient.view',
+                'children'   => ['ingredient.edit', 'ingredient.show'],
             ],
             (object) [
-                'name'       => 'Add Product',
-                'route'      => 'product.create',
-                'permission' => 'product.create',
+                'name'       => 'Add Ingredient',
+                'route'      => 'ingredient.create',
+                'permission' => 'ingredient.create',
             ],
             (object) [
                 'name'       => 'Unit Type',
@@ -582,8 +582,8 @@ if (! function_exists('routeList')) {
             ],
             (object) [
                 'name'       => 'Print Barcode / Label',
-                'route'      => 'product.barcode',
-                'permission' => 'product.barcode',
+                'route'      => 'ingredient.barcode',
+                'permission' => 'ingredient.barcode',
             ],
             (object) [
                 'name'       => 'Add Purchase',

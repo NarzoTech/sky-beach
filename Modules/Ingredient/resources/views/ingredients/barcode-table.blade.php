@@ -12,7 +12,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="section_title">{{ __('Print Barcode') }}</h4>
-                                <a href="{{ route('admin.product.index') }}" class="btn btn-primary"><i
+                                <a href="{{ route('admin.ingredient.index') }}" class="btn btn-primary"><i
                                         class="fa fa-arrow-left"></i>{{ __('Back') }}</a>
                             </div>
 
@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="card-body pt-0">
-                                <form action="{{ route('admin.product.barcode.print') }}" method="POST">
+                                <form action="{{ route('admin.ingredient.barcode.print') }}" method="POST">
                                     @csrf
                                     <div class="row">
                                         <div class="col-sm-12">
@@ -137,7 +137,7 @@
             $("#searchProduct").on("input", function() {
                 var value = $(this).val().toLowerCase();
                 $.ajax({
-                    url: "{{ route('admin.product.search') }}",
+                    url: "{{ route('admin.ingredient.search') }}",
                     type: "GET",
                     data: {
                         search: value

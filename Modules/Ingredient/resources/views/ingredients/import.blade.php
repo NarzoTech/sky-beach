@@ -19,12 +19,12 @@
                                     <a href="{{ asset('backend/product.xlsx') }}" download>{{ __('Sample Download') }}</a>
                                 </h4>
                                 <div>
-                                    <a href="{{ route('admin.product.index') }}" class="btn btn-primary"><i
+                                    <a href="{{ route('admin.ingredient.index') }}" class="btn btn-primary"><i
                                             class="fa fa-arrow-left"></i>{{ __('Back') }}</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('admin.product.import.store') }}" class="dropzone" id="mydropzone"
+                                <form action="{{ route('admin.ingredient.import.store') }}" class="dropzone" id="mydropzone"
                                     method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <div class="fallback">

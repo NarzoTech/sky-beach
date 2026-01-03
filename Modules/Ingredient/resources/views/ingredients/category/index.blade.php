@@ -68,7 +68,7 @@
             <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
                 <h4 class="section_title"> {{ __('Category List') }}</h4>
             </div>
-            @adminCan('product.category.create')
+            @adminCan('ingredient.category.create')
                 <div class="btn-actions-pane-right actions-icon-btn">
                     <a href="{{ route('admin.category.create') }}" class="btn btn-primary"><i class="fa fa-plus"></i>
                         {{ __('Add Category') }}</a>
@@ -78,7 +78,7 @@
         <div class="card-body">
             <div class="alert alert-danger d-none justify-content-between delete-section danger-bg">
                 <span><span class="number">0 </span> rows selected</span>
-                @adminCan('product.category.delete')
+                @adminCan('ingredient.category.delete')
                     <button class="btn btn-danger delete-button">Delete</button>
                 @endadminCan
             </div>
@@ -129,12 +129,12 @@
                                                 Action
                                             </button>
                                             <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $category->id }}">
-                                                @adminCan('product.category.edit')
+                                                @adminCan('ingredient.category.edit')
                                                     <a href="{{ route('admin.category.edit', $category->id) }}"
                                                         class=" dropdown-item" data-bs-toggle="tooltip"
                                                         title="{{ __('Edit') }}">{{ __('Edit') }}</a>
                                                 @endadminCan
-                                                @adminCan('product.category.delete')
+                                                @adminCan('ingredient.category.delete')
                                                     <a href="javascript:void(0)"
                                                         class="trigger--fire-modal-1 deleteForm dropdown-item"
                                                         data-bs-toggle="tooltip" title="{{ __('Delete') }}"

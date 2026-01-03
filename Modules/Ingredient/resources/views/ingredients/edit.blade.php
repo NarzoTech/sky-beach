@@ -11,12 +11,12 @@
                 <div class="card-header d-flex justify-content-between">
                     <h4 class="section_title">{{ __('Edit Product') }}</h4>
                     <div>
-                        <a href="{{ route('admin.product.index') }}" class="btn btn-primary"><i
+                        <a href="{{ route('admin.ingredient.index') }}" class="btn btn-primary"><i
                                 class="fa fa-arrow-left"></i>{{ __('Back') }}</a>
                     </div>
                 </div>
                 <div class="card-body">
-                    <form class="create_product_table" action="{{ route('admin.product.update', $product) }}" method="post"
+                    <form class="create_product_table" action="{{ route('admin.ingredient.update', $product) }}" method="post"
                         enctype="multipart/form-data">
                         @csrf
                         @method('PUT')

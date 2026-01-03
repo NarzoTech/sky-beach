@@ -95,12 +95,12 @@
                 <h4 class="section_title"> {{ __('Product List') }}</h4>
             </div>
             <div class="btn-actions-pane-right actions-icon-btn">
-                @adminCan('product.create')
-                    <a href="{{ route('admin.product.create') }}" class="btn btn-primary"><i class="fa fa-plus"></i>
+                @adminCan('ingredient.create')
+                    <a href="{{ route('admin.ingredient.create') }}" class="btn btn-primary"><i class="fa fa-plus"></i>
                         {{ __('Add Product') }}</a>
                 @endadminCan
-                @adminCan('product.bulk.import')
-                    <a href="{{ route('admin.product.import') }}" class="btn btn-primary"><i class="fa fa-upload"></i>
+                @adminCan('ingredient.bulk.import')
+                    <a href="{{ route('admin.ingredient.import') }}" class="btn btn-primary"><i class="fa fa-upload"></i>
                         {{ __('Import Products') }}</a>
                 @endadminCan
 
@@ -117,7 +117,7 @@
                 class="alert alert-danger d-none justify-content-between delete-section danger-bg flex-wrap align-items-center">
                 <span>
                     <span class="number">0 </span> rows selected</span>
-                @adminCan('product.delete')
+                @adminCan('ingredient.delete')
                     <button class="btn btn-danger delete-button">Delete</button>
                 @endadminCan
             </div>
@@ -141,7 +141,7 @@
                             <th>{{ __('After Disc. P.') }}</th>
                             <th>{{ __('Brand') }}</th>
                             <th>{{ __('Category') }}</th>
-                            @adminCan('product.status')
+                            @adminCan('ingredient.status')
                                 <th>{{ __('Status') }}</th>
                             @endadminCan
                             <th>{{ __('Action') }}</th>
@@ -168,7 +168,7 @@
                                 <td>{{ $product->current_price }}</td>
                                 <td>{{ $product->brand->name }}</td>
                                 <td>{{ $product->category->name }}</td>
-                                @adminCan('product.status')
+                                @adminCan('ingredient.status')
                                     <td>
                                         @if ($product->status == 1)
                                             <a href="javascript:;" onclick="status({{ $product->id }})">
@@ -199,24 +199,24 @@
                                                 data-id="{{ $product->id }}">
                                                 {{ __('View') }}</a>
 
-                                            <a href="{{ route('admin.product.show', ['product' => $product->id]) }}"
+                                            <a href="{{ route('admin.ingredient.show', ['product' => $product->id]) }}"
                                                 class="dropdown-item"></i>
                                                 {{ __('Details') }}</a>
 
-                                            @adminCan('product.edit')
-                                                <a href="{{ route('admin.product.edit', ['product' => $product->id]) }}"
+                                            @adminCan('ingredient.edit')
+                                                <a href="{{ route('admin.ingredient.edit', ['product' => $product->id]) }}"
                                                     class="dropdown-item">
 
                                                     {{ __('Edit') }}</a>
                                             @endadminCan
-                                            @adminCan('product.status')
+                                            @adminCan('ingredient.status')
                                                 <a class="dropdown-item" href="javascript:;"
                                                     onclick="status('{{ $product->id }}')"
                                                     data-status="{{ $product->id }}">
                                                     {{ $product->status == 1 ? 'Disable' : 'Enable' }}
                                                 </a>
                                             @endadminCan
-                                            @adminCan('product.delete')
+                                            @adminCan('ingredient.delete')
                                                 <a class="dropdown-item" href="javascript:;"
                                                     @if ($product->orders->count() > 0) data-bs-target="#canNotDeleteModal"
                                             @else onclick="deleteData({{ $product->id }})" @endif>{{ __('Delete') }}</a>
@@ -270,7 +270,7 @@
             'use strict';
             $('.productView').on('click', function() {
                 var id = $(this).data('id');
-                let url = '{{ route('admin.product.view', ':id') }}';
+                let url = '{{ route('admin.ingredient.view', ':id') }}';
                 url = url.replace(':id', id);
                 $.ajax({
                     type: "GET",
@@ -354,7 +354,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('admin.product.bulk.delete') }}",
+                            url: "{{ route('admin.ingredient.bulk.delete') }}",
                             type: 'POST',
                             data: {
                                 _token: "{{ csrf_token() }}",
@@ -382,14 +382,14 @@
 
         function deleteData(id) {
             var id = id;
-            var url = '{{ route('admin.product.destroy', ':id') }}';
+            var url = '{{ route('admin.ingredient.destroy', ':id') }}';
             url = url.replace(':id', id);
             $("#deleteForm").attr('action', url);
             $('#deleteModal').modal('show');
         }
 
         function status(id) {
-            handleStatus("{{ route('admin.product.status', '') }}/" + id)
+            handleStatus("{{ route('admin.ingredient.status', '') }}/" + id)
 
             let status = $('[data-status=' + id + ']').text()
             // remove whitespaces using regex

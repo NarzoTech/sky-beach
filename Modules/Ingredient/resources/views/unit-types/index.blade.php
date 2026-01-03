@@ -8,7 +8,7 @@
     <div class="row">
         <div class="col-xxl-3 col-lg-4">
             <div class="card mb-5">
-                @adminCan('product.unit.create')
+                @adminCan('ingredient.unit.create')
                     <div class="card-header d-flex justify-content-between">
                         <h4 class="section_title">{{ __('Create Unit Type') }}</h4>
                         <div>
@@ -130,12 +130,12 @@
 
                                                     <div class="dropdown-menu"
                                                         aria-labelledby="btnGroupDrop{{ $unit->id }}">
-                                                        @adminCan('product.unit.edit')
+                                                        @adminCan('ingredient.unit.edit')
                                                             <a href="javascript:;"
                                                                 data-href="{{ route('admin.unit.edit', $unit->id) }}"
                                                                 class="dropdown-item edit-btn">{{ __('Edit') }}</a>
                                                         @endadminCan
-                                                        @adminCan('product.unit.delete')
+                                                        @adminCan('ingredient.unit.delete')
                                                             <a href="javascript:;" class="dropdown-item"
                                                                 onclick="deleteData({{ $unit->id }})">
                                                                 {{ __('Delete') }}

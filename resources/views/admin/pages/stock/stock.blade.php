@@ -179,8 +179,8 @@
                                         </button>
                                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $product->id }}">
 
-                                            @adminCan('product.view')
-                                                <a href="{{ route('admin.product.show', $product->id) }}"
+                                            @adminCan('ingredient.view')
+                                                <a href="{{ route('admin.ingredient.show', $product->id) }}"
                                                     class="dropdown-item"
                                                     title="Product Details">{{ __('Product Details') }}</a>
                                             @endadminCan

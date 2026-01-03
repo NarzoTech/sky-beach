@@ -32,8 +32,8 @@
             @include('customer::sidebar')
         @endif
 
-        @if (Module::isEnabled('Product'))
-            @include('product::sidebar')
+        @if (Module::isEnabled('Ingredient'))
+            @include('ingredient::sidebar')
         @endif
 
         @if (Module::isEnabled('Menu'))
