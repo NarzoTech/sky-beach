@@ -16,6 +16,7 @@ class ChefSeeder extends Seeder
         $chefs = [
             [
                 'name' => 'John Anderson',
+                'slug' => 'john-anderson',
                 'designation' => 'Executive Chef',
                 'specialization' => 'French Cuisine',
                 'bio' => 'With over 20 years of culinary experience, Chef John brings authentic French flavors to every dish. Trained at Le Cordon Bleu Paris, he has worked in Michelin-starred restaurants across Europe.',
@@ -33,6 +34,7 @@ class ChefSeeder extends Seeder
             ],
             [
                 'name' => 'Maria Garcia',
+                'slug' => 'maria-garcia',
                 'designation' => 'Head Pastry Chef',
                 'specialization' => 'Desserts & Pastries',
                 'bio' => 'Chef Maria is a master of sweet creations. Her innovative desserts combine traditional techniques with modern presentation, creating unforgettable dining experiences.',
@@ -50,6 +52,7 @@ class ChefSeeder extends Seeder
             ],
             [
                 'name' => 'Kenji Tanaka',
+                'slug' => 'kenji-tanaka',
                 'designation' => 'Sushi Master',
                 'specialization' => 'Japanese Cuisine',
                 'bio' => 'Trained in Tokyo for over 10 years, Chef Kenji brings authentic Japanese culinary artistry to our kitchen. His sushi creations are works of edible art.',
@@ -67,6 +70,7 @@ class ChefSeeder extends Seeder
             ],
             [
                 'name' => 'Isabella Romano',
+                'slug' => 'isabella-romano',
                 'designation' => 'Sous Chef',
                 'specialization' => 'Italian Cuisine',
                 'bio' => 'Growing up in Sicily, Chef Isabella learned the secrets of authentic Italian cooking from her grandmother. She specializes in traditional pasta and regional dishes.',

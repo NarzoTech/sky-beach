@@ -12,6 +12,7 @@ class Chef extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'designation',
         'specialization',
         'bio',
