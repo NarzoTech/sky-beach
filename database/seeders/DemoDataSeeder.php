@@ -5,10 +5,10 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Modules\Product\app\Models\Category;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\ProductBrand;
-use Modules\Product\app\Models\UnitType;
+use Modules\Ingredient\app\Models\IngredientCategory;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\IngredientBrand;
+use Modules\Ingredient\app\Models\UnitType;
 use Modules\Supplier\app\Models\Supplier;
 
 class DemoDataSeeder extends Seeder
@@ -78,7 +78,7 @@ class DemoDataSeeder extends Seeder
 
         $createdCategories = [];
         foreach ($categories as $category) {
-            $createdCategories[] = Category::firstOrCreate(
+            $createdCategories[] = IngredientCategory::firstOrCreate(
                 ['name' => $category['name']],
                 $category
             );
@@ -102,7 +102,7 @@ class DemoDataSeeder extends Seeder
 
         $createdBrands = [];
         foreach ($brands as $brand) {
-            $createdBrands[] = ProductBrand::firstOrCreate(
+            $createdBrands[] = IngredientBrand::firstOrCreate(
                 ['name' => $brand['name']],
                 $brand
             );
@@ -306,7 +306,7 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            Product::firstOrCreate(
+            Ingredient::firstOrCreate(
                 ['sku' => $product['sku']],
                 $product
             );

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 
 class MenuItem extends Model
 {
@@ -142,7 +142,7 @@ class MenuItem extends Model
 
     public function ingredients(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'recipes', 'menu_item_id', 'product_id')
+        return $this->belongsToMany(Ingredient::class, 'recipes', 'menu_item_id', 'product_id')
             ->withPivot('quantity_required', 'unit_id', 'notes')
             ->withTimestamps();
     }

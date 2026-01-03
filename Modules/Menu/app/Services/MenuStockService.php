@@ -6,7 +6,7 @@ use App\Models\Stock;
 use Illuminate\Support\Facades\DB;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\Recipe;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 
 class MenuStockService
 {
@@ -120,7 +120,7 @@ class MenuStockService
      */
     public function getCurrentStock(int $productId, int $warehouseId): float
     {
-        $product = Product::find($productId);
+        $product = Ingredient::find($productId);
         if (!$product) {
             return 0;
         }
@@ -133,7 +133,7 @@ class MenuStockService
     /**
      * Update product stock status based on current stock level
      */
-    protected function updateStockStatus(Product $product): void
+    protected function updateStockStatus(Ingredient $product): void
     {
         if ($product->stock <= 0) {
             $product->update(['stock_status' => 'out_of_stock']);
@@ -171,7 +171,7 @@ class MenuStockService
         // Get all products used as ingredients in recipes
         $usedProductIds = Recipe::pluck('product_id')->unique()->filter();
 
-        $lowStockProducts = Product::whereIn('id', $usedProductIds)
+        $lowStockProducts = Ingredient::whereIn('id', $usedProductIds)
             ->whereNotNull('alert_quantity')
             ->whereColumn('stock', '<=', 'alert_quantity')
             ->get();

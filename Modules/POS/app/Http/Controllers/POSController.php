@@ -24,10 +24,10 @@ use Modules\GlobalSetting\app\Models\EmailTemplate;
 use Modules\Order\app\Models\Order;
 use Modules\Order\app\Models\OrderDetails;
 use Modules\POS\app\Models\CartHold;
-use Modules\Product\app\Models\Category;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Services\BrandService;
-use Modules\Product\app\Services\ProductService;
+use Modules\Ingredient\app\Models\IngredientCategory;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Services\BrandService;
+use Modules\Ingredient\app\Services\IngredientService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
 
@@ -37,10 +37,10 @@ class POSController extends Controller
     protected $orderService;
     protected $brandService;
 
-    public function __construct(private UserGroupService $userGroup, ProductService $productService, OrderService $orderService, BrandService $brandService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services)
+    public function __construct(private UserGroupService $userGroup, IngredientService $ingredientService, OrderService $orderService, BrandService $brandService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services)
     {
         $this->middleware('auth:admin');
-        $this->productService = $productService;
+        $this->productService = $ingredientService;
         $this->orderService = $orderService;
         $this->brandService = $brandService;
     }
@@ -54,7 +54,7 @@ class POSController extends Controller
             $quotation = Quotation::find($request->quotation_id);
 
             foreach ($quotation->details as $detail) {
-                $product = Product::find($detail->product_id);
+                $product = Ingredient::find($detail->product_id);
                 $newReq = Request();
                 $newReq->product_id = $detail->product_id;
                 $newReq->qty = $detail->quantity;
@@ -68,7 +68,7 @@ class POSController extends Controller
 
         Paginator::useBootstrap();
 
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('stock', 'desc');
 
@@ -88,7 +88,7 @@ class POSController extends Controller
 
         $products->appends(request()->query());
 
-        $categories = Category::where('status', 1)->get();
+        $categories = IngredientCategory::where('status', 1)->get();
         $brands = $this->brandService->getActiveBrands();
         $customers = User::orderBy('name', 'asc')->where('status', 1)->get();
 
@@ -125,7 +125,7 @@ class POSController extends Controller
     {
         Paginator::useBootstrap();
 
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('stock', 'desc');
 
@@ -210,7 +210,7 @@ class POSController extends Controller
     public function load_products_list(Request $request)
     {
 
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('stock', 'desc');
 

@@ -27,9 +27,9 @@ use Modules\Customer\app\Models\CustomerPayment;
 use Modules\Employee\app\Models\EmployeeSalary;
 use Modules\Employee\app\Services\EmployeeService;
 use Modules\Expense\app\Models\Expense;
-use Modules\Product\app\Services\BrandService;
-use Modules\Product\app\Services\ProductCategoryService;
-use Modules\Product\app\Services\ProductService;
+use Modules\Ingredient\app\Services\BrandService;
+use Modules\Ingredient\app\Services\IngredientCategoryService;
+use Modules\Ingredient\app\Services\IngredientService;
 use Modules\Purchase\app\Models\Purchase;
 use Modules\Purchase\app\Models\PurchaseDetails;
 use Modules\Purchase\app\Models\PurchaseReturn;
@@ -46,7 +46,7 @@ use Modules\Supplier\app\Models\SupplierPayment;
 class ReportController extends Controller
 {
 
-    public function __construct(private BrandService $brandService, private ProductCategoryService $categoryService, private ProductService $productService, private SupplierService $supplierService, private EmployeeService $employeeService, private AccountsService $accountsService)
+    public function __construct(private BrandService $brandService, private IngredientCategoryService $categoryService, private IngredientService $productService, private SupplierService $supplierService, private EmployeeService $employeeService, private AccountsService $accountsService)
     {
         $this->middleware('auth:admin');
     }

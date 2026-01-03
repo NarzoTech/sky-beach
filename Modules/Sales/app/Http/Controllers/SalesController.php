@@ -18,9 +18,9 @@ use Modules\Accounts\app\Models\Account;
 use Modules\Customer\app\Http\Services\AreaService;
 use Modules\Customer\app\Http\Services\UserGroupService;
 use Modules\POS\app\Models\CartHold;
-use Modules\Product\app\Models\Category;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Services\BrandService;
+use Modules\Ingredient\app\Models\IngredientCategory;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Services\BrandService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
 
@@ -122,7 +122,7 @@ class SalesController extends Controller
 
         session()->forget('UPDATE_CART');
         [$cart_contents, $sale] = $this->saleService->editSale($id);
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('id', 'desc');
 
@@ -142,7 +142,7 @@ class SalesController extends Controller
 
         $products = $products->appends($request->all());
 
-        $categories = Category::where('status', 1)->get();
+        $categories = IngredientCategory::where('status', 1)->get();
         $brands = $this->brandService->getActiveBrands();
         $customers = User::orderBy('name', 'asc')->where('status', 1)->get();
         $accounts = Account::with('bank')->get();

@@ -13,9 +13,9 @@ enum TranslationModels: string
     case MenuBuilder = "Modules\MenuBuilder\app\Models\MenuTranslation";
     case Testimonial = "Modules\Testimonial\app\Models\TestimonialTranslation";
     case Faq = "Modules\Faq\app\Models\FaqTranslation";
-    case ProductCategory = "Modules\Product\app\Models\ProductCategoryTranslation";
-    case ProductBrand = "Modules\Product\app\Models\ProductBrandTranslation";
-    case Product = "Modules\Product\app\Models\ProductTranslation";
+    case IngredientCategory = "Modules\Ingredient\app\Models\IngredientCategoryTranslation";
+    case IngredientBrand = "Modules\Ingredient\app\Models\IngredientBrandTranslation";
+    case Ingredient = "Modules\Ingredient\app\Models\IngredientTranslation";
 
     public static function getAll(): array
     {
@@ -25,9 +25,9 @@ enum TranslationModels: string
             self::MenuBuilder->value,
             self::Testimonial->value,
             self::Faq->value,
-            self::ProductCategory->value,
-            self::ProductBrand->value,
-            self::Product->value,
+            self::IngredientCategory->value,
+            self::IngredientBrand->value,
+            self::Ingredient->value,
         ];
     }
 

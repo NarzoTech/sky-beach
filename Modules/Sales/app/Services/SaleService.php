@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\Accounts\app\Models\Account;
 use Modules\Customer\app\Models\CustomerDue;
 use Modules\Customer\app\Models\CustomerPayment;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\Variant;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\Variant;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
 use Modules\Service\app\Models\Service;
@@ -85,8 +85,8 @@ class SaleService
 
             $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
             
-            // Get product and unit information for conversion
-            $product = $item['type'] == 'product' ? Product::where('id', $item['id'])->first() : null;
+            // Get ingredient and unit information for conversion
+            $product = $item['type'] == 'product' ? Ingredient::where('id', $item['id'])->first() : null;
             $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
             $saleQuantity = $item['qty'];
             
@@ -237,7 +237,7 @@ class SaleService
 
             // restore product stock using base quantity
             foreach ($sale->products as $item) {
-                $product = Product::where('id', $item->product_id)->first();
+                $product = Ingredient::where('id', $item->product_id)->first();
                 if ($product != null && $item->source == 1) {
                     $restoreQty = $item->base_quantity ?? $item->quantity;
                     $product->stock = $product->stock + $restoreQty;
@@ -260,8 +260,8 @@ class SaleService
 
                 $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
                 
-                // Get product and unit information for conversion
-                $product = $item['type'] == 'product' ? Product::where('id', $item['id'])->first() : null;
+                // Get ingredient and unit information for conversion
+                $product = $item['type'] == 'product' ? Ingredient::where('id', $item['id'])->first() : null;
                 $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
                 $saleQuantity = $item['qty'];
                 
@@ -388,7 +388,7 @@ class SaleService
         // delete sales related all info
 
         foreach ($sale->products as $item) {
-            $product = Product::where('id', $item->product_id)->first();
+            $product = Ingredient::where('id', $item->product_id)->first();
             if ($product != null && $item->source == 1) {
                 $restoreQty = $item->base_quantity ?? $item->quantity;
                 $product->stock = $product->stock + $restoreQty;
@@ -439,7 +439,7 @@ class SaleService
             $service = null;
             $product = null;
             if ($detail->product_id) {
-                $product = Product::where('id', $detail->product_id)->first();
+                $product = Ingredient::where('id', $detail->product_id)->first();
                 $type = 'product';
             } else {
                 $product = Service::where('id', $detail->service_id)->first();

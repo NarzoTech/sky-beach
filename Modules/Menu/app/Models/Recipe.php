@@ -4,8 +4,8 @@ namespace Modules\Menu\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\UnitType;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\UnitType;
 
 class Recipe extends Model
 {
@@ -31,7 +31,7 @@ class Recipe extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Ingredient::class);
     }
 
     public function unit(): BelongsTo

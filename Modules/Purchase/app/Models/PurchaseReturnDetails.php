@@ -5,7 +5,7 @@ namespace Modules\Purchase\app\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Purchase\Database\factories\PurchaseReturnDetailsFactory;
 
 class PurchaseReturnDetails extends Model
@@ -31,7 +31,7 @@ class PurchaseReturnDetails extends Model
     }
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
     }
 
     public function purchase()

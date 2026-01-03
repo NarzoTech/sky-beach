@@ -4,7 +4,7 @@ namespace Modules\Sales\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Sales\Database\factories\ProductSaleFactory;
 use Modules\Service\app\Models\Service;
 
@@ -43,7 +43,7 @@ class ProductSale extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
     }
 
     public function service()
@@ -60,6 +60,6 @@ class ProductSale extends Model
 
     public function unit()
     {
-        return $this->belongsTo(\Modules\Product\app\Models\UnitType::class, 'unit_id')->withDefault();
+        return $this->belongsTo(\Modules\Ingredient\app\Models\UnitType::class, 'unit_id')->withDefault();
     }
 }

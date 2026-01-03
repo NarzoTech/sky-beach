@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\Variant;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\Variant;
 
 class Cart extends Model
 {
@@ -13,7 +13,7 @@ class Cart extends Model
 
     protected $fillable = [
         'user_id',
-        'product_id',
+        'ingredient_id',
         'qty',
         'price',
         'total',
@@ -26,9 +26,9 @@ class Cart extends Model
         return $this->belongsTo(User::class)->withDefault();
     }
 
-    public function product()
+    public function ingredient()
     {
-        return $this->belongsTo(Product::class)->withDefault();
+        return $this->belongsTo(Ingredient::class)->withDefault();
     }
 
     public function variant()

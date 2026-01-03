@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 
 class QuotationController extends Controller
 {
@@ -89,10 +89,10 @@ class QuotationController extends Controller
     {
         checkAdminHasPermissionAndThrowException('quotation.create');
         $customers = User::orderBy('id', 'desc')->where('status', 1)->get();
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $ingredients = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('id', 'desc')->get();
-        return view('admin.pages.quotation.create', compact('customers', 'products'));
+        return view('admin.pages.quotation.create', compact('customers', 'ingredients'));
     }
 
     /**
@@ -104,8 +104,8 @@ class QuotationController extends Controller
         $request->validate([
             'customer_id' => 'required',
             'date' => 'required',
-            'product_id' => 'required|array',
-            'product_id.*' => 'required',
+            'ingredient_id' => 'required|array',
+            'ingredient_id.*' => 'required',
             'unit_price' => 'required|array',
             'unit_price.*' => 'required',
             'quantity' => 'required|array',
@@ -138,10 +138,10 @@ class QuotationController extends Controller
 
 
             // create quotation details
-            foreach ($request->product_id as $key => $product_id) {
+            foreach ($request->ingredient_id as $key => $ingredient_id) {
 
                 $quotation->details()->create([
-                    'product_id' => $product_id,
+                    'ingredient_id' => $ingredient_id,
                     'quantity' => $request->quantity[$key],
                     'price' => $request->unit_price[$key],
                     'sub_total' => $request->total[$key],
@@ -183,10 +183,10 @@ class QuotationController extends Controller
         checkAdminHasPermissionAndThrowException('quotation.edit');
         $quotation = Quotation::find($id);
         $customers = User::orderBy('id', 'desc')->where('status', 1)->get();
-        $products = Product::where('status', 1)->whereHas('category', function ($query) {
+        $ingredients = Ingredient::where('status', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
         })->orderBy('id', 'desc')->get();
-        return view('admin.pages.quotation.edit', compact('quotation', 'customers', 'products'));
+        return view('admin.pages.quotation.edit', compact('quotation', 'customers', 'ingredients'));
     }
 
     /**
@@ -198,8 +198,8 @@ class QuotationController extends Controller
         $request->validate([
             'customer_id' => 'required',
             'date' => 'required',
-            'product_id' => 'required|array',
-            'product_id.*' => 'required',
+            'ingredient_id' => 'required|array',
+            'ingredient_id.*' => 'required',
             'unit_price' => 'required|array',
             'unit_price.*' => 'required',
             'quantity' => 'required|array',
@@ -223,9 +223,9 @@ class QuotationController extends Controller
             ]); // update quotation
 
             $quotation->details()->delete();
-            foreach ($request->product_id as $key => $product_id) {
+            foreach ($request->ingredient_id as $key => $ingredient_id) {
                 $quotation->details()->create([
-                    'product_id' => $product_id,
+                    'ingredient_id' => $ingredient_id,
                     'quantity' => $request->quantity[$key],
                     'price' => $request->unit_price[$key],
                     'sub_total' => $request->total[$key],

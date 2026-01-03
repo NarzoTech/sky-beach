@@ -8,7 +8,7 @@ use App\Models\Stock;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Purchase\Database\factories\PurchaseFactory;
 use Modules\Supplier\app\Models\Supplier;
 use Modules\Supplier\app\Models\SupplierPayment;
@@ -66,7 +66,7 @@ class Purchase extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'purchase_details', 'purchase_id', 'product_id')->withPivot('quantity', 'purchase_price', 'sub_total', 'profit', 'sale_price', 'discount', 'tax', 'created_by', 'updated_by')->withDefault();
+        return $this->belongsToMany(Ingredient::class, 'purchase_details', 'purchase_id', 'product_id')->withPivot('quantity', 'purchase_price', 'sub_total', 'profit', 'sale_price', 'discount', 'tax', 'created_by', 'updated_by')->withDefault();
     }
 
     public function payments()

@@ -4,7 +4,7 @@ namespace Modules\Sales\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Sales\Database\factories\SalesReturnDetailsFactory;
 
 class SalesReturnDetails extends Model
@@ -32,6 +32,6 @@ class SalesReturnDetails extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'product_id')->withDefault();
     }
 }

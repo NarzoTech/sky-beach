@@ -2,7 +2,7 @@
 
 namespace Modules\Tax\app\Models;
 
-use App\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Tax\Database\factories\TaxFactory;
@@ -24,6 +24,6 @@ class Tax extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Ingredient::class);
     }
 }

@@ -10,7 +10,7 @@ use Modules\Employee\app\Models\EmployeeSalary;
 use Modules\Expense\app\Models\Expense;
 use Modules\Expense\app\Models\ExpenseType;
 use Modules\Language\app\Models\Language;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Purchase\app\Models\Purchase;
 use Modules\Purchase\app\Models\PurchaseReturn;
 use Modules\Purchase\app\Services\PurchaseService;
@@ -29,7 +29,7 @@ class DashboardController extends Controller
     {
         $data['customerDues'] = CustomerDue::where('status', 1)->sum('due_amount');
         $data['todaySales'] = Sale::whereDate('order_date', date('Y-m-d'))->sum('grand_total');
-        $data['totalProducts'] = Product::count();
+        $data['totalIngredients'] = Ingredient::count();
 
         // Today's Purchase
         $data['todayPurchase'] = Purchase::whereDate('purchase_date', date('Y-m-d'))->sum('total_amount');
@@ -217,8 +217,8 @@ class DashboardController extends Controller
 
         $chart['purchasePercentage'] = number_format($chart['purchasePercentage'], 2);
 
-        // low stock products
-        $data['low_stock_products'] = Product::where(function ($q) {
+        // low stock ingredients
+        $data['low_stock_ingredients'] = Ingredient::where(function ($q) {
             $q->where('stock_alert', '!=', 0)
                 ->whereColumn('stock', '<=', 'stock_alert');
         })->orderByDesc('stock_alert')

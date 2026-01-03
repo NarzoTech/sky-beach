@@ -12,8 +12,8 @@ use Modules\GlobalSetting\app\Models\EmailTemplate;
 use Modules\GlobalSetting\app\Models\Setting;
 use Modules\Order\app\Models\Order;
 use Modules\Order\app\Models\OrderDetails;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\Variant;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\Variant;
 
 class OrderService
 {
@@ -76,7 +76,7 @@ class OrderService
 
 
             // update stock
-            $product = Product::where('id', $item['id'])->first();
+            $product = Ingredient::where('id', $item['id'])->first();
             if ($product != null) {
                 $product->stock = $product->stock - $item['qty'];
                 $product->save();

@@ -6,18 +6,18 @@ use App\Exports\StockExport;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Product\app\Services\BrandService;
-use Modules\Product\app\Services\ProductCategoryService;
-use Modules\Product\app\Services\ProductService;
+use Modules\Ingredient\app\Services\BrandService;
+use Modules\Ingredient\app\Services\IngredientCategoryService;
+use Modules\Ingredient\app\Services\IngredientService;
 
 class StockController extends Controller
 {
-    public function __construct(private ProductService $product, private BrandService $brandService, private ProductCategoryService $categoryService,) {}
+    public function __construct(private IngredientService $ingredient, private BrandService $brandService, private IngredientCategoryService $categoryService,) {}
 
     public function index(Request $request)
     {
         checkAdminHasPermissionAndThrowException('stock.view');
-        $query = $this->product->allActiveProducts($request);
+        $query = $this->ingredient->allActiveIngredients($request);
 
         if (request('keyword')) {
             $query = $query->where(function ($q) {
@@ -44,7 +44,7 @@ class StockController extends Controller
             }
         }
         // Calculate totals from all filtered data before pagination
-        $allProducts = (clone $query)->with('stockDetails')->get();
+        $allIngredients = (clone $query)->with('stockDetails')->get();
         $totals = [
             'totalInQty' => 0,
             'totalOutQty' => 0,
@@ -52,13 +52,13 @@ class StockController extends Controller
             'totalStockPP' => 0,
             'totalStockSP' => 0,
         ];
-        foreach ($allProducts as $product) {
-            $stock = $product->stock < 0 ? 0 : $product->stock;
-            $selling_price = $product->selling_price ?? 0;
-            $totals['totalInQty'] += $product->stockDetails->sum('in_quantity');
-            $totals['totalOutQty'] += $product->stockDetails->sum('out_quantity');
-            $totals['totalStock'] += $product->stock;
-            $totals['totalStockPP'] += remove_comma($stock) * remove_comma($product->avg_purchase_price);
+        foreach ($allIngredients as $ingredient) {
+            $stock = $ingredient->stock < 0 ? 0 : $ingredient->stock;
+            $selling_price = $ingredient->selling_price ?? 0;
+            $totals['totalInQty'] += $ingredient->stockDetails->sum('in_quantity');
+            $totals['totalOutQty'] += $ingredient->stockDetails->sum('out_quantity');
+            $totals['totalStock'] += $ingredient->stock;
+            $totals['totalStockPP'] += remove_comma($stock) * remove_comma($ingredient->avg_purchase_price);
             $totals['totalStockSP'] += remove_comma($stock) * remove_comma($selling_price);
         }
 
@@ -68,41 +68,41 @@ class StockController extends Controller
             $parpage = 20;
         }
         if ($parpage === null) {
-            $products = $query->get();  // No pagination, return all results
+            $ingredients = $query->get();  // No pagination, return all results
         } else {
-            $products = $query->paginate($parpage);  // Paginate results
-            $products->appends(request()->query());
+            $ingredients = $query->paginate($parpage);  // Paginate results
+            $ingredients->appends(request()->query());
         }
 
         if (checkAdminHasPermission('stock.excel.download')) {
             if (request('export')) {
                 $fileName = 'stock-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new StockExport($allProducts, $totals), $fileName);
+                return Excel::download(new StockExport($allIngredients, $totals), $fileName);
             }
         }
 
         if (checkAdminHasPermission('stock.pdf.download')) {
             if (request('export_pdf')) {
                 return view('admin.pages.stock.pdf.stock', [
-                    'products' => $allProducts,
+                    'ingredients' => $allIngredients,
                     'totals' => $totals,
                 ]);
             }
         }
 
         $brands = $this->brandService->getActiveBrands();
-        $categories = $this->categoryService->getAllProductCategoriesForSelect();
-        return view('admin.pages.stock.stock', compact('products', 'brands', 'categories', 'totals'));
+        $categories = $this->categoryService->getAllIngredientCategoriesForSelect();
+        return view('admin.pages.stock.stock', compact('ingredients', 'brands', 'categories', 'totals'));
     }
 
     public function ledger($id)
     {
         checkAdminHasPermissionAndThrowException('stock.ledger');
-        $product = $this->product->getProduct($id);
-        $stocks = Stock::where('product_id', $id)->orderBy('date', 'asc')->paginate(20);
+        $ingredient = $this->ingredient->getIngredient($id);
+        $stocks = Stock::where('ingredient_id', $id)->orderBy('date', 'asc')->paginate(20);
 
         $stocks->appends(request()->query());
-        return view('admin.pages.stock.ledger', compact('product', 'stocks'));
+        return view('admin.pages.stock.ledger', compact('ingredient', 'stocks'));
     }
 
     public function reset($id)
@@ -118,10 +118,10 @@ class StockController extends Controller
         checkAdminHasPermissionAndThrowException('stock.reset');
         Stock::truncate();
 
-        $products = $this->product->getProducts()->get();
+        $ingredients = $this->ingredient->getIngredients()->get();
 
-        foreach ($products as $product) {
-            $this->resetStock($product->id);
+        foreach ($ingredients as $ingredient) {
+            $this->resetStock($ingredient->id);
         }
 
         return redirect()->back()->with(['messege' => 'All Stock Reset Successfully', 'alert-type' => 'success']);
@@ -129,20 +129,20 @@ class StockController extends Controller
 
     private function resetStock($id)
     {
-        $product = $this->product->getProduct($id);
-        Stock::where('product_id', $id)->delete();
-        $product->update(['stock' => 0, 'stock_status' => 'out_of_stock']);
+        $ingredient = $this->ingredient->getIngredient($id);
+        Stock::where('ingredient_id', $id)->delete();
+        $ingredient->update(['stock' => 0, 'stock_status' => 'out_of_stock']);
 
         Stock::create([
-            'product_id' => $product->id,
+            'ingredient_id' => $ingredient->id,
             'date' => now(),
             'type' => '	Opening Stock',
             'in_quantity' => 0,
             'available_qty' => 0,
-            'sku' => $product->sku,
+            'sku' => $ingredient->sku,
             'purchase_price' => 0,
             'rate' => 0,
-            'sale_price' => $product->price,
+            'sale_price' => $ingredient->price,
             'tax' => 0,
             'created_by' => auth('admin')->user()->id,
         ]);

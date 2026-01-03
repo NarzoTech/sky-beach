@@ -8,7 +8,10 @@
       "Bash(find:*)",
       "Bash(php artisan:*)",
       "Bash(cat:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\Ingredient\\\\app\\\\Models\\\\ProductCategoryTranslation.php\")",
+      "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\Ingredient\\\\app\\\\Models\\\\ProductBrandTranslation.php\")",
+      "Bash(composer dump-autoload:*)"
     ]
   }
 }

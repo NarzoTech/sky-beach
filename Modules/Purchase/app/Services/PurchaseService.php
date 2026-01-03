@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounts\app\Models\Account;
 use Modules\Accounts\app\Services\AccountsService;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Services\ProductService;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Services\IngredientService;
 use Modules\Purchase\app\Models\Purchase;
 use Modules\Purchase\app\Models\PurchaseDetails;
 use Modules\Purchase\app\Models\PurchaseReturn;
@@ -26,10 +26,10 @@ class PurchaseService
     public function __construct(
         private Purchase $purchase,
         private PurchaseDetails $purchaseDetails,
-        private ProductService $productService,
+        private IngredientService $ingredientService,
         private Supplier $supplier,
         private Warehouse $warehouse,
-        private Product $product,
+        private Ingredient $ingredient,
         private AccountsService $accountsService,
         private PurchaseReturn $purchaseReturn,
         private PurchaseReturnDetails $purchaseReturnDetials,
@@ -100,7 +100,7 @@ class PurchaseService
         // $this->updateLedger($request, $purchase->id, $paidAmount, 'purchase');
 
         foreach ($request->product_id as $index => $id) {
-            $product = Product::find($id);
+            $product = Ingredient::find($id);
             $purchaseUnitId = $request->purchase_unit_id[$index] ?? $product->unit_id;
             $quantity = $request->quantity[$index];
             
@@ -222,7 +222,7 @@ class PurchaseService
 
         // restore product stock using base quantity
         foreach ($purchase->purchaseDetails as $purchaseDetail) {
-            $product = Product::find($purchaseDetail->product_id);
+            $product = Ingredient::find($purchaseDetail->product_id);
             $product->stock -= ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
             $product->save();
         }
@@ -234,7 +234,7 @@ class PurchaseService
 
         // store new purchase details with unit conversion
         foreach ($request->product_id as $index => $id) {
-            $product = Product::find($id);
+            $product = Ingredient::find($id);
             $purchaseUnitId = $request->purchase_unit_id[$index] ?? $product->unit_id;
             $quantity = $request->quantity[$index];
             
@@ -331,7 +331,7 @@ class PurchaseService
 
         // restore product stock
         foreach ($this->purchase->find($id)->purchaseDetails as $purchaseDetail) {
-            $product = Product::find($purchaseDetail->product_id);
+            $product = Ingredient::find($purchaseDetail->product_id);
             $product->stock -= $purchaseDetail->quantity;
             $product->save();
         }
@@ -404,7 +404,7 @@ class PurchaseService
 
     public function getProducts(Request $request)
     {
-        $products = $this->productService->allActiveProducts($request);
+        $products = $this->ingredientService->allActiveIngredients($request);
         return $products->with('unit')->get();
     }
 
@@ -451,7 +451,7 @@ class PurchaseService
             ]);
 
             // update product stock
-            $prod        = Product::find($val);
+            $prod        = Ingredient::find($val);
             $prod->stock = $prod->stock - $request->return_quantity[$index];
             $prod->save();
 
@@ -515,7 +515,7 @@ class PurchaseService
         // restore product stock
 
         foreach ($return->purchaseDetails as $purchaseDetail) {
-            $product = Product::find($purchaseDetail->product_id);
+            $product = Ingredient::find($purchaseDetail->product_id);
             $product->stock += $purchaseDetail->quantity;
             $product->save();
         }
@@ -625,7 +625,7 @@ class PurchaseService
         // restore product stock
 
         foreach ($return->purchaseDetails as $purchaseDetail) {
-            $product = Product::find($purchaseDetail->product_id);
+            $product = Ingredient::find($purchaseDetail->product_id);
             $product->stock += $purchaseDetail->quantity;
             $product->save();
         }

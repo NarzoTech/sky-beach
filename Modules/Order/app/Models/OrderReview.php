@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Order\Database\factories\OrderReviewFactory;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 
 class OrderReview extends Model
 {
@@ -34,7 +34,7 @@ class OrderReview extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class)->withDefault();
+        return $this->belongsTo(Ingredient::class)->withDefault();
     }
 
     public function user()

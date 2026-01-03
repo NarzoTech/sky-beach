@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 
 class QuotationDetails extends Model
 {
@@ -12,7 +12,7 @@ class QuotationDetails extends Model
 
     protected $fillable = [
         'quotation_id',
-        'product_id',
+        'ingredient_id',
         'quantity',
         'price',
         'sub_total',
@@ -23,8 +23,8 @@ class QuotationDetails extends Model
         return $this->belongsTo(Quotation::class)->withDefault();
     }
 
-    public function product()
+    public function ingredient()
     {
-        return $this->belongsTo(Product::class)->withDefault();
+        return $this->belongsTo(Ingredient::class)->withDefault();
     }
 }
