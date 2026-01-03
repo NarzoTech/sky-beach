@@ -90,12 +90,17 @@ class Sale extends Model
 
     public function products()
     {
-        return $this->hasMany(ProductSale::class, 'sale_id')->where('service_id', null);
+        return $this->hasMany(ProductSale::class, 'sale_id')->whereNotNull('ingredient_id');
+    }
+
+    public function menuItems()
+    {
+        return $this->hasMany(ProductSale::class, 'sale_id')->whereNotNull('menu_item_id');
     }
 
     public function services()
     {
-        return $this->hasMany(ProductSale::class, 'sale_id')->where('product_id', null);
+        return $this->hasMany(ProductSale::class, 'sale_id')->whereNotNull('service_id');
     }
 
     public function payment()

@@ -24,25 +24,22 @@ use Modules\GlobalSetting\app\Models\EmailTemplate;
 use Modules\Order\app\Models\Order;
 use Modules\Order\app\Models\OrderDetails;
 use Modules\POS\app\Models\CartHold;
-use Modules\Ingredient\app\Models\IngredientCategory;
-use Modules\Ingredient\app\Models\Ingredient;
-use Modules\Ingredient\app\Services\BrandService;
-use Modules\Ingredient\app\Services\IngredientService;
+use Modules\Menu\app\Models\MenuCategory;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Services\MenuItemService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
 
 class POSController extends Controller
 {
-    protected $productService;
+    protected $menuItemService;
     protected $orderService;
-    protected $brandService;
 
-    public function __construct(private UserGroupService $userGroup, IngredientService $ingredientService, OrderService $orderService, BrandService $brandService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services)
+    public function __construct(private UserGroupService $userGroup, MenuItemService $menuItemService, OrderService $orderService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services)
     {
         $this->middleware('auth:admin');
-        $this->productService = $ingredientService;
+        $this->menuItemService = $menuItemService;
         $this->orderService = $orderService;
-        $this->brandService = $brandService;
     }
     /**
      * Display a listing of the resource.
@@ -54,12 +51,12 @@ class POSController extends Controller
             $quotation = Quotation::find($request->quotation_id);
 
             foreach ($quotation->details as $detail) {
-                $product = Ingredient::find($detail->product_id);
+                $menuItem = MenuItem::find($detail->menu_item_id ?? $detail->product_id);
                 $newReq = Request();
-                $newReq->product_id = $detail->product_id;
+                $newReq->menu_item_id = $menuItem->id;
                 $newReq->qty = $detail->quantity;
-                $newReq->type = $product->has_variant ? 'variant' : 'single';
-                $newReq->serviceType = 'product';
+                $newReq->type = $menuItem->variants()->count() > 0 ? 'variant' : 'single';
+                $newReq->serviceType = 'menu_item';
                 $newReq->variant_price = $detail->price;
 
                 $this->add_to_cart($newReq);
@@ -68,28 +65,28 @@ class POSController extends Controller
 
         Paginator::useBootstrap();
 
-        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
+        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
-        })->orderBy('stock', 'desc');
+        })->orderBy('display_order', 'asc');
 
         if ($request->category_id) {
-            $products = $products->where(function ($query) use ($request) {
+            $menuItems = $menuItems->where(function ($query) use ($request) {
                 $query->where('category_id', $request->category_id)->where('status', 1);
             });
         }
 
         if ($request->name) {
-            $products = $products->whereHas('translations', function ($query) use ($request) {
-                $query->where('name', 'LIKE', '%' . $request->name . '%');
+            $menuItems = $menuItems->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->name . '%')
+                    ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
             });
         }
 
-        $products = $products->paginate(5);
+        $menuItems = $menuItems->paginate(5);
 
-        $products->appends(request()->query());
+        $menuItems->appends(request()->query());
 
-        $categories = IngredientCategory::where('status', 1)->get();
-        $brands = $this->brandService->getActiveBrands();
+        $categories = MenuCategory::where('status', 1)->orderBy('display_order', 'asc')->get();
         $customers = User::orderBy('name', 'asc')->where('status', 1)->get();
 
         $cart_contents = session('POSCART') ?? [];
@@ -107,11 +104,10 @@ class POSController extends Controller
 
 
         return view('pos::index')->with([
-            'products' => $products,
+            'menuItems' => $menuItems,
             'categories' => $categories,
             'customers' => $customers,
             'cart_contents' => $cart_contents,
-            'brands' => $brands,
             'groups' => $groups,
             'accounts' => $accounts,
             'areaList' => $areaList,
@@ -125,35 +121,31 @@ class POSController extends Controller
     {
         Paginator::useBootstrap();
 
-        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
+        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
-        })->orderBy('stock', 'desc');
+        })->orderBy('display_order', 'asc');
 
         if ($request->category_id) {
-            $products = $products->where(function ($query) use ($request) {
+            $menuItems = $menuItems->where(function ($query) use ($request) {
                 $query->where('category_id', $request->category_id)->where('status', 1);
             });
         }
 
-        if ($request->brand) {
-            $products = $products->where('brand_id', $request->brand);
-        }
-
         if ($request->name) {
-            $products = $products->where(function ($q) use ($request) {
+            $menuItems = $menuItems->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', '%' . $request->name . '%')
                     ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
             });
         }
 
 
-        // Paginate favorite products (clone to avoid modifying original query)
-        $favoriteProducts = (clone $products)->where('is_favorite', 1)->paginate(15);
-        $favoriteProducts->appends(request()->query());  // Append request parameters
+        // Paginate featured menu items (clone to avoid modifying original query)
+        $featuredItems = (clone $menuItems)->where('is_featured', 1)->paginate(15);
+        $featuredItems->appends(request()->query());  // Append request parameters
 
-        // Paginate non-favorite products (use clone of original query)
-        $nonFavoriteProducts = (clone $products)->paginate(15);
-        $nonFavoriteProducts->appends(request()->query()); // Append request parameters
+        // Paginate non-featured menu items (use clone of original query)
+        $nonFeaturedItems = (clone $menuItems)->paginate(15);
+        $nonFeaturedItems->appends(request()->query()); // Append request parameters
 
 
 
@@ -188,69 +180,64 @@ class POSController extends Controller
             'services' => $favoriteServices,
         ])->render();
 
-        $productView =  view('pos::ajax_products')->with([
-            'products' => $nonFavoriteProducts,
+        $menuItemView =  view('pos::ajax_menu_items')->with([
+            'menuItems' => $nonFeaturedItems,
         ])->render();
 
-        $favProductView =  view('pos::ajax_products')->with([
-            'products' => $favoriteProducts,
+        $featuredMenuItemView =  view('pos::ajax_menu_items')->with([
+            'menuItems' => $featuredItems,
         ])->render();
 
-        return response()->json(['productView' => $productView, 'serviceView' => $serviceView, 'favProductView' => $favProductView, 'favoriteServiceView' => $favoriteServiceView]);
+        return response()->json(['productView' => $menuItemView, 'serviceView' => $serviceView, 'favProductView' => $featuredMenuItemView, 'favoriteServiceView' => $favoriteServiceView]);
     }
 
-    public function favoriteProducts($products)
+    public function featuredMenuItems($menuItems)
     {
-        $products = $products->where('is_favorite', 1)->paginate(15);
+        $menuItems = $menuItems->where('is_featured', 1)->paginate(15);
 
-        $products->appends(request()->query());
-        return $products;
+        $menuItems->appends(request()->query());
+        return $menuItems;
     }
 
     public function load_products_list(Request $request)
     {
 
-        $products = Ingredient::where('status', 1)->whereHas('category', function ($query) {
+        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
             $query->where('status', 1);
-        })->orderBy('stock', 'desc');
+        })->orderBy('display_order', 'asc');
 
         if ($request->name) {
-            $products = $products->where(function ($q) use ($request) {
+            $menuItems = $menuItems->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', '%' . $request->name . '%')
                     ->orWhere('barcode', 'LIKE', '%' . $request->name . '%')
                     ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
             });
         }
-        if ($request->favorite == 1) {
-            $products = $products->where('is_favorite', 1);
+        if ($request->favorite == 1 || $request->featured == 1) {
+            $menuItems = $menuItems->where('is_featured', 1);
         }
 
-        $products = $products->get();
+        $menuItems = $menuItems->get();
 
-        $view = view('pos::product-list')->with([
-            'products' => $products
+        $view = view('pos::menu-item-list')->with([
+            'menuItems' => $menuItems
         ])->render();
 
-        return response()->json(['view' => $view, 'total' => $products->count(), 'product' => $products->first()]);
+        return response()->json(['view' => $view, 'total' => $menuItems->count(), 'menuItem' => $menuItems->first()]);
     }
 
-    public function load_product_modal($product_id)
+    public function load_product_modal($menu_item_id)
     {
-        $product = $this->productService->getActiveProductById($product_id);
-        $variants = $this->productService->getProductVariants($product);
-        if (!$product) {
+        $menuItem = MenuItem::with(['variants', 'activeAddons'])->where('status', 1)->find($menu_item_id);
+        if (!$menuItem) {
             $notification = trans('Something went wrong');
             return response()->json(['message' => $notification], 403);
         }
 
-        if ($variants->count() != 0) {
-            $variants = $variants;
-        } else {
-            $variants = array();
-        }
+        $variants = $menuItem->activeVariants;
 
-        return view('pos::ajax_product_modal')->with([
-            'product' => $product,
+        return view('pos::ajax_menu_item_modal')->with([
+            'menuItem' => $menuItem,
             'variants' => $variants,
         ]);
     }
@@ -262,20 +249,23 @@ class POSController extends Controller
         if ($request->edit) {
             $cartName = 'UPDATE_CART';
         }
-        $type = $request->serviceType;
+        $type = $request->serviceType ?? 'menu_item';
         if ($type == 'service') {
             //
         }
-        $product = $type != 'service' ? $this->productService->getActiveProductById($request->product_id) : null;
-        $service = $type == 'service' ? $this->services->find($request->product_id) : null;
+
+        // Handle menu item or service
+        $menuItem = ($type != 'service') ? MenuItem::with('recipes.ingredient')->find($request->menu_item_id ?? $request->product_id) : null;
+        $service = $type == 'service' ? $this->services->find($request->product_id ?? $request->menu_item_id) : null;
         $attributes = '';
         $options = collect([]);
+        $variant = null;
 
-        if ($product?->has_variant) {
-            $prodVar = $this->productService->getVariantBySku($request->variant_sku);
-
-            $attributes = $prodVar->attributes();
-            $options = $prodVar->attribute_and_value_ids;
+        if ($menuItem && $menuItem->variants()->count() > 0 && $request->variant_id) {
+            $variant = $menuItem->variants()->find($request->variant_id);
+            if ($variant) {
+                $attributes = $variant->name ?? '';
+            }
         }
 
 
@@ -286,7 +276,7 @@ class POSController extends Controller
 
         // check if item already exist in cart
         $item_exist = false;
-        $sku = $type != 'service' ? ($request->variant_sku ? $request->variant_sku : $product->sku) : '';
+        $sku = $type != 'service' ? ($request->variant_sku ? $request->variant_sku : ($menuItem ? $menuItem->sku : '')) : '';
         if (count($cart_contents) > 0) {
             foreach ($cart_contents as $index => $cart_content) {
                 if (($sku && $cart_content['sku'] == $sku) || ($service && $cart_content['id'] == $service->id && $cart_content['type'] == 'service')) {
@@ -302,20 +292,28 @@ class POSController extends Controller
 
         $data = array();
         $data["rowid"] = uniqid();
-        $data['id'] = $type == 'service' ? $service->id : $product->id;
-        $data['name'] = $type == 'service' ? $service->name : $product->name;
-        $data['type'] = $type;
-        $data['image'] = $type == 'service' ? $service->singleImage : $product->image_url;
+        $data['id'] = $type == 'service' ? $service->id : $menuItem->id;
+        $data['name'] = $type == 'service' ? $service->name : $menuItem->name;
+        $data['type'] = $type == 'service' ? 'service' : 'menu_item';
+        $data['image'] = $type == 'service' ? $service->singleImage : $menuItem->image_url;
         $data['qty'] = $request->qty ? $request->qty : 1;
-        $data['price'] = $type == 'service' ? $service->price : ($request->variant_price ? $request->variant_price : $product->currentPrice);
+
+        // Calculate price - use variant price if applicable, otherwise base_price
+        $price = $type == 'service' ? $service->price : ($request->variant_price ?? $menuItem->base_price);
+        if ($variant) {
+            $price = $menuItem->base_price + ($variant->price_adjustment ?? 0);
+        }
+
+        $data['price'] = $price;
         $data['sub_total'] = (float)$data['price'] * $data['qty'];
         $data['sku'] = $sku;
-        $data['unit'] = $type == 'service' ? '-' : $product->unit->name;
+        $data['unit'] = '-'; // Menu items don't have unit like ingredients
         $data['source'] = 1;
-        $data['purchase_price'] = 0;
-        $data['selling_price'] = 0;
+        $data['purchase_price'] = $menuItem ? ($menuItem->cost_price ?? 0) : 0;
+        $data['selling_price'] = $price;
+        $data['variant_id'] = $variant ? $variant->id : null;
 
-        if ($request->type == null) {
+        if ($request->type == null && $variant) {
             $data['variant']['attribute'] =  $attributes;
             $data['variant']['options'] =  $options;
         }

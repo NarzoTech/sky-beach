@@ -5,6 +5,7 @@ namespace Modules\Sales\app\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Menu\app\Models\MenuItem;
 use Modules\Sales\Database\factories\ProductSaleFactory;
 use Modules\Service\app\Models\Service;
 
@@ -19,6 +20,7 @@ class ProductSale extends Model
     protected $fillable = [
         'sale_id',
         'ingredient_id',
+        'menu_item_id',
         'service_id',
         'quantity',
         'sale_unit_id',
@@ -44,6 +46,11 @@ class ProductSale extends Model
     public function product()
     {
         return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
+    }
+
+    public function menuItem()
+    {
+        return $this->belongsTo(MenuItem::class, 'menu_item_id')->withDefault();
     }
 
     public function service()

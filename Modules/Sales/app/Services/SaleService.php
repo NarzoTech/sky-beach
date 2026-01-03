@@ -15,6 +15,8 @@ use Modules\Customer\app\Models\CustomerDue;
 use Modules\Customer\app\Models\CustomerPayment;
 use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Ingredient\app\Models\Variant;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuVariant;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
 use Modules\Service\app\Models\Service;
@@ -83,70 +85,116 @@ class SaleService
         foreach ($cart as $item) {
             $totalQty += $item['qty'];
 
-            $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
-            
-            // Get ingredient and unit information for conversion
-            $product = $item['type'] == 'product' ? Ingredient::where('id', $item['id'])->first() : null;
-            $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
             $saleQuantity = $item['qty'];
-            
-            // Convert quantity to product's base unit for stock tracking
-            $baseQuantity = $saleQuantity;
-            if ($product && $saleUnitId && $saleUnitId != $product->unit_id) {
-                try {
-                    $baseQuantity = \App\Helpers\UnitConverter::convert(
-                        $saleQuantity, 
-                        $saleUnitId, 
-                        $product->unit_id
-                    );
-                } catch (\Exception $e) {
-                    // If conversion fails, use original quantity
-                    $baseQuantity = $saleQuantity;
+            $itemType = $item['type'] ?? 'menu_item';
+
+            // Handle menu item type
+            if ($itemType == 'menu_item') {
+                $menuItem = MenuItem::with('recipes.ingredient')->find($item['id']);
+                $menuVariant = isset($item['variant_id']) ? MenuVariant::find($item['variant_id']) : null;
+
+                $orderDetails = new ProductSale();
+                $orderDetails->sale_id = $sale->id;
+                $orderDetails->menu_item_id = $menuItem->id;
+                $orderDetails->service_id = null;
+                $orderDetails->product_sku = $item['sku'] ?? $menuItem->sku;
+                $orderDetails->variant_id = $menuVariant ? $menuVariant->id : null;
+                $orderDetails->price = $item['price'];
+                $orderDetails->source = $item['source'] ?? 1;
+                $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
+                $orderDetails->quantity = $saleQuantity;
+                $orderDetails->base_quantity = $saleQuantity;
+                $orderDetails->sub_total = $item['sub_total'];
+                $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
+                $orderDetails->save();
+
+                // Deduct ingredient stock based on menu item recipes
+                if ($menuItem && $item['source'] == 1) {
+                    $this->deductIngredientStockFromRecipe($menuItem, $saleQuantity, $sale, $request);
                 }
             }
-            
-            $orderDetails = new ProductSale();
-            $orderDetails->sale_id = $sale->id;
-            $orderDetails->product_id = $item['type'] == 'product' ? $item['id'] : null;
-            $orderDetails->service_id = $item['type'] == 'service' ? $item['id'] : null;
-            $orderDetails->product_sku = $item['sku'];
-            $orderDetails->variant_id = $variant != null ? $variant->id : null;
-            $orderDetails->unit_id = $saleUnitId;
-            $orderDetails->price = $item['price'];
-            $orderDetails->source = $item['source'];
-            $orderDetails->purchase_price = $item['purchase_price'];
-            $orderDetails->selling_price = $item['selling_price'];
-            $orderDetails->quantity = $saleQuantity;
-            $orderDetails->base_quantity = $baseQuantity;
-            $orderDetails->sub_total = $item['sub_total'];
-            $orderDetails->attributes = $variant != null ? $item['variant']['attribute'] : null;
-            $orderDetails->save();
+            // Handle legacy product type (direct ingredient sale)
+            elseif ($itemType == 'product') {
+                $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
 
-            // update stock using base quantity
-            if ($product != null && $item['type'] == 'product' && $item['source'] == 1) {
-                $product->stock = $product->stock - $baseQuantity;
-                $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                $product->save();
+                // Get ingredient and unit information for conversion
+                $product = Ingredient::where('id', $item['id'])->first();
+                $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
 
-                // create stock with unit tracking
-                $purchasePrice = $product->last_purchase_price ?? 0;
-                Stock::create([
-                    'sale_id' => $sale->id,
-                    'product_id' => $product->id,
-                    'unit_id' => $saleUnitId,
-                    'date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
-                    'type' => 'Sale',
-                    'invoice' => route('admin.sales.invoice', $sale->id),
-                    'invoice_number' => $sale->invoice,
-                    'out_quantity' => $saleQuantity,
-                    'base_out_quantity' => $baseQuantity,
-                    'sku' => $product->sku,
-                    'purchase_price' => $purchasePrice,
-                    'sale_price' => $item['price'],
-                    'rate' => $item['price'],
-                    'profit' => ($item['price'] - $purchasePrice) * $saleQuantity,
-                    'created_by' => auth('admin')->user()->id,
-                ]);
+                // Convert quantity to product's base unit for stock tracking
+                $baseQuantity = $saleQuantity;
+                if ($product && $saleUnitId && $saleUnitId != $product->unit_id) {
+                    try {
+                        $baseQuantity = \App\Helpers\UnitConverter::convert(
+                            $saleQuantity,
+                            $saleUnitId,
+                            $product->unit_id
+                        );
+                    } catch (\Exception $e) {
+                        // If conversion fails, use original quantity
+                        $baseQuantity = $saleQuantity;
+                    }
+                }
+
+                $orderDetails = new ProductSale();
+                $orderDetails->sale_id = $sale->id;
+                $orderDetails->ingredient_id = $product ? $product->id : null;
+                $orderDetails->service_id = null;
+                $orderDetails->product_sku = $item['sku'];
+                $orderDetails->variant_id = $variant != null ? $variant->id : null;
+                $orderDetails->unit_id = $saleUnitId;
+                $orderDetails->price = $item['price'];
+                $orderDetails->source = $item['source'];
+                $orderDetails->purchase_price = $item['purchase_price'];
+                $orderDetails->selling_price = $item['selling_price'];
+                $orderDetails->quantity = $saleQuantity;
+                $orderDetails->base_quantity = $baseQuantity;
+                $orderDetails->sub_total = $item['sub_total'];
+                $orderDetails->attributes = $variant != null ? $item['variant']['attribute'] : null;
+                $orderDetails->save();
+
+                // update stock using base quantity
+                if ($product != null && $item['source'] == 1) {
+                    $product->stock = $product->stock - $baseQuantity;
+                    $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
+                    $product->save();
+
+                    // create stock with unit tracking
+                    $purchasePrice = $product->last_purchase_price ?? 0;
+                    Stock::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $product->id,
+                        'unit_id' => $saleUnitId,
+                        'date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
+                        'type' => 'Sale',
+                        'invoice' => route('admin.sales.invoice', $sale->id),
+                        'invoice_number' => $sale->invoice,
+                        'out_quantity' => $saleQuantity,
+                        'base_out_quantity' => $baseQuantity,
+                        'sku' => $product->sku,
+                        'purchase_price' => $purchasePrice,
+                        'sale_price' => $item['price'],
+                        'rate' => $item['price'],
+                        'profit' => ($item['price'] - $purchasePrice) * $saleQuantity,
+                        'created_by' => auth('admin')->user()->id,
+                    ]);
+                }
+            }
+            // Handle service type
+            elseif ($itemType == 'service') {
+                $orderDetails = new ProductSale();
+                $orderDetails->sale_id = $sale->id;
+                $orderDetails->service_id = $item['id'];
+                $orderDetails->product_sku = $item['sku'] ?? '';
+                $orderDetails->price = $item['price'];
+                $orderDetails->source = $item['source'] ?? 1;
+                $orderDetails->purchase_price = $item['purchase_price'] ?? 0;
+                $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
+                $orderDetails->quantity = $saleQuantity;
+                $orderDetails->base_quantity = $saleQuantity;
+                $orderDetails->sub_total = $item['sub_total'];
+                $orderDetails->save();
             }
         }
 
@@ -235,9 +283,17 @@ class SaleService
             $sale->return_amount = $request->return_amount;
             $sale->updated_by = auth('admin')->user()->id;
 
-            // restore product stock using base quantity
+            // restore ingredient stock from menu items via recipes
+            foreach ($sale->menuItems as $item) {
+                $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
+                if ($menuItem && $item->source == 1) {
+                    $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity);
+                }
+            }
+
+            // restore product stock using base quantity (for legacy ingredient sales)
             foreach ($sale->products as $item) {
-                $product = Ingredient::where('id', $item->product_id)->first();
+                $product = Ingredient::where('id', $item->ingredient_id)->first();
                 if ($product != null && $item->source == 1) {
                     $restoreQty = $item->base_quantity ?? $item->quantity;
                     $product->stock = $product->stock + $restoreQty;
@@ -258,70 +314,116 @@ class SaleService
             foreach ($cart as $item) {
                 $totalQty += $item['qty'];
 
-                $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
-                
-                // Get ingredient and unit information for conversion
-                $product = $item['type'] == 'product' ? Ingredient::where('id', $item['id'])->first() : null;
-                $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
                 $saleQuantity = $item['qty'];
-                
-                // Convert quantity to product's base unit for stock tracking
-                $baseQuantity = $saleQuantity;
-                if ($product && $saleUnitId && $saleUnitId != $product->unit_id) {
-                    try {
-                        $baseQuantity = \App\Helpers\UnitConverter::convert(
-                            $saleQuantity, 
-                            $saleUnitId, 
-                            $product->unit_id
-                        );
-                    } catch (\Exception $e) {
-                        // If conversion fails, use original quantity
-                        $baseQuantity = $saleQuantity;
+                $itemType = $item['type'] ?? 'menu_item';
+
+                // Handle menu item type
+                if ($itemType == 'menu_item') {
+                    $menuItem = MenuItem::with('recipes.ingredient')->find($item['id']);
+                    $menuVariant = isset($item['variant_id']) ? MenuVariant::find($item['variant_id']) : null;
+
+                    $orderDetails = new ProductSale();
+                    $orderDetails->sale_id = $sale->id;
+                    $orderDetails->menu_item_id = $menuItem->id;
+                    $orderDetails->service_id = null;
+                    $orderDetails->product_sku = $item['sku'] ?? $menuItem->sku;
+                    $orderDetails->variant_id = $menuVariant ? $menuVariant->id : null;
+                    $orderDetails->price = $item['price'];
+                    $orderDetails->source = $item['source'] ?? 1;
+                    $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                    $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
+                    $orderDetails->quantity = $saleQuantity;
+                    $orderDetails->base_quantity = $saleQuantity;
+                    $orderDetails->sub_total = $item['sub_total'];
+                    $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
+                    $orderDetails->save();
+
+                    // Deduct ingredient stock based on menu item recipes
+                    if ($menuItem && ($item['source'] ?? 1) == 1) {
+                        $this->deductIngredientStockFromRecipe($menuItem, $saleQuantity, $sale, $request);
                     }
                 }
-                
-                $orderDetails = new ProductSale();
-                $orderDetails->sale_id = $sale->id;
-                $orderDetails->product_id = $item['type'] == 'product' ? $item['id'] : null;
-                $orderDetails->service_id = $item['type'] == 'service' ? $item['id'] : null;
-                $orderDetails->product_sku = $item['sku'];
-                $orderDetails->variant_id = $variant != null ? $variant->id : null;
-                $orderDetails->unit_id = $saleUnitId;
-                $orderDetails->price = $item['price'];
-                $orderDetails->source = $item['source'];
-                $orderDetails->purchase_price = $item['purchase_price'];
-                $orderDetails->selling_price = $item['selling_price'];
-                $orderDetails->quantity = $saleQuantity;
-                $orderDetails->base_quantity = $baseQuantity;
-                $orderDetails->sub_total = $item['sub_total'];
-                $orderDetails->attributes = $variant != null ? $item['variant']['attribute'] : null;
-                $orderDetails->save();
+                // Handle legacy product type (direct ingredient sale)
+                elseif ($itemType == 'product') {
+                    $variant = isset($item['variant']) ?  Variant::where('sku', $item['sku'])->first() : null;
 
-                // update stock using base quantity
-                if ($product != null && $item['type'] == 'product' && $item['source'] == 1) {
-                    $product->stock = $product->stock - $baseQuantity;
-                    $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                    $product->save();
+                    // Get ingredient and unit information for conversion
+                    $product = Ingredient::where('id', $item['id'])->first();
+                    $saleUnitId = $item['unit_id'] ?? ($product ? $product->unit_id : null);
 
-                    // create stock with unit tracking
-                    $purchasePrice = $product->last_purchase_price ?? 0;
-                    Stock::create([
-                        'sale_id' => $sale->id,
-                        'product_id' => $product->id,
-                        'unit_id' => $saleUnitId,
-                        'date' => $this->parseDate($request->sale_date),
-                        'type' => 'Sale',
-                        'invoice' => route('admin.sales.invoice', $sale->id),
-                        'invoice_number' => $sale->invoice,
-                        'out_quantity' => $saleQuantity,
-                        'base_out_quantity' => $baseQuantity,
-                        'sku' => $product->sku,
-                        'purchase_price' => $purchasePrice,
-                        'sale_price' => $item['price'],
-                        'rate' => $item['price'],
-                        'profit' => ($item['price'] - $purchasePrice) * $saleQuantity,
-                        'created_by' => auth('admin')->user()->id,
-                    ]);
+                    // Convert quantity to product's base unit for stock tracking
+                    $baseQuantity = $saleQuantity;
+                    if ($product && $saleUnitId && $saleUnitId != $product->unit_id) {
+                        try {
+                            $baseQuantity = \App\Helpers\UnitConverter::convert(
+                                $saleQuantity,
+                                $saleUnitId,
+                                $product->unit_id
+                            );
+                        } catch (\Exception $e) {
+                            // If conversion fails, use original quantity
+                            $baseQuantity = $saleQuantity;
+                        }
+                    }
+
+                    $orderDetails = new ProductSale();
+                    $orderDetails->sale_id = $sale->id;
+                    $orderDetails->ingredient_id = $product ? $product->id : null;
+                    $orderDetails->service_id = null;
+                    $orderDetails->product_sku = $item['sku'];
+                    $orderDetails->variant_id = $variant != null ? $variant->id : null;
+                    $orderDetails->unit_id = $saleUnitId;
+                    $orderDetails->price = $item['price'];
+                    $orderDetails->source = $item['source'];
+                    $orderDetails->purchase_price = $item['purchase_price'];
+                    $orderDetails->selling_price = $item['selling_price'];
+                    $orderDetails->quantity = $saleQuantity;
+                    $orderDetails->base_quantity = $baseQuantity;
+                    $orderDetails->sub_total = $item['sub_total'];
+                    $orderDetails->attributes = $variant != null ? $item['variant']['attribute'] : null;
+                    $orderDetails->save();
+
+                    // update stock using base quantity
+                    if ($product != null && $item['source'] == 1) {
+                        $product->stock = $product->stock - $baseQuantity;
+                        $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
+                        $product->save();
+
+                        // create stock with unit tracking
+                        $purchasePrice = $product->last_purchase_price ?? 0;
+                        Stock::create([
+                            'sale_id' => $sale->id,
+                            'product_id' => $product->id,
+                            'unit_id' => $saleUnitId,
+                            'date' => $this->parseDate($request->sale_date),
+                            'type' => 'Sale',
+                            'invoice' => route('admin.sales.invoice', $sale->id),
+                            'invoice_number' => $sale->invoice,
+                            'out_quantity' => $saleQuantity,
+                            'base_out_quantity' => $baseQuantity,
+                            'sku' => $product->sku,
+                            'purchase_price' => $purchasePrice,
+                            'sale_price' => $item['price'],
+                            'rate' => $item['price'],
+                            'profit' => ($item['price'] - $purchasePrice) * $saleQuantity,
+                            'created_by' => auth('admin')->user()->id,
+                        ]);
+                    }
+                }
+                // Handle service type
+                elseif ($itemType == 'service') {
+                    $orderDetails = new ProductSale();
+                    $orderDetails->sale_id = $sale->id;
+                    $orderDetails->service_id = $item['id'];
+                    $orderDetails->product_sku = $item['sku'] ?? '';
+                    $orderDetails->price = $item['price'];
+                    $orderDetails->source = $item['source'] ?? 1;
+                    $orderDetails->purchase_price = $item['purchase_price'] ?? 0;
+                    $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
+                    $orderDetails->quantity = $saleQuantity;
+                    $orderDetails->base_quantity = $saleQuantity;
+                    $orderDetails->sub_total = $item['sub_total'];
+                    $orderDetails->save();
                 }
             }
 
@@ -387,8 +489,17 @@ class SaleService
 
         // delete sales related all info
 
+        // restore ingredient stock from menu items via recipes
+        foreach ($sale->menuItems as $item) {
+            $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
+            if ($menuItem && $item->source == 1) {
+                $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity);
+            }
+        }
+
+        // restore product stock (legacy ingredient sales)
         foreach ($sale->products as $item) {
-            $product = Ingredient::where('id', $item->product_id)->first();
+            $product = Ingredient::where('id', $item->ingredient_id)->first();
             if ($product != null && $item->source == 1) {
                 $restoreQty = $item->base_quantity ?? $item->quantity;
                 $product->stock = $product->stock + $restoreQty;
@@ -436,37 +547,67 @@ class SaleService
         $sale = $this->getSales()->find($id);
 
         foreach ($sale->details as $key => $detail) {
-            $service = null;
-            $product = null;
-            if ($detail->product_id) {
-                $product = Ingredient::where('id', $detail->product_id)->first();
-                $type = 'product';
-            } else {
-                $product = Service::where('id', $detail->service_id)->first();
-                $type = 'service';
-            }
-
-            $attributes = $detail->attributes;
-            $options = $detail->options;
-
             $data = array();
             $data["rowid"] = uniqid();
-            $data['id'] = $service ? $service->id : $product->id;
-            $data['name'] = $service ? $service->name : $product->name;
-            $data['type'] = $type;
-            $data['image'] = $service ? $service->singleImage : $product->image_url;
-            $data['qty'] = $detail->quantity;
-            $data['price'] = $detail->price;
-            $data['sub_total'] = $detail->sub_total;
-            $data['sku'] = $detail->product_sku;
-            $data['source'] = $detail->source;
-            $data['purchase_price'] = $detail->purchase_price;
-            $data['selling_price'] = $detail->selling_price;
 
-            if ($detail->variant_id) {
-                $data['variant']['attribute'] =  $attributes;
-                $data['variant']['options'] =  $options;
+            // Handle menu item
+            if ($detail->menu_item_id) {
+                $menuItem = MenuItem::find($detail->menu_item_id);
+                $data['id'] = $menuItem->id;
+                $data['name'] = $menuItem->name;
+                $data['type'] = 'menu_item';
+                $data['image'] = $menuItem->image_url;
+                $data['qty'] = $detail->quantity;
+                $data['price'] = $detail->price;
+                $data['sub_total'] = $detail->sub_total;
+                $data['sku'] = $detail->product_sku ?? $menuItem->sku;
+                $data['source'] = $detail->source;
+                $data['purchase_price'] = $detail->purchase_price ?? $menuItem->cost_price ?? 0;
+                $data['selling_price'] = $detail->selling_price ?? $detail->price;
+                $data['variant_id'] = $detail->variant_id;
+                if ($detail->variant_id) {
+                    $data['variant']['attribute'] = $detail->attributes;
+                    $data['variant']['options'] = [];
+                }
             }
+            // Handle legacy ingredient (product)
+            elseif ($detail->ingredient_id) {
+                $product = Ingredient::find($detail->ingredient_id);
+                $data['id'] = $product->id;
+                $data['name'] = $product->name;
+                $data['type'] = 'product';
+                $data['image'] = $product->image_url;
+                $data['qty'] = $detail->quantity;
+                $data['price'] = $detail->price;
+                $data['sub_total'] = $detail->sub_total;
+                $data['sku'] = $detail->product_sku;
+                $data['source'] = $detail->source;
+                $data['purchase_price'] = $detail->purchase_price;
+                $data['selling_price'] = $detail->selling_price;
+                if ($detail->variant_id) {
+                    $data['variant']['attribute'] = $detail->attributes;
+                    $data['variant']['options'] = $detail->options ?? [];
+                }
+            }
+            // Handle service
+            elseif ($detail->service_id) {
+                $service = Service::find($detail->service_id);
+                $data['id'] = $service->id;
+                $data['name'] = $service->name;
+                $data['type'] = 'service';
+                $data['image'] = $service->singleImage ?? '';
+                $data['qty'] = $detail->quantity;
+                $data['price'] = $detail->price;
+                $data['sub_total'] = $detail->sub_total;
+                $data['sku'] = $detail->product_sku ?? '';
+                $data['source'] = $detail->source;
+                $data['purchase_price'] = $detail->purchase_price ?? 0;
+                $data['selling_price'] = $detail->selling_price ?? $detail->price;
+            }
+            else {
+                continue; // Skip invalid entries
+            }
+
             $cart_contents = session()->get('UPDATE_CART');
             $cart_contents = $cart_contents ? $cart_contents : [];
             session()->put('UPDATE_CART', [...$cart_contents, $data["rowid"] => $data]);
@@ -502,5 +643,73 @@ class SaleService
         $ledger->date = $this->parseDate($request->sale_date);
         $ledger->created_by = auth('admin')->user()->id;
         $ledger->save();
+    }
+
+    /**
+     * Deduct ingredient stock based on menu item recipe
+     * When a menu item is sold, deduct stock from all ingredients in its recipe
+     */
+    private function deductIngredientStockFromRecipe(MenuItem $menuItem, $quantity, Sale $sale, Request $request)
+    {
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            // Calculate quantity to deduct (recipe quantity * sale quantity)
+            // Recipe quantity is in consumption unit
+            $deductQuantity = $recipe->quantity_required * $quantity;
+
+            // Convert to purchase unit for stock tracking
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+            // Update ingredient stock
+            $ingredient->stock = $ingredient->stock - $deductInPurchaseUnit;
+            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
+            $ingredient->save();
+
+            // Create stock record for tracking
+            Stock::create([
+                'sale_id' => $sale->id,
+                'product_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => $this->parseDate($request->sale_date),
+                'type' => 'Sale',
+                'invoice' => route('admin.sales.invoice', $sale->id),
+                'invoice_number' => $sale->invoice,
+                'out_quantity' => $deductQuantity,
+                'base_out_quantity' => $deductInPurchaseUnit,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'sale_price' => 0,
+                'rate' => $ingredient->consumption_unit_cost ?? 0,
+                'profit' => 0,
+                'note' => 'Menu Item: ' . $menuItem->name,
+                'created_by' => auth('admin')->user()->id,
+            ]);
+        }
+    }
+
+    /**
+     * Restore ingredient stock based on menu item recipe (for sale cancellation/return)
+     */
+    private function restoreIngredientStockFromRecipe(MenuItem $menuItem, $quantity)
+    {
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            // Calculate quantity to restore
+            $restoreQuantity = $recipe->quantity_required * $quantity;
+
+            // Convert to purchase unit
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $restoreInPurchaseUnit = $restoreQuantity / $conversionRate;
+
+            // Update ingredient stock
+            $ingredient->stock = $ingredient->stock + $restoreInPurchaseUnit;
+            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
+            $ingredient->save();
+        }
     }
 }

@@ -21,40 +21,7 @@
             <div class="section-body">
                 <div class="row">
                     <div class="col-lg-5">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <ul class="nav nav-tabs pos_tabs" id="myTab" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="products-tab" data-bs-toggle="tab"
-                                            data-bs-target="#products" type="button" role="tab"
-                                            aria-controls="products" aria-selected="true">{{ __('Products') }}</button>
-                                    </li>
-
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="favoriteProducts-tab" data-bs-toggle="tab"
-                                            data-bs-target="#favoriteProducts" type="button" role="tab"
-                                            aria-controls="profile"
-                                            aria-selected="false">{{ __('Favorite Products') }}</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="service-tab" data-bs-toggle="tab"
-                                            data-bs-target="#service" type="button" role="tab" aria-controls="profile"
-                                            aria-selected="false">{{ __('Service') }}</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="favoriteService-tab" data-bs-toggle="tab"
-                                            data-bs-target="#favoriteService" type="button" role="tab"
-                                            aria-controls="profile"
-                                            aria-selected="false">{{ __('Favorite Service') }}</button>
-                                    </li>
-
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="tab-content p-0 mt-3" id="myTabContent">
-                            <div class="tab-pane fade show active" id="products" role="tabpanel"
-                                aria-labelledby="products-tab">
-                                <div class="card">
+                        <div class="card">
                                     <div class="card-header">
                                         <form id="product_search_form" class="pos_pro_search_form w-100">
                                             <div class="row">
@@ -62,13 +29,13 @@
                                                     <div class="form-group mb-2">
                                                         <input type="text" class="form-control" name="name"
                                                             id="name"
-                                                            placeholder="{{ __('Enter Product name / SKU / Scan bar code') }}"
+                                                            placeholder="{{ __('Enter Menu Item name / SKU / Scan bar code') }}"
                                                             autocomplete="off" value="{{ request()->get('name') }}">
                                                         <ul class="dropdown-menu" id="itemList">
                                                         </ul>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
+                                                <div class="col-12">
                                                     <div class="form-group mb-2">
                                                         <select name="category_id" id="category_id"
                                                             class="form-control select2">
@@ -81,19 +48,6 @@
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="col-6">
-                                                    <div class="form-group mb-2">
-                                                        <select name="brand_id" id="brand_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('Select Brand') }}</option>
-                                                            @foreach ($brands as $brand)
-                                                                <option value="{{ $brand->id }}">
-                                                                    {{ $brand->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </form>
                                     </div>
@@ -101,163 +55,6 @@
 
                                     </div>
                                 </div>
-                            </div>
-                            <div class="tab-pane fade" id="favoriteProducts" role="tabpanel"
-                                aria-labelledby="favoriteProducts-tab">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <form id="favorite_product_search_form" class="pos_pro_search_form w-100">
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <div class="form-group mb-2">
-                                                        <input type="text" class="form-control" name="name"
-                                                            id="favoriteName"
-                                                            placeholder="{{ __('Enter Product name / SKU / Scan bar code') }}"
-                                                            autocomplete="off" value="{{ request()->get('name') }}">
-                                                        <ul class="dropdown-menu" id="favoriteItemList">
-
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                {{-- <div class="col-md-4 col-lg-4 col-sm-6">
-                                                    <div class="form-group mb-2">
-                                                        <select name="category_id" id="category_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('Select Category') }}</option>
-                                                            @if (request()->has('category_id'))
-                                                                @foreach ($categories as $category)
-                                                                    <option
-                                                                        {{ request()->get('category_id') == $category->id ? 'selected' : '' }}
-                                                                        value="{{ $category->id }}">{{ $category->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @else
-                                                                @foreach ($categories as $category)
-                                                                    <option value="{{ $category->id }}">
-                                                                        {{ $category->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @endif
-                                                        </select>
-                                                    </div>
-                                                </div> --}}
-                                                {{-- <div class="col-md-4 col-lg-4 col-sm-6">
-                                                    <div class="form-group mb-2">
-                                                        <select name="brand_id" id="brand_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('Select brand') }}</option>
-                                                            @if (request()->has('brand_id'))
-                                                                @foreach ($brands as $brand)
-                                                                    <option
-                                                                        {{ request()->get('brand_id') == $brand->id ? 'selected' : '' }}
-                                                                        value="{{ $brand->id }}">{{ $brand->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @else
-                                                                @foreach ($categories as $brand)
-                                                                    <option value="{{ $brand->id }}">
-                                                                        {{ $brand->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @endif
-                                                        </select>
-                                                    </div>
-                                                </div> --}}
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-body product_body" style="overflow: auto">
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="service" role="tabpanel" aria-labelledby="service-tab">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <form id="service_search_form" class="pos_pro_search_form w-100">
-                                            <div class="row">
-                                                <div class="col-md-8">
-                                                    <div class="form-group mb-2">
-                                                        <input type="text" class="form-control" name="name"
-                                                            id="service_name"
-                                                            placeholder="{{ __('Enter Service name') }}"
-                                                            autocomplete="off" value="{{ request()->get('name') }}">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group mb-2">
-                                                        <select name="service_category_id" id="service_category_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('Select Category') }}</option>
-                                                            @if (request()->has('service_category_id'))
-                                                                @foreach ($serviceCategories as $category)
-                                                                    <option
-                                                                        {{ request()->get('service_category_id') == $category->id ? 'selected' : '' }}
-                                                                        value="{{ $category->id }}">{{ $category->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @else
-                                                                @foreach ($serviceCategories as $category)
-                                                                    <option value="{{ $category->id }}">
-                                                                        {{ $category->name }}</option>
-                                                                @endforeach
-                                                            @endif
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-body service_body" style="overflow: auto">
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="favoriteService" role="tabpanel"
-                                aria-labelledby="favoriteService-tab">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <form id="favorite_service_search_form" class="pos_pro_search_form w-100">
-                                            <div class="row">
-                                                <div class="col-md-8">
-                                                    <div class="form-group mb-2">
-                                                        <input type="text" class="form-control" name="name"
-                                                            id="favorite_service_name"
-                                                            placeholder="{{ __('Enter Service name') }}"
-                                                            autocomplete="off" value="{{ request()->get('name') }}">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group mb-2">
-                                                        <select name="favorite_service_category_id"
-                                                            id="favorite_service_category_id"
-                                                            class="form-control select2">
-                                                            <option value="">{{ __('Select Category') }}</option>
-                                                            @if (request()->has('favorite_service_category_id'))
-                                                                @foreach ($serviceCategories as $category)
-                                                                    <option
-                                                                        {{ request()->get('service_category_id') == $category->id ? 'selected' : '' }}
-                                                                        value="{{ $category->id }}">{{ $category->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            @else
-                                                                @foreach ($serviceCategories as $category)
-                                                                    <option value="{{ $category->id }}">
-                                                                        {{ $category->name }}</option>
-                                                                @endforeach
-                                                            @endif
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="card-body favorite_service_body" style="overflow: auto">
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="col-lg-7">
@@ -1360,7 +1157,7 @@
             });
         }
 
-        function singleAddToCart(id, serviceType = 'product') {
+        function singleAddToCart(id, serviceType = 'service') {
             $('.preloader_area').removeClass('d-none');
             $.ajax({
                 type: 'get',
@@ -1368,6 +1165,38 @@
                     product_id: id,
                     type: 'single',
                     serviceType: serviceType
+                },
+                url: "{{ url('/admin/pos/add-to-cart') }}",
+                success: function(response) {
+                    $(".product-table-container").html(response)
+
+                    $('[name="source"]').niceSelect();
+                    toastr.success("{{ __('Item added successfully') }}")
+                    totalSummery();
+                    $('.preloader_area').addClass('d-none');
+                    scrollToCurrent();
+                },
+                error: function(response) {
+                    if (response.status == 500) {
+                        toastr.error("{{ __('Server error occurred') }}")
+                    }
+
+                    if (response.status == 403) {
+                        toastr.error(response.responseJSON.message)
+                    }
+                    $('.preloader_area').addClass('d-none');
+                }
+            });
+        }
+
+        function addMenuItemToCart(id) {
+            $('.preloader_area').removeClass('d-none');
+            $.ajax({
+                type: 'get',
+                data: {
+                    menu_item_id: id,
+                    type: 'single',
+                    serviceType: 'menu_item'
                 },
                 url: "{{ url('/admin/pos/add-to-cart') }}",
                 success: function(response) {
