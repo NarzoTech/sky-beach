@@ -22,5 +22,6 @@
     "Menu": true,
     "Website": true,
     "Ingredient": true,
-    "StockAdjustment": true
+    "StockAdjustment": true,
+    "TableManagement": true
 }

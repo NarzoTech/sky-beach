@@ -29,6 +29,7 @@ use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Services\MenuItemService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
+use Modules\TableManagement\app\Models\RestaurantTable;
 
 class POSController extends Controller
 {
@@ -102,6 +103,16 @@ class POSController extends Controller
 
         $cart_holds = CartHold::where('status', 'hold')->orderBy('id', 'desc')->get();
 
+        // Load available tables for dine-in orders
+        $availableTables = [];
+        try {
+            $availableTables = RestaurantTable::active()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            // Tables module might not be installed yet
+        }
 
         return view('pos::index')->with([
             'menuItems' => $menuItems,
@@ -114,6 +125,7 @@ class POSController extends Controller
             'services' => $services,
             'cart_holds' => $cart_holds,
             'serviceCategories' => $serviceCategories,
+            'availableTables' => $availableTables,
         ]);
     }
 

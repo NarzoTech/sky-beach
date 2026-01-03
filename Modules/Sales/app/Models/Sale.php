@@ -29,6 +29,11 @@ class Sale extends Model
         'quantity',
         'total_price',
         'status',
+        'order_type',
+        'table_id',
+        'delivery_address',
+        'delivery_phone',
+        'delivery_notes',
         'payment_status',
         'payment_method',
         'payment_details',
@@ -55,6 +60,16 @@ class Sale extends Model
         'due_date',
         'return_amount',
 
+    ];
+
+    const ORDER_TYPE_DINE_IN = 'dine_in';
+    const ORDER_TYPE_TAKE_AWAY = 'take_away';
+    const ORDER_TYPE_DELIVERY = 'delivery';
+
+    const ORDER_TYPES = [
+        self::ORDER_TYPE_DINE_IN => 'Dine In',
+        self::ORDER_TYPE_TAKE_AWAY => 'Take Away',
+        self::ORDER_TYPE_DELIVERY => 'Delivery',
     ];
 
     protected $casts = [
@@ -129,5 +144,30 @@ class Sale extends Model
     public function saleReturnDetails()
     {
         return $this->hasManyThrough(SalesReturnDetails::class, SalesReturn::class, 'sale_id', 'sale_return_id', 'id', 'id');
+    }
+
+    public function table()
+    {
+        return $this->belongsTo(\Modules\TableManagement\app\Models\RestaurantTable::class, 'table_id');
+    }
+
+    public function getOrderTypeLabelAttribute(): string
+    {
+        return self::ORDER_TYPES[$this->order_type] ?? $this->order_type;
+    }
+
+    public function isDineIn(): bool
+    {
+        return $this->order_type === self::ORDER_TYPE_DINE_IN;
+    }
+
+    public function isTakeAway(): bool
+    {
+        return $this->order_type === self::ORDER_TYPE_TAKE_AWAY;
+    }
+
+    public function isDelivery(): bool
+    {
+        return $this->order_type === self::ORDER_TYPE_DELIVERY;
     }
 }

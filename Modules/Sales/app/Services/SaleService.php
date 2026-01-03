@@ -61,6 +61,11 @@ class SaleService
         $sale->total_price = $request->sub_total;
         $sale->order_date = Carbon::createFromFormat('d-m-Y', $request->sale_date);
         $sale->status = 1;
+        $sale->order_type = $request->order_type ?? Sale::ORDER_TYPE_DINE_IN;
+        $sale->table_id = $request->table_id;
+        $sale->delivery_address = $request->delivery_address;
+        $sale->delivery_phone = $request->delivery_phone;
+        $sale->delivery_notes = $request->delivery_notes;
         $sale->payment_status = 1;
 
         $sale->payment_method = json_encode($request->payment_type);
@@ -258,6 +263,15 @@ class SaleService
             // $this->updateLedger($request, $sale->id, $user, 'sale');
             $this->salesLedger($request, $sale, array_sum($request->paying_amount), $request->total_amount, 'sale', 1, $due);
         }
+
+        // If dine-in order with a table, occupy the table
+        if ($sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->table_id) {
+            $table = \Modules\TableManagement\app\Models\RestaurantTable::find($sale->table_id);
+            if ($table) {
+                $table->occupy($sale);
+            }
+        }
+
         return $sale;
     }
 

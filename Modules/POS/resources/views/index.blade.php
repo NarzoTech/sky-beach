@@ -77,6 +77,54 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- Order Type Selection -->
+                                <div class="row w-100 mt-2">
+                                    <div class="col-12">
+                                        <div class="btn-group w-100" role="group" id="orderTypeGroup">
+                                            <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeDineIn" value="dine_in" checked>
+                                            <label class="btn btn-outline-primary" for="orderTypeDineIn">
+                                                <i class="fas fa-utensils"></i> {{ __('Dine In') }}
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeTakeAway" value="take_away">
+                                            <label class="btn btn-outline-success" for="orderTypeTakeAway">
+                                                <i class="fas fa-shopping-bag"></i> {{ __('Take Away') }}
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeDelivery" value="delivery">
+                                            <label class="btn btn-outline-info" for="orderTypeDelivery">
+                                                <i class="fas fa-motorcycle"></i> {{ __('Delivery') }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Table Selection for Dine In -->
+                                <div class="row w-100 mt-2" id="tableSelectionRow">
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <select name="table_id" id="table_id" class="form-control flex-grow-1">
+                                                <option value="">{{ __('Select Table') }}</option>
+                                                @foreach ($availableTables ?? [] as $table)
+                                                    <option value="{{ $table->id }}" data-capacity="{{ $table->capacity }}" data-status="{{ $table->status }}">
+                                                        {{ $table->name }} ({{ $table->capacity }} {{ __('seats') }}) - {{ ucfirst($table->status) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <a href="{{ route('admin.tables.layout') }}" class="btn btn-outline-primary" target="_blank" title="{{ __('View Table Layout') }}">
+                                                <i class="fas fa-th-large"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Delivery Info (Hidden by default) -->
+                                <div class="row w-100 mt-2 d-none" id="deliveryInfoRow">
+                                    <div class="col-md-6">
+                                        <input type="text" name="delivery_phone" id="delivery_phone" class="form-control" placeholder="{{ __('Delivery Phone') }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="{{ __('Delivery Address') }}">
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="card-body pos_pro_table">
@@ -224,6 +272,11 @@
                 <form method="POST" action="" id="checkoutForm" onSubmit="paymentSubmit(event)">
                     @csrf
                     <input type="hidden" name="order_customer_id" id="order_customer_id" value="">
+                    <input type="hidden" name="order_type" id="order_type" value="dine_in">
+                    <input type="hidden" name="table_id" id="order_table_id" value="">
+                    <input type="hidden" name="delivery_address" id="order_delivery_address" value="">
+                    <input type="hidden" name="delivery_phone" id="order_delivery_phone" value="">
+                    <input type="hidden" name="delivery_notes" id="order_delivery_notes" value="">
                     <div class="row">
                         <!-- Left Column -->
                         <div class="col-md-4">
@@ -555,6 +608,23 @@
                 loadProudcts();
                 $("#flatpickr-date,[name='sale_date']").flatpickr({
                     dateFormat: "d-m-Y",
+                });
+
+                // Order Type Switching
+                $('input[name="order_type_radio"]').on('change', function() {
+                    var orderType = $(this).val();
+                    if (orderType === 'dine_in') {
+                        $('#tableSelectionRow').removeClass('d-none');
+                        $('#deliveryInfoRow').addClass('d-none');
+                    } else if (orderType === 'delivery') {
+                        $('#tableSelectionRow').addClass('d-none');
+                        $('#deliveryInfoRow').removeClass('d-none');
+                        $('#table_id').val('');
+                    } else { // take_away
+                        $('#tableSelectionRow').addClass('d-none');
+                        $('#deliveryInfoRow').addClass('d-none');
+                        $('#table_id').val('');
+                    }
                 });
 
                 // update pos quantity
@@ -1116,6 +1186,13 @@
             let customer_id = $('#customer_id').val();
             $("#order_customer_id").val(customer_id ? customer_id : 'walk-in-customer');
             loadCustomer(customer_id);
+
+            // Set order type and table info
+            let orderType = $('input[name="order_type_radio"]:checked').val();
+            $('#order_type').val(orderType);
+            $('#order_table_id').val($('#table_id').val());
+            $('#order_delivery_address').val($('#delivery_address').val());
+            $('#order_delivery_phone').val($('#delivery_phone').val());
 
             // total items
 
