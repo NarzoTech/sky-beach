@@ -570,9 +570,7 @@ class ReportController extends Controller
 
         // Build base queries
         $salesQuery = Sale::query();
-        $productSaleQuery = ProductSale::whereNotNull('product_id')->where('source', 1);
         $salesReturnQuery = SalesReturn::query();
-        $salesReturnDetailsQuery = SalesReturnDetails::whereNotNull('product_id')->where('source', 1);
         $purchaseReturnQuery = PurchaseReturn::query();
         $expenseQuery = Expense::query();
         $salaryQuery = EmployeeSalary::query();
@@ -583,13 +581,7 @@ class ReportController extends Controller
             $toDate = request('to_date') ? Carbon::parse(request('to_date'))->endOfDay() : now()->endOfDay();
 
             $salesQuery->whereBetween('order_date', [$fromDate, $toDate]);
-            $productSaleQuery->whereHas('sale', function ($q) use ($fromDate, $toDate) {
-                $q->whereBetween('order_date', [$fromDate, $toDate]);
-            });
             $salesReturnQuery->whereBetween('created_at', [$fromDate, $toDate]);
-            $salesReturnDetailsQuery->whereHas('saleReturn', function ($q) use ($fromDate, $toDate) {
-                $q->whereBetween('created_at', [$fromDate, $toDate]);
-            });
             $purchaseReturnQuery->whereBetween('created_at', [$fromDate, $toDate]);
             $expenseQuery->whereBetween('date', [$fromDate, $toDate]);
             $salaryQuery->whereBetween('date', [$fromDate, $toDate]);
@@ -612,27 +604,40 @@ class ReportController extends Controller
         // Total Income
         $data['totalIncome'] = $data['netSales'] + $data['purchaseReturns'];
 
-        // Cost of Goods Sold (COGS) - based on sold products purchase price, not all purchases
-        $productSales = $productSaleQuery->with('product')->get();
-        $cogs = 0;
-        foreach ($productSales as $sale) {
-            // Use purchase_price from ProductSale if available, otherwise get from Product model
-            $purchasePrice = $sale->purchase_price;
-            if (!$purchasePrice && $sale->product) {
-                $purchasePrice = $sale->product->LastPurchasePrice ?: $sale->product->cost;
+        // COGS - Use pre-calculated COGS from sales (weighted average cost based)
+        // This is more accurate as it uses the actual cost at time of sale
+        $data['cogs'] = (clone $salesQuery)->sum('total_cogs') ?? 0;
+
+        // If no pre-calculated COGS exists, fall back to legacy calculation
+        if ($data['cogs'] == 0) {
+            $productSaleQuery = ProductSale::where('source', 1);
+            if (isset($fromDate) && isset($toDate)) {
+                $productSaleQuery->whereHas('sale', function ($q) use ($fromDate, $toDate) {
+                    $q->whereBetween('order_date', [$fromDate, $toDate]);
+                });
             }
-            $cogs += (float) remove_comma($purchasePrice ?? 0) * abs($sale->quantity);
-        }
 
-        // Reduce COGS for returned items (they go back to inventory)
-        $returnDetails = $salesReturnDetailsQuery->with('product')->get();
-        $returnsCogs = 0;
-        foreach ($returnDetails as $detail) {
-            $purchasePrice = $detail->product->LastPurchasePrice ?: $detail->product->cost;
-            $returnsCogs += (float) remove_comma($purchasePrice ?? 0) * abs($detail->quantity);
-        }
+            // First try to get COGS from cogs_amount field (new method)
+            $data['cogs'] = $productSaleQuery->sum('cogs_amount');
 
-        $data['cogs'] = $cogs - $returnsCogs;
+            // If still 0, calculate from purchase prices (legacy method)
+            if ($data['cogs'] == 0) {
+                $productSales = $productSaleQuery->with('product', 'menuItem')->get();
+                $cogs = 0;
+                foreach ($productSales as $sale) {
+                    if ($sale->cogs_amount) {
+                        $cogs += $sale->cogs_amount;
+                    } else {
+                        $purchasePrice = $sale->purchase_price ?? 0;
+                        if (!$purchasePrice && $sale->product) {
+                            $purchasePrice = $sale->product->average_cost ?? $sale->product->LastPurchasePrice ?? $sale->product->cost ?? 0;
+                        }
+                        $cogs += (float) remove_comma($purchasePrice) * abs($sale->quantity);
+                    }
+                }
+                $data['cogs'] = $cogs;
+            }
+        }
 
         // Gross Profit = Net Sales - COGS
         $data['grossProfit'] = $data['netSales'] - $data['cogs'];
@@ -641,11 +646,25 @@ class ReportController extends Controller
         $data['expenses'] = $expenseQuery->sum('amount');
         $data['salaries'] = $salaryQuery->sum('amount');
 
-        // Total Expenses = COGS + Operating Expenses + Salaries
-        $data['totalExpenses'] = $data['cogs'] + $data['expenses'] + $data['salaries'];
+        // Wastage Cost (from stock adjustments)
+        $wastageQuery = \Modules\StockAdjustment\app\Models\StockAdjustment::whereIn('adjustment_type', ['wastage', 'damage', 'theft', 'consumption'])
+            ->where('status', 'approved');
+        if (isset($fromDate) && isset($toDate)) {
+            $wastageQuery->whereBetween('adjustment_date', [$fromDate, $toDate]);
+        }
+        $data['wastageCost'] = $wastageQuery->sum('total_cost');
+
+        // Total Expenses = COGS + Operating Expenses + Salaries + Wastage
+        $data['totalExpenses'] = $data['cogs'] + $data['expenses'] + $data['salaries'] + $data['wastageCost'];
 
         // Net Profit/Loss = Total Income - Total Expenses
         $data['profitLoss'] = $data['totalIncome'] - $data['totalExpenses'];
+
+        // Gross Profit Margin
+        $data['grossProfitMargin'] = $data['netSales'] > 0 ? ($data['grossProfit'] / $data['netSales']) * 100 : 0;
+
+        // Net Profit Margin
+        $data['netProfitMargin'] = $data['netSales'] > 0 ? ($data['profitLoss'] / $data['netSales']) * 100 : 0;
 
         // Excel Export
         if (checkAdminHasPermission('report.excel.download')) {
@@ -663,6 +682,34 @@ class ReportController extends Controller
         }
 
         return view('report::profit-loss', compact('data'));
+    }
+
+    /**
+     * Low Stock Alert Report - Shows ingredients below their stock alert threshold
+     */
+    public function lowStockAlert()
+    {
+        checkAdminHasPermissionAndThrowException('report.view');
+
+        $ingredients = \Modules\Ingredient\app\Models\Ingredient::where('status', 1)
+            ->whereRaw('CAST(REPLACE(stock, ",", "") AS DECIMAL(15,4)) <= stock_alert')
+            ->with(['purchaseUnit', 'consumptionUnit', 'category'])
+            ->orderByRaw('CAST(REPLACE(stock, ",", "") AS DECIMAL(15,4)) ASC')
+            ->get();
+
+        $criticalCount = $ingredients->filter(function ($item) {
+            return (float) str_replace(',', '', $item->stock) <= 0;
+        })->count();
+
+        $lowCount = $ingredients->count() - $criticalCount;
+
+        $data = [
+            'totalItems' => $ingredients->count(),
+            'criticalCount' => $criticalCount,
+            'lowCount' => $lowCount,
+        ];
+
+        return view('report::low-stock-alert', compact('ingredients', 'data'));
     }
 
     public function productSaleReport()

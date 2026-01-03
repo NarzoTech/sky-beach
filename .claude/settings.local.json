@@ -13,7 +13,8 @@
       "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\Ingredient\\\\app\\\\Models\\\\ProductBrandTranslation.php\")",
       "Bash(composer dump-autoload:*)",
       "Bash(dir /s /b \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\")",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(dir /b \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\")"
     ]
   }
 }

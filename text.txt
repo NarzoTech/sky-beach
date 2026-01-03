@@ -1,0 +1,334 @@
+
+## 1️⃣ Core Philosophy (Very Important)
+
+Restaurants **do NOT manage stock by menu items**.
+They manage stock by **ingredients**.
+
+👉 Menu items only **consume ingredients**
+👉 Purchases only **increase ingredient stock**
+👉 Sales only **reduce ingredient stock (via recipe)**
+
+Everything else is just math.
+
+---
+
+## 2️⃣ Master Tables (Foundation)
+
+### 2.1 Unit Types (Normalization Layer)
+
+You must support **conversion**, or your stock will break.
+
+**unit_types**
+
+* id
+* name → kg, gm, liter, ml, pcs
+* base_unit_id (nullable)
+* conversion_rate
+
+  * 1 kg = 1000 gm
+  * 1 liter = 1000 ml
+
+📌 **Rule**:
+Each ingredient has **ONE base unit** (gm / ml / pcs)
+
+---
+
+### 2.2 Ingredient Categories
+
+For filtering, reporting, and future scalability.
+
+**ingredient_categories**
+
+* id
+* name
+
+  * Vegetables
+  * Meat
+  * Spices
+  * Dairy
+
+---
+
+### 2.3 Ingredients (The Heart of Inventory)
+
+**ingredients**
+
+* id
+* ingredient_category_id
+* name (Chicken Breast, Onion, Olive Oil)
+* base_unit_id (gm / ml / pcs)
+* current_stock (stored in base unit)
+* average_cost_per_unit (important for P&L)
+* alert_stock_level
+* is_active
+
+📌 **Store stock ONLY in base unit**
+Never mix kg + gm in stock.
+
+---
+
+## 3️⃣ Menu Structure (Sales Layer)
+
+### 3.1 Menu Categories
+
+**menu_categories**
+
+* id
+* name
+
+  * Starters
+  * Main Course
+  * Drinks
+
+---
+
+### 3.2 Menu Items
+
+**menu_items**
+
+* id
+* menu_category_id
+* name
+* selling_price
+* is_active
+
+Menu items **do not have stock**.
+
+---
+
+## 4️⃣ Recipe Management (Critical Logic)
+
+### 4.1 Menu Item Recipes (BOM – Bill of Materials)
+
+**menu_item_ingredients**
+
+* id
+* menu_item_id
+* ingredient_id
+* quantity (in base unit)
+* unit_id (for UI only)
+
+Example:
+🍗 **Chicken Burger**
+
+* Chicken Breast → 150 gm
+* Bun → 1 pcs
+* Oil → 10 ml
+
+📌 During save:
+
+* Convert everything → base unit
+* Store quantity in base unit
+
+---
+
+## 5️⃣ Purchase Flow (Stock IN)
+
+### 5.1 Purchases
+
+**purchases**
+
+* id
+* supplier_id
+* purchase_date
+* total_amount
+
+**purchase_items**
+
+* purchase_id
+* ingredient_id
+* quantity
+* unit_id
+* unit_price
+* total_price
+
+### 5.2 Stock Update Logic (VERY IMPORTANT)
+
+When purchase is approved:
+
+1. Convert quantity → base unit
+2. Increase ingredient stock
+3. Recalculate **weighted average cost**
+
+#### Average Cost Formula:
+
+```
+new_avg_cost =
+((old_stock × old_avg_cost) + purchase_total) /
+(new_total_stock)
+```
+
+📌 This gives accurate profit calculation later.
+
+---
+
+## 6️⃣ Sales Flow (Stock OUT)
+
+### 6.1 Orders
+
+**orders**
+
+* id
+* order_date
+* total_amount
+* payment_method
+
+**order_items**
+
+* order_id
+* menu_item_id
+* quantity
+* selling_price
+
+---
+
+### 6.2 Ingredient Deduction Logic
+
+For each menu item sold:
+
+1. Get recipe
+2. Multiply ingredient qty × order qty
+3. Reduce ingredient stock
+
+Example:
+Sold **2 Chicken Burgers**
+
+* Chicken → 150 × 2 = 300 gm
+* Bun → 2 pcs
+* Oil → 20 ml
+
+📌 If stock < required → **block sale or warn**
+
+---
+
+## 7️⃣ Stock Movement Log (Non-negotiable)
+
+Never directly trust `current_stock`.
+
+**ingredient_stock_movements**
+
+* id
+* ingredient_id
+* type
+
+  * PURCHASE
+  * SALE
+  * ADJUSTMENT
+  * WASTAGE
+* reference_id
+* qty_in
+* qty_out
+* balance_after
+* unit_cost
+* created_at
+
+📌 This table lets you:
+
+* Audit
+* Debug
+* Generate reports
+* Recalculate stock anytime
+
+---
+
+## 8️⃣ Wastage & Adjustment
+
+### 8.1 Wastage
+
+Expired, damaged, overcooked food.
+
+**wastages**
+
+* ingredient_id
+* quantity
+* reason
+
+➡ Deduct stock
+➡ Add cost to expense
+
+---
+
+### 8.2 Manual Adjustment
+
+For real-world mismatch.
+
+**stock_adjustments**
+
+* ingredient_id
+* before_qty
+* after_qty
+* reason
+
+---
+
+## 9️⃣ Profit & Loss Calculation (This Is Gold 💰)
+
+### 9.1 Cost of Goods Sold (COGS)
+
+For each order item:
+
+```
+ingredient_cost =
+Σ (ingredient_used × avg_cost_per_unit)
+```
+
+Example:
+
+* Chicken → 300 gm × 0.05 = 15
+* Bun → 2 × 10 = 20
+* Oil → 20 ml × 0.02 = 0.4
+
+COGS = **35.4**
+
+---
+
+### 9.2 Order Profit
+
+```
+profit = selling_price - COGS
+```
+
+---
+
+### 9.3 Daily / Monthly P&L
+
+**Revenue**
+
+* Sum of order totals
+
+**Expenses**
+
+* Ingredient purchases
+* Wastage cost
+* Staff salary
+* Rent
+* Utilities
+
+**Net Profit**
+
+```
+Revenue - (COGS + Expenses)
+```
+
+---
+
+## 🔟 Reports You MUST Provide
+
+* Ingredient Stock Report
+* Low Stock Alert
+* Daily Sales
+* Menu Item Profitability
+* Ingredient Consumption Report
+* Purchase vs Usage Report
+* Wastage Report
+* Profit & Loss Statement
+
+---
+
+## 11️⃣ Real-World Edge Cases (Experience Talk 😎)
+
+✔ Same ingredient used in multiple menus
+✔ Partial unit usage (0.5 pcs cheese)
+✔ Menu price change doesn’t affect past profit
+✔ Ingredient price fluctuation handled via avg cost
+✔ Disable menu item automatically if ingredient out of stock

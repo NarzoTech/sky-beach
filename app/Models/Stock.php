@@ -25,6 +25,7 @@ class Stock extends Model
         'type',
         'available_qty',
         'purchase_price',
+        'average_cost',
         'sale_price',
         'profit',
         'discount',
@@ -37,6 +38,7 @@ class Stock extends Model
         'purchase_return_id',
         'sale_id',
         'sale_return_id',
+        'stock_adjustment_id',
     ];
 
     public function ingredient()

@@ -21,5 +21,6 @@
     "Attendance": true,
     "Menu": true,
     "Website": true,
-    "Ingredient": true
+    "Ingredient": true,
+    "StockAdjustment": true
 }

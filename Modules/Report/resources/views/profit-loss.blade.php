@@ -115,6 +115,10 @@
                                         <td>{{ __('Employee Salaries') }}</td>
                                         <td class="text-end">{{ currency($data['salaries']) }}</td>
                                     </tr>
+                                    <tr>
+                                        <td>{{ __('Wastage & Loss') }} <small class="text-muted">({{ __('Spoilage, Damage, Theft') }})</small></td>
+                                        <td class="text-end">{{ currency($data['wastageCost'] ?? 0) }}</td>
+                                    </tr>
                                     <tr class="table-secondary">
                                         <td><strong>{{ __('Gross Profit') }}</strong> <small class="text-muted">({{ __('Net Sales - COGS') }})</small></td>
                                         <td class="text-end"><strong>{{ currency($data['grossProfit']) }}</strong></td>
@@ -205,6 +209,10 @@
                                     <td>{{ __('Employee Salaries') }}</td>
                                     <td class="text-end">{{ currency($data['salaries']) }}</td>
                                 </tr>
+                                <tr>
+                                    <td>{{ __('Wastage & Loss') }}</td>
+                                    <td class="text-end">{{ currency($data['wastageCost'] ?? 0) }}</td>
+                                </tr>
                                 <tr class="table-warning">
                                     <td><strong>{{ __('Total Expenses') }}</strong></td>
                                     <td class="text-end"><strong>{{ currency($data['totalExpenses']) }}</strong></td>
@@ -217,6 +225,30 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profit Margins -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <h6>{{ __('Gross Profit Margin') }}</h6>
+                            <h3 class="{{ ($data['grossProfitMargin'] ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
+                                {{ number_format($data['grossProfitMargin'] ?? 0, 1) }}%
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <h6>{{ __('Net Profit Margin') }}</h6>
+                            <h3 class="{{ ($data['netProfitMargin'] ?? 0) >= 0 ? 'text-success' : 'text-danger' }}">
+                                {{ number_format($data['netProfitMargin'] ?? 0, 1) }}%
+                            </h3>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -33,9 +33,16 @@ class ProductSale extends Model
         'tax',
         'discount',
         'sub_total',
+        'cogs_amount',
+        'profit_amount',
         'source',
         'selling_price',
         'purchase_price'
+    ];
+
+    protected $casts = [
+        'cogs_amount' => 'decimal:4',
+        'profit_amount' => 'decimal:4',
     ];
 
     public function sale()

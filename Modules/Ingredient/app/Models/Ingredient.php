@@ -32,6 +32,7 @@ class Ingredient extends Model
         'consumption_unit_id',
         'conversion_rate',
         'purchase_price',
+        'average_cost',
         'consumption_unit_cost',
         'image',
         'cost',
@@ -62,6 +63,7 @@ class Ingredient extends Model
         'attributes' => 'array',
         'conversion_rate' => 'decimal:4',
         'purchase_price' => 'decimal:4',
+        'average_cost' => 'decimal:4',
         'consumption_unit_cost' => 'decimal:4',
     ];
 
@@ -84,8 +86,13 @@ class Ingredient extends Model
         parent::boot();
 
         static::saving(function ($model) {
-            if ($model->conversion_rate && $model->conversion_rate > 0 && $model->purchase_price) {
-                $model->consumption_unit_cost = $model->purchase_price / $model->conversion_rate;
+            if ($model->conversion_rate && $model->conversion_rate > 0) {
+                // Use average_cost for consumption calculation (weighted average)
+                // Fall back to purchase_price if average_cost is not set
+                $costBasis = $model->average_cost ?? $model->purchase_price;
+                if ($costBasis) {
+                    $model->consumption_unit_cost = $costBasis / $model->conversion_rate;
+                }
             }
         });
     }

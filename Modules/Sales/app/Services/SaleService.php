@@ -93,6 +93,11 @@ class SaleService
                 $menuItem = MenuItem::with('recipes.ingredient')->find($item['id']);
                 $menuVariant = isset($item['variant_id']) ? MenuVariant::find($item['variant_id']) : null;
 
+                // Calculate COGS for this menu item
+                $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $saleQuantity);
+                $subTotal = $item['sub_total'];
+                $profitAmount = $subTotal - $cogsAmount;
+
                 $orderDetails = new ProductSale();
                 $orderDetails->sale_id = $sale->id;
                 $orderDetails->menu_item_id = $menuItem->id;
@@ -105,7 +110,9 @@ class SaleService
                 $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
                 $orderDetails->quantity = $saleQuantity;
                 $orderDetails->base_quantity = $saleQuantity;
-                $orderDetails->sub_total = $item['sub_total'];
+                $orderDetails->sub_total = $subTotal;
+                $orderDetails->cogs_amount = $cogsAmount;
+                $orderDetails->profit_amount = $profitAmount;
                 $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
                 $orderDetails->save();
 
@@ -201,6 +208,8 @@ class SaleService
         $sale->quantity = $totalQty;
         $sale->save();
 
+        // Update COGS totals on the sale
+        $this->updateSaleCOGSTotals($sale);
 
         // create payments
         foreach ($request->payment_type as $key => $item) {
@@ -322,6 +331,11 @@ class SaleService
                     $menuItem = MenuItem::with('recipes.ingredient')->find($item['id']);
                     $menuVariant = isset($item['variant_id']) ? MenuVariant::find($item['variant_id']) : null;
 
+                    // Calculate COGS for this menu item
+                    $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $saleQuantity);
+                    $subTotal = $item['sub_total'];
+                    $profitAmount = $subTotal - $cogsAmount;
+
                     $orderDetails = new ProductSale();
                     $orderDetails->sale_id = $sale->id;
                     $orderDetails->menu_item_id = $menuItem->id;
@@ -334,7 +348,9 @@ class SaleService
                     $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
                     $orderDetails->quantity = $saleQuantity;
                     $orderDetails->base_quantity = $saleQuantity;
-                    $orderDetails->sub_total = $item['sub_total'];
+                    $orderDetails->sub_total = $subTotal;
+                    $orderDetails->cogs_amount = $cogsAmount;
+                    $orderDetails->profit_amount = $profitAmount;
                     $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
                     $orderDetails->save();
 
@@ -429,6 +445,9 @@ class SaleService
 
             $sale->quantity = $totalQty;
             $sale->save();
+
+            // Update COGS totals on the sale
+            $this->updateSaleCOGSTotals($sale);
 
             $ledger = $this->getLedger($request, $id, 1, 'sale');
 
@@ -711,5 +730,58 @@ class SaleService
             $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
             $ingredient->save();
         }
+    }
+
+    /**
+     * Calculate COGS (Cost of Goods Sold) for a menu item based on its recipe
+     * Uses weighted average cost (average_cost) from ingredients
+     *
+     * @param MenuItem $menuItem
+     * @param float $quantity Number of menu items sold
+     * @return float Total COGS for this sale line item
+     */
+    private function calculateMenuItemCOGS(MenuItem $menuItem, float $quantity): float
+    {
+        $totalCOGS = 0;
+
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            // Use consumption_unit_cost (derived from average_cost)
+            // consumption_unit_cost = average_cost / conversion_rate
+            $costPerUnit = $ingredient->consumption_unit_cost ?? 0;
+
+            // COGS for this ingredient = quantity_required × sale_quantity × cost_per_unit
+            $ingredientCOGS = $recipe->quantity_required * $quantity * $costPerUnit;
+            $totalCOGS += $ingredientCOGS;
+        }
+
+        return $totalCOGS;
+    }
+
+    /**
+     * Update COGS totals on a sale record
+     * Called after all line items are processed
+     *
+     * @param Sale $sale
+     */
+    private function updateSaleCOGSTotals(Sale $sale): void
+    {
+        $totalCOGS = 0;
+        $totalRevenue = 0;
+
+        foreach ($sale->details as $detail) {
+            $totalCOGS += $detail->cogs_amount ?? 0;
+            $totalRevenue += $detail->sub_total ?? 0;
+        }
+
+        $grossProfit = $totalRevenue - $totalCOGS;
+        $profitMargin = $totalRevenue > 0 ? ($grossProfit / $totalRevenue) * 100 : 0;
+
+        $sale->total_cogs = $totalCOGS;
+        $sale->gross_profit = $grossProfit;
+        $sale->profit_margin = $profitMargin;
+        $sale->save();
     }
 }

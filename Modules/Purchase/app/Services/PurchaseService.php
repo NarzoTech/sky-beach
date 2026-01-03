@@ -127,9 +127,24 @@ class PurchaseService
             $purchaseDetails->created_by     = Auth::id();
             $purchaseDetails->save();
 
-            // Update ingredient stock with base quantity
-            $ingredient->stock += $baseQuantity;
-            $ingredient->cost  = $request->unit_price[$index];
+            // Calculate weighted average cost
+            // Formula: ((old_stock × old_avg_cost) + (new_qty × new_price)) / (old_stock + new_qty)
+            $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->purchase_price ?? 0);
+            $newQty = (float) $baseQuantity;
+            $newPrice = (float) $request->unit_price[$index];
+
+            if (($oldStock + $newQty) > 0) {
+                $newAvgCost = (($oldStock * $oldAvgCost) + ($newQty * $newPrice)) / ($oldStock + $newQty);
+            } else {
+                $newAvgCost = $newPrice;
+            }
+
+            // Update ingredient stock with base quantity and weighted average cost
+            $ingredient->stock = $oldStock + $baseQuantity;
+            $ingredient->average_cost = $newAvgCost;
+            $ingredient->purchase_price = $newPrice; // Latest purchase price
+            $ingredient->cost = $newPrice;
             $ingredient->save();
 
             // create stock with unit tracking
@@ -144,6 +159,7 @@ class PurchaseService
                 'base_in_quantity'  => $baseQuantity,
                 'sku'               => $ingredient->sku,
                 'purchase_price'    => $request->unit_price[$index],
+                'average_cost'      => $newAvgCost,
                 'sale_price'        => 0,
                 'rate'              => $request->unit_price[$index],
                 'profit'            => 0,
@@ -263,9 +279,24 @@ class PurchaseService
             $purchaseDetails->created_by     = Auth::id();
             $purchaseDetails->save();
 
-            // Update ingredient stock with base quantity
-            $ingredient->stock += $baseQuantity;
-            $ingredient->cost  = $request->unit_price[$index];
+            // Calculate weighted average cost
+            // Formula: ((old_stock × old_avg_cost) + (new_qty × new_price)) / (old_stock + new_qty)
+            $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->purchase_price ?? 0);
+            $newQty = (float) $baseQuantity;
+            $newPrice = (float) $request->unit_price[$index];
+
+            if (($oldStock + $newQty) > 0) {
+                $newAvgCost = (($oldStock * $oldAvgCost) + ($newQty * $newPrice)) / ($oldStock + $newQty);
+            } else {
+                $newAvgCost = $newPrice;
+            }
+
+            // Update ingredient stock with base quantity and weighted average cost
+            $ingredient->stock = $oldStock + $baseQuantity;
+            $ingredient->average_cost = $newAvgCost;
+            $ingredient->purchase_price = $newPrice; // Latest purchase price
+            $ingredient->cost = $newPrice;
             $ingredient->save();
 
             // create stock with unit tracking
@@ -280,6 +311,7 @@ class PurchaseService
                 'base_in_quantity'  => $baseQuantity,
                 'sku'               => $ingredient->sku,
                 'purchase_price'    => $request->unit_price[$index],
+                'average_cost'      => $newAvgCost,
                 'sale_price'        => 0,
                 'rate'              => $request->unit_price[$index],
                 'profit'            => 0,
