@@ -5,8 +5,8 @@ namespace Modules\Order\app\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Order\Database\factories\OrderDetailsFactory;
-use Modules\Product\app\Models\Product;
-use Modules\Product\app\Models\Variant;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\Variant;
 
 class OrderDetails extends Model
 {
@@ -19,9 +19,9 @@ class OrderDetails extends Model
      */
     protected $fillable = [
         'order_id',
-        'product_id',
-        'product_name',
-        'product_sku',
+        'ingredient_id',
+        'ingredient_name',
+        'ingredient_sku',
         'variant_id',
         'price',
         'quantity',
@@ -35,9 +35,9 @@ class OrderDetails extends Model
         return $this->belongsTo(Order::class)->withDefault();
     }
 
-    public function product()
+    public function ingredient()
     {
-        return $this->belongsTo(Product::class)->withDefault();
+        return $this->belongsTo(Ingredient::class)->withDefault();
     }
 
     public function variant()

@@ -123,43 +123,43 @@ trait PermissionsTrait
             'customer.area.delete',
         ],
     ];
-    public static array $productPermissions = [
-        'group_name' => 'product',
+    public static array $ingredientPermissions = [
+        'group_name' => 'ingredient',
         'permissions' => [
-            'product.view',
-            'product.create',
-            'product.edit',
-            'product.delete',
-            'product.status',
-            'product.bulk.import',
-            'product.barcode.print'
+            'ingredient.view',
+            'ingredient.create',
+            'ingredient.edit',
+            'ingredient.delete',
+            'ingredient.status',
+            'ingredient.bulk.import',
+            'ingredient.barcode.print'
         ],
     ];
-    public static array $productUnitTypePermissions = [
-        'group_name' => 'product unit type',
+    public static array $ingredientUnitTypePermissions = [
+        'group_name' => 'ingredient unit type',
         'permissions' => [
-            'product.unit.view',
-            'product.unit.create',
-            'product.unit.edit',
-            'product.unit.delete',
+            'ingredient.unit.view',
+            'ingredient.unit.create',
+            'ingredient.unit.edit',
+            'ingredient.unit.delete',
         ],
     ];
-    public static array $productCategoryPermissions = [
-        'group_name' => 'product category',
+    public static array $ingredientCategoryPermissions = [
+        'group_name' => 'ingredient category',
         'permissions' => [
-            'product.category.view',
-            'product.category.create',
-            'product.category.edit',
-            'product.category.delete',
+            'ingredient.category.view',
+            'ingredient.category.create',
+            'ingredient.category.edit',
+            'ingredient.category.delete',
         ],
     ];
-    public static array $productBrandPermissions = [
-        'group_name' => 'product brand',
+    public static array $ingredientBrandPermissions = [
+        'group_name' => 'ingredient brand',
         'permissions' => [
-            'product.brand.view',
-            'product.brand.create',
-            'product.brand.edit',
-            'product.brand.delete',
+            'ingredient.brand.view',
+            'ingredient.brand.create',
+            'ingredient.brand.edit',
+            'ingredient.brand.delete',
         ],
     ];
     public static array $purchasePermissions = [

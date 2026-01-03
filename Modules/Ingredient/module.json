@@ -1,0 +1,11 @@
+{
+    "name": "Ingredient",
+    "alias": "ingredient",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Ingredient\\app\\Providers\\IngredientServiceProvider"
+    ],
+    "files": []
+}

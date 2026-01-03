@@ -5,7 +5,7 @@ namespace Modules\Purchase\app\Models;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Purchase\Database\factories\PurchaseDetailsFactory;
 
 class PurchaseDetails extends Model
@@ -18,7 +18,7 @@ class PurchaseDetails extends Model
      */
     protected $fillable = [
         'purchase_id',
-        'product_id',
+        'ingredient_id',
         'unit_id',
         'quantity',
         'base_quantity',
@@ -37,9 +37,9 @@ class PurchaseDetails extends Model
         return $this->belongsTo(Purchase::class, 'purchase_id', 'id')->withDefault();
     }
 
-    public function product()
+    public function ingredient()
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id')->withDefault();
     }
 
     public function purchaseReturn()
@@ -49,6 +49,6 @@ class PurchaseDetails extends Model
 
     public function unit()
     {
-        return $this->belongsTo(\Modules\Product\app\Models\UnitType::class, 'unit_id')->withDefault();
+        return $this->belongsTo(\Modules\Ingredient\app\Models\UnitType::class, 'unit_id')->withDefault();
     }
 }

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Product\app\Models\Product;
+use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Purchase\app\Models\Purchase;
 
 class Stock extends Model
@@ -13,7 +13,7 @@ class Stock extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'product_id',
+        'ingredient_id',
         'purchase_id',
         'warehouse_id',
         'unit_id',
@@ -39,9 +39,9 @@ class Stock extends Model
         'sale_return_id',
     ];
 
-    public function product()
+    public function ingredient()
     {
-        return $this->belongsTo(Product::class, 'product_id')->withDefault();
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 
     public function purchase()
@@ -66,6 +66,6 @@ class Stock extends Model
 
     public function unit()
     {
-        return $this->belongsTo(\Modules\Product\app\Models\UnitType::class, 'unit_id')->withDefault();
+        return $this->belongsTo(\Modules\Ingredient\app\Models\UnitType::class, 'unit_id')->withDefault();
     }
 }

@@ -13,8 +13,8 @@ class GlobalSettingInfoSeeder extends Seeder
     {
         Setting::truncate();
         $setting_data = [
-            'app_name'                             => 'QuickShifter',
-            'version'                              => '1.00',
+            'app_name'                             => 'Sky Beach',
+            'version'                              => '1.0.0',
             'logo'                                 => 'uploads/website-images/logo.png',
             'timezone'                             => 'Asia/Dhaka',
             'favicon'                              => 'uploads/website-images/favicon.png',
@@ -72,7 +72,6 @@ class GlobalSettingInfoSeeder extends Seeder
             'sale_and_print_confirmation'          => '',
             'enable_service'                       => '',
             'show_stock_in_pos'                    => '',
-            'logo'                                 => '',
         ];
 
         foreach ($setting_data as $index => $setting_item) {
