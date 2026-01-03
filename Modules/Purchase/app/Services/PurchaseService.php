@@ -57,9 +57,9 @@ class PurchaseService
         if (request('from_date') && request('to_date')) {
             $purchase = $purchase->whereBetween('purchase_date', [now()->parse(request('from_date')), now()->parse(request('to_date'))]);
         }
-        if (request()->product_id) {
+        if (request()->ingredient_id) {
             $purchase = $purchase->whereHas('purchaseDetails', function ($q) {
-                $q->where('product_id', request('product_id'));
+                $q->where('ingredient_id', request('ingredient_id'));
             });
         }
         return $purchase;
@@ -99,24 +99,24 @@ class PurchaseService
         $this->purchaseLedger($request, $purchase->id, $paidAmount, $request->total_amount, 'purchase', 1, $request->due_amount);
         // $this->updateLedger($request, $purchase->id, $paidAmount, 'purchase');
 
-        foreach ($request->product_id as $index => $id) {
-            $product = Ingredient::find($id);
-            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $product->unit_id;
+        foreach ($request->ingredient_id as $index => $id) {
+            $ingredient = Ingredient::find($id);
+            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
             $quantity = $request->quantity[$index];
-            
-            // Convert quantity to product's base unit for stock tracking
+
+            // Convert quantity to ingredient's base unit for stock tracking
             $baseQuantity = $quantity;
-            if ($purchaseUnitId != $product->unit_id) {
+            if ($purchaseUnitId != $ingredient->unit_id) {
                 $baseQuantity = \App\Helpers\UnitConverter::convert(
-                    $quantity, 
-                    $purchaseUnitId, 
-                    $product->unit_id
+                    $quantity,
+                    $purchaseUnitId,
+                    $ingredient->unit_id
                 );
             }
 
             $purchaseDetails                 = new PurchaseDetails();
             $purchaseDetails->purchase_id    = $purchase->id;
-            $purchaseDetails->product_id     = $id;
+            $purchaseDetails->ingredient_id  = $id;
             $purchaseDetails->unit_id        = $purchaseUnitId;
             $purchaseDetails->quantity       = $quantity;
             $purchaseDetails->base_quantity  = $baseQuantity;
@@ -127,22 +127,22 @@ class PurchaseService
             $purchaseDetails->created_by     = Auth::id();
             $purchaseDetails->save();
 
-            // Update product stock with base quantity
-            $product->stock += $baseQuantity;
-            $product->cost  = $request->unit_price[$index];
-            $product->save();
+            // Update ingredient stock with base quantity
+            $ingredient->stock += $baseQuantity;
+            $ingredient->cost  = $request->unit_price[$index];
+            $ingredient->save();
 
             // create stock with unit tracking
             Stock::create([
                 'purchase_id'       => $purchase->id,
-                'product_id'        => $id,
+                'ingredient_id'     => $id,
                 'unit_id'           => $purchaseUnitId,
                 'date'              => Carbon::createFromFormat('d-m-Y', $request->purchase_date),
                 'type'              => 'Purchase',
                 'invoice'           => route('admin.purchase.invoice', $purchase->id),
                 'in_quantity'       => $quantity,
                 'base_in_quantity'  => $baseQuantity,
-                'sku'               => $product->sku,
+                'sku'               => $ingredient->sku,
                 'purchase_price'    => $request->unit_price[$index],
                 'sale_price'        => 0,
                 'rate'              => $request->unit_price[$index],
@@ -220,11 +220,13 @@ class PurchaseService
 
         $this->purchaseLedger($request, $purchase->id, $paidAmount, $request->total_amount, 'purchase', 1, $request->due_amount, $ledger);
 
-        // restore product stock using base quantity
+        // restore ingredient stock using base quantity
         foreach ($purchase->purchaseDetails as $purchaseDetail) {
-            $product = Ingredient::find($purchaseDetail->product_id);
-            $product->stock -= ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
-            $product->save();
+            $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
+            if ($ingredient) {
+                $ingredient->stock -= ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $ingredient->save();
+            }
         }
 
         // delete old purchase details
@@ -233,24 +235,24 @@ class PurchaseService
         $purchase->stock()->delete();
 
         // store new purchase details with unit conversion
-        foreach ($request->product_id as $index => $id) {
-            $product = Ingredient::find($id);
-            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $product->unit_id;
+        foreach ($request->ingredient_id as $index => $id) {
+            $ingredient = Ingredient::find($id);
+            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
             $quantity = $request->quantity[$index];
-            
-            // Convert quantity to product's base unit for stock tracking
+
+            // Convert quantity to ingredient's base unit for stock tracking
             $baseQuantity = $quantity;
-            if ($purchaseUnitId != $product->unit_id) {
+            if ($purchaseUnitId != $ingredient->unit_id) {
                 $baseQuantity = \App\Helpers\UnitConverter::convert(
-                    $quantity, 
-                    $purchaseUnitId, 
-                    $product->unit_id
+                    $quantity,
+                    $purchaseUnitId,
+                    $ingredient->unit_id
                 );
             }
 
             $purchaseDetails                 = new PurchaseDetails();
             $purchaseDetails->purchase_id    = $purchase->id;
-            $purchaseDetails->product_id     = $id;
+            $purchaseDetails->ingredient_id  = $id;
             $purchaseDetails->unit_id        = $purchaseUnitId;
             $purchaseDetails->quantity       = $quantity;
             $purchaseDetails->base_quantity  = $baseQuantity;
@@ -261,22 +263,22 @@ class PurchaseService
             $purchaseDetails->created_by     = Auth::id();
             $purchaseDetails->save();
 
-            // Update product stock with base quantity
-            $product->stock += $baseQuantity;
-            $product->cost  = $request->unit_price[$index];
-            $product->save();
+            // Update ingredient stock with base quantity
+            $ingredient->stock += $baseQuantity;
+            $ingredient->cost  = $request->unit_price[$index];
+            $ingredient->save();
 
             // create stock with unit tracking
             Stock::create([
                 'purchase_id'       => $purchase->id,
-                'product_id'        => $id,
+                'ingredient_id'     => $id,
                 'unit_id'           => $purchaseUnitId,
                 'date'              => Carbon::createFromFormat('d-m-Y', $request->purchase_date),
                 'type'              => 'Purchase',
                 'invoice'           => route('admin.purchase.invoice', $purchase->id),
                 'in_quantity'       => $quantity,
                 'base_in_quantity'  => $baseQuantity,
-                'sku'               => $product->sku,
+                'sku'               => $ingredient->sku,
                 'purchase_price'    => $request->unit_price[$index],
                 'sale_price'        => 0,
                 'rate'              => $request->unit_price[$index],
@@ -329,11 +331,13 @@ class PurchaseService
     {
         $purchase = $this->purchase->find($id);
 
-        // restore product stock
+        // restore ingredient stock
         foreach ($this->purchase->find($id)->purchaseDetails as $purchaseDetail) {
-            $product = Ingredient::find($purchaseDetail->product_id);
-            $product->stock -= $purchaseDetail->quantity;
-            $product->save();
+            $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
+            if ($ingredient) {
+                $ingredient->stock -= $purchaseDetail->quantity;
+                $ingredient->save();
+            }
         }
 
         PurchaseDetails::where('purchase_id', $id)?->delete();
@@ -379,12 +383,12 @@ class PurchaseService
 
     public function getPurchase($id)
     {
-        return $this->purchase->with('supplier', 'warehouse', 'purchaseDetails.product.unit', 'payments')->find($id);
+        return $this->purchase->with('supplier', 'warehouse', 'purchaseDetails.ingredient.unit', 'payments')->find($id);
     }
 
     public function getPurchaseDetails($id)
     {
-        return PurchaseDetails::with('product')->where('purchase_id', $id)->get();
+        return PurchaseDetails::with('ingredient')->where('purchase_id', $id)->get();
     }
 
     public function getPurchaseList()
@@ -402,10 +406,16 @@ class PurchaseService
         return Warehouse::where('status', 1)->latest()->get();
     }
 
+    public function getIngredients(Request $request)
+    {
+        $ingredients = $this->ingredientService->allActiveIngredients($request);
+        return $ingredients->with('unit', 'purchaseUnit', 'consumptionUnit')->get();
+    }
+
+    // Alias for backward compatibility
     public function getProducts(Request $request)
     {
-        $products = $this->ingredientService->allActiveIngredients($request);
-        return $products->with('unit')->get();
+        return $this->getIngredients($request);
     }
 
     public function getAccounts()
@@ -442,28 +452,28 @@ class PurchaseService
 
         // store purchase return details
 
-        foreach ($request->product_id as $index => $val) {
+        foreach ($request->ingredient_id as $index => $val) {
             $purchase->purchaseDetails()->create([
-                'product_id'  => $val,
+                'ingredient_id'  => $val,
                 'purchase_id' => $request->purchase_id,
                 'quantity'    => $request->return_quantity[$index],
                 'total'       => $request->return_subtotal[$index],
             ]);
 
-            // update product stock
-            $prod        = Ingredient::find($val);
-            $prod->stock = $prod->stock - $request->return_quantity[$index];
-            $prod->save();
+            // update ingredient stock
+            $ingredient = Ingredient::find($val);
+            $ingredient->stock = $ingredient->stock - $request->return_quantity[$index];
+            $ingredient->save();
 
             // update stock
             Stock::create([
                 'invoice_number'     => $purchase->invoice,
                 'purchase_return_id' => $purchase->id,
                 'type'               => 'purchase return',
-                'product_id'         => $val,
+                'ingredient_id'      => $val,
                 'date'               => now(),
                 'out_quantity'       => $request->return_quantity[$index],
-                'sku'                => $prod->sku,
+                'sku'                => $ingredient->sku,
                 'created_by'         => auth('admin')->user()->id,
             ]);
         }
@@ -512,12 +522,14 @@ class PurchaseService
             'invoice'         => $this->returnInvoice(),
         ]);
 
-        // restore product stock
+        // restore ingredient stock
 
         foreach ($return->purchaseDetails as $purchaseDetail) {
-            $product = Ingredient::find($purchaseDetail->product_id);
-            $product->stock += $purchaseDetail->quantity;
-            $product->save();
+            $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
+            if ($ingredient) {
+                $ingredient->stock += $purchaseDetail->quantity;
+                $ingredient->save();
+            }
         }
 
         // delete old purchase details
@@ -528,7 +540,7 @@ class PurchaseService
 
     public function getPurchaseReturn($id)
     {
-        return $this->purchaseReturn->with('supplier', 'purchaseDetails')->find($id);
+        return $this->purchaseReturn->with('supplier', 'purchaseDetails.ingredient')->find($id);
     }
 
     public function purchaseLedger($request, $id, $paid, $total_amount = 0, $type = 'purchase', $isPaid = 1, $dueAmount = 0, $ledger = null)
@@ -622,12 +634,14 @@ class PurchaseService
     {
         $return = $this->purchaseReturn->find($id);
 
-        // restore product stock
+        // restore ingredient stock
 
         foreach ($return->purchaseDetails as $purchaseDetail) {
-            $product = Ingredient::find($purchaseDetail->product_id);
-            $product->stock += $purchaseDetail->quantity;
-            $product->save();
+            $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
+            if ($ingredient) {
+                $ingredient->stock += $purchaseDetail->quantity;
+                $ingredient->save();
+            }
         }
 
         $return->payment()->delete();

@@ -29,9 +29,15 @@ class Recipe extends Model
         return $this->belongsTo(MenuItem::class);
     }
 
-    public function product(): BelongsTo
+    public function ingredient(): BelongsTo
     {
         return $this->belongsTo(Ingredient::class, 'ingredient_id');
+    }
+
+    // Alias for backward compatibility
+    public function product(): BelongsTo
+    {
+        return $this->ingredient();
     }
 
     public function unit(): BelongsTo
@@ -41,34 +47,36 @@ class Recipe extends Model
 
     public function getIngredientCostAttribute()
     {
-        if ($this->product) {
-            return $this->product->cost * $this->quantity_required;
+        if ($this->ingredient) {
+            // Use consumption_unit_cost for accurate costing
+            $costPerUnit = $this->ingredient->consumption_unit_cost ?? $this->ingredient->cost ?? 0;
+            return $costPerUnit * $this->quantity_required;
         }
         return 0;
     }
 
     public function hasEnoughStock($quantity = 1)
     {
-        if ($this->product) {
+        if ($this->ingredient) {
             $requiredStock = $this->quantity_required * $quantity;
-            return $this->product->stock >= $requiredStock;
+            return $this->ingredient->stock >= $requiredStock;
         }
         return true;
     }
 
     public function deductStock($quantity = 1)
     {
-        if ($this->product) {
+        if ($this->ingredient) {
             $requiredStock = $this->quantity_required * $quantity;
-            $this->product->stock -= $requiredStock;
+            $this->ingredient->stock -= $requiredStock;
 
-            if ($this->product->stock <= 0) {
-                $this->product->stock_status = 'out_of_stock';
-            } elseif ($this->product->stock <= $this->product->stock_alert) {
+            if ($this->ingredient->stock <= 0) {
+                $this->ingredient->stock_status = 'out_of_stock';
+            } elseif ($this->ingredient->stock <= $this->ingredient->stock_alert) {
                 // Stock is low - could trigger notification here
             }
 
-            $this->product->save();
+            $this->ingredient->save();
             return true;
         }
         return false;

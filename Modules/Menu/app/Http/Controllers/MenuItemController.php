@@ -47,9 +47,9 @@ class MenuItemController extends Controller
         checkAdminHasPermissionAndThrowException('menu.item.create');
         $categories = $this->categoryService->getActiveCategories();
         $allergenOptions = $this->getAllergenOptions();
-        $products = Ingredient::where('status', 1)->get();
+        $ingredients = Ingredient::where('status', 1)->get();
         $units = UnitType::where('status', 1)->get();
-        return view('menu::admin.items.create', compact('categories', 'allergenOptions', 'products', 'units'));
+        return view('menu::admin.items.create', compact('categories', 'allergenOptions', 'ingredients', 'units'));
     }
 
     /**
@@ -98,9 +98,9 @@ class MenuItemController extends Controller
         $item = $this->menuItemService->getItem($id);
         $categories = $this->categoryService->getActiveCategories();
         $allergenOptions = $this->getAllergenOptions();
-        $products = Ingredient::where('status', 1)->get();
+        $ingredients = Ingredient::where('status', 1)->get();
         $units = UnitType::where('status', 1)->get();
-        return view('menu::admin.items.edit', compact('item', 'categories', 'allergenOptions', 'products', 'units'));
+        return view('menu::admin.items.edit', compact('item', 'categories', 'allergenOptions', 'ingredients', 'units'));
     }
 
     /**
@@ -369,9 +369,9 @@ class MenuItemController extends Controller
     {
         checkAdminHasPermissionAndThrowException('menu.item.edit');
         $item = $this->menuItemService->getItem($id);
-        $products = Ingredient::where('status', 1)->get();
+        $ingredients = Ingredient::where('status', 1)->with('consumptionUnit')->get();
         $units = UnitType::where('status', 1)->get();
-        return view('menu::admin.items.recipe', compact('item', 'products', 'units'));
+        return view('menu::admin.items.recipe', compact('item', 'ingredients', 'units'));
     }
 
     /**

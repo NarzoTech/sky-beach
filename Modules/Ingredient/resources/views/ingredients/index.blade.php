@@ -1,6 +1,6 @@
 @extends('admin.layouts.master')
 @section('title')
-    <title>{{ __('Product List') }}</title>
+    <title>{{ __('Ingredient List') }}</title>
 @endsection
 @section('content')
     <div class="row">
@@ -92,16 +92,16 @@
     <div class="card mt-5">
         <div class="card-header-tab card-header">
             <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
-                <h4 class="section_title"> {{ __('Product List') }}</h4>
+                <h4 class="section_title"> {{ __('Ingredient List') }}</h4>
             </div>
             <div class="btn-actions-pane-right actions-icon-btn">
                 @adminCan('ingredient.create')
                     <a href="{{ route('admin.ingredient.create') }}" class="btn btn-primary"><i class="fa fa-plus"></i>
-                        {{ __('Add Product') }}</a>
+                        {{ __('Add Ingredient') }}</a>
                 @endadminCan
                 @adminCan('ingredient.bulk.import')
                     <a href="{{ route('admin.ingredient.import') }}" class="btn btn-primary"><i class="fa fa-upload"></i>
-                        {{ __('Import Products') }}</a>
+                        {{ __('Import Ingredients') }}</a>
                 @endadminCan
 
                 <button type="button" class="btn bg-label-success export"><i class="fa fa-file-excel"></i>
@@ -135,10 +135,10 @@
                             <th>{{ __('SN') }}</th>
                             <th>{{ __('Photo') }}</th>
                             <th>{{ __('Name') }}</th>
-                            <th>{{ __('Barcode') }}</th>
+                            <th>{{ __('Code') }}</th>
                             <th>{{ __('Stock Qty') }}</th>
-                            <th>{{ __('Price') }}</th>
-                            <th>{{ __('After Disc. P.') }}</th>
+                            <th>{{ __('Purchase Price') }}</th>
+                            <th>{{ __('Cost/Unit') }}</th>
                             <th>{{ __('Brand') }}</th>
                             <th>{{ __('Category') }}</th>
                             @adminCan('ingredient.status')
@@ -149,35 +149,35 @@
                     </thead>
                     <tbody>
                         @php
-                            $start = checkPaginate($products) ? $products->firstItem() : 1;
+                            $start = checkPaginate($ingredients) ? $ingredients->firstItem() : 1;
                         @endphp
-                        @foreach ($products as $index => $product)
+                        @foreach ($ingredients as $index => $ingredient)
                             <tr>
                                 <td>
                                     <div class="custom-checkbox custom-control">
                                         <input type="checkbox" data-checkboxes="checkgroup" class="custom-control-input"
-                                            id="checkbox-{{ $product->id }}" name="select">
+                                            id="checkbox-{{ $ingredient->id }}" name="select">
                                     </div>
                                 </td>
                                 <td>{{ $start + $index }}</td>
-                                <td> <img class="rounded-circle" src="{{ $product->singleImage }}"></td>
-                                <td>{{ $product->name }} </td>
-                                <td>{{ $product->barcode }}</td>
-                                <td>{{ $product->stock }}{{ $product->unit->ShortName }}</td>
-                                <td>{{ $product->current_price }}</td>
-                                <td>{{ $product->current_price }}</td>
-                                <td>{{ $product->brand->name }}</td>
-                                <td>{{ $product->category->name }}</td>
+                                <td> <img class="rounded-circle" src="{{ $ingredient->singleImage }}"></td>
+                                <td>{{ $ingredient->name }} </td>
+                                <td>{{ $ingredient->sku }}</td>
+                                <td>{{ $ingredient->stock }}{{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
+                                <td>{{ currency($ingredient->purchase_price ?? 0) }}</td>
+                                <td>{{ currency($ingredient->consumption_unit_cost ?? 0) }}</td>
+                                <td>{{ $ingredient->brand->name }}</td>
+                                <td>{{ $ingredient->category->name }}</td>
                                 @adminCan('ingredient.status')
                                     <td>
-                                        @if ($product->status == 1)
-                                            <a href="javascript:;" onclick="status({{ $product->id }})">
+                                        @if ($ingredient->status == 1)
+                                            <a href="javascript:;" onclick="status({{ $ingredient->id }})">
                                                 <input id="status_toggle" type="checkbox" checked data-bs-toggle="toggle"
                                                     data-on="{{ __('Active') }}" data-off="{{ __('InActive') }}"
                                                     data-onstyle="success" data-offstyle="danger">
                                             </a>
                                         @else
-                                            <a href="javascript:;" onclick="status({{ $product->id }})">
+                                            <a href="javascript:;" onclick="status({{ $ingredient->id }})">
                                                 <input id="status_toggle" type="checkbox" data-bs-toggle="toggle"
                                                     data-on="{{ __('Active') }}" data-off="{{ __('InActive') }}"
                                                     data-onstyle="success" data-offstyle="danger">
@@ -188,38 +188,38 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-primary btn-sm dropdown-toggle" type="button"
-                                            id="dropdownMenuButton{{ $product->id }}" data-bs-toggle="dropdown"
+                                            id="dropdownMenuButton{{ $ingredient->id }}" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
                                             Action
                                         </button>
 
                                         <div class="dropdown-menu" x-placement="top-start"
                                             style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, -131px, 0px);">
-                                            <a href="javascript:;" class="dropdown-item productView"
-                                                data-id="{{ $product->id }}">
+                                            <a href="javascript:;" class="dropdown-item ingredientView"
+                                                data-id="{{ $ingredient->id }}">
                                                 {{ __('View') }}</a>
 
-                                            <a href="{{ route('admin.ingredient.show', ['product' => $product->id]) }}"
+                                            <a href="{{ route('admin.ingredient.show', $ingredient->id) }}"
                                                 class="dropdown-item"></i>
                                                 {{ __('Details') }}</a>
 
                                             @adminCan('ingredient.edit')
-                                                <a href="{{ route('admin.ingredient.edit', ['product' => $product->id]) }}"
+                                                <a href="{{ route('admin.ingredient.edit', $ingredient->id) }}"
                                                     class="dropdown-item">
 
                                                     {{ __('Edit') }}</a>
                                             @endadminCan
                                             @adminCan('ingredient.status')
                                                 <a class="dropdown-item" href="javascript:;"
-                                                    onclick="status('{{ $product->id }}')"
-                                                    data-status="{{ $product->id }}">
-                                                    {{ $product->status == 1 ? 'Disable' : 'Enable' }}
+                                                    onclick="status('{{ $ingredient->id }}')"
+                                                    data-status="{{ $ingredient->id }}">
+                                                    {{ $ingredient->status == 1 ? 'Disable' : 'Enable' }}
                                                 </a>
                                             @endadminCan
                                             @adminCan('ingredient.delete')
                                                 <a class="dropdown-item" href="javascript:;"
-                                                    @if ($product->orders->count() > 0) data-bs-target="#canNotDeleteModal"
-                                            @else onclick="deleteData({{ $product->id }})" @endif>{{ __('Delete') }}</a>
+                                                    @if ($ingredient->orders->count() > 0) data-bs-target="#canNotDeleteModal"
+                                            @else onclick="deleteData({{ $ingredient->id }})" @endif>{{ __('Delete') }}</a>
                                             @endadminCan
                                         </div>
                                     </div>
@@ -231,7 +231,7 @@
             </div>
             @if (request()->get('par-page') !== 'all')
                 <div class="float-right mt-5">
-                    {{ $products->onEachSide(0)->links() }}
+                    {{ $ingredients->onEachSide(0)->links() }}
                 </div>
             @endif
         </div>
@@ -243,7 +243,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-body">
-                    {{ __('You can not delete this product. Because there are one or more order has been created in this product.') }}
+                    {{ __('You can not delete this ingredient. Because there are one or more order has been created with this ingredient.') }}
                 </div>
 
                 <div class="modal-footer">
@@ -253,7 +253,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="productView" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+    <div class="modal fade" id="ingredientView" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -268,7 +268,7 @@
     <script>
         $(document).ready(function() {
             'use strict';
-            $('.productView').on('click', function() {
+            $('.ingredientView').on('click', function() {
                 var id = $(this).data('id');
                 let url = '{{ route('admin.ingredient.view', ':id') }}';
                 url = url.replace(':id', id);
@@ -276,8 +276,8 @@
                     type: "GET",
                     url,
                     success: function(response) {
-                        $('#productView .modal-content').html(response);
-                        $('#productView').modal('show');
+                        $('#ingredientView .modal-content').html(response);
+                        $('#ingredientView').modal('show');
                     }
                 });
             })

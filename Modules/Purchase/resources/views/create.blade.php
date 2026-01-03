@@ -5,11 +5,11 @@
 
 @push('css')
     <style>
-        .product-name-wrapper {
+        .ingredient-name-wrapper {
             position: relative;
         }
 
-        .product-name-wrapper .product-tooltip {
+        .ingredient-name-wrapper .ingredient-tooltip {
             visibility: hidden;
             opacity: 0;
             position: absolute;
@@ -31,7 +31,7 @@
             text-align: center;
         }
 
-        .product-name-wrapper .product-tooltip::after {
+        .ingredient-name-wrapper .ingredient-tooltip::after {
             content: '';
             position: absolute;
             top: 100%;
@@ -42,7 +42,7 @@
             border-color: #fff transparent transparent transparent;
         }
 
-        .product-name-wrapper .product-tooltip img {
+        .ingredient-name-wrapper .ingredient-tooltip img {
             max-width: 120px;
             max-height: 120px;
             border-radius: 6px;
@@ -50,7 +50,7 @@
             object-fit: cover;
         }
 
-        .product-name-wrapper .product-tooltip .tooltip-name {
+        .ingredient-name-wrapper .ingredient-tooltip .tooltip-name {
             font-weight: 600;
             word-wrap: break-word;
             white-space: normal;
@@ -58,7 +58,7 @@
             overflow-wrap: break-word;
         }
 
-        .product-name-wrapper:hover .product-tooltip {
+        .ingredient-name-wrapper:hover .ingredient-tooltip {
             visibility: visible;
             opacity: 1;
         }
@@ -147,15 +147,15 @@
                                     @enderror
                                 </div>
                             </div>
-                            {{-- product search box --}}
+                            {{-- ingredient search box --}}
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label>{{ __('Product') }}</label>
-                                    <select class="form-control select2" id="product_id">
-                                        <option value="">{{ __('Select Product') }}</option>
-                                        @foreach ($products as $product)
-                                            <option value="{{ $product->id }}">{{ $product->name }}
-                                                ({{ $product->sku }})
+                                    <label>{{ __('Ingredient') }}</label>
+                                    <select class="form-control select2" id="ingredient_id">
+                                        <option value="">{{ __('Select Ingredient') }}</option>
+                                        @foreach ($products as $ingredient)
+                                            <option value="{{ $ingredient->id }}">{{ $ingredient->name }}
+                                                ({{ $ingredient->sku }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -169,7 +169,7 @@
                                         <thead>
                                             <tr>
                                                 <th>SL</th>
-                                                <th>{{ __('Product Name') }}</th>
+                                                <th>{{ __('Ingredient Name') }}</th>
                                                 <th>{{ __('Unit') }}</th>
                                                 <th>{{ __('Stock') }}</th>
                                                 <th>{{ __('Quantity') }}</th>
@@ -301,42 +301,37 @@
             });
         }
 
-        function addPurchaseRow(product) {
+        function addPurchaseRow(ingredient) {
             if ($('#purchase_table tr').length) {
                 let exists = false;
                 $('#purchase_table tr').each(function() {
-                    if ($(this).find('input[name="product_id[]"]').val() == product.id) {
+                    if ($(this).find('input[name="ingredient_id[]"]').val() == ingredient.id) {
                         exists = true;
                     }
                 });
                 if (exists) {
-                    alert('Product already added!');
+                    alert('Ingredient already added!');
                     return;
                 }
             }
 
-            const cost = parseFloat(product.cost) || 0;
+            const cost = parseFloat(ingredient.purchase_price) || parseFloat(ingredient.cost) || 0;
             const serial = $('#purchase_table tr').length + 1;
-            const unitName = product.unit ? product.unit.ShortName : '-';
-            const productUnitId = product.unit ? product.unit.id : '';
+            const purchaseUnit = ingredient.purchase_unit || ingredient.unit;
+            const unitName = purchaseUnit ? purchaseUnit.ShortName : '-';
+            const ingredientUnitId = purchaseUnit ? purchaseUnit.id : '';
 
             // Build unit family options for dropdown
             let unitOptions = '';
-            if (product.unit) {
-                // Add base unit and children
-                unitOptions += `<option value="${product.unit.id}" selected>${product.unit.name} (${product.unit.ShortName})</option>`;
-                
+            if (purchaseUnit) {
+                // Add purchase unit as default
+                unitOptions += `<option value="${purchaseUnit.id}" selected>${purchaseUnit.name} (${purchaseUnit.ShortName})</option>`;
+
                 // Add children units if exist
-                if (product.unit.children && product.unit.children.length > 0) {
-                    product.unit.children.forEach(childUnit => {
+                if (purchaseUnit.children && purchaseUnit.children.length > 0) {
+                    purchaseUnit.children.forEach(childUnit => {
                         unitOptions += `<option value="${childUnit.id}">${childUnit.name} (${childUnit.ShortName})</option>`;
                     });
-                }
-                
-                // If this unit has a parent, fetch and add parent and siblings
-                if (product.unit.base_unit) {
-                    // Need to fetch parent unit via AJAX or include in product data
-                    // For now, we'll handle this when the full unit family is loaded
                 }
             }
 
@@ -344,23 +339,23 @@
                 <tr>
                     <td>${serial}</td>
                     <td>
-                        <div class="product-name-wrapper">
-                            <input type="text" class="form-control" name="product_name[]" value="${product.name}" readonly>
-                            <div class="product-tooltip">
-                                <img src="${product.single_image}" alt="${product.name}" onerror="this.src='{{ asset('backend/img/image_icon.png') }}'">
-                                <div class="tooltip-name">${product.name}</div>
+                        <div class="ingredient-name-wrapper">
+                            <input type="text" class="form-control" name="ingredient_name[]" value="${ingredient.name}" readonly>
+                            <div class="ingredient-tooltip">
+                                <img src="${ingredient.single_image}" alt="${ingredient.name}" onerror="this.src='{{ asset('backend/img/image_icon.png') }}'">
+                                <div class="tooltip-name">${ingredient.name}</div>
                             </div>
                         </div>
-                        <input type="hidden" name="product_id[]" value="${product.id}">
-                        <input type="hidden" name="product_base_unit_id[]" value="${productUnitId}" class="product_base_unit_id">
+                        <input type="hidden" name="ingredient_id[]" value="${ingredient.id}">
+                        <input type="hidden" name="ingredient_base_unit_id[]" value="${ingredientUnitId}" class="ingredient_base_unit_id">
                     </td>
                     <td>
-                        <select class="form-control purchase-unit-select" name="purchase_unit_id[]" data-product-id="${product.id}" style="width: 150px;">
+                        <select class="form-control purchase-unit-select" name="purchase_unit_id[]" data-ingredient-id="${ingredient.id}" style="width: 150px;">
                             ${unitOptions}
                         </select>
                     </td>
                     <td>
-                        <input type="number" class="form-control" name="stock[]" value="${product.stock}" readonly>
+                        <input type="number" class="form-control" name="stock[]" value="${ingredient.stock}" readonly>
                         <small class="text-muted">${unitName}</small>
                     </td>
                     <td>
@@ -378,16 +373,16 @@
                 </tr>
             `;
 
-            // check if product is already added
+            // check if ingredient is already added
             if ($('#purchase_table tr').length > 0) {
-                let isProductAdded = false;
+                let isIngredientAdded = false;
                 $('#purchase_table tr').each(function() {
-                    let product_id = $(this).find('input[name="product_id[]"]').val();
-                    if (product_id == product.id) {
-                        isProductAdded = true;
+                    let ingredient_id = $(this).find('input[name="ingredient_id[]"]').val();
+                    if (ingredient_id == ingredient.id) {
+                        isIngredientAdded = true;
                     }
                 });
-                if (isProductAdded) {
+                if (isIngredientAdded) {
                     return;
                 }
             }
@@ -400,19 +395,19 @@
             updateSerialNumbers();
             calculateTotalAmount();
         }
-        const products = @json($products);
-        $(document).on('change', '#product_id', function() {
-            let product_id = $(this).val();
-            const product = products.find(p => p.id == product_id);
-            addPurchaseRow(product);
+        const ingredients = @json($products);
+        $(document).on('change', '#ingredient_id', function() {
+            let ingredient_id = $(this).val();
+            const ingredient = ingredients.find(p => p.id == ingredient_id);
+            addPurchaseRow(ingredient);
         });
 
         // Load unit family for purchase unit dropdown
-        function loadUnitFamily(productId, selectElement) {
+        function loadUnitFamily(ingredientId, selectElement) {
             $.ajax({
                 url: '{{ route("admin.ingredient.unit-family") }}',
                 type: 'GET',
-                data: { product_id: productId },
+                data: { ingredient_id: ingredientId },
                 success: function(response) {
                     if (response.units && response.units.length > 0) {
                         let currentValue = $(selectElement).val();
@@ -439,8 +434,8 @@
         // Debounce function to limit API calls
         let searchTimeout = null;
 
-        // when search product will not in the product list. it will search from the database;
-        $(document).on('input', '[aria-controls="select2-product_id-results"]', function() {
+        // when search ingredient will not in the ingredient list. it will search from the database;
+        $(document).on('input', '[aria-controls="select2-ingredient_id-results"]', function() {
             let input = $(this).val();
 
             // Clear previous timeout
@@ -452,33 +447,33 @@
                 return;
             }
 
-            // check if input its in product name or product code
-            const filteredProducts = products.filter(p =>
+            // check if input its in ingredient name or ingredient code
+            const filteredIngredients = ingredients.filter(p =>
                 p.name.toLowerCase().includes(input.toLowerCase()) ||
                 (p.barcode && p.barcode.toLowerCase().includes(input.toLowerCase())) ||
                 (p.sku && p.sku.toLowerCase().includes(input.toLowerCase()))
             );
 
-            if (filteredProducts.length == 0) {
+            if (filteredIngredients.length == 0) {
                 // Debounce the API call - wait 300ms after user stops typing
                 searchTimeout = setTimeout(function() {
                     $.ajax({
-                        url: "{{ route('admin.purchase.product.search') }}",
+                        url: "{{ route('admin.purchase.ingredient.search') }}",
                         type: 'POST',
                         data: {
                             keyword: input
                         },
                         success: function(response) {
                             if (response.status) {
-                                response.data.forEach(product => {
-                                    // Check if product already exists in the list
-                                    const existingProduct = products.find(p => p.id ==
-                                        product.id);
+                                response.data.forEach(ingredient => {
+                                    // Check if ingredient already exists in the list
+                                    const existingIngredient = ingredients.find(p => p.id ==
+                                        ingredient.id);
 
-                                    if (!existingProduct) {
-                                        products.push(product);
-                                        $('#product_id').append(
-                                            `<option value="${product.id}">${product.name} (${product.sku})</option>`
+                                    if (!existingIngredient) {
+                                        ingredients.push(ingredient);
+                                        $('#ingredient_id').append(
+                                            `<option value="${ingredient.id}">${ingredient.name} (${ingredient.sku})</option>`
                                         );
                                     }
                                 });
@@ -584,9 +579,9 @@
                 $('[name="purchase_date"]').closest('.form-group').find('.text-danger').remove();
             }
 
-            // Products validation
+            // Ingredients validation
             if ($('#purchase_table tr').length === 0) {
-                errors.push('{{ __('At least one product is required') }}');
+                errors.push('{{ __('At least one ingredient is required') }}');
             }
 
             // Quantity validation

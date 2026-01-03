@@ -34,7 +34,7 @@
                                                         <table class="table table-bordered" id="ingredientsTable">
                                                             <thead>
                                                                 <tr>
-                                                                    <th width="35%">{{ __('Product/Ingredient') }}</th>
+                                                                    <th width="35%">{{ __('Ingredient') }}</th>
                                                                     <th width="15%">{{ __('Quantity') }}</th>
                                                                     <th width="15%">{{ __('Unit') }}</th>
                                                                     <th width="15%">{{ __('Cost') }}</th>
@@ -46,13 +46,14 @@
                                                                 @foreach ($item->recipes as $index => $recipe)
                                                                     <tr class="ingredient-row">
                                                                         <td>
-                                                                            <select name="recipes[{{ $index }}][product_id]" class="form-control select2 product-select" required>
-                                                                                <option value="">{{ __('Select Product') }}</option>
-                                                                                @foreach ($products as $product)
-                                                                                    <option value="{{ $product->id }}"
-                                                                                        data-cost="{{ $product->cost }}"
-                                                                                        {{ $recipe->product_id == $product->id ? 'selected' : '' }}>
-                                                                                        {{ $product->name }} ({{ number_format($product->cost, 2) }}/unit)
+                                                                            <select name="recipes[{{ $index }}][ingredient_id]" class="form-control select2 ingredient-select" required>
+                                                                                <option value="">{{ __('Select Ingredient') }}</option>
+                                                                                @foreach ($ingredients as $ingredient)
+                                                                                    <option value="{{ $ingredient->id }}"
+                                                                                        data-cost="{{ $ingredient->consumption_unit_cost ?? $ingredient->cost }}"
+                                                                                        data-unit="{{ $ingredient->consumptionUnit->ShortName ?? '' }}"
+                                                                                        {{ $recipe->ingredient_id == $ingredient->id ? 'selected' : '' }}>
+                                                                                        {{ $ingredient->name }} ({{ currency($ingredient->consumption_unit_cost ?? $ingredient->cost) }}/{{ $ingredient->consumptionUnit->ShortName ?? 'unit' }})
                                                                                     </option>
                                                                                 @endforeach
                                                                             </select>
@@ -141,8 +142,8 @@
                                             </div>
                                             <div class="card-body">
                                                 <ul class="list-unstyled">
-                                                    <li><i class="fa fa-info-circle text-info"></i> {{ __('Select products that are used as ingredients') }}</li>
-                                                    <li class="mt-2"><i class="fa fa-info-circle text-info"></i> {{ __('Cost is calculated from product cost price') }}</li>
+                                                    <li><i class="fa fa-info-circle text-info"></i> {{ __('Select ingredients used in this menu item') }}</li>
+                                                    <li class="mt-2"><i class="fa fa-info-circle text-info"></i> {{ __('Cost is calculated from ingredient consumption unit cost') }}</li>
                                                     <li class="mt-2"><i class="fa fa-info-circle text-info"></i> {{ __('Stock will be deducted when menu item is sold') }}</li>
                                                 </ul>
                                             </div>
@@ -170,11 +171,11 @@
                 var newRow = `
                     <tr class="ingredient-row">
                         <td>
-                            <select name="recipes[${rowIndex}][product_id]" class="form-control product-select" required>
-                                <option value="">{{ __('Select Product') }}</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}" data-cost="{{ $product->cost }}">
-                                        {{ $product->name }} ({{ number_format($product->cost, 2) }}/unit)
+                            <select name="recipes[${rowIndex}][ingredient_id]" class="form-control ingredient-select" required>
+                                <option value="">{{ __('Select Ingredient') }}</option>
+                                @foreach ($ingredients as $ingredient)
+                                    <option value="{{ $ingredient->id }}" data-cost="{{ $ingredient->consumption_unit_cost ?? $ingredient->cost }}">
+                                        {{ $ingredient->name }} ({{ currency($ingredient->consumption_unit_cost ?? $ingredient->cost) }}/{{ $ingredient->consumptionUnit->ShortName ?? 'unit' }})
                                     </option>
                                 @endforeach
                             </select>
@@ -213,12 +214,12 @@
                 updateTotalCost();
             });
 
-            // Update cost on product or quantity change
-            $(document).on('change', '.product-select, .quantity-input', function() {
+            // Update cost on ingredient or quantity change
+            $(document).on('change', '.ingredient-select, .quantity-input', function() {
                 var row = $(this).closest('tr');
-                var productSelect = row.find('.product-select');
+                var ingredientSelect = row.find('.ingredient-select');
                 var quantity = parseFloat(row.find('.quantity-input').val()) || 0;
-                var cost = parseFloat(productSelect.find(':selected').data('cost')) || 0;
+                var cost = parseFloat(ingredientSelect.find(':selected').data('cost')) || 0;
                 var totalCost = cost * quantity;
                 row.find('.ingredient-cost').text(totalCost.toFixed(2));
                 updateTotalCost();

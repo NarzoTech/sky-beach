@@ -1,6 +1,6 @@
 @extends('admin.layouts.master')
 @section('title')
-    <title>{{ __('Edit Product') }}</title>
+    <title>{{ __('Edit Ingredient') }}</title>
 @endsection
 
 
@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between">
-                    <h4 class="section_title">{{ __('Edit Product') }}</h4>
+                    <h4 class="section_title">{{ __('Edit Ingredient') }}</h4>
                     <div>
                         <a href="{{ route('admin.ingredient.index') }}" class="btn btn-primary"><i
                                 class="fa fa-arrow-left"></i>{{ __('Back') }}</a>
@@ -36,7 +36,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="sku">{{ __('SKU') }}<span
+                                            <label for="sku">{{ __('Code') }}<span
                                                     class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <input type="text" name="sku" class="form-control currency"
@@ -56,7 +56,7 @@
                                                     class="text-danger">*</span></label>
                                             <select name="category_id" id="categories" class="form-control select2"
                                                 required>
-                                                <option value="">{{ __('Select Categories') }}
+                                                <option value="">{{ __('Select Category') }}
                                                 </option>
                                                 @foreach ($categories as $cat)
                                                     <option value="{{ $cat->id }}"
@@ -72,47 +72,109 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="brand_id">{{ __('Brand') }}</label>
-                                            <select name="brand_id" id="brand_id" class="form-control select2">
-                                                <option value="">{{ __('Select Brand') }}</option>
-                                                @foreach ($brands as $brand)
-                                                    <option value="{{ $brand->id }}"
-                                                        @if (old('brand_id', $product->brand_id) == $brand->id) selected @endif>
-                                                        {{ $brand->name }}
+                                            <label for="purchase_unit_id">{{ __('Purchase Unit') }}<span
+                                                    class="text-danger">*</span></label>
+                                            <select name="purchase_unit_id" id="purchase_unit_id" class="form-control select2" required>
+                                                <option value="">{{ __('Select Unit') }}</option>
+                                                @foreach ($units as $unit)
+                                                    <option value="{{ $unit->id }}"
+                                                        @if (old('purchase_unit_id', $product->purchase_unit_id) == $unit->id) selected @endif>
+                                                        {{ $unit->name }} ({{ $unit->ShortName }})
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            @error('brand_id')
+                                            @error('purchase_unit_id')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="cost">{{ __('Purchase Price') }}
+                                            <label for="consumption_unit_id">{{ __('Consumption Unit') }}<span
+                                                    class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <select name="consumption_unit_id" id="consumption_unit_id" class="form-control select2" required>
+                                                    <option value="">{{ __('Select Unit') }}</option>
+                                                    @foreach ($units as $unit)
+                                                        <option value="{{ $unit->id }}"
+                                                            @if (old('consumption_unit_id', $product->consumption_unit_id) == $unit->id) selected @endif>
+                                                            {{ $unit->name }} ({{ $unit->ShortName }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('In which unit you make food') }}"></i>
+                                                </div>
+                                            </div>
+                                            @error('consumption_unit_id')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="conversion_rate">{{ __('Conversion Rate') }}<span
+                                                    class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.0001" name="conversion_rate" id="conversion_rate"
+                                                    class="form-control" value="{{ old('conversion_rate', $product->conversion_rate ?? 1) }}" required>
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('How many Consumption Unit is equal for 1 Purchase Unit') }}"></i>
+                                                </div>
+                                            </div>
+                                            @error('conversion_rate')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="purchase_price">{{ __('Purchase Price') }}
+                                                ({{ currency_icon() }})<span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" name="purchase_price" id="purchase_price"
+                                                    class="form-control" value="{{ old('purchase_price', $product->purchase_price ?? 0) }}" required>
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('You can change this price in purchase form') }}"></i>
+                                                </div>
+                                            </div>
+                                            @error('purchase_price')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="consumption_unit_cost">{{ __('Cost Per Unit') }}
                                                 ({{ currency_icon() }})</label>
-                                            <input type="number" name="cost" class="form-control" id="cost"
-                                                value="{{ old('cost', $product->cost) }}" step="0.01">
-                                            @error('cost')
+                                            <div class="input-group">
+                                                <input type="number" step="0.0001" name="consumption_unit_cost" id="consumption_unit_cost"
+                                                    class="form-control" value="{{ old('consumption_unit_cost', $product->consumption_unit_cost ?? 0) }}" readonly>
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('In Consumption Unit') }}"></i>
+                                                </div>
+                                            </div>
+                                            @error('consumption_unit_cost')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>{{ __('Stock alert') }}</label>
-                                            <input type="number" class="form-control" name="stock_alert"
-                                                value="{{ old('stock_alert', $product->stock_alert) }}">
+                                            <label>{{ __('Low Qty') }}</label>
+                                            <div class="input-group">
+                                                <input type="number" step="0.01" class="form-control" name="stock_alert"
+                                                    value="{{ old('stock_alert', $product->stock_alert ?? 0) }}">
+                                                <div class="input-group-text">
+                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('In Purchase Unit') }}"></i>
+                                                </div>
+                                            </div>
                                             @error('stock_alert')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="short_description">{{ __('Short Description') }}</label>
-                                            <textarea name="short_description" id="" cols="30" rows="9" class="form-control">{!! old('short_description', $product->short_description) !!}</textarea>
-                                            @error('short_description')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -123,13 +185,11 @@
                             <div class="col-lg-4">
                                 <div class="row">
                                     <div class="col-12">
-
                                         <div id="image-preview" class="image-preview"
                                             style="background-image: url('{{ asset($product->image) }}')">
                                             <label for="upload" id="image-label">{{ __('Image') }}</label>
                                             <input type="file" name="image" id="image-upload">
                                         </div>
-
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group">
@@ -142,25 +202,6 @@
                                                     {{ __('Inactive') }}</option>
                                             </select>
                                             @error('status')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="unit_id">{{ __('Unit') }}<span
-                                                    class="text-danger">*</span></label>
-                                            <select name="unit_id" id="unit_id" class="form-control select2" required>
-                                                <option value="">{{ __('Select Unit') }}
-                                                </option>
-                                                @foreach ($units as $unit)
-                                                    <option value="{{ $unit->id }}"
-                                                        @if (old('unit_id', $product->unit_id) == $unit->id) selected @endif>
-                                                        {{ $unit->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('unit_id')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -186,24 +227,33 @@
         (function($) {
             "use strict";
             $(document).ready(function() {
+                // Initialize tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
+
                 $('[name="name"]').on('input', function() {
                     var name = $(this).val();
                     var slug = convertToSlug(name);
                     $("[name='slug']").val(slug);
                 });
-                $('[name="is_warranty"]').on('change', function() {
-                    var is_warranty = $(this).val();
-                    changeAttr(is_warranty, 'warranty_duration')
-                })
-                $('[name="is_partial"]').on('change', function() {
-                    var is_partial = $(this).val();
-                    changeAttr(is_partial, 'partial_amount')
-                })
-                $('[name="is_pre_order"]').on('change', function() {
-                    var is_pre_order = $(this).val();
-                    changeAttr(is_pre_order, 'release_date')
-                    changeAttr(is_pre_order, 'max_product')
-                })
+
+                // Calculate consumption unit cost
+                function calculateConsumptionCost() {
+                    var purchasePrice = parseFloat($('#purchase_price').val()) || 0;
+                    var conversionRate = parseFloat($('#conversion_rate').val()) || 1;
+
+                    if (conversionRate > 0) {
+                        var costPerUnit = purchasePrice / conversionRate;
+                        $('#consumption_unit_cost').val(costPerUnit.toFixed(4));
+                    }
+                }
+
+                // Trigger calculation on input change
+                $('#purchase_price, #conversion_rate').on('input change', function() {
+                    calculateConsumptionCost();
+                });
 
                 $.uploadPreview({
                     input_field: "#image-upload",
@@ -215,18 +265,6 @@
                 });
 
             });
-
-            function changeAttr(val, selectorName) {
-                if (val == 1) {
-                    $(`[name="${selectorName}"]`).attr('required', true);
-                    $(`.${selectorName}`).removeClass('d-none')
-                    $(`[name="${selectorName}"]`).removeAttr('disabled');
-                } else {
-                    $(`[name="${selectorName}"]`).removeAttr('required');
-                    $(`[name="${selectorName}"]`).attr('disabled');
-                    $(`.${selectorName}`).addClass('d-none')
-                }
-            }
         })(jQuery);
     </script>
 @endpush

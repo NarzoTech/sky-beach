@@ -64,9 +64,15 @@ class Purchase extends Model
         return $this->hasMany(PurchaseReturn::class, 'purchase_id', 'id');
     }
 
+    public function ingredients()
+    {
+        return $this->belongsToMany(Ingredient::class, 'purchase_details', 'purchase_id', 'ingredient_id')->withPivot('quantity', 'purchase_price', 'sub_total', 'profit', 'sale_price', 'discount', 'tax', 'created_by', 'updated_by')->withDefault();
+    }
+
+    // Alias for backward compatibility
     public function products()
     {
-        return $this->belongsToMany(Ingredient::class, 'purchase_details', 'purchase_id', 'product_id')->withPivot('quantity', 'purchase_price', 'sub_total', 'profit', 'sale_price', 'discount', 'tax', 'created_by', 'updated_by')->withDefault();
+        return $this->ingredients();
     }
 
     public function payments()

@@ -125,9 +125,10 @@ class MenuItemService
         // Handle recipes/ingredients
         if (!empty($recipes)) {
             foreach ($recipes as $recipe) {
-                if (!empty($recipe['product_id']) && !empty($recipe['quantity_required'])) {
+                $ingredientId = $recipe['ingredient_id'] ?? $recipe['product_id'] ?? null;
+                if (!empty($ingredientId) && !empty($recipe['quantity_required'])) {
                     $item->recipes()->create([
-                        'product_id' => $recipe['product_id'],
+                        'ingredient_id' => $ingredientId,
                         'quantity_required' => $recipe['quantity_required'],
                         'unit_id' => $recipe['unit_id'] ?? null,
                         'notes' => $recipe['notes'] ?? null,
@@ -203,9 +204,10 @@ class MenuItemService
             $item->recipes()->delete();
 
             foreach ($recipes as $recipe) {
-                if (!empty($recipe['product_id']) && !empty($recipe['quantity_required'])) {
+                $ingredientId = $recipe['ingredient_id'] ?? $recipe['product_id'] ?? null;
+                if (!empty($ingredientId) && !empty($recipe['quantity_required'])) {
                     $item->recipes()->create([
-                        'product_id' => $recipe['product_id'],
+                        'ingredient_id' => $ingredientId,
                         'quantity_required' => $recipe['quantity_required'],
                         'unit_id' => $recipe['unit_id'] ?? null,
                         'notes' => $recipe['notes'] ?? null,
@@ -256,7 +258,7 @@ class MenuItemService
 
     public function getItem($id)
     {
-        return $this->menuItem->with(['category', 'variants', 'addons', 'recipes.product', 'translations'])->findOrFail($id);
+        return $this->menuItem->with(['category', 'variants', 'addons', 'recipes.ingredient', 'translations'])->findOrFail($id);
     }
 
     public function getItemBySlug($slug)
@@ -345,9 +347,10 @@ class MenuItemService
 
         // Add new recipes
         foreach ($recipes as $recipe) {
-            if (!empty($recipe['product_id']) && !empty($recipe['quantity_required'])) {
+            $ingredientId = $recipe['ingredient_id'] ?? $recipe['product_id'] ?? null;
+            if (!empty($ingredientId) && !empty($recipe['quantity_required'])) {
                 $item->recipes()->create([
-                    'product_id' => $recipe['product_id'],
+                    'ingredient_id' => $ingredientId,
                     'quantity_required' => $recipe['quantity_required'],
                     'unit_id' => $recipe['unit_id'] ?? null,
                     'notes' => $recipe['notes'] ?? null,

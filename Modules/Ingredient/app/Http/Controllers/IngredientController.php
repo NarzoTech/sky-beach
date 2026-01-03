@@ -138,10 +138,11 @@ class IngredientController extends Controller
         checkAdminHasPermissionAndThrowException('ingredient.edit');
         try {
             $ingredient    = $this->ingredientService->getIngredient($id);
+            $product = $ingredient; // Alias for backward compatibility in views
             $categories = $this->categoryService->getAllIngredientCategoriesForSelect();
             $brands     = $this->brandService->getActiveBrands();
             $units      = $this->unitService->getParentUnits();
-            return view('ingredient::ingredients.edit', compact('categories', 'brands', 'ingredient', 'units'));
+            return view('ingredient::ingredients.edit', compact('categories', 'brands', 'ingredient', 'product', 'units'));
         } catch (\Exception $ex) {
             Log::error($ex->getMessage());
             abort(500);

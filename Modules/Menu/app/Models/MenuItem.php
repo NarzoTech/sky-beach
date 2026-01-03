@@ -229,8 +229,10 @@ class MenuItem extends Model
     {
         $totalCost = 0;
         foreach ($this->recipes as $recipe) {
-            if ($recipe->product) {
-                $totalCost += $recipe->product->cost * $recipe->quantity_required;
+            if ($recipe->ingredient) {
+                // Use consumption_unit_cost for accurate costing
+                $costPerUnit = $recipe->ingredient->consumption_unit_cost ?? $recipe->ingredient->cost ?? 0;
+                $totalCost += $costPerUnit * $recipe->quantity_required;
             }
         }
         return $totalCost;
