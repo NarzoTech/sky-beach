@@ -23,5 +23,6 @@
     "Website": true,
     "Ingredient": true,
     "StockAdjustment": true,
-    "TableManagement": true
+    "TableManagement": true,
+    "Membership": true
 }
