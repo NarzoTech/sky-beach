@@ -3,65 +3,50 @@
 namespace Modules\Membership\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\View\View;
+use Modules\Membership\app\Models\LoyaltyCustomer;
+use Modules\Membership\app\Models\LoyaltyProgram;
+use Modules\Membership\app\Models\LoyaltyTransaction;
 
 class MembershipController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display dashboard overview
      */
-    public function index()
+    public function index(): View
     {
-        return view('membership::index');
-    }
+        // Get statistics
+        $totalPrograms = LoyaltyProgram::count();
+        $activePrograms = LoyaltyProgram::active()->count();
+        $totalCustomers = LoyaltyCustomer::count();
+        $activeCustomers = LoyaltyCustomer::active()->count();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('membership::create');
-    }
+        // Points statistics
+        $totalPointsEarned = LoyaltyTransaction::earnings()->sum('points_amount');
+        $totalPointsRedeemed = LoyaltyTransaction::redemptions()->sum('points_amount');
+        $outstandingPoints = LoyaltyCustomer::sum('total_points');
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        //
-    }
+        // Recent transactions
+        $recentTransactions = LoyaltyTransaction::with('customer', 'warehouse')
+            ->latest()
+            ->take(10)
+            ->get();
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('membership::show');
-    }
+        // Top customers by points
+        $topCustomers = LoyaltyCustomer::orderByDesc('total_points')
+            ->take(10)
+            ->get();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('membership::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        return view('membership::dashboard', [
+            'total_programs' => $totalPrograms,
+            'active_programs' => $activePrograms,
+            'total_customers' => $totalCustomers,
+            'active_customers' => $activeCustomers,
+            'total_points_earned' => $totalPointsEarned,
+            'total_points_redeemed' => abs($totalPointsRedeemed),
+            'outstanding_points' => $outstandingPoints,
+            'recent_transactions' => $recentTransactions,
+            'top_customers' => $topCustomers,
+        ]);
     }
 }

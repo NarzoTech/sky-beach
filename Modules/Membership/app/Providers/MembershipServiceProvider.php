@@ -30,6 +30,55 @@ class MembershipServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // Register services
+        $this->registerServices();
+    }
+
+    /**
+     * Register loyalty services
+     */
+    protected function registerServices(): void
+    {
+        $this->app->singleton(
+            \Modules\Membership\app\Services\CustomerIdentificationService::class,
+            \Modules\Membership\app\Services\CustomerIdentificationService::class
+        );
+
+        $this->app->singleton(
+            \Modules\Membership\app\Services\RuleEngineService::class,
+            \Modules\Membership\app\Services\RuleEngineService::class
+        );
+
+        $this->app->singleton(
+            \Modules\Membership\app\Services\PointCalculationService::class,
+            function ($app) {
+                return new \Modules\Membership\app\Services\PointCalculationService(
+                    $app->make(\Modules\Membership\app\Services\RuleEngineService::class)
+                );
+            }
+        );
+
+        $this->app->singleton(
+            \Modules\Membership\app\Services\RedemptionService::class,
+            function ($app) {
+                return new \Modules\Membership\app\Services\RedemptionService(
+                    $app->make(\Modules\Membership\app\Services\PointCalculationService::class)
+                );
+            }
+        );
+
+        $this->app->singleton(
+            \Modules\Membership\app\Services\LoyaltyService::class,
+            function ($app) {
+                return new \Modules\Membership\app\Services\LoyaltyService(
+                    $app->make(\Modules\Membership\app\Services\CustomerIdentificationService::class),
+                    $app->make(\Modules\Membership\app\Services\PointCalculationService::class),
+                    $app->make(\Modules\Membership\app\Services\RedemptionService::class),
+                    $app->make(\Modules\Membership\app\Services\RuleEngineService::class)
+                );
+            }
+        );
     }
 
     /**
