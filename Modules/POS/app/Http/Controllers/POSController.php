@@ -30,6 +30,7 @@ use Modules\Menu\app\Services\MenuItemService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
 use Modules\TableManagement\app\Models\RestaurantTable;
+use Modules\Sales\app\Models\Sale;
 
 class POSController extends Controller
 {
@@ -668,5 +669,318 @@ class POSController extends Controller
         $cart_contents[$request->rowid]['price'] = $request->val;
         session()->put($cartName, $cart_contents);
         return response()->json(['status' => true, 'cart' => session()->get($cartName)]);
+    }
+
+    /**
+     * Get running orders (active dine-in orders)
+     */
+    public function getRunningOrders()
+    {
+        try {
+            $runningOrders = Sale::with(['table', 'details.menuItem', 'customer'])
+                ->where('order_type', Sale::ORDER_TYPE_DINE_IN)
+                ->whereNotNull('table_id')
+                ->whereIn('status', ['pending', 'processing'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $html = view('pos::running-orders', compact('runningOrders'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+                'count' => $runningOrders->count()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching running orders: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading running orders'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get running orders count
+     */
+    public function getRunningOrdersCount()
+    {
+        try {
+            $count = Sale::where('order_type', Sale::ORDER_TYPE_DINE_IN)
+                ->whereNotNull('table_id')
+                ->whereIn('status', ['pending', 'processing'])
+                ->count();
+
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'count' => 0
+            ]);
+        }
+    }
+
+    /**
+     * Get order details for running order
+     */
+    public function getOrderDetails($id)
+    {
+        try {
+            $order = Sale::with(['table', 'details.menuItem', 'details.service', 'customer'])
+                ->findOrFail($id);
+
+            $html = view('pos::order-details', compact('order'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html,
+                'order' => $order
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching order details: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found'
+            ], 404);
+        }
+    }
+
+    /**
+     * Load order items into cart for adding more items
+     */
+    public function loadOrderToCart($id)
+    {
+        try {
+            $order = Sale::with(['details.menuItem', 'details.service'])
+                ->findOrFail($id);
+
+            // Store the order ID in session for later reference
+            session()->put('EDITING_ORDER_ID', $order->id);
+
+            // Clear and populate cart with existing order items
+            $cart = [];
+            foreach ($order->details as $detail) {
+                $rowId = uniqid();
+                $cart[$rowId] = [
+                    'rowid' => $rowId,
+                    'id' => $detail->menu_item_id ?? $detail->service_id,
+                    'name' => $detail->menuItem->name ?? ($detail->service->name ?? 'Unknown'),
+                    'type' => $detail->menu_item_id ? 'menu_item' : 'service',
+                    'image' => $detail->menuItem->image_url ?? '',
+                    'qty' => $detail->quantity,
+                    'price' => $detail->price,
+                    'sub_total' => $detail->sub_total ?? ($detail->quantity * $detail->price),
+                    'sku' => $detail->menuItem->sku ?? '',
+                    'unit' => '-',
+                    'source' => $detail->source ?? 1,
+                    'purchase_price' => $detail->purchase_price ?? ($detail->menuItem->cost_price ?? 0),
+                    'selling_price' => $detail->selling_price ?? $detail->price,
+                    'variant_id' => $detail->variant_id,
+                    'original_detail_id' => $detail->id,
+                ];
+            }
+
+            session()->put('UPDATE_CART', $cart);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order loaded to cart',
+                'order_id' => $order->id,
+                'table_name' => $order->table->name ?? 'N/A'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error loading order to cart: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading order'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update running order with additional items
+     */
+    public function updateRunningOrder(Request $request, $id)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::with('details')->findOrFail($id);
+            $cart = session()->get('UPDATE_CART', []);
+
+            if (empty($cart)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No items in cart'
+                ], 400);
+            }
+
+            // Get existing detail IDs from cart (items that were already in the order)
+            $existingDetailIds = collect($cart)
+                ->pluck('original_detail_id')
+                ->filter()
+                ->toArray();
+
+            // Delete items that were removed from the order
+            $order->details()->whereNotIn('id', $existingDetailIds)->delete();
+
+            // Update existing items and add new ones
+            $totalQuantity = 0;
+            $totalPrice = 0;
+            $totalCogs = 0;
+
+            foreach ($cart as $item) {
+                if (isset($item['original_detail_id']) && $item['original_detail_id']) {
+                    // Update existing item
+                    $detail = $order->details()->find($item['original_detail_id']);
+                    if ($detail) {
+                        $detail->update([
+                            'quantity' => $item['qty'],
+                            'price' => $item['price'],
+                            'sub_total' => $item['qty'] * $item['price'],
+                        ]);
+                    }
+                } else {
+                    // Add new item
+                    $order->details()->create([
+                        'menu_item_id' => $item['type'] === 'menu_item' ? $item['id'] : null,
+                        'service_id' => $item['type'] === 'service' ? $item['id'] : null,
+                        'variant_id' => $item['variant_id'] ?? null,
+                        'quantity' => $item['qty'],
+                        'price' => $item['price'],
+                        'sub_total' => $item['qty'] * $item['price'],
+                        'purchase_price' => $item['purchase_price'] ?? 0,
+                    ]);
+                }
+
+                $totalQuantity += $item['qty'];
+                $totalPrice += $item['qty'] * $item['price'];
+                $totalCogs += $item['qty'] * ($item['purchase_price'] ?? 0);
+            }
+
+            // Update order totals
+            $discount = $request->discount ?? $order->order_discount ?? 0;
+            $tax = $request->tax ?? $order->total_tax ?? 0;
+            $grandTotal = $totalPrice - $discount + $tax;
+
+            $order->update([
+                'quantity' => $totalQuantity,
+                'total_price' => $totalPrice,
+                'order_discount' => $discount,
+                'total_tax' => $tax,
+                'grand_total' => $grandTotal,
+                'total_cogs' => $totalCogs,
+                'gross_profit' => $grandTotal - $totalCogs,
+                'updated_by' => auth('admin')->id(),
+            ]);
+
+            // Clear the update cart
+            session()->forget('UPDATE_CART');
+            session()->forget('EDITING_ORDER_ID');
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully',
+                'order' => $order->fresh(['details', 'table'])
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating running order: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Complete a running order (process payment)
+     */
+    public function completeRunningOrder(Request $request, $id)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::with(['table', 'details'])->findOrFail($id);
+
+            // Update payment information
+            $paidAmount = $request->paid_amount ?? $order->grand_total;
+            $dueAmount = $order->grand_total - $paidAmount;
+
+            $order->update([
+                'status' => 'completed',
+                'payment_status' => $dueAmount <= 0 ? 'paid' : 'partial',
+                'payment_method' => $request->payment_method ?? ['cash'],
+                'paid_amount' => $paidAmount,
+                'due_amount' => max(0, $dueAmount),
+                'receive_amount' => $request->receive_amount ?? $paidAmount,
+                'updated_by' => auth('admin')->id(),
+            ]);
+
+            // Release the table
+            if ($order->table) {
+                $order->table->release();
+            }
+
+            DB::commit();
+
+            // Generate invoice
+            $sale = $this->saleService->getSales()->find($order->id);
+            $invoiceBlade = view('sales::invoice-content')->with([
+                'sale' => $sale,
+            ])->render();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order completed successfully',
+                'invoice' => $invoiceBlade,
+                'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error completing order: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error completing order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a running order
+     */
+    public function cancelRunningOrder($id)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::with('table')->findOrFail($id);
+
+            $order->update([
+                'status' => 'cancelled',
+                'updated_by' => auth('admin')->id(),
+            ]);
+
+            // Release the table
+            if ($order->table) {
+                $order->table->release();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order cancelled successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error cancelling order: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error cancelling order'
+            ], 500);
+        }
     }
 }

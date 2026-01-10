@@ -222,6 +222,11 @@
                     Hold
                 </button>
             </div>
+            <button type="button" class="btn btn-info running-orders-btn" onclick="openRunningOrders()" title="Running Orders">
+                <i class="fa fa-utensils" aria-hidden="true"></i>
+                <span class="running-orders-count badge bg-danger d-none">0</span>
+                {{ __('Running') }}
+            </button>
             <button type="button" class="btn cancel-btn" onclick="resetCart()">
                 Clear
             </button>
@@ -527,6 +532,56 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Running Orders Modal --}}
+    <div class="modal fade" id="running-orders-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrdersModal"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h4 class="modal-title">
+                        <i class="fas fa-utensils me-2"></i>{{ __('Running Orders') }}
+                    </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="running-orders-content">
+                    <div class="text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-3x text-info"></i>
+                        <p class="mt-3">{{ __('Loading running orders...') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Order Details Modal --}}
+    <div class="modal fade" id="order-details-modal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModal"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-receipt me-2"></i>{{ __('Order Details') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="order-details-content">
+                    <div class="text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="button" class="btn btn-warning" id="add-items-btn">
+                        <i class="fas fa-plus"></i> {{ __('Add Items') }}
+                    </button>
+                    <button type="button" class="btn btn-success" id="complete-order-btn">
+                        <i class="fas fa-check"></i> {{ __('Complete & Pay') }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -1708,5 +1763,265 @@
             const sidebar = $('.product-table .table-responsive');
             return sidebar.scrollTop();
         }
+
+        // Running Orders Functions
+        let currentEditingOrderId = null;
+
+        function openRunningOrders() {
+            $('#running-orders-modal').modal('show');
+            loadRunningOrders();
+        }
+
+        function loadRunningOrders() {
+            $('#running-orders-content').html(`
+                <div class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-3x text-info"></i>
+                    <p class="mt-3">{{ __('Loading running orders...') }}</p>
+                </div>
+            `);
+
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('admin.pos.running-orders') }}",
+                success: function(response) {
+                    if (response.success) {
+                        $('#running-orders-content').html(response.html);
+                        updateRunningOrdersCount(response.count);
+                    } else {
+                        $('#running-orders-content').html(`
+                            <div class="alert alert-danger">
+                                {{ __('Error loading running orders') }}
+                            </div>
+                        `);
+                    }
+                },
+                error: function() {
+                    $('#running-orders-content').html(`
+                        <div class="alert alert-danger">
+                            {{ __('Server error occurred') }}
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function updateRunningOrdersCount(count) {
+            const badge = $('.running-orders-count');
+            if (count > 0) {
+                badge.text(count).removeClass('d-none');
+            } else {
+                badge.addClass('d-none');
+            }
+        }
+
+        function loadRunningOrdersCount() {
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('admin.pos.running-orders.count') }}",
+                success: function(response) {
+                    if (response.success) {
+                        updateRunningOrdersCount(response.count);
+                    }
+                }
+            });
+        }
+
+        function viewOrderDetails(orderId) {
+            $('#running-orders-modal').modal('hide');
+            $('#order-details-modal').modal('show');
+            currentEditingOrderId = orderId;
+
+            $('#order-details-content').html(`
+                <div class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                </div>
+            `);
+
+            $.ajax({
+                type: 'GET',
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/details",
+                success: function(response) {
+                    if (response.success) {
+                        $('#order-details-content').html(response.html);
+                    } else {
+                        $('#order-details-content').html(`
+                            <div class="alert alert-danger">
+                                {{ __('Order not found') }}
+                            </div>
+                        `);
+                    }
+                },
+                error: function() {
+                    $('#order-details-content').html(`
+                        <div class="alert alert-danger">
+                            {{ __('Server error occurred') }}
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function addItemsToOrder(orderId) {
+            $('.preloader_area').removeClass('d-none');
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/load-to-cart",
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(response) {
+                    if (response.success) {
+                        currentEditingOrderId = orderId;
+
+                        // Close modals
+                        $('#order-details-modal').modal('hide');
+                        $('#running-orders-modal').modal('hide');
+
+                        // Load the cart with order items
+                        $.ajax({
+                            type: 'GET',
+                            url: "{{ route('admin.pos') }}",
+                            success: function() {
+                                location.reload();
+                            }
+                        });
+
+                        toastr.info("{{ __('Order loaded. Add items and click Payment to update.') }}");
+                    } else {
+                        toastr.error(response.message || "{{ __('Error loading order') }}");
+                    }
+                    $('.preloader_area').addClass('d-none');
+                },
+                error: function() {
+                    toastr.error("{{ __('Server error occurred') }}");
+                    $('.preloader_area').addClass('d-none');
+                }
+            });
+        }
+
+        function showPaymentModal(orderId, total) {
+            currentEditingOrderId = orderId;
+            $('#order-details-modal').modal('hide');
+
+            // Create a payment modal for running order
+            Swal.fire({
+                title: "{{ __('Complete Order') }}",
+                html: `
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <label class="form-label">{{ __('Total Amount') }}</label>
+                            <input type="text" class="form-control" value="{{ currency_icon() }}${total}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ __('Payment Method') }}</label>
+                            <select class="form-control" id="swal-payment-method">
+                                <option value="cash">{{ __('Cash') }}</option>
+                                <option value="card">{{ __('Card') }}</option>
+                                <option value="mobile_banking">{{ __('Mobile Banking') }}</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ __('Amount Received') }}</label>
+                            <input type="number" class="form-control" id="swal-amount-received" value="${total}" step="0.01">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: "{{ __('Complete Payment') }}",
+                cancelButtonText: "{{ __('Cancel') }}",
+                confirmButtonColor: '#28a745',
+                preConfirm: () => {
+                    return {
+                        payment_method: document.getElementById('swal-payment-method').value,
+                        receive_amount: document.getElementById('swal-amount-received').value
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    completeRunningOrder(orderId, result.value);
+                }
+            });
+        }
+
+        function completeRunningOrder(orderId, paymentData) {
+            $('.preloader_area').removeClass('d-none');
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    payment_method: [paymentData.payment_method],
+                    paid_amount: paymentData.receive_amount,
+                    receive_amount: paymentData.receive_amount
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $('#order-details-modal').modal('hide');
+                        loadRunningOrdersCount();
+
+                        // Show invoice
+                        $('.invoice_modal_body').html(response.invoice);
+                        $('.print-redirect').attr('href', response.invoiceRoute);
+                        $('#invoiceModal').modal('show');
+                    } else {
+                        toastr.error(response.message || "{{ __('Error completing order') }}");
+                    }
+                    $('.preloader_area').addClass('d-none');
+                },
+                error: function(xhr) {
+                    toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
+                    $('.preloader_area').addClass('d-none');
+                }
+            });
+        }
+
+        function cancelRunningOrder(orderId) {
+            Swal.fire({
+                title: "{{ __('Cancel Order?') }}",
+                text: "{{ __('This action cannot be undone. The table will be released.') }}",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: "{{ __('Yes, Cancel Order') }}",
+                cancelButtonText: "{{ __('No, Keep It') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('.preloader_area').removeClass('d-none');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/cancel",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(response.message);
+                                $('#order-details-modal').modal('hide');
+                                loadRunningOrders();
+                                loadRunningOrdersCount();
+                            } else {
+                                toastr.error(response.message || "{{ __('Error cancelling order') }}");
+                            }
+                            $('.preloader_area').addClass('d-none');
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Server error occurred') }}");
+                            $('.preloader_area').addClass('d-none');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Load running orders count on page load and periodically
+        $(document).ready(function() {
+            loadRunningOrdersCount();
+            // Refresh count every 30 seconds
+            setInterval(loadRunningOrdersCount, 30000);
+        });
     </script>
 @endpush

@@ -1,0 +1,63 @@
+@if($runningOrders->count() > 0)
+<div class="row">
+    @foreach($runningOrders as $order)
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card h-100 running-order-card" style="cursor: pointer;" onclick="viewOrderDetails({{ $order->id }})">
+            <div class="card-header bg-{{ $order->status == 'processing' ? 'warning' : 'primary' }} text-white py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">
+                        <i class="fas fa-chair me-1"></i>
+                        {{ $order->table->name ?? 'No Table' }}
+                    </span>
+                    <span class="badge bg-light text-dark">
+                        #{{ $order->invoice }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        {{ $order->created_at->diffForHumans() }}
+                    </small>
+                    <span class="badge bg-{{ $order->status == 'processing' ? 'warning' : 'info' }}">
+                        {{ ucfirst($order->status) }}
+                    </span>
+                </div>
+
+                <div class="order-items-preview" style="max-height: 80px; overflow: hidden;">
+                    @foreach($order->details->take(3) as $detail)
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-truncate" style="max-width: 150px;">
+                            {{ $detail->quantity }}x {{ $detail->menuItem->name ?? ($detail->service->name ?? 'Item') }}
+                        </span>
+                        <span>{{ currency($detail->sub_total) }}</span>
+                    </div>
+                    @endforeach
+                    @if($order->details->count() > 3)
+                    <small class="text-muted">+{{ $order->details->count() - 3 }} more items...</small>
+                    @endif
+                </div>
+            </div>
+            <div class="card-footer bg-light py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">
+                        <i class="fas fa-user me-1"></i>
+                        {{ $order->customer->name ?? 'Guest' }}
+                    </span>
+                    <span class="fw-bold text-primary">
+                        {{ currency($order->grand_total) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endforeach
+</div>
+@else
+<div class="text-center py-5">
+    <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+    <h5 class="text-muted">{{ __('No Running Orders') }}</h5>
+    <p class="text-muted">{{ __('Active dine-in orders will appear here') }}</p>
+</div>
+@endif

@@ -34,6 +34,15 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
 
         Route::get('/check-cart-restaurant/{id}', [POSController::class, 'check_cart_restaurant'])->name('check-cart-restaurant');
         Route::get('/modal-cart-clear', [POSController::class, 'modalClearCart'])->name('modal-cart-clear');
+
+        // Running Orders Routes
+        Route::get('/running-orders', [POSController::class, 'getRunningOrders'])->name('pos.running-orders');
+        Route::get('/running-orders/count', [POSController::class, 'getRunningOrdersCount'])->name('pos.running-orders.count');
+        Route::get('/running-orders/{id}/details', [POSController::class, 'getOrderDetails'])->name('pos.running-orders.details');
+        Route::post('/running-orders/{id}/load-to-cart', [POSController::class, 'loadOrderToCart'])->name('pos.running-orders.load-cart');
+        Route::post('/running-orders/{id}/update', [POSController::class, 'updateRunningOrder'])->name('pos.running-orders.update');
+        Route::post('/running-orders/{id}/complete', [POSController::class, 'completeRunningOrder'])->name('pos.running-orders.complete');
+        Route::post('/running-orders/{id}/cancel', [POSController::class, 'cancelRunningOrder'])->name('pos.running-orders.cancel');
     });
     Route::get('cart/source/update', [POSController::class, 'cartSourceUpdate'])->name('cart.source.update');
     Route::get('cart/price/update', [POSController::class, 'cartPriceUpdate'])->name('cart.price.update');
