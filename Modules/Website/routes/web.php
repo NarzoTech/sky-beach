@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Website\app\Http\Controllers\WebsiteController;
+use Modules\Website\app\Http\Controllers\MenuActionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,4 +56,9 @@ Route::group([], function () {
     
     // Error Page
     Route::get('/error', [WebsiteController::class, 'error'])->name('website.error');
+    
+    // Menu Actions (Favorites & Cart)
+    Route::post('/menu/favorite/{itemId}', [MenuActionController::class, 'toggleFavorite'])->name('website.menu.favorite');
+    Route::get('/menu/favorites', [MenuActionController::class, 'getFavorites'])->name('website.menu.favorites.get');
+    Route::post('/menu/add-to-cart', [MenuActionController::class, 'addToCart'])->name('website.menu.add-to-cart');
 });
