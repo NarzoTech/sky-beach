@@ -15,6 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @can('membership.view')
+                    <x-nav-link :href="route('membership.index')" :active="request()->routeIs('membership.*')">
+                        {{ __('Membership') }}
+                    </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -78,6 +83,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @can('membership.view')
+            <x-responsive-nav-link :href="route('membership.index')" :active="request()->routeIs('membership.*')">
+                {{ __('Membership') }}
+            </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

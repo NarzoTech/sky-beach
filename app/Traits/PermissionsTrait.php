@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Traits;
 
 use ReflectionClass;
@@ -7,14 +6,14 @@ use ReflectionClass;
 trait PermissionsTrait
 {
     public static array $dashboardPermissions = [
-        'group_name' => 'dashboard',
+        'group_name'  => 'dashboard',
         'permissions' => [
             'dashboard.view',
         ],
     ];
 
     public static array $adminProfilePermissions = [
-        'group_name' => 'admin profile',
+        'group_name'  => 'admin profile',
         'permissions' => [
             'admin.profile.view',
             'admin.profile.edit',
@@ -24,7 +23,7 @@ trait PermissionsTrait
     ];
 
     public static array $adminPermissions = [
-        'group_name' => 'admin',
+        'group_name'  => 'admin',
         'permissions' => [
             'admin.view',
             'admin.create',
@@ -35,9 +34,8 @@ trait PermissionsTrait
         ],
     ];
 
-
     public static array $rolePermissions = [
-        'group_name' => 'role',
+        'group_name'  => 'role',
         'permissions' => [
             'role.view',
             'role.create',
@@ -48,7 +46,7 @@ trait PermissionsTrait
     ];
 
     public static array $settingPermissions = [
-        'group_name' => 'setting',
+        'group_name'  => 'setting',
         'permissions' => [
             'setting.view',
             'setting.update',
@@ -57,7 +55,7 @@ trait PermissionsTrait
     ];
 
     public static array $supplierPermissions = [
-        'group_name' => 'supplier',
+        'group_name'  => 'supplier',
         'permissions' => [
             'supplier.view',
             'supplier.create',
@@ -82,10 +80,8 @@ trait PermissionsTrait
         ],
     ];
 
-
-
     public static array $customerPermissions = [
-        'group_name' => 'customer',
+        'group_name'  => 'customer',
         'permissions' => [
             'customer.view',
             'customer.create',
@@ -106,7 +102,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $customerGroupPermissions = [
-        'group_name' => 'customer group',
+        'group_name'  => 'customer group',
         'permissions' => [
             'customer.group.view',
             'customer.group.create',
@@ -115,7 +111,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $customerAreaPermissions = [
-        'group_name' => 'customer area',
+        'group_name'  => 'customer area',
         'permissions' => [
             'customer.area.view',
             'customer.area.create',
@@ -124,7 +120,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $ingredientPermissions = [
-        'group_name' => 'ingredient',
+        'group_name'  => 'ingredient',
         'permissions' => [
             'ingredient.view',
             'ingredient.create',
@@ -132,11 +128,11 @@ trait PermissionsTrait
             'ingredient.delete',
             'ingredient.status',
             'ingredient.bulk.import',
-            'ingredient.barcode.print'
+            'ingredient.barcode.print',
         ],
     ];
     public static array $ingredientUnitTypePermissions = [
-        'group_name' => 'ingredient unit type',
+        'group_name'  => 'ingredient unit type',
         'permissions' => [
             'ingredient.unit.view',
             'ingredient.unit.create',
@@ -145,7 +141,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $ingredientCategoryPermissions = [
-        'group_name' => 'ingredient category',
+        'group_name'  => 'ingredient category',
         'permissions' => [
             'ingredient.category.view',
             'ingredient.category.create',
@@ -154,7 +150,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $ingredientBrandPermissions = [
-        'group_name' => 'ingredient brand',
+        'group_name'  => 'ingredient brand',
         'permissions' => [
             'ingredient.brand.view',
             'ingredient.brand.create',
@@ -163,7 +159,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $purchasePermissions = [
-        'group_name' => 'purchase',
+        'group_name'  => 'purchase',
         'permissions' => [
             'purchase.view',
             'purchase.create',
@@ -175,7 +171,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $purchaseReturnPermissions = [
-        'group_name' => 'purchase return',
+        'group_name'  => 'purchase return',
         'permissions' => [
             'purchase.return.view',
             'purchase.return.create',
@@ -185,7 +181,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $purchaseReturnTypePermissions = [
-        'group_name' => 'purchase return type',
+        'group_name'  => 'purchase return type',
         'permissions' => [
             'purchase.return.type.view',
             'purchase.return.type.create',
@@ -195,7 +191,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $stockPermissions = [
-        'group_name' => 'stock',
+        'group_name'  => 'stock',
         'permissions' => [
             'stock.view',
             'stock.ledger',
@@ -206,7 +202,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $servicePermissions = [
-        'group_name' => 'service',
+        'group_name'  => 'service',
         'permissions' => [
             'service.view',
             'service.create',
@@ -215,7 +211,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $serviceCategoryPermissions = [
-        'group_name' => 'service category',
+        'group_name'  => 'service category',
         'permissions' => [
             'service.category.view',
             'service.category.create',
@@ -225,7 +221,7 @@ trait PermissionsTrait
     ];
 
     public static array $salesPermissions = [
-        'group_name' => 'Sales',
+        'group_name'  => 'Sales',
         'permissions' => [
             'pos.view',
             'sales.view',
@@ -243,7 +239,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $accountPermissions = [
-        'group_name' => 'Account',
+        'group_name'  => 'Account',
         'permissions' => [
             'cash.flow.view',
             'account.view',
@@ -263,7 +259,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $bankPermissions = [
-        'group_name' => 'bank',
+        'group_name'  => 'bank',
         'permissions' => [
             'bank.view',
             'bank.create',
@@ -272,7 +268,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $quotationPermissions = [
-        'group_name' => 'quotation',
+        'group_name'  => 'quotation',
         'permissions' => [
             'quotation.view',
             'quotation.create',
@@ -283,7 +279,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $expensePermissions = [
-        'group_name' => 'expense',
+        'group_name'  => 'expense',
         'permissions' => [
             'expense.view',
             'expense.create',
@@ -296,7 +292,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $expenseTypePermissions = [
-        'group_name' => 'expense type',
+        'group_name'  => 'expense type',
         'permissions' => [
             'expense.type.view',
             'expense.type.create',
@@ -307,7 +303,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $expenseSupplierPermissions = [
-        'group_name' => 'expense supplier',
+        'group_name'  => 'expense supplier',
         'permissions' => [
             'expense_supplier.view',
             'expense_supplier.create',
@@ -321,7 +317,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $assetsPermissions = [
-        'group_name' => 'assets',
+        'group_name'  => 'assets',
         'permissions' => [
             'asset.view',
             'asset.create',
@@ -332,7 +328,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $assetsTypePermissions = [
-        'group_name' => 'assets type',
+        'group_name'  => 'assets type',
         'permissions' => [
             'asset.type.view',
             'asset.type.create',
@@ -341,7 +337,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $employeePermissions = [
-        'group_name' => 'employee',
+        'group_name'  => 'employee',
         'permissions' => [
             'employee.view',
             'employee.create',
@@ -356,14 +352,14 @@ trait PermissionsTrait
         ],
     ];
     public static array $attendancePermissions = [
-        'group_name' => 'Attendance',
+        'group_name'  => 'Attendance',
         'permissions' => [
             'attendance.view',
             'attendance.create',
         ],
     ];
     public static array $attendanceSettingPermissions = [
-        'group_name' => 'Attendance Setting',
+        'group_name'  => 'Attendance Setting',
         'permissions' => [
             'attendance.setting.view',
             'attendance.setting.create',
@@ -372,7 +368,7 @@ trait PermissionsTrait
         ],
     ];
     public static array $reportPermissions = [
-        'group_name' => 'report',
+        'group_name'  => 'report',
         'permissions' => [
             'report.view',
             'report.excel.download',
@@ -381,7 +377,7 @@ trait PermissionsTrait
     ];
 
     public static array $menuCategoryPermissions = [
-        'group_name' => 'menu category',
+        'group_name'  => 'menu category',
         'permissions' => [
             'menu.category.view',
             'menu.category.create',
@@ -391,7 +387,7 @@ trait PermissionsTrait
     ];
 
     public static array $menuItemPermissions = [
-        'group_name' => 'menu item',
+        'group_name'  => 'menu item',
         'permissions' => [
             'menu.item.view',
             'menu.item.create',
@@ -401,7 +397,7 @@ trait PermissionsTrait
     ];
 
     public static array $menuAddonPermissions = [
-        'group_name' => 'menu addon',
+        'group_name'  => 'menu addon',
         'permissions' => [
             'menu.addon.view',
             'menu.addon.create',
@@ -411,7 +407,7 @@ trait PermissionsTrait
     ];
 
     public static array $menuComboPermissions = [
-        'group_name' => 'menu combo',
+        'group_name'  => 'menu combo',
         'permissions' => [
             'menu.combo.view',
             'menu.combo.create',
@@ -421,13 +417,22 @@ trait PermissionsTrait
     ];
 
     public static array $menuBranchPermissions = [
-        'group_name' => 'menu branch',
+        'group_name'  => 'menu branch',
         'permissions' => [
             'menu.branch.pricing',
             'menu.branch.availability',
         ],
     ];
-
+    public static array $membershipPermissions = [
+        'group_name'  => 'membership',
+        'permissions' => [
+            'membership.view',
+            'membership.create',
+            'membership.edit',
+            'membership.manage_points',
+            'membership.view_transactions',
+        ],
+    ];
 
     // return super admin permission aka 'all permissions'
     private static function getSuperAdminPermissions(): array
@@ -439,7 +444,7 @@ trait PermissionsTrait
         foreach ($properties as $value) {
             if (is_array($value)) {
                 $permissions[] = [
-                    'group_name' => $value['group_name'],
+                    'group_name'  => $value['group_name'],
                     'permissions' => (array) $value['permissions'],
                 ];
             }
