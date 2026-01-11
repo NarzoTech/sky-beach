@@ -154,45 +154,45 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($products as $index => $product)
+                        @foreach ($ingredients as $index => $ingredient)
                             @php
-                                $stock = $product->stock < 0 ? 0 : $product->stock;
+                                $stock = $ingredient->stock < 0 ? 0 : $ingredient->stock;
                             @endphp
                             <tr>
-                                <td>{{ $products->firstItem() + $index }}</td>
+                                <td>{{ $ingredients->firstItem() + $index }}</td>
                                 <td>
-                                    <img src="{{ asset($product->single_image) }}" alt="Product Picture" width="100">
+                                    <img src="{{ asset($ingredient->single_image) }}" alt="Product Picture" width="100">
                                 </td>
-                                <td>{{ $product->name }}</td>
-                                <td>{{ $product->avg_purchase_price }}</td>
-                                <td>{{ $product->last_purchase_price }}</td>
-                                <td>{{ $product->stockDetails->sum('in_quantity') }}</td>
-                                <td>{{ $product->stockDetails->sum('out_quantity') }}</td>
-                                <td>{{ $product->stock }}</td>
-                                <td>{{ remove_comma($stock) * remove_comma($product->avg_purchase_price) }}</td>
+                                <td>{{ $ingredient->name }}</td>
+                                <td>{{ $ingredient->avg_purchase_price }}</td>
+                                <td>{{ $ingredient->last_purchase_price }}</td>
+                                <td>{{ $ingredient->stockDetails->sum('in_quantity') }}</td>
+                                <td>{{ $ingredient->stockDetails->sum('out_quantity') }}</td>
+                                <td>{{ $ingredient->stock }}</td>
+                                <td>{{ remove_comma($stock) * remove_comma($ingredient->avg_purchase_price) }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <button id="btnGroupDrop{{ $product->id }}" type="button"
+                                        <button id="btnGroupDrop{{ $ingredient->id }}" type="button"
                                             class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
                                             aria-haspopup="true" aria-expanded="false">
                                             {{ __('Action') }}
                                         </button>
-                                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $product->id }}">
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $ingredient->id }}">
 
                                             @adminCan('ingredient.view')
-                                                <a href="{{ route('admin.ingredient.show', $product->id) }}"
+                                                <a href="{{ route('admin.ingredient.show', $ingredient->id) }}"
                                                     class="dropdown-item"
                                                     title="Product Details">{{ __('Product Details') }}</a>
                                             @endadminCan
                                             @adminCan('stock.ledger')
-                                                <a href="{{ route('admin.stock.ledger', $product->id) }}"
+                                                <a href="{{ route('admin.stock.ledger', $ingredient->id) }}"
                                                     class="dropdown-item" title="Stock Ledger">
                                                     {{ __('Stock Ledger') }}
                                                 </a>
                                             @endadminCan
                                             @adminCan('stock.reset')
                                                 <a href="javascript:;" class="dropdown-item" title="Reset Stock"
-                                                    onclick="resetStock({{ $product->id }})" data-bs-target="#stockModal"
+                                                    onclick="resetStock({{ $ingredient->id }})" data-bs-target="#stockModal"
                                                     data-bs-toggle="modal">
                                                     {{ __('Reset Stock') }}
                                                 </a>
@@ -218,7 +218,7 @@
             </div>
             @if (request()->get('par-page') !== 'all')
                 <div class="float-right">
-                    {{ $products->onEachSide(0)->links() }}
+                    {{ $ingredients->onEachSide(0)->links() }}
                 </div>
             @endif
         </div>

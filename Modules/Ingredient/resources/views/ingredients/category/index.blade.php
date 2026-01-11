@@ -121,7 +121,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if (checkAdminHasPermission('product.category.edit') || checkAdminHasPermission('product.category.delete'))
+                                    @if (checkAdminHasPermission('ingredient.category.edit') || checkAdminHasPermission('ingredient.category.delete'))
                                         <div class="btn-group" role="group">
                                             <button id="btnGroupDrop{{ $category->id }}" type="button"
                                                 class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"

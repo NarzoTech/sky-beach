@@ -115,7 +115,7 @@
                                         style="width: 80px"></td>
                                 <td class="text-left">{{ $brand->name }}</td>
                                 <td>
-                                    @if (checkAdminHasPermission('product.brand.edit') || checkAdminHasPermission('product.brand.delete'))
+                                    @if (checkAdminHasPermission('ingredient.brand.edit') || checkAdminHasPermission('ingredient.brand.delete'))
                                         <div class="btn-group" role="group">
                                             <button id="btnGroupDrop{{ $brand->id }}" type="button"
                                                 class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"

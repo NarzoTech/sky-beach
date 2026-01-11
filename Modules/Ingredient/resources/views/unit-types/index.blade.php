@@ -108,7 +108,7 @@
                                         <td>{{ ++$index }}</td>
                                         <td>{{ $unit->name }}</td>
                                         <td>{{ $unit->ShortName }}</td>
-                                        <td>{{ $unit->base_unit }}</td>
+                                        <td>{{ $unit->parent?->name }}</td>
                                         <td>{{ $unit->operator }}</td>
                                         <td>{{ $unit->operator_value }}</td>
                                         <td>
@@ -119,7 +119,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if (checkAdminHasPermission('product.unit.edit') || checkAdminHasPermission('product.unit.delete'))
+                                            @if (checkAdminHasPermission('ingredient.unit.edit') || checkAdminHasPermission('ingredient.unit.delete'))
                                                 <div class="btn-group" role="group">
                                                     <button id="btnGroupDrop{{ $unit->id }}" type="button"
                                                         class="btn bg-label-primary dropdown-toggle"
