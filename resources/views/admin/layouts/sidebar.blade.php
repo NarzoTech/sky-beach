@@ -32,6 +32,10 @@
             @include('customer::sidebar')
         @endif
 
+        @if (Module::isEnabled('Membership'))
+            @include('membership::sidebar')
+        @endif
+
         @if (Module::isEnabled('Ingredient'))
             @include('ingredient::sidebar')
         @endif

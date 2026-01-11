@@ -45,7 +45,7 @@ class LoyaltyProgramController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'warehouse_id' => 'required|integer|exists:warehouses,id',
+            'warehouse_id' => 'nullable|integer|exists:warehouses,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',

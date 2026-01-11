@@ -16,7 +16,8 @@
       "Bash(findstr:*)",
       "Bash(dir /b \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\")",
       "Bash(if not exist \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\tables\" mkdir \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\tables\")",
-      "Bash(if not exist \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\reservations\" mkdir \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\reservations\")"
+      "Bash(if not exist \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\reservations\" mkdir \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\\\\TableManagement\\\\resources\\\\views\\\\reservations\")",
+      "Bash(dir:*)"
     ]
   }
 }
