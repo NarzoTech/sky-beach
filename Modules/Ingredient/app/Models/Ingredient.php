@@ -2,6 +2,7 @@
 
 namespace Modules\Ingredient\app\Models;
 
+use App\Helpers\UnitConverter;
 use App\Http\Resources\IngredientResource;
 use App\Models\Stock;
 use Illuminate\Database\Eloquent\Builder;
@@ -86,16 +87,333 @@ class Ingredient extends Model
         parent::boot();
 
         static::saving(function ($model) {
+            // Auto-calculate conversion rate if units are set but rate is not
+            if (!$model->conversion_rate || $model->conversion_rate <= 0) {
+                $model->conversion_rate = $model->calculateConversionRate();
+            }
+
+            // Calculate consumption_unit_cost
             if ($model->conversion_rate && $model->conversion_rate > 0) {
                 // Use average_cost for consumption calculation (weighted average)
                 // Fall back to purchase_price if average_cost is not set
-                $costBasis = $model->average_cost ?? $model->purchase_price;
+                $costBasis = $model->average_cost ?? $model->purchase_price ?? $model->cost;
                 if ($costBasis) {
                     $model->consumption_unit_cost = $costBasis / $model->conversion_rate;
                 }
             }
         });
     }
+
+    /**
+     * Calculate conversion rate from purchase unit to consumption unit
+     *
+     * @return float
+     */
+    public function calculateConversionRate(): float
+    {
+        $purchaseUnitId = $this->purchase_unit_id ?? $this->unit_id;
+        $consumptionUnitId = $this->consumption_unit_id ?? $this->unit_id;
+
+        if (!$purchaseUnitId || !$consumptionUnitId) {
+            return 1;
+        }
+
+        if ($purchaseUnitId == $consumptionUnitId) {
+            return 1;
+        }
+
+        try {
+            return UnitConverter::getConversionRate($purchaseUnitId, $consumptionUnitId);
+        } catch (\Exception $e) {
+            return 1;
+        }
+    }
+
+    /**
+     * Get the effective purchase unit ID
+     *
+     * @return int|null
+     */
+    public function getPurchaseUnitIdAttribute($value): ?int
+    {
+        return $value ?? $this->unit_id;
+    }
+
+    /**
+     * Get the effective consumption unit ID
+     *
+     * @return int|null
+     */
+    public function getConsumptionUnitIdAttribute($value): ?int
+    {
+        return $value ?? $this->unit_id;
+    }
+
+    /**
+     * Get the base unit ID for this ingredient
+     *
+     * @return int|null
+     */
+    public function getBaseUnitIdAttribute(): ?int
+    {
+        $unitId = $this->purchase_unit_id ?? $this->unit_id;
+        if (!$unitId) {
+            return null;
+        }
+        return UnitConverter::getBaseUnitId($unitId);
+    }
+
+    /**
+     * Get stock in consumption units
+     *
+     * @return float
+     */
+    public function getStockInConsumptionUnitsAttribute(): float
+    {
+        $stock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+        return $stock * ($this->conversion_rate ?? 1);
+    }
+
+    /**
+     * Get stock in purchase units
+     *
+     * @return float
+     */
+    public function getStockInPurchaseUnitsAttribute(): float
+    {
+        return (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+    }
+
+    /**
+     * Convert quantity from any unit to this ingredient's consumption unit
+     *
+     * @param float $quantity
+     * @param int|null $fromUnitId Source unit ID (null = use ingredient's consumption unit)
+     * @return float
+     */
+    public function convertToConsumptionUnits(float $quantity, ?int $fromUnitId = null): float
+    {
+        $consumptionUnitId = $this->consumption_unit_id ?? $this->unit_id;
+
+        if (!$fromUnitId || $fromUnitId == $consumptionUnitId) {
+            return $quantity;
+        }
+
+        return UnitConverter::safeConvert($quantity, $fromUnitId, $consumptionUnitId);
+    }
+
+    /**
+     * Convert quantity from any unit to this ingredient's purchase unit
+     *
+     * @param float $quantity
+     * @param int|null $fromUnitId Source unit ID (null = use ingredient's purchase unit)
+     * @return float
+     */
+    public function convertToPurchaseUnits(float $quantity, ?int $fromUnitId = null): float
+    {
+        $purchaseUnitId = $this->purchase_unit_id ?? $this->unit_id;
+
+        if (!$fromUnitId || $fromUnitId == $purchaseUnitId) {
+            return $quantity;
+        }
+
+        return UnitConverter::safeConvert($quantity, $fromUnitId, $purchaseUnitId);
+    }
+
+    /**
+     * Convert purchase units to consumption units using the stored conversion rate
+     *
+     * @param float $purchaseQty The quantity in purchase units
+     * @return float The quantity in consumption units
+     */
+    public function purchaseToConsumptionUnits(float $purchaseQty): float
+    {
+        return $purchaseQty * ($this->conversion_rate ?? 1);
+    }
+
+    /**
+     * Convert consumption units to purchase units using the stored conversion rate
+     *
+     * @param float $consumptionQty The quantity in consumption units
+     * @return float The quantity in purchase units
+     */
+    public function consumptionToPurchaseUnits(float $consumptionQty): float
+    {
+        if ($this->conversion_rate && $this->conversion_rate > 0) {
+            return $consumptionQty / $this->conversion_rate;
+        }
+        return $consumptionQty;
+    }
+
+    /**
+     * Calculate the consumption cost for a given quantity
+     *
+     * @param float $quantity The quantity in consumption units
+     * @return float The total cost
+     */
+    public function calculateConsumptionCost(float $quantity): float
+    {
+        return $quantity * ($this->consumption_unit_cost ?? 0);
+    }
+
+    /**
+     * Calculate cost for a given quantity in any unit
+     *
+     * @param float $quantity
+     * @param int|null $unitId The unit of the quantity (null = consumption unit)
+     * @return float
+     */
+    public function calculateCost(float $quantity, ?int $unitId = null): float
+    {
+        // Convert to consumption units first
+        $consumptionQty = $this->convertToConsumptionUnits($quantity, $unitId);
+        return $this->calculateConsumptionCost($consumptionQty);
+    }
+
+    /**
+     * Check if a unit is compatible with this ingredient's units
+     *
+     * @param int $unitId
+     * @return bool
+     */
+    public function isUnitCompatible(int $unitId): bool
+    {
+        $ingredientUnitId = $this->purchase_unit_id ?? $this->consumption_unit_id ?? $this->unit_id;
+
+        if (!$ingredientUnitId) {
+            return true; // No unit set, allow any
+        }
+
+        return UnitConverter::areUnitsCompatible($unitId, $ingredientUnitId);
+    }
+
+    /**
+     * Validate unit configuration for this ingredient
+     *
+     * @return array ['valid' => bool, 'errors' => []]
+     */
+    public function validateUnitConfiguration(): array
+    {
+        return UnitConverter::validateIngredientUnits($this);
+    }
+
+    /**
+     * Deduct stock in any unit
+     *
+     * @param float $quantity
+     * @param int|null $unitId The unit of the quantity (null = purchase unit, which is how stock is stored)
+     * @return bool
+     */
+    public function deductStock(float $quantity, ?int $unitId = null): bool
+    {
+        // Convert to purchase units (stock is stored in purchase units)
+        $deductQty = $this->convertToPurchaseUnits($quantity, $unitId);
+
+        $currentStock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+        $newStock = $currentStock - $deductQty;
+
+        $this->attributes['stock'] = max(0, $newStock);
+
+        // Update stock status
+        if ($this->attributes['stock'] <= 0) {
+            $this->attributes['stock_status'] = 'out_of_stock';
+        } elseif ($this->stock_alert && $this->attributes['stock'] <= $this->stock_alert) {
+            $this->attributes['stock_status'] = 'low_stock';
+        } else {
+            $this->attributes['stock_status'] = 'in_stock';
+        }
+
+        return $this->save();
+    }
+
+    /**
+     * Add stock in any unit
+     *
+     * @param float $quantity
+     * @param int|null $unitId The unit of the quantity (null = purchase unit)
+     * @return bool
+     */
+    public function addStock(float $quantity, ?int $unitId = null): bool
+    {
+        // Convert to purchase units (stock is stored in purchase units)
+        $addQty = $this->convertToPurchaseUnits($quantity, $unitId);
+
+        $currentStock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+        $this->attributes['stock'] = $currentStock + $addQty;
+
+        // Update stock status
+        if ($this->attributes['stock'] <= 0) {
+            $this->attributes['stock_status'] = 'out_of_stock';
+        } elseif ($this->stock_alert && $this->attributes['stock'] <= $this->stock_alert) {
+            $this->attributes['stock_status'] = 'low_stock';
+        } else {
+            $this->attributes['stock_status'] = 'in_stock';
+        }
+
+        return $this->save();
+    }
+
+    /**
+     * Check if enough stock is available
+     *
+     * @param float $quantity
+     * @param int|null $unitId The unit of the quantity
+     * @return bool
+     */
+    public function hasEnoughStock(float $quantity, ?int $unitId = null): bool
+    {
+        // Convert to purchase units for comparison
+        $requiredQty = $this->convertToPurchaseUnits($quantity, $unitId);
+        $currentStock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+
+        return $currentStock >= $requiredQty;
+    }
+
+    /**
+     * Get formatted stock with unit
+     *
+     * @param bool $useShortName
+     * @return string
+     */
+    public function getFormattedStock(bool $useShortName = true): string
+    {
+        $stock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+        $unitId = $this->purchase_unit_id ?? $this->unit_id;
+
+        if (!$unitId) {
+            return number_format($stock, 2);
+        }
+
+        return UnitConverter::formatWithUnit($stock, $unitId, $useShortName);
+    }
+
+    /**
+     * Update weighted average cost after a purchase
+     *
+     * @param float $purchaseQty Quantity purchased (in purchase units)
+     * @param float $purchasePrice Price per purchase unit
+     * @return void
+     */
+    public function updateAverageCost(float $purchaseQty, float $purchasePrice): void
+    {
+        $currentStock = (float) str_replace(',', '', $this->attributes['stock'] ?? 0);
+        $currentAvgCost = $this->average_cost ?? $this->purchase_price ?? 0;
+
+        // Weighted average formula: ((currentStock * currentAvgCost) + (newQty * newPrice)) / (currentStock + newQty)
+        $totalValue = ($currentStock * $currentAvgCost) + ($purchaseQty * $purchasePrice);
+        $totalQty = $currentStock + $purchaseQty;
+
+        if ($totalQty > 0) {
+            $this->average_cost = $totalValue / $totalQty;
+
+            // Recalculate consumption unit cost
+            if ($this->conversion_rate && $this->conversion_rate > 0) {
+                $this->consumption_unit_cost = $this->average_cost / $this->conversion_rate;
+            }
+        }
+    }
+
+    // ==================== EXISTING METHODS BELOW ====================
 
     public function getCurrentPriceAttribute()
     {
@@ -503,41 +821,5 @@ class Ingredient extends Model
     public function getTotalStockAttribute()
     {
         return $this->attributes['stock'] ?? 0;
-    }
-
-    /**
-     * Calculate the consumption cost for a given quantity
-     *
-     * @param float $quantity The quantity in consumption units
-     * @return float The total cost
-     */
-    public function calculateConsumptionCost(float $quantity): float
-    {
-        return $quantity * ($this->consumption_unit_cost ?? 0);
-    }
-
-    /**
-     * Convert purchase units to consumption units
-     *
-     * @param float $purchaseQty The quantity in purchase units
-     * @return float The quantity in consumption units
-     */
-    public function convertToConsumptionUnits(float $purchaseQty): float
-    {
-        return $purchaseQty * ($this->conversion_rate ?? 1);
-    }
-
-    /**
-     * Convert consumption units to purchase units
-     *
-     * @param float $consumptionQty The quantity in consumption units
-     * @return float The quantity in purchase units
-     */
-    public function convertToPurchaseUnits(float $consumptionQty): float
-    {
-        if ($this->conversion_rate && $this->conversion_rate > 0) {
-            return $consumptionQty / $this->conversion_rate;
-        }
-        return $consumptionQty;
     }
 }
