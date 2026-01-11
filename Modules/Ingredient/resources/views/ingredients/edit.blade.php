@@ -205,13 +205,12 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>{{ __('Low Qty') }}</label>
+                                            <label>{{ __('Low Qty') }} <span class="text-muted" id="lowQtyUnit"></span></label>
                                             <div class="input-group">
                                                 <input type="number" step="0.01" class="form-control" name="stock_alert"
                                                     value="{{ old('stock_alert', $product->stock_alert ?? 0) }}">
-                                                <div class="input-group-text">
-                                                    <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
-                                                        data-bs-placement="top" title="{{ __('In Purchase Unit') }}"></i>
+                                                <div class="input-group-text" id="lowQtyUnitBadge">
+                                                    <span class="badge bg-info">{{ $product->purchaseUnit->ShortName ?? '-' }}</span>
                                                 </div>
                                             </div>
                                             @error('stock_alert')
@@ -429,6 +428,24 @@
                         $('#conversionRateHelp').text(`1 ${purchaseUnit.name} = ${rate} ${consumptionUnit.name}`);
                     }
                 })();
+
+                // Update unit badge for Low Qty
+                function updatePurchaseUnitBadge() {
+                    const purchaseUnitId = $('#purchase_unit_id').val();
+                    const purchaseUnit = unitsData.find(u => u.id == purchaseUnitId);
+
+                    if (purchaseUnit) {
+                        const unitText = purchaseUnit.ShortName || purchaseUnit.name;
+                        $('#lowQtyUnitBadge .badge').text(unitText).removeClass('bg-secondary').addClass('bg-info');
+                    } else {
+                        $('#lowQtyUnitBadge .badge').text('-').removeClass('bg-info').addClass('bg-secondary');
+                    }
+                }
+
+                // Update badge on purchase unit change
+                $('#purchase_unit_id').on('change', function() {
+                    updatePurchaseUnitBadge();
+                });
 
                 $.uploadPreview({
                     input_field: "#image-upload",
