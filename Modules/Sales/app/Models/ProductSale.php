@@ -55,6 +55,11 @@ class ProductSale extends Model
         return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
     }
 
+    public function ingredient()
+    {
+        return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
+    }
+
     public function menuItem()
     {
         return $this->belongsTo(MenuItem::class, 'menu_item_id')->withDefault();

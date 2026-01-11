@@ -12,6 +12,12 @@
             z-index: 215000000 !important;
         }
 
+        /* Modal title color when parent has bg-primary */
+        .bg-primary .modal-title,
+        .modal-header.bg-primary .modal-title {
+            color: #fff !important;
+        }
+
         /* Table Selection Modal Styles */
         .table-status-dot {
             width: 12px;
@@ -1103,6 +1109,36 @@
         </div>
     </div>
 
+    <!-- POS Receipt Modal -->
+    <div class="modal fade" id="posReceiptModal" tabindex="-1" role="dialog" aria-labelledby="posReceiptModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 400px;">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white py-2">
+                    <h5 class="modal-title" id="posReceiptModalLabel">
+                        <i class="fas fa-check-circle me-2"></i>{{ __('Payment Successful') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" id="pos-receipt-body">
+                    <!-- Receipt will be loaded here -->
+                </div>
+                <div class="modal-footer justify-content-between py-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>{{ __('Close') }}
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-info me-2" onclick="printPosReceipt()">
+                            <i class="fas fa-print me-1"></i>{{ __('Print') }}
+                        </button>
+                        <a type="button" class="btn btn-primary receipt-full-invoice" href="" target="_blank">
+                            <i class="fas fa-file-invoice me-1"></i>{{ __('Full Invoice') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 @endsection
 
@@ -1200,44 +1236,61 @@
                     // Keep selection if already confirmed
                 });
 
-                // update pos quantity
+                // update pos quantity - real-time without full cart reload
+                let qtyUpdateTimeout = null;
                 $(document).on("input", ".pos_input_qty", function(e) {
-                    let quantity = $(this).val();
-                    if (quantity < 1) {
+                    let $input = $(this);
+                    let quantity = parseInt($input.val());
+                    if (quantity < 1 || isNaN(quantity)) {
                         return;
                     }
-                    $('.preloader_area').removeClass('d-none');
-                    let parernt_td = $(this).parents('td');
-                    let rowid = parernt_td.data('rowid')
-                    const pos = getCurrentPos();
-                    $.ajax({
-                        type: 'get',
-                        data: {
-                            rowid,
-                            quantity
-                        },
-                        url: "{{ route('admin.cart-quantity-update') }}",
-                        success: function(response) {
-                            $(".product-table-container").html(response)
-                            $('[name="source"]').niceSelect();
-                            totalSummery();
-                            console.log(pos);
-                            scrollToCurrent(pos)
-                            $('.preloader_area').addClass('d-none');
-                        },
-                        error: function(response) {
-                            if (response.status == 500) {
-                                toastr.error("{{ __('Server error occurred') }}")
-                            }
 
-                            if (response.status == 403) {
-                                toastr.error("{{ __('Server error occurred') }}")
-                            }
-                            $('.preloader_area').addClass('d-none');
-                        }
-                    });
+                    let $row = $input.closest('tr');
+                    let $parentTd = $input.parents('td');
+                    let rowid = $parentTd.data('rowid');
 
+                    // Get current price from the row
+                    let priceText = $row.find('.price span').text();
+                    let price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+
+                    // Immediately update the row total in UI
+                    let newSubTotal = price * quantity;
+                    $row.find('.row_total').text(formatCurrency(newSubTotal));
+
+                    // Update totals immediately
+                    totalSummery();
+
+                    // Debounce the AJAX call to sync with server
+                    clearTimeout(qtyUpdateTimeout);
+                    qtyUpdateTimeout = setTimeout(function() {
+                        $.ajax({
+                            type: 'get',
+                            data: {
+                                rowid: rowid,
+                                quantity: quantity
+                            },
+                            url: "{{ route('admin.cart-quantity-update-quick') }}",
+                            success: function(response) {
+                                if (response.success) {
+                                    // Update with server-formatted value
+                                    $row.find('.row_total').text(response.sub_total_formatted);
+                                    totalSummery();
+                                }
+                            },
+                            error: function(response) {
+                                // On error, reload cart to restore correct state
+                                if (response.status == 500 || response.status == 403) {
+                                    toastr.error("{{ __('Error updating quantity') }}");
+                                }
+                            }
+                        });
+                    }, 300); // 300ms debounce
                 });
+
+                // Format currency helper (client-side)
+                function formatCurrency(amount) {
+                    return '{{ config("app.currency_symbol", "$") }}' + parseFloat(amount).toFixed(2);
+                }
 
                 // load customer address
                 $("#customer_id").on("change", function() {
@@ -2813,10 +2866,10 @@
                         $('#order-details-modal').modal('hide');
                         loadRunningOrdersCount();
 
-                        // Show invoice
-                        $('.invoice_modal_body').html(response.invoice);
-                        $('.print-redirect').attr('href', response.invoiceRoute);
-                        $('#invoiceModal').modal('show');
+                        // Show POS receipt modal
+                        $('#pos-receipt-body').html(response.receipt);
+                        $('.receipt-full-invoice').attr('href', response.invoiceRoute);
+                        $('#posReceiptModal').modal('show');
                     } else {
                         toastr.error(response.message || "{{ __('Error completing order') }}");
                     }
@@ -2827,6 +2880,41 @@
                     $('.preloader_area').addClass('d-none');
                 }
             });
+        }
+
+        // Print POS receipt
+        function printPosReceipt() {
+            const receiptContent = document.getElementById('pos-receipt-content');
+            if (!receiptContent) {
+                toastr.error("{{ __('Receipt not found') }}");
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>POS Receipt</title>
+                    <style>
+                        body { margin: 0; padding: 10px; }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${receiptContent.outerHTML}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() { window.close(); };
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         // Legacy function for backward compatibility
@@ -2850,10 +2938,10 @@
                         $('#order-details-modal').modal('hide');
                         loadRunningOrdersCount();
 
-                        // Show invoice
-                        $('.invoice_modal_body').html(response.invoice);
-                        $('.print-redirect').attr('href', response.invoiceRoute);
-                        $('#invoiceModal').modal('show');
+                        // Show POS receipt modal
+                        $('#pos-receipt-body').html(response.receipt);
+                        $('.receipt-full-invoice').attr('href', response.invoiceRoute);
+                        $('#posReceiptModal').modal('show');
                     } else {
                         toastr.error(response.message || "{{ __('Error completing order') }}");
                     }

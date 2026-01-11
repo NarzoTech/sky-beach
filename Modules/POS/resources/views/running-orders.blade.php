@@ -44,7 +44,7 @@
                             <small class="opacity-75">(+{{ $overdueMinutes }} min)</small>
                         </span>
                     @else
-                        <span class="badge bg-warning text-dark w-100 py-1">
+                        <span class="badge bg-warning text-light w-100 py-1">
                             <i class="fas fa-fire me-1"></i>{{ $remainingMinutes }} {{ __('min remaining') }}
                         </span>
                     @endif

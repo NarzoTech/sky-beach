@@ -406,6 +406,47 @@ class POSController extends Controller
         ]);
     }
 
+    /**
+     * Quick cart quantity update - returns JSON for real-time UI update
+     */
+    public function cart_quantity_update_quick(Request $request)
+    {
+        $cartName = 'POSCART';
+        if ($request->edit) {
+            $cartName = 'UPDATE_CART';
+        }
+        $cart_contents = session()->get($cartName, []);
+
+        if (!isset($cart_contents[$request->rowid])) {
+            return response()->json(['success' => false, 'message' => 'Item not found'], 404);
+        }
+
+        $price = (float)$cart_contents[$request->rowid]['price'];
+        $quantity = (int)$request->quantity;
+        $sub_total = $price * $quantity;
+
+        $cart_contents[$request->rowid]['qty'] = $quantity;
+        $cart_contents[$request->rowid]['sub_total'] = $sub_total;
+
+        session()->put($cartName, $cart_contents);
+
+        // Calculate totals
+        $total = 0;
+        foreach ($cart_contents as $item) {
+            $total += $item['sub_total'];
+        }
+
+        return response()->json([
+            'success' => true,
+            'rowid' => $request->rowid,
+            'quantity' => $quantity,
+            'sub_total' => $sub_total,
+            'sub_total_formatted' => currency($sub_total),
+            'cart_total' => $total,
+            'cart_total_formatted' => currency($total),
+        ]);
+    }
+
     public function remove_cart_item(Request $request, $rowId)
     {
         $cartName = 'POSCART';
@@ -1125,17 +1166,20 @@ class POSController extends Controller
 
             DB::commit();
 
-            // Generate invoice
-            $sale = $this->saleService->getSales()->find($order->id);
-            $invoiceBlade = view('sales::invoice-content')->with([
+            // Generate POS receipt
+            $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'payment.account'])->find($order->id);
+            $setting = \Illuminate\Support\Facades\Cache::get('setting');
+
+            $receiptHtml = view('pos::pos-receipt')->with([
                 'sale' => $sale,
-                'details' => $sale->details,
+                'setting' => $setting,
             ])->render();
 
             return response()->json([
                 'success' => true,
                 'message' => __('Order completed successfully'),
-                'invoice' => $invoiceBlade,
+                'receipt' => $receiptHtml,
+                'invoice' => $sale->invoice,
                 'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
             ]);
         } catch (\Exception $e) {

@@ -3,23 +3,23 @@
         <div class="col-5">
             <div>
                 <div>
-                    <p class="title">{{ $setting->app_name }}</p>
+                    <p class="title">{{ $setting->app_name ?? 'Company Name' }}</p>
                     <div class="property">
 
                         <span class="value">
-                            <p>{{ $setting->address }}</p>
+                            <p>{{ $setting->address ?? '' }}</p>
                         </span>
                     </div>
 
                     <div class="property">
                         <span class="key">Mobile:</span>
                         <span class="value">
-                            {{ $setting->mobile }}
+                            {{ $setting->mobile ?? '' }}
                         </span>
                     </div>
                     <div class="property">
                         <span class="key">Email:</span>
-                        <span class="value">{{ $setting->email }}</span>
+                        <span class="value">{{ $setting->email ?? '' }}</span>
                     </div>
 
 
@@ -28,7 +28,7 @@
                 </div>
                 <div class="property">
                     <span class="key">Sold By:</span>
-                    <span class="value">{{ $sale->createdBy->name }}</span>
+                    <span class="value">{{ $sale->createdBy->name ?? 'Staff' }}</span>
                 </div>
                 <div class="property">
                     <span class="value">
@@ -97,19 +97,11 @@
                         class="text-center">
                         SL.
                     </th>
-                    <th style="width: 5%; border-left: none !important; border-right: none !important; padding-left: 3px;"
-                        class="text-left">
+                    <th style="width: 45%; border-left: none !important; border-right: none !important; padding-left: 3px;"
+                        class="text-left" colspan="2">
                         Item
                     </th>
-                    <th style="width: 40%; border-left: none !important; border-right: none !important;"
-                        class="text-left">
-
-                    </th>
-                    <th style="width: 10%; border-left: none !important; border-right: none !important; text-align:center"
-                        class="text-center">
-                        Warranty
-                    </th>
-                    <th style="width: 10%; border-left: none !important; border-right: none !important;"
+                    <th style="width: 15%; border-left: none !important; border-right: none !important;"
                         class="text-center">
                         Price
                     </th>
@@ -118,98 +110,69 @@
 
                         Quantity
                     </th>
-                    <th style="width: 15%; border-left: none !important; border-right: none !important;"
+                    <th style="width: 20%; border-left: none !important; border-right: none !important;"
                         class="text-right">
                         Total
                     </th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($sale->products as $index => $details)
+                @php $index = 0; @endphp
+                @foreach ($sale->details as $detail)
+                    @php
+                        $index++;
+                        // Determine item name and image based on type
+                        $itemName = 'Unknown Item';
+                        $itemImage = null;
+
+                        if ($detail->menu_item_id && $detail->menuItem) {
+                            $itemName = $detail->menuItem->name;
+                            $itemImage = $detail->menuItem->image;
+                        } elseif ($detail->service_id && $detail->service) {
+                            $itemName = $detail->service->name;
+                            $itemImage = $detail->service->singleImage ?? null;
+                        } elseif ($detail->ingredient_id && $detail->product) {
+                            $itemName = $detail->product->name;
+                            $itemImage = $detail->product->singleImage ?? null;
+                        }
+                    @endphp
                     <tr>
                         <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                             class="text-center">
-                            {{ $index + 1 }}
+                            {{ $index }}
                         </td>
-                        <td
-                            style="border-left: none !important; border-right: none !important; border-top: none !important;">
-                            <img src="{{ asset($details->product->singleImage) }}"
-                                style="width: 30px; height: 30px;" />
-                        </td>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
+                        <td colspan="2"
+                            style="border-left: none !important; border-right: none !important; border-top: none !important;"
                             class="text-left">
-                            {{ $details->product->name }}
-                        </td>
-
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center">
-                            {{ $details->product->warranty ?? 'N/A' }}
+                            {{ $itemName }}
+                            @if($detail->attributes)
+                                <br><small class="text-muted">{{ $detail->attributes }}</small>
+                            @endif
                         </td>
                         <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                             class="text-center">
-                            {{ $details->price }}
+                            {{ currency($detail->price) }}
                         </td>
                         <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center qty" id="qty1" data-qty="1">
-                            {{ $details->quantity }} {{ $details->product?->unit->name ?? '' }}
+                            class="text-center qty">
+                            {{ $detail->quantity }}
                         </td>
                         <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-right" id="totalPriceInvoice1">
-                            {{ $details->sub_total }}
-                        </td>
-                    </tr>
-                @endforeach
-                @foreach ($sale->services as $index => $details)
-                    <tr>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center">
-                            {{ $index + 1 }}
-                        </td>
-                        <td
-                            style="border-left: none !important; border-right: none !important; border-top: none !important;">
-                            <img src="{{ asset($details->service->singleImage) }}"
-                                style="width: 30px; height: 30px;" />
-                        </td>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-left">
-                            {{ $details->service->name }}
-                        </td>
-
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center">
-                            N/A
-                        </td>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center">
-                            {{ $details->price }}
-                        </td>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-center qty" id="qty1" data-qty="1">
-                            {{ $details->quantity }}
-                        </td>
-                        <td style="border-left: none !important; border-right: none !important; border-top: none !important"
-                            class="text-right" id="totalPriceInvoice1">
-                            {{ $details->sub_total }}
+                            class="text-right">
+                            {{ currency($detail->sub_total) }}
                         </td>
                     </tr>
                 @endforeach
                 <tr>
-                    <td colspan="5"
+                    <td colspan="4"
                         style="border-left: none !important; border-right: none !important; border-top: none !important"
                         class="text-right">
                         Total Qty:
                     </td>
-                    <td colspan="1"
+                    <td colspan="2"
                         style="border-left: none !important; border-right: none !important; border-top: none !important"
                         class="text-center">
-                        @php
-                            $unitName = $details->product->unit->name;
-                            $unitQty = isset($unit[$unitName]) ? $unit[$unitName] : 0;
-                            $newQty = $details->quantity + $unitQty;
-                            $unit[$unitName] = $newQty;
-
-                        @endphp
-                        {{ $sale->quantity }} {{ $unitName }}
+                        {{ $sale->quantity }}
                     </td>
                 </tr>
             </tbody>
@@ -231,13 +194,9 @@
                                 style="border:none !important; border-bottom: 1px solid #fff !important">
                                 <b>Subtotal :</b>
                             </td>
-                            @php
-                                $subTotal = array_sum($sale->details->pluck('sub_total')->toArray());
-                            @endphp
                             <td class="text-right pb-0"
                                 style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                <b>TK
-                                    {{ $subTotal }}</b>
+                                <b>{{ currency($sale->total_price) }}</b>
                             </td>
                         </tr>
 
@@ -248,22 +207,22 @@
                                 Discount:</td>
                             <td class="text-right"
                                 style="border:none !important; border-bottom: 1px solid rgb(136 136 136) !important ">
-                                TK
-                                {{ $sale->order_discount }}
+                                {{ currency($sale->order_discount) }}
                             </td>
                         </tr>
-                        {{-- <tr>
-                                        <td colspan="5" style="border: none !important"></td>
-                                        <td class="text-right  ps-0"
-                                            style="border:none !important; border-bottom: 1px solid #fff !important">
-                                            Previous Due:</td>
-                                        <td class="text-right"
-                                            style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                            TK
-                                            {{ $sale->customer->due->sum('due_amount') }}
-                                        </td>
-                                    </tr> --}}
 
+                        @if($sale->total_tax > 0)
+                        <tr>
+                            <td colspan="5" style="border: none !important"></td>
+                            <td class="text-right  ps-0"
+                                style="border:none !important; border-bottom: 1px solid rgb(136 136 136) !important ">
+                                Tax:</td>
+                            <td class="text-right"
+                                style="border:none !important; border-bottom: 1px solid rgb(136 136 136) !important ">
+                                {{ currency($sale->total_tax) }}
+                            </td>
+                        </tr>
+                        @endif
 
                         <tr>
                             <td colspan="5" style="border: none !important"></td>
@@ -274,8 +233,7 @@
                             <td class="text-right pb-0"
                                 style="border:none !important; border-bottom: 1px solid #fff !important;">
 
-                                <b>TK
-                                    {{ $subTotal - $sale->order_discount }}</b>
+                                <b>{{ currency($sale->grand_total) }}</b>
                             </td>
                         </tr>
                         <tr>
@@ -286,8 +244,7 @@
                             </td>
                             <td class="text-right"
                                 style="border:none !important; border-bottom: 1px solid rgb(136 136 136) !important">
-                                TK
-                                {{ $sale->paid_amount }}
+                                {{ currency($sale->paid_amount) }}
                             </td>
                         </tr>
 
@@ -300,26 +257,9 @@
                             </td>
 
                             <td class="text-right">
-                                TK {{ $sale->due_amount }}
+                                {{ currency($sale->due_amount) }}
                             </td>
                         </tr>
-
-
-                        {{-- @if ($sale->customer->due->count())
-                            <tr>
-                                <td colspan="5" style="border: none !important">
-                                </td>
-                                <td class="text-right ps-0"
-                                    style="border:none !important; border-bottom: 1px solid #fff !important">
-                                    Due Remaining:
-                                </td>
-
-                                <td class="text-right"
-                                    style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                    TK {{ $sale->customer->due->sum('due_amount') }}
-                                </td>
-                            </tr>
-                        @endif --}}
                     </tbody>
                 </table>
             </div>
@@ -330,7 +270,7 @@
                     <span style="font-weight: bold; letter-spacing: 0.1px; font-size: 13px;">
                         In Words:
                     </span>
-                    {{ numberToWord($sale->grand_total) }} TK
+                    {{ numberToWord($sale->grand_total) }} {{ $setting->currency_name ?? 'TK' }}
                     Only
 
 
