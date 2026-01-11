@@ -613,7 +613,7 @@ class PurchaseService
             $ledger = $this->purchaseReturnLedger($request, $purchaseReturn->id, $request->received_amount, 'purchase return', 0);
             SupplierPayment::create([
                 'payment_type'       => 'purchase_receive',
-                'purchase_return_id' => $request->purchase_id,
+                'purchase_return_id' => $purchaseReturn->id,
                 'supplier_id'        => $purchaseReturn->supplier_id,
                 'account_id'         => $account->id,
                 'is_received'        => 1,
@@ -667,7 +667,7 @@ class PurchaseService
 
         // Delete old purchase details
         $return->purchaseDetails()->delete();
-        $return->payments()?->delete();
+        $return->payment()?->delete();
         Stock::where('purchase_return_id', $return->id)?->delete();
 
         // Store new return details (similar to storeReturn)
@@ -847,7 +847,7 @@ class PurchaseService
         }
 
         Stock::where('purchase_return_id', $return->id)?->delete();
-        $return->payments()?->delete();
+        $return->payment()?->delete();
         $return->purchaseDetails()->delete();
         $return->delete();
     }

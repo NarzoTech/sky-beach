@@ -1,18 +1,19 @@
 @extends('admin.layouts.master')
 @section('title')
-    <title>{{ __('Sales Return') }}</title>
+    <title>{{ __('Edit Sales Return') }}</title>
 @endsection
 
 @section('content')
     <div class="row">
         <div class="col-md-12">
 
-            <form method="POST" action="{{ route('admin.sales.return.store') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.sales.return.update', $return->id) }}" enctype="multipart/form-data">
                 @csrf
-                <input type="hidden" name="sale_id" value="{{ $sale->id }}">
+                @method('PUT')
+                <input type="hidden" name="sale_id" value="{{ $return->sale_id }}">
                 <div class="card">
                     <div class="card-header">
-                        <div class="section_title">{{ __('Sales Return') }}</div>
+                        <div class="section_title">{{ __('Edit Sales Return') }}</div>
                     </div>
 
                     <div class="card-body">
@@ -21,8 +22,8 @@
                                 <div class="form-group">
                                     <label>{{ __('Customer Name') }}</label>
                                     <input type="text" class="form-control" name=""
-                                        value="{{ $sale->user?->name ?? 'Guest' }}" disabled>
-                                    <input type="hidden" name="customer_id" value="{{ $sale->customer_id }}">
+                                        value="{{ $return->customer?->name ?? 'Guest' }}" disabled>
+                                    <input type="hidden" name="customer_id" value="{{ $return->customer_id }}">
                                     @error('customer_id')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -31,7 +32,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>{{ __('Invoice No') }}</label>
-                                    <input type="text" class="form-control" name="invoice" value="{{ $sale->invoice }}"
+                                    <input type="text" class="form-control" name="invoice" value="{{ $return->invoice }}"
                                         readonly>
                                     @error('invoice')
                                         <span class="text-danger">{{ $message }}</span>
@@ -43,7 +44,7 @@
                                 <div class="form-group">
                                     <label>{{ __('Sale Date') }}</label>
                                     <input type="text" class="form-control" name="order_date"
-                                        value="{{ formatDate($sale->order_date) }}" readonly>
+                                        value="{{ formatDate($return->order_date) }}" readonly>
                                     @error('order_date')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -54,7 +55,7 @@
                                 <div class="form-group">
                                     <label>{{ __('Return Date') }}</label>
                                     <input type="text" class="form-control datepicker" name="return_date"
-                                        value="{{ old('return_date', formatDate(now())) }}" autocomplete="off">
+                                        value="{{ old('return_date', formatDate($return->return_date)) }}" autocomplete="off">
                                     @error('return_date')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -64,7 +65,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label>{{ __('Note') }}</label>
-                                    <textarea type="text" class="form-control height-80px" name="note">{{ old('note') }}</textarea>
+                                    <textarea type="text" class="form-control height-80px" name="note">{{ old('note', $return->note) }}</textarea>
                                     @error('note')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -78,6 +79,7 @@
                                         <thead>
                                             <tr>
                                                 <th>{{ __('Product Name') }}</th>
+                                                <th>{{ __('Unit') }}</th>
                                                 <th>{{ __('Unit Price') }}</th>
                                                 <th>{{ __('Sell Quantity') }}</th>
                                                 <th>{{ __('Return Quantity') }}</th>
@@ -85,40 +87,54 @@
                                             </tr>
                                         </thead>
                                         <tbody id="sale_return_table">
-                                            @foreach ($sale->products as $saleDetail)
+                                            @foreach ($return->details as $returnDetail)
                                                 @php
-                                                    $ingredient = $saleDetail->product;
-                                                    $returnUnit = $ingredient?->purchaseUnit ?? $ingredient?->unit;
+                                                    $ingredient = $returnDetail->ingredient;
+                                                    $returnUnit = $returnDetail->unit ?? $ingredient?->purchaseUnit ?? $ingredient?->unit;
+
+                                                    // Get original sale detail for this ingredient
+                                                    $originalSaleDetail = $sale->products()
+                                                        ->where('ingredient_id', $returnDetail->ingredient_id)
+                                                        ->first();
+
+                                                    $salePrice = $originalSaleDetail?->price ?? $returnDetail->price;
+                                                    $saleQty = $originalSaleDetail?->quantity ?? 0;
                                                 @endphp
                                                 <tr>
                                                     <td>
                                                         {{ $ingredient?->name ?? 'Unknown' }}
                                                         <input type="hidden" name="ingredient_id[]"
-                                                            value="{{ $saleDetail->ingredient_id }}">
+                                                            value="{{ $returnDetail->ingredient_id }}">
                                                         <input type="hidden" name="return_unit_id[]"
                                                             value="{{ $returnUnit?->id }}">
                                                     </td>
                                                     <td>
-                                                        {{ number_format($saleDetail->price, 2) }}
-                                                        <input type="hidden" class="form-control" name="price[]"
-                                                            value="{{ $saleDetail->price }}">
+                                                        <span class="badge bg-info">{{ $returnUnit?->ShortName ?? '-' }}</span>
                                                     </td>
-                                                    <td>{{ $saleDetail->quantity }}</td>
+                                                    <td class="sale-price">
+                                                        {{ number_format($salePrice, 2) }}
+                                                        <input type="hidden" class="form-control" name="price[]"
+                                                            value="{{ $salePrice }}">
+                                                    </td>
+                                                    <td>{{ $saleQty }}</td>
                                                     <td>
                                                         <input type="number" class="form-control return-quantity"
-                                                            name="return_quantity[]" min="0"
-                                                            max="{{ $saleDetail->quantity }}" step="0.01">
+                                                            name="return_quantity[]"
+                                                            value="{{ $returnDetail->quantity }}"
+                                                            min="0" max="{{ $saleQty }}" step="0.01">
                                                     </td>
                                                     <td>
                                                         <input type="number" class="form-control return-subtotal"
-                                                            name="return_subtotal[]" step="0.01" readonly>
+                                                            name="return_subtotal[]"
+                                                            value="{{ number_format($returnDetail->sub_total, 2, '.', '') }}"
+                                                            step="0.01" readonly>
                                                     </td>
                                                 </tr>
                                             @endforeach
-                                            @if($sale->products->isEmpty())
+                                            @if($return->details->isEmpty())
                                                 <tr>
-                                                    <td colspan="5" class="text-center text-muted">
-                                                        {{ __('No returnable products found. Menu item returns are handled separately.') }}
+                                                    <td colspan="6" class="text-center text-muted">
+                                                        {{ __('No returnable products found.') }}
                                                     </td>
                                                 </tr>
                                             @endif
@@ -134,21 +150,21 @@
                                         <div class="form-group">
                                             <label>{{ __('Paid Amount') }}</label>
                                             <input type="number" class="form-control" name="paid_amount"
-                                                value="{{ $sale->payment->sum('amount') }}" readonly>
+                                                value="{{ $return->return_amount - $return->return_due }}" readonly>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label>{{ __('Return Amount') }}</label>
-                                            <input type="return_amount" class="form-control" name="return_amount"
-                                                value="0">
+                                            <input type="number" class="form-control" name="return_amount"
+                                                value="{{ $return->return_amount }}" readonly>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group">
                                             <label>{{ __('Paying Amount') }}</label>
-                                            <input type="paying_amount" class="form-control" name="paying_amount"
-                                                value="0">
+                                            <input type="number" class="form-control" name="paying_amount"
+                                                value="{{ $return->return_amount - $return->return_due }}">
                                         </div>
                                     </div>
                                     <div class="col-12">
@@ -160,7 +176,7 @@
                                                     </option>
                                                     @foreach (accountList() as $key => $list)
                                                         <option value="{{ $key }}"
-                                                            @if ($key == 'cash') selected @endif
+                                                            @if ($key == ($payment?->account?->account_type ?? 'cash')) selected @endif
                                                             data-name="{{ $list }}">{{ $list }}
                                                         </option>
                                                     @endforeach
@@ -169,10 +185,36 @@
                                         </div>
                                     </div>
                                     <div class="col-12">
+                                        <div class="form-group payment_methods">
+                                            @if ($payment && $payment->account && $payment->account->account_type != 'cash')
+                                                @php
+                                                    $filteredAccounts = $accounts->where('account_type', $payment->account->account_type);
+                                                @endphp
+                                                <select name="account_id" class="form-control">
+                                                    @foreach($filteredAccounts as $account)
+                                                        <option value="{{ $account->id }}" @if($account->id == $payment->account_id) selected @endif>
+                                                            @if($account->account_type == 'bank')
+                                                                {{ $account->bank_account_number }} ({{ $account->bank?->name }})
+                                                            @elseif($account->account_type == 'mobile_banking')
+                                                                {{ $account->mobile_number }} ({{ $account->mobile_bank_name }})
+                                                            @elseif($account->account_type == 'card')
+                                                                {{ $account->card_number }} ({{ $account->bank?->name }})
+                                                            @else
+                                                                {{ $account->name ?? $account->id }}
+                                                            @endif
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input type="hidden" name="account_id" class="form-control" value="cash" readonly>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
                                         <div class="card-action d-flex justify-content-end">
-                                            <a href="{{ route('admin.purchase.index') }}"
+                                            <a href="{{ route('admin.sales.return.list') }}"
                                                 class="btn me-2 btn-danger">{{ __('Cancel') }}</a>
-                                            <button type="submit" class="btn btn-primary">{{ __('Submit') }}</button>
+                                            <button type="submit" class="btn btn-primary">{{ __('Update') }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -190,6 +232,9 @@
         'use strict';
 
         $(document).ready(function() {
+            // Initial calculation
+            calculateSummary();
+
             // return quantity calculation
             $(document).on('input', '.return-quantity', function() {
                 let return_quantity = parseFloat($(this).val()) || 0;

@@ -117,6 +117,7 @@ class SalesReturnController extends Controller
             'return_amount' => 'required',
             'paying_amount' => 'required',
             'payment_type' => 'required',
+            'ingredient_id' => 'required|array',
             'return_subtotal' => 'required|array',
             'return_quantity' => 'required|array',
             'price' => 'required|array',
@@ -142,35 +143,63 @@ class SalesReturnController extends Controller
 
             // create a return details
 
-            foreach ($request->product_id as $key => $prod_id) {
-                if ($request->return_quantity[$key] == 0) continue;
-                $details = SalesReturnDetails::create(
-                    [
-                        'sale_return_id' => $return->id,
-                        'product_id' => $prod_id,
-                        'quantity' => $request->return_quantity[$key],
-                        'price' => $request->price[$key],
-                        'sub_total' => $request->return_subtotal[$key],
-                    ]
-                );
+            foreach ($request->ingredient_id as $key => $ingredientId) {
+                if (!isset($request->return_quantity[$key]) || $request->return_quantity[$key] == 0) continue;
 
+                $ingredient = \Modules\Ingredient\app\Models\Ingredient::find($ingredientId);
+                if (!$ingredient) continue;
 
-                // update stock
-                $stock = $details->product->stock;
-                $stock = $stock + $request->return_quantity[$key];
-                $details->product->update([
-                    'stock' => $stock
+                $returnQuantity = (float) $request->return_quantity[$key];
+                $returnUnitId = $request->return_unit_id[$key] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+                // Get ingredient's stock unit
+                $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+                // Convert return quantity to stock units
+                $stockQuantity = $returnQuantity;
+                if ($returnUnitId && $stockUnitId && $returnUnitId != $stockUnitId) {
+                    $stockQuantity = \App\Helpers\UnitConverter::safeConvert($returnQuantity, $returnUnitId, $stockUnitId);
+                }
+
+                // Get base unit quantity
+                $baseUnitId = \App\Helpers\UnitConverter::getBaseUnitId($stockUnitId);
+                $baseQuantity = \App\Helpers\UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
+
+                $details = SalesReturnDetails::create([
+                    'sale_return_id' => $return->id,
+                    'ingredient_id' => $ingredientId,
+                    'unit_id' => $returnUnitId,
+                    'quantity' => $returnQuantity,
+                    'base_quantity' => $stockQuantity,
+                    'price' => $request->price[$key],
+                    'sub_total' => $request->return_subtotal[$key],
                 ]);
 
-                // create stock
+                // update ingredient stock (add back returned quantity in stock units)
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                $ingredient->stock = $oldStock + $stockQuantity;
+
+                // Update stock status
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+                $ingredient->save();
+
+                // create stock record
                 Stock::create([
                     'sale_return_id' => $return->id,
-                    'product_id' => $prod_id,
+                    'ingredient_id' => $ingredientId,
+                    'unit_id' => $returnUnitId,
                     'date' => Carbon::createFromFormat('d-m-Y', $request->order_date),
                     'type' => 'Sale Return',
-                    // 'invoice' => route('admin.sales.invoice', $sale->id),
-                    // 'invoice_number' => $sale->invoice,
-                    'in_quantity' => $request->return_quantity[$key],
+                    'invoice' => $return->invoice,
+                    'in_quantity' => $returnQuantity,
+                    'base_in_quantity' => $baseQuantity,
+                    'sku' => $ingredient->sku,
                     'rate' => $request->price[$key],
                     'created_by' => auth('admin')->user()->id,
                 ]);
@@ -225,6 +254,179 @@ class SalesReturnController extends Controller
     }
 
     /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        checkAdminHasPermissionAndThrowException('sales.return.edit');
+        $return = SalesReturn::with(['details.ingredient', 'details.unit', 'sale.products.product'])->findOrFail($id);
+        $sale = $return->sale;
+        $accounts = $this->service->all()->get();
+        $payment = $return->payments()->first();
+        return view('sales::return.edit', compact('return', 'sale', 'accounts', 'payment'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id): RedirectResponse
+    {
+        checkAdminHasPermissionAndThrowException('sales.return.edit');
+
+        $request->validate([
+            'return_date' => 'required',
+            'return_amount' => 'required',
+            'paying_amount' => 'required',
+            'payment_type' => 'required',
+            'ingredient_id' => 'required|array',
+            'return_subtotal' => 'required|array',
+            'return_quantity' => 'required|array',
+            'price' => 'required|array',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $return = SalesReturn::findOrFail($id);
+
+            // Restore old stock quantities before updating
+            foreach ($return->details as $oldDetail) {
+                $ingredient = $oldDetail->ingredient;
+                if ($ingredient && $ingredient->id) {
+                    $restoreQty = (float) ($oldDetail->base_quantity ?? $oldDetail->quantity);
+                    $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                    $ingredient->stock = max(0, $oldStock - $restoreQty);
+
+                    // Update stock status
+                    if ($ingredient->stock <= 0) {
+                        $ingredient->stock_status = 'out_of_stock';
+                    } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                        $ingredient->stock_status = 'low_stock';
+                    } else {
+                        $ingredient->stock_status = 'in_stock';
+                    }
+                    $ingredient->save();
+                }
+            }
+
+            // Delete old details and stock records
+            $return->details()->delete();
+            $return->stock()->delete();
+
+            // Update return record
+            $due = $request->return_amount - $request->paying_amount;
+            $return->update([
+                'return_date' => Carbon::createFromFormat('d-m-Y', $request->return_date),
+                'return_amount' => $request->return_amount,
+                'return_due' => $due,
+                'note' => $request->note,
+            ]);
+
+            // Create new return details
+            foreach ($request->ingredient_id as $key => $ingredientId) {
+                if (!isset($request->return_quantity[$key]) || $request->return_quantity[$key] == 0) continue;
+
+                $ingredient = \Modules\Ingredient\app\Models\Ingredient::find($ingredientId);
+                if (!$ingredient) continue;
+
+                $returnQuantity = (float) $request->return_quantity[$key];
+                $returnUnitId = $request->return_unit_id[$key] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+                // Get ingredient's stock unit
+                $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+                // Convert return quantity to stock units
+                $stockQuantity = $returnQuantity;
+                if ($returnUnitId && $stockUnitId && $returnUnitId != $stockUnitId) {
+                    $stockQuantity = \App\Helpers\UnitConverter::safeConvert($returnQuantity, $returnUnitId, $stockUnitId);
+                }
+
+                // Get base unit quantity
+                $baseUnitId = \App\Helpers\UnitConverter::getBaseUnitId($stockUnitId);
+                $baseQuantity = \App\Helpers\UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
+
+                SalesReturnDetails::create([
+                    'sale_return_id' => $return->id,
+                    'ingredient_id' => $ingredientId,
+                    'unit_id' => $returnUnitId,
+                    'quantity' => $returnQuantity,
+                    'base_quantity' => $stockQuantity,
+                    'price' => $request->price[$key],
+                    'sub_total' => $request->return_subtotal[$key],
+                ]);
+
+                // Update ingredient stock (add back returned quantity in stock units)
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                $ingredient->stock = $oldStock + $stockQuantity;
+
+                // Update stock status
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+                $ingredient->save();
+
+                // Create stock record
+                Stock::create([
+                    'sale_return_id' => $return->id,
+                    'ingredient_id' => $ingredientId,
+                    'unit_id' => $returnUnitId,
+                    'date' => Carbon::createFromFormat('d-m-Y', $request->return_date),
+                    'type' => 'Sale Return',
+                    'invoice' => $return->invoice,
+                    'in_quantity' => $returnQuantity,
+                    'base_in_quantity' => $baseQuantity,
+                    'sku' => $ingredient->sku,
+                    'rate' => $request->price[$key],
+                    'created_by' => auth('admin')->user()->id,
+                ]);
+            }
+
+            // Update payment
+            $return->payments()->delete();
+            if ($request->paying_amount) {
+                $account = Account::where('account_type', $request->payment_type);
+                if ($request->payment_type == 'cash') {
+                    $account = $account->first();
+                } else {
+                    $account = $account->where('id', $request->account_id)->first();
+                }
+
+                CustomerPayment::create([
+                    'customer_id' => $return->customer_id,
+                    'payment_type' => 'sale return',
+                    'sale_return_id' => $return->id,
+                    'is_paid' => 1,
+                    'is_received' => 0,
+                    'account_id' => $account->id,
+                    'amount' => $request->paying_amount,
+                    'payment_date' => now(),
+                    'created_by' => auth('admin')->user()->id,
+                ]);
+            }
+
+            // Update ledger
+            if ($return->ledger) {
+                $return->ledger->update([
+                    'amount' => $request->paying_amount,
+                    'due_amount' => $due,
+                    'note' => $request->note,
+                    'date' => Carbon::createFromFormat('d-m-Y', $request->return_date),
+                ]);
+            }
+
+            DB::commit();
+            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.sales.return.list', [], ['messege' => 'Sales return updated successfully', 'alert-type' => 'success']);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            Log::error($ex->getMessage());
+            return $this->redirectWithMessage(RedirectType::ERROR->value, null, [], ['messege' => $ex->getMessage(), 'alert-type' => 'error']);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
@@ -232,22 +434,37 @@ class SalesReturnController extends Controller
         checkAdminHasPermissionAndThrowException('sales.return.delete');
         $return = SalesReturn::find($id);
 
-        // delete return details
+        // IMPORTANT: Restore stock BEFORE deleting details
+        foreach ($return->details as $detail) {
+            $ingredient = $detail->product; // product() returns Ingredient
+            if ($ingredient && $ingredient->id) {
+                // Use base_quantity (stock units) for accurate stock restoration
+                $restoreQty = (float) ($detail->base_quantity ?? $detail->quantity);
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                $ingredient->stock = max(0, $oldStock - $restoreQty);
+
+                // Update stock status
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+                $ingredient->save();
+            }
+        }
+
+        // Now delete related records
         $return->details()->delete();
 
-        // delete ledger
-        $return->ledger->delete();
+        // delete ledger (check if exists first)
+        if ($return->ledger) {
+            $return->ledger->delete();
+        }
 
         // delete payments
         $return->payments()->delete();
-
-
-        // update stock
-        foreach ($return->details as $detail) {
-            $product = $detail->product;
-            $product->stock = $product->stock - $detail->quantity;
-            $product->save();
-        }
 
         // delete stock
         $return->stock()->delete();

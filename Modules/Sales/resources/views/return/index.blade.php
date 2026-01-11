@@ -125,14 +125,19 @@
                                 </td>
                                 <td>{{ $sale->return_due }}</td>
                                 <td>
-                                    @adminCan('sales.return.delete')
-                                        <div class="btn-group mb-2">
+                                    <div class="btn-group mb-2">
+                                        @adminCan('sales.return.edit')
+                                            <a class="btn bg-label-primary" href="{{ route('admin.sales.return.edit', $sale->id) }}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endadminCan
+                                        @adminCan('sales.return.delete')
                                             <a class="btn bg-label-danger" href="javascript:void(0)"
                                                 onclick="deleteData({{ $sale->id }})">
                                                 <i class="fas fa-trash"></i>
                                             </a>
-                                        </div>
-                                    @endadminCan
+                                        @endadminCan
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

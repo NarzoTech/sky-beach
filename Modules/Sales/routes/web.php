@@ -22,5 +22,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
     Route::get('sales/return/list', [SalesReturnController::class, 'returnList'])->name('sales.return.list');
     Route::get('sales/return/create/{sale_id}', [SalesReturnController::class, 'create'])->name('sales.return.create');
     Route::post('sales/return/store', [SalesReturnController::class, 'store'])->name('sales.return.store');
+    Route::get('sales/return/edit/{id}', [SalesReturnController::class, 'edit'])->name('sales.return.edit');
+    Route::put('sales/return/update/{id}', [SalesReturnController::class, 'update'])->name('sales.return.update');
     Route::delete('sales/return/destroy/{id}', [SalesReturnController::class, 'destroy'])->name('sales.return.destroy');
 });
