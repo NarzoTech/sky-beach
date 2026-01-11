@@ -15,15 +15,41 @@
                 </div>
             </div>
             <div class="card-body py-2">
-                <div class="d-flex justify-content-between mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <small class="text-muted">
                         <i class="fas fa-clock me-1"></i>
                         {{ $order->created_at->diffForHumans() }}
                     </small>
-                    <span class="badge bg-{{ $order->status == 'processing' ? 'warning' : 'info' }}">
-                        {{ ucfirst($order->status) }}
-                    </span>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-info" title="{{ __('Guests') }}">
+                            <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }}
+                        </span>
+                        <span class="badge bg-secondary" title="{{ __('Items') }}">
+                            <i class="fas fa-utensils me-1"></i>{{ $order->details->sum('quantity') }}
+                        </span>
+                    </div>
                 </div>
+                @if($order->estimated_prep_minutes)
+                @php
+                    $prepEndTime = $order->created_at->addMinutes($order->estimated_prep_minutes);
+                    $now = now();
+                    $remainingMinutes = $now->lt($prepEndTime) ? $now->diffInMinutes($prepEndTime, false) : 0;
+                    $isOverdue = $now->gt($prepEndTime);
+                    $overdueMinutes = $isOverdue ? $now->diffInMinutes($prepEndTime) : 0;
+                @endphp
+                <div class="mb-2">
+                    @if($isOverdue)
+                        <span class="badge bg-success w-100 py-1">
+                            <i class="fas fa-check-circle me-1"></i>{{ __('Ready') }}
+                            <small class="opacity-75">(+{{ $overdueMinutes }} min)</small>
+                        </span>
+                    @else
+                        <span class="badge bg-warning text-dark w-100 py-1">
+                            <i class="fas fa-fire me-1"></i>{{ $remainingMinutes }} {{ __('min remaining') }}
+                        </span>
+                    @endif
+                </div>
+                @endif
 
                 <div class="order-items-preview" style="max-height: 80px; overflow: hidden;">
                     @foreach($order->details->take(3) as $detail)

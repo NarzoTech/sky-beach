@@ -115,9 +115,20 @@ class POSController extends Controller
         $availableTables = [];
         try {
             $availableTables = RestaurantTable::active()
+                ->with(['activeOrders'])
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get();
+
+            // Sync occupied_seats based on active orders (ensures accuracy)
+            foreach ($availableTables as $table) {
+                $activeGuestCount = $table->activeOrders->sum('guest_count') ?: $table->activeOrders->count();
+                if ($table->occupied_seats != $activeGuestCount) {
+                    $table->occupied_seats = $activeGuestCount;
+                    $table->status = $activeGuestCount > 0 ? 'occupied' : 'available';
+                    $table->save();
+                }
+            }
         } catch (\Exception $e) {
             // Tables module might not be installed yet
         }
@@ -866,11 +877,16 @@ class POSController extends Controller
                 $addedQuantity = 0;
                 $addedPrice = 0;
                 $addedCogs = 0;
+                $maxPrepTime = $order->estimated_prep_minutes ?? 0;
 
                 foreach ($cart as $item) {
                     $menuItem = null;
                     if ($item['type'] === 'menu_item') {
                         $menuItem = MenuItem::find($item['id']);
+                        // Track max prep time
+                        if ($menuItem && $menuItem->preparation_time) {
+                            $maxPrepTime = max($maxPrepTime, $menuItem->preparation_time);
+                        }
                     }
 
                     // Create new order detail
@@ -899,7 +915,7 @@ class POSController extends Controller
                 $newTotalPrice = $order->total_price + $addedPrice;
                 $newGrandTotal = $newTotalPrice - ($order->order_discount ?? 0) + ($order->total_tax ?? 0);
 
-                $order->update([
+                $updateData = [
                     'quantity' => $order->quantity + $addedQuantity,
                     'total_price' => $newTotalPrice,
                     'grand_total' => $newGrandTotal,
@@ -907,7 +923,14 @@ class POSController extends Controller
                     'total_cogs' => ($order->total_cogs ?? 0) + $addedCogs,
                     'gross_profit' => $newGrandTotal - (($order->total_cogs ?? 0) + $addedCogs),
                     'updated_by' => auth('admin')->id(),
-                ]);
+                ];
+
+                // Update estimated prep time if new items have longer prep time
+                if ($maxPrepTime > ($order->estimated_prep_minutes ?? 0)) {
+                    $updateData['estimated_prep_minutes'] = $maxPrepTime;
+                }
+
+                $order->update($updateData);
 
                 // Clear the cart and editing session
                 session()->forget('POSCART');
@@ -1095,9 +1118,9 @@ class POSController extends Controller
                 ]);
             }
 
-            // Release the table
+            // Release the seats from this order
             if ($order->table) {
-                $order->table->release();
+                $order->table->releaseForSale($order);
             }
 
             DB::commit();
@@ -1139,9 +1162,9 @@ class POSController extends Controller
                 'updated_by' => auth('admin')->id(),
             ]);
 
-            // Release the table
+            // Release the seats from this order
             if ($order->table) {
-                $order->table->release();
+                $order->table->releaseForSale($order);
             }
 
             DB::commit();

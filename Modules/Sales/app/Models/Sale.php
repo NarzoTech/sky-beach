@@ -31,6 +31,8 @@ class Sale extends Model
         'status',
         'order_type',
         'table_id',
+        'guest_count',
+        'estimated_prep_minutes',
         'delivery_address',
         'delivery_phone',
         'delivery_notes',

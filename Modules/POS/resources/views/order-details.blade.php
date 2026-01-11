@@ -11,7 +11,7 @@
                         <div>
                             <h5 class="mb-0">{{ $order->table->name ?? 'No Table' }}</h5>
                             <small class="text-muted">
-                                <i class="fas fa-users me-1"></i>{{ $order->table->capacity ?? '-' }} {{ __('seats') }}
+                                <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }} {{ __('guests') }} / {{ $order->table->capacity ?? '-' }} {{ __('seats') }}
                             </small>
                         </div>
                     </div>
@@ -43,7 +43,9 @@
                 <div class="card-body py-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-clock fa-2x text-warning me-3 fa-spin-pulse"></i>
+                            <div class="duration-icon-wrapper me-3">
+                                <i class="fas fa-stopwatch fa-2x text-warning"></i>
+                            </div>
                             <div>
                                 <small class="text-muted d-block">{{ __('Order Duration') }}</small>
                                 <h4 class="mb-0 order-duration-display" id="orderDuration">
@@ -52,13 +54,27 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            <small class="text-muted d-block">{{ __('Current Time') }}</small>
-                            <h5 class="mb-0 text-primary" id="currentTime">--:--:--</h5>
+                            <small class="text-muted d-block">{{ __('Order Started') }}</small>
+                            <h5 class="mb-0 text-primary" id="orderStartTime">{{ $order->created_at->format('h:i:s A') }}</h5>
                         </div>
                         <div>
-                            <span class="badge bg-{{ $order->status == 'processing' ? 'warning' : 'info' }} fs-6 px-3 py-2">
-                                <i class="fas fa-spinner fa-spin me-1"></i>
-                                {{ ucfirst($order->status) }}
+                            @php
+                                $statusClass = match($order->status) {
+                                    'processing' => 'warning',
+                                    'completed' => 'success',
+                                    'cancelled' => 'danger',
+                                    default => 'info'
+                                };
+                                $statusIcon = match($order->status) {
+                                    'processing' => 'fa-hourglass-half',
+                                    'completed' => 'fa-check-circle',
+                                    'cancelled' => 'fa-times-circle',
+                                    default => 'fa-info-circle'
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $statusClass }} fs-6 px-3 py-2">
+                                <i class="fas {{ $statusIcon }} me-1"></i>
+                                {{ ucfirst($order->status ?? 'pending') }}
                             </span>
                         </div>
                     </div>
@@ -66,6 +82,60 @@
             </div>
         </div>
     </div>
+
+    <!-- Cooking Progress -->
+    @if($order->estimated_prep_minutes)
+    <div class="row mb-3">
+        <div class="col-12">
+            @php
+                $prepEndTime = $order->created_at->addMinutes($order->estimated_prep_minutes);
+                $now = now();
+                $elapsedMinutes = $order->created_at->diffInMinutes($now);
+                $totalPrepTime = $order->estimated_prep_minutes;
+                $progressPercent = min(100, ($elapsedMinutes / $totalPrepTime) * 100);
+                $isReady = $now->gte($prepEndTime);
+                $remainingMinutes = $isReady ? 0 : ceil($now->diffInMinutes($prepEndTime, false));
+                $overdueMinutes = $isReady ? $now->diffInMinutes($prepEndTime) : 0;
+            @endphp
+            <div class="card border-{{ $isReady ? 'success' : 'info' }}">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="cooking-icon-wrapper me-3 {{ $isReady ? 'bg-success-subtle' : '' }}">
+                                <i class="fas {{ $isReady ? 'fa-check-circle text-success' : 'fa-fire text-danger' }} fa-2x"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">{{ __('Cooking Progress') }}</small>
+                                @if($isReady)
+                                    <h5 class="mb-0 text-success">
+                                        <i class="fas fa-check me-1"></i>{{ __('Ready to Serve') }}
+                                        <small class="text-muted">(+{{ $overdueMinutes }} min)</small>
+                                    </h5>
+                                @else
+                                    <h5 class="mb-0 text-info">
+                                        <i class="fas fa-clock me-1"></i>{{ $remainingMinutes }} {{ __('min remaining') }}
+                                    </h5>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">{{ __('Est. Prep Time') }}</small>
+                            <h6 class="mb-0">{{ $order->estimated_prep_minutes }} {{ __('min') }}</h6>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar {{ $isReady ? 'bg-success' : 'progress-bar-striped progress-bar-animated bg-info' }}"
+                             role="progressbar"
+                             style="width: {{ $progressPercent }}%"
+                             aria-valuenow="{{ $progressPercent }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Customer Info -->
     @if($order->customer_id && $order->customer)
@@ -237,21 +307,35 @@
     align-items: center;
     justify-content: center;
 }
-@keyframes pulse-warning {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+.duration-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #fff3cd, #ffc107);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.fa-spin-pulse {
-    animation: pulse-warning 1s ease-in-out infinite;
+.cooking-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffe0e0, #ff6b6b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cooking-icon-wrapper.bg-success-subtle {
+    background: linear-gradient(135deg, #d4edda, #28a745);
 }
 </style>
 
 <script>
-// Real-time clock update
+// Real-time duration update
 (function() {
     const createdTimestamp = {{ $order->created_at->timestamp }};
 
-    function updateClock() {
+    function updateDuration() {
         const now = new Date();
         const elapsed = Math.floor(now.getTime() / 1000) - createdTimestamp;
 
@@ -274,22 +358,11 @@
                 durationEl.classList.add('text-warning');
             }
         }
-
-        // Update current time
-        const currentTimeEl = document.getElementById('currentTime');
-        if (currentTimeEl) {
-            currentTimeEl.textContent = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
-        }
     }
 
     // Update immediately and then every second
-    updateClock();
-    window.orderClockInterval = setInterval(updateClock, 1000);
+    updateDuration();
+    window.orderClockInterval = setInterval(updateDuration, 1000);
 })();
 
 // Clean up interval when modal is closed

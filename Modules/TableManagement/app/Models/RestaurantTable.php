@@ -19,6 +19,7 @@ class RestaurantTable extends Model
         'name',
         'table_number',
         'capacity',
+        'occupied_seats',
         'floor',
         'section',
         'shape',
@@ -34,6 +35,7 @@ class RestaurantTable extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'capacity' => 'integer',
+        'occupied_seats' => 'integer',
         'position_x' => 'integer',
         'position_y' => 'integer',
         'sort_order' => 'integer',
@@ -94,9 +96,49 @@ class RestaurantTable extends Model
         return $this->status === self::STATUS_AVAILABLE && $this->is_active;
     }
 
+    /**
+     * Check if table has available seats
+     */
+    public function hasAvailableSeats(): bool
+    {
+        return $this->is_active && $this->getAvailableSeats() > 0;
+    }
+
+    /**
+     * Get number of available seats
+     */
+    public function getAvailableSeats(): int
+    {
+        return max(0, $this->capacity - $this->occupied_seats);
+    }
+
+    /**
+     * Get available seats attribute for easy access
+     */
+    public function getAvailableSeatsAttribute(): int
+    {
+        return $this->getAvailableSeats();
+    }
+
     public function isOccupied(): bool
     {
         return $this->status === self::STATUS_OCCUPIED;
+    }
+
+    /**
+     * Check if table is fully occupied
+     */
+    public function isFullyOccupied(): bool
+    {
+        return $this->occupied_seats >= $this->capacity;
+    }
+
+    /**
+     * Check if table is partially occupied
+     */
+    public function isPartiallyOccupied(): bool
+    {
+        return $this->occupied_seats > 0 && $this->occupied_seats < $this->capacity;
     }
 
     public function isReserved(): bool
@@ -104,24 +146,78 @@ class RestaurantTable extends Model
         return $this->status === self::STATUS_RESERVED;
     }
 
-    public function occupy(Sale $sale): void
+    /**
+     * Occupy seats on the table
+     *
+     * @param Sale $sale The sale/order
+     * @param int|null $guestCount Number of guests (defaults to sale's guest_count or 1)
+     */
+    public function occupy(Sale $sale, ?int $guestCount = null): void
     {
-        $this->status = self::STATUS_OCCUPIED;
+        $guestCount = $guestCount ?? $sale->guest_count ?? 1;
+
+        // Add guests to occupied seats
+        $this->occupied_seats = min($this->capacity, $this->occupied_seats + $guestCount);
+
+        // Set status based on occupancy
+        if ($this->occupied_seats > 0) {
+            $this->status = self::STATUS_OCCUPIED;
+        }
+
+        // Keep track of current sale (for backward compatibility)
+        // Note: For multiple orders, this will be the latest sale
         $this->current_sale_id = $sale->id;
         $this->save();
     }
 
-    public function release(): void
+    /**
+     * Release seats from a specific order
+     *
+     * @param int|null $guestCount Number of guests to release (null = release all)
+     */
+    public function release(?int $guestCount = null): void
     {
-        $this->status = self::STATUS_AVAILABLE;
-        $this->current_sale_id = null;
+        if ($guestCount === null) {
+            // Release all seats
+            $this->occupied_seats = 0;
+        } else {
+            // Release specific number of seats
+            $this->occupied_seats = max(0, $this->occupied_seats - $guestCount);
+        }
+
+        // Update status based on remaining occupancy
+        if ($this->occupied_seats <= 0) {
+            $this->status = self::STATUS_AVAILABLE;
+            $this->current_sale_id = null;
+            $this->occupied_seats = 0;
+        }
+
         $this->save();
+    }
+
+    /**
+     * Release seats for a specific sale/order
+     */
+    public function releaseForSale(Sale $sale): void
+    {
+        $guestCount = $sale->guest_count ?? 1;
+        $this->release($guestCount);
     }
 
     public function reserve(): void
     {
         $this->status = self::STATUS_RESERVED;
         $this->save();
+    }
+
+    /**
+     * Get all active orders on this table
+     */
+    public function activeOrders()
+    {
+        return $this->sales()
+            ->whereIn('status', ['pending', 'processing'])
+            ->where('order_type', 'dine_in');
     }
 
     public function getStatusBadgeAttribute(): string
@@ -148,6 +244,16 @@ class RestaurantTable extends Model
     public function scopeAvailable($query)
     {
         return $query->where('status', self::STATUS_AVAILABLE)->where('is_active', true);
+    }
+
+    /**
+     * Scope to get tables with available seats (including partially occupied)
+     */
+    public function scopeWithAvailableSeats($query)
+    {
+        return $query->where('is_active', true)
+            ->whereRaw('occupied_seats < capacity')
+            ->whereIn('status', [self::STATUS_AVAILABLE, self::STATUS_OCCUPIED]);
     }
 
     public function scopeByFloor($query, $floor)

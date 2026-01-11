@@ -20,8 +20,9 @@
             display: inline-block;
         }
         .table-status-dot.available { background: linear-gradient(135deg, #28a745, #20c997); }
+        .table-status-dot.partial { background: linear-gradient(135deg, #fd7e14, #ffc107); }
         .table-status-dot.occupied { background: linear-gradient(135deg, #dc3545, #e74c3c); }
-        .table-status-dot.reserved { background: linear-gradient(135deg, #ffc107, #fd7e14); }
+        .table-status-dot.reserved { background: linear-gradient(135deg, #6c757d, #495057); }
 
         .tables-grid {
             display: grid;
@@ -50,14 +51,28 @@
             box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
         }
         .table-card.available { border-left: 4px solid #28a745; }
+        .table-card.partial {
+            border-left: 4px solid #fd7e14;
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+        }
         .table-card.occupied {
             border-left: 4px solid #dc3545;
             opacity: 0.6;
             cursor: not-allowed;
         }
         .table-card.reserved {
-            border-left: 4px solid #ffc107;
+            border-left: 4px solid #6c757d;
             opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .table-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .table-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .table-shape {
@@ -159,9 +174,15 @@
         .seats-8 .chair-8 { right: -18px; top: 50%; transform: translateY(-50%); }
 
         .table-card.available .chair { background: linear-gradient(145deg, #28a745, #20c997); }
+        .table-card.partial .chair { background: linear-gradient(145deg, #28a745, #20c997); }
+        .table-card.partial .chair.chair-occupied { background: linear-gradient(145deg, #dc3545, #c0392b); }
         .table-card.occupied .chair { background: linear-gradient(145deg, #dc3545, #c0392b); }
-        .table-card.reserved .chair { background: linear-gradient(145deg, #ffc107, #fd7e14); }
+        .table-card.reserved .chair { background: linear-gradient(145deg, #6c757d, #495057); }
         .table-card.selected .chair { background: linear-gradient(145deg, #007bff, #0056b3); }
+        .chair.chair-occupied {
+            background: linear-gradient(145deg, #dc3545, #c0392b) !important;
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
+        }
 
         .table-info {
             margin-top: 5px;
@@ -980,8 +1001,12 @@
                             <small>{{ __('Available') }}</small>
                         </span>
                         <span class="d-flex align-items-center">
+                            <span class="table-status-dot partial me-2"></span>
+                            <small>{{ __('Partially Occupied') }}</small>
+                        </span>
+                        <span class="d-flex align-items-center">
                             <span class="table-status-dot occupied me-2"></span>
-                            <small>{{ __('Occupied') }}</small>
+                            <small>{{ __('Fully Occupied') }}</small>
                         </span>
                         <span class="d-flex align-items-center">
                             <span class="table-status-dot reserved me-2"></span>
@@ -992,29 +1017,48 @@
                     <!-- Tables Grid -->
                     <div class="tables-grid" id="tablesGrid">
                         @foreach ($availableTables ?? [] as $table)
-                            <div class="table-card {{ $table->status }}"
+                            @php
+                                $availableSeats = $table->capacity - ($table->occupied_seats ?? 0);
+                                $isPartial = $table->occupied_seats > 0 && $availableSeats > 0;
+                                $isFullyOccupied = $availableSeats <= 0;
+                                $tableClass = $isFullyOccupied ? 'occupied' : ($isPartial ? 'partial' : $table->status);
+                                $canSelect = $availableSeats > 0 && $table->status !== 'reserved' && $table->status !== 'maintenance';
+                            @endphp
+                            <div class="table-card {{ $tableClass }} {{ !$canSelect ? 'disabled' : '' }}"
                                  data-table-id="{{ $table->id }}"
                                  data-table-name="{{ $table->name }}"
                                  data-table-capacity="{{ $table->capacity }}"
+                                 data-table-available-seats="{{ $availableSeats }}"
+                                 data-table-occupied-seats="{{ $table->occupied_seats ?? 0 }}"
                                  data-table-status="{{ $table->status }}"
-                                 onclick="selectTable(this)">
+                                 onclick="{{ $canSelect ? 'selectTable(this)' : '' }}">
                                 <div class="table-shape {{ $table->shape ?? 'square' }} seats-{{ min($table->capacity, 8) }}">
                                     <div class="table-surface">
                                         <span class="table-number">{{ $table->table_number ?? $table->name }}</span>
                                     </div>
-                                    <!-- Chairs based on capacity -->
+                                    <!-- Chairs based on capacity - occupied chairs marked differently -->
                                     @for ($i = 0; $i < min($table->capacity, 8); $i++)
-                                        <div class="chair chair-{{ $i + 1 }}"></div>
+                                        <div class="chair chair-{{ $i + 1 }} {{ $i < ($table->occupied_seats ?? 0) ? 'chair-occupied' : '' }}"></div>
                                     @endfor
                                 </div>
                                 <div class="table-info">
                                     <strong>{{ $table->name }}</strong>
-                                    <small class="d-block text-muted">
-                                        <i class="fas fa-users"></i> {{ $table->capacity }} {{ __('seats') }}
-                                    </small>
-                                    @if($table->status === 'occupied' && $table->currentSale)
+                                    @if($isPartial)
+                                        <small class="d-block text-warning">
+                                            <i class="fas fa-chair"></i> {{ $availableSeats }}/{{ $table->capacity }} {{ __('seats free') }}
+                                        </small>
+                                    @elseif($isFullyOccupied)
                                         <small class="d-block text-danger">
-                                            <i class="fas fa-clock"></i> {{ __('In use') }}
+                                            <i class="fas fa-ban"></i> {{ __('Fully occupied') }}
+                                        </small>
+                                    @else
+                                        <small class="d-block text-success">
+                                            <i class="fas fa-users"></i> {{ $table->capacity }} {{ __('seats') }}
+                                        </small>
+                                    @endif
+                                    @if($table->activeOrders && $table->activeOrders->count() > 0)
+                                        <small class="d-block text-info">
+                                            <i class="fas fa-receipt"></i> {{ $table->activeOrders->count() }} {{ __('active order(s)') }}
                                         </small>
                                     @endif
                                 </div>
@@ -1984,10 +2028,17 @@
         function selectTable(element) {
             const $card = $(element);
             const status = $card.data('table-status');
+            const availableSeats = parseInt($card.data('table-available-seats')) || 0;
 
-            // Don't allow selecting occupied tables
-            if (status === 'occupied') {
-                toastr.warning("{{ __('This table is currently occupied') }}");
+            // Don't allow selecting tables with no available seats
+            if (availableSeats <= 0) {
+                toastr.warning("{{ __('This table has no available seats') }}");
+                return;
+            }
+
+            // Don't allow reserved or maintenance tables
+            if (status === 'reserved' || status === 'maintenance') {
+                toastr.warning("{{ __('This table is not available') }}");
                 return;
             }
 
@@ -2005,14 +2056,16 @@
                 id: $card.data('table-id'),
                 name: $card.data('table-name'),
                 capacity: $card.data('table-capacity'),
+                availableSeats: availableSeats,
+                occupiedSeats: parseInt($card.data('table-occupied-seats')) || 0,
                 status: status
             };
         }
 
         // Double-click to quickly select table
         $(document).on('dblclick', '.table-card', function() {
-            const status = $(this).data('table-status');
-            if (status === 'occupied') return;
+            const availableSeats = parseInt($(this).data('table-available-seats')) || 0;
+            if (availableSeats <= 0) return;
 
             selectTable(this);
             $('#confirmTableSelection').click();
@@ -3115,12 +3168,21 @@
                 tableName = $('#selectedTableText').text().replace(/^.*?(?=\w)/, '');
             }
 
-            // Confirm dine-in order
+            // Get available seats for guest count limit
+            const availableSeats = selectedTableData ? (selectedTableData.availableSeats || tableSeats) : tableSeats;
+
+            // Confirm dine-in order with guest count input
             Swal.fire({
                 title: "{{ __('Start Dine-In Order?') }}",
                 html: `
                     <div class="text-start">
-                        <p class="mb-2"><i class="fas fa-utensils me-2 text-primary"></i>{{ __('Table:') }} <strong>${tableName}</strong> ${tableSeats ? '(' + tableSeats + ' seats)' : ''}</p>
+                        <p class="mb-2"><i class="fas fa-utensils me-2 text-primary"></i>{{ __('Table:') }} <strong>${tableName}</strong></p>
+                        <p class="mb-2"><i class="fas fa-chair me-2 text-warning"></i>{{ __('Available Seats:') }} <strong>${availableSeats}</strong> / ${tableSeats}</p>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-users me-2 text-info"></i>{{ __('Number of Guests') }}</label>
+                            <input type="number" id="swal-guest-count" class="form-control" value="1" min="1" max="${availableSeats}" required>
+                            <small class="text-muted">{{ __('Maximum') }}: ${availableSeats} {{ __('guests') }}</small>
+                        </div>
                         <p class="mb-2"><i class="fas fa-user me-2 text-info"></i>{{ __('Customer:') }} <strong>${$('#customer_id option:selected').text() || 'Walk-in Customer'}</strong></p>
                         <p class="mb-0"><i class="fas fa-money-bill me-2 text-success"></i>{{ __('Total:') }} <strong>${$('#finalTotal').text()}</strong></p>
                     </div>
@@ -3131,16 +3193,24 @@
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
                 confirmButtonText: "<i class='fas fa-play-circle me-1'></i>{{ __('Start Order') }}",
-                cancelButtonText: "{{ __('Cancel') }}"
+                cancelButtonText: "{{ __('Cancel') }}",
+                preConfirm: () => {
+                    const guestCount = parseInt(document.getElementById('swal-guest-count').value) || 1;
+                    if (guestCount < 1 || guestCount > availableSeats) {
+                        Swal.showValidationMessage(`{{ __('Please enter a valid number of guests (1-') }}${availableSeats})`);
+                        return false;
+                    }
+                    return { guestCount: guestCount };
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    submitDineInOrder();
+                    submitDineInOrder(result.value.guestCount);
                 }
             });
         }
 
         // Submit dine-in order
-        function submitDineInOrder() {
+        function submitDineInOrder(guestCount = 1) {
             const customerId = $('#customer_id').val();
             const tableId = $('#table_id').val();
             const discountAmount = $('#discount_total_amount').val() || 0;
@@ -3162,6 +3232,7 @@
                     order_customer_id: customerId || 'walk-in-customer',
                     order_type: 'dine_in',
                     table_id: tableId,
+                    guest_count: guestCount,
                     defer_payment: 1,
                     discount_amount: discountAmount,
                     discount_type: discountType,

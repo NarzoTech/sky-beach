@@ -75,6 +75,7 @@ class SaleService
         $sale->order_date = Carbon::createFromFormat('d-m-Y', $request->sale_date);
         $sale->order_type = $request->order_type ?? Sale::ORDER_TYPE_DINE_IN;
         $sale->table_id = $request->table_id;
+        $sale->guest_count = $request->guest_count ?? 1;
         $sale->delivery_address = $request->delivery_address;
         $sale->delivery_phone = $request->delivery_phone;
         $sale->delivery_notes = $request->delivery_notes;
@@ -277,6 +278,22 @@ class SaleService
         }
 
         $sale->quantity = $totalQty;
+
+        // Calculate estimated prep time from menu items (use max prep time)
+        $maxPrepTime = 0;
+        foreach ($cart as $item) {
+            $itemType = $item['type'] ?? 'menu_item';
+            if ($itemType === 'menu_item') {
+                $menuItem = MenuItem::find($item['id']);
+                if ($menuItem && $menuItem->preparation_time) {
+                    $maxPrepTime = max($maxPrepTime, $menuItem->preparation_time);
+                }
+            }
+        }
+        if ($maxPrepTime > 0) {
+            $sale->estimated_prep_minutes = $maxPrepTime;
+        }
+
         $sale->save();
 
         // Update COGS totals on the sale
@@ -532,6 +549,22 @@ class SaleService
             }
 
             $sale->quantity = $totalQty;
+
+            // Calculate estimated prep time from menu items (use max prep time)
+            $maxPrepTime = 0;
+            foreach ($cart as $item) {
+                $itemType = $item['type'] ?? 'menu_item';
+                if ($itemType === 'menu_item') {
+                    $menuItem = MenuItem::find($item['id']);
+                    if ($menuItem && $menuItem->preparation_time) {
+                        $maxPrepTime = max($maxPrepTime, $menuItem->preparation_time);
+                    }
+                }
+            }
+            if ($maxPrepTime > 0) {
+                $sale->estimated_prep_minutes = $maxPrepTime;
+            }
+
             $sale->save();
 
             // Update COGS totals on the sale
