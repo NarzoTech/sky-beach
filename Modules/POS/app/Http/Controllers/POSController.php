@@ -838,10 +838,11 @@ class POSController extends Controller
             $page = $request->get('page', 1);
             $perPage = 9;
 
+            // Note: status column is integer - 0 = processing/pending, 1 = completed
             $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
                 ->where('order_type', Sale::ORDER_TYPE_DINE_IN)
                 ->whereNotNull('table_id')
-                ->whereIn('status', ['pending', 'processing'])
+                ->where('status', 0) // 0 = processing/pending
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage, ['*'], 'page', $page);
 
@@ -870,9 +871,10 @@ class POSController extends Controller
     public function getRunningOrdersCount()
     {
         try {
+            // Note: status column is integer - 0 = processing/pending, 1 = completed
             $count = Sale::where('order_type', Sale::ORDER_TYPE_DINE_IN)
                 ->whereNotNull('table_id')
-                ->whereIn('status', ['pending', 'processing'])
+                ->where('status', 0) // 0 = processing/pending
                 ->count();
 
             return response()->json([
@@ -1136,8 +1138,11 @@ class POSController extends Controller
      */
     public function completeRunningOrder(Request $request, $id)
     {
+        Log::info('completeRunningOrder called', ['id' => $id, 'request' => $request->all()]);
+
         try {
             $order = Sale::with(['table', 'details', 'customer'])->findOrFail($id);
+            Log::info('Order found', ['order_id' => $order->id, 'current_status' => $order->status]);
 
             // Calculate payment totals
             $paymentTypes = $request->payment_type ?? ['cash'];
@@ -1148,8 +1153,9 @@ class POSController extends Controller
             $dueAmount = max(0, $order->grand_total - $totalPaid);
 
             // Update order status and payment information (critical - must succeed)
+            // Note: status column is integer - 0 = processing, 1 = completed
             $order->update([
-                'status' => 'completed',
+                'status' => 1, // 1 = completed
                 'payment_status' => $dueAmount <= 0 ? 1 : 0, // 1 = paid, 0 = partial/unpaid
                 'payment_method' => json_encode($paymentTypes),
                 'paid_amount' => $totalPaid,
@@ -1158,6 +1164,10 @@ class POSController extends Controller
                 'return_amount' => $request->return_amount ?? 0,
                 'updated_by' => auth('admin')->id(),
             ]);
+
+            // Refresh order from database to confirm update
+            $order->refresh();
+            Log::info('Order updated', ['order_id' => $order->id, 'new_status' => $order->status]);
 
             // Release the table (critical - must succeed)
             if ($order->table) {
@@ -1216,24 +1226,31 @@ class POSController extends Controller
                 Log::warning('Payment record creation failed: ' . $paymentException->getMessage());
             }
 
-            // Generate POS receipt
-            $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'payment.account'])->find($order->id);
-            $setting = \Illuminate\Support\Facades\Cache::get('setting');
+            // Generate POS receipt (optional - don't fail if this errors)
+            $receiptHtml = '';
+            try {
+                $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'payment.account'])->find($order->id);
+                $setting = \Illuminate\Support\Facades\Cache::get('setting');
 
-            $receiptHtml = view('pos::pos-receipt')->with([
-                'sale' => $sale,
-                'setting' => $setting,
-            ])->render();
+                $receiptHtml = view('pos::pos-receipt')->with([
+                    'sale' => $sale,
+                    'setting' => $setting,
+                ])->render();
+            } catch (\Exception $receiptException) {
+                Log::warning('Receipt generation failed: ' . $receiptException->getMessage());
+            }
+
+            Log::info('Order completion successful', ['order_id' => $order->id]);
 
             return response()->json([
                 'success' => true,
                 'message' => __('Order completed successfully'),
                 'receipt' => $receiptHtml,
-                'invoice' => $sale->invoice,
+                'invoice' => $order->invoice,
                 'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
             ]);
         } catch (\Exception $e) {
-            Log::error('Error completing order: ' . $e->getMessage());
+            Log::error('Error completing order: ' . $e->getMessage() . ' - ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Error completing order: ' . $e->getMessage()
@@ -1250,8 +1267,9 @@ class POSController extends Controller
         try {
             $order = Sale::with('table')->findOrFail($id);
 
+            // Note: status column is integer - 0 = processing, 1 = completed, 2 = cancelled
             $order->update([
-                'status' => 'cancelled',
+                'status' => 2, // 2 = cancelled
                 'updated_by' => auth('admin')->id(),
             ]);
 

@@ -3297,6 +3297,9 @@
             $('.preloader_area').removeClass('d-none');
             $('#running-order-payment-modal').modal('hide');
 
+            console.log('Completing order:', orderId);
+            console.log('Payment data:', { paymentTypes, accountIds, payingAmounts, totalPaying, amountReceived });
+
             $.ajax({
                 type: 'POST',
                 url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete",
@@ -3310,6 +3313,7 @@
                     return_amount: Math.max(0, amountReceived - paymentOrderTotal)
                 },
                 success: function(response) {
+                    console.log('Complete order response:', response);
                     if (response.success) {
                         toastr.success(response.message);
                         $('#order-details-modal').modal('hide');
@@ -3333,6 +3337,7 @@
                     $('.preloader_area').addClass('d-none');
                 },
                 error: function(xhr) {
+                    console.error('Complete order error:', xhr.responseText);
                     toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
                     $('.preloader_area').addClass('d-none');
                 }
