@@ -166,9 +166,9 @@
                                 <td>{{ $ingredient->name }}</td>
                                 <td>{{ $ingredient->avg_purchase_price }}</td>
                                 <td>{{ $ingredient->last_purchase_price }}</td>
-                                <td>{{ $ingredient->stockDetails->sum('in_quantity') }}</td>
-                                <td>{{ $ingredient->stockDetails->sum('out_quantity') }}</td>
-                                <td>{{ $ingredient->stock }}</td>
+                                <td>{{ $ingredient->stockDetails->sum('in_quantity') }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
+                                <td>{{ $ingredient->stockDetails->sum('out_quantity') }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
+                                <td>{{ $ingredient->stock }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
                                 <td>{{ remove_comma($stock) * remove_comma($ingredient->avg_purchase_price) }}</td>
                                 <td>
                                     <div class="btn-group" role="group">

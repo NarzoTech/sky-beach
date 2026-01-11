@@ -34,9 +34,9 @@
                     <td>{{ $product->name }}</td>
                     <td>{{ $product->avg_purchase_price }}</td>
                     <td>{{ $product->last_purchase_price }}</td>
-                    <td>{{ $product->stockDetails->sum('in_quantity') }}</td>
-                    <td>{{ $product->stockDetails->sum('out_quantity') }}</td>
-                    <td>{{ $product->stock }}</td>
+                    <td>{{ $product->stockDetails->sum('in_quantity') }} {{ $product->purchaseUnit->ShortName ?? '' }}</td>
+                    <td>{{ $product->stockDetails->sum('out_quantity') }} {{ $product->purchaseUnit->ShortName ?? '' }}</td>
+                    <td>{{ $product->stock }} {{ $product->purchaseUnit->ShortName ?? '' }}</td>
                     <td>{{ remove_comma($stock) * remove_comma($product->avg_purchase_price) }}</td>
                 </tr>
             @endforeach
