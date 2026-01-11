@@ -67,14 +67,17 @@ class POSController extends Controller
 
         Paginator::useBootstrap();
 
-        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
-            $query->where('status', 1);
-        })->orderBy('display_order', 'asc');
+        $menuItems = MenuItem::active()->available()
+            ->where(function ($query) {
+                $query->whereNull('category_id')
+                    ->orWhereHas('category', function ($q) {
+                        $q->where('status', 1);
+                    });
+            })
+            ->orderBy('display_order', 'asc');
 
         if ($request->category_id) {
-            $menuItems = $menuItems->where(function ($query) use ($request) {
-                $query->where('category_id', $request->category_id)->where('status', 1);
-            });
+            $menuItems = $menuItems->where('category_id', $request->category_id);
         }
 
         if ($request->name) {
@@ -84,7 +87,7 @@ class POSController extends Controller
             });
         }
 
-        $menuItems = $menuItems->paginate(5);
+        $menuItems = $menuItems->paginate(15);
 
         $menuItems->appends(request()->query());
 
@@ -134,14 +137,17 @@ class POSController extends Controller
     {
         Paginator::useBootstrap();
 
-        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
-            $query->where('status', 1);
-        })->orderBy('display_order', 'asc');
+        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)
+            ->where(function ($query) {
+                $query->whereNull('category_id')
+                    ->orWhereHas('category', function ($q) {
+                        $q->where('status', 1);
+                    });
+            })
+            ->orderBy('display_order', 'asc');
 
         if ($request->category_id) {
-            $menuItems = $menuItems->where(function ($query) use ($request) {
-                $query->where('category_id', $request->category_id)->where('status', 1);
-            });
+            $menuItems = $menuItems->where('category_id', $request->category_id);
         }
 
         if ($request->name) {
@@ -153,7 +159,7 @@ class POSController extends Controller
 
 
         // Paginate featured menu items (clone to avoid modifying original query)
-        $featuredItems = (clone $menuItems)->where('is_featured', 1)->paginate(15);
+        $featuredItems = (clone $menuItems)->featured()->paginate(15);
         $featuredItems->appends(request()->query());  // Append request parameters
 
         // Paginate non-featured menu items (use clone of original query)
@@ -215,9 +221,14 @@ class POSController extends Controller
     public function load_products_list(Request $request)
     {
 
-        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)->whereHas('category', function ($query) {
-            $query->where('status', 1);
-        })->orderBy('display_order', 'asc');
+        $menuItems = MenuItem::active()->available()
+            ->where(function ($query) {
+                $query->whereNull('category_id')
+                    ->orWhereHas('category', function ($q) {
+                        $q->where('status', 1);
+                    });
+            })
+            ->orderBy('display_order', 'asc');
 
         if ($request->name) {
             $menuItems = $menuItems->where(function ($q) use ($request) {
@@ -227,7 +238,7 @@ class POSController extends Controller
             });
         }
         if ($request->favorite == 1 || $request->featured == 1) {
-            $menuItems = $menuItems->where('is_featured', 1);
+            $menuItems = $menuItems->featured();
         }
 
         $menuItems = $menuItems->get();

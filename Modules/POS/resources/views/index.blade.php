@@ -21,7 +21,7 @@
             <div class="section-body">
                 <div class="row">
                     <div class="col-lg-5">
-                        <div class="card">
+                        <div class="card" id="products">
                                     <div class="card-header">
                                         <form id="product_search_form" class="pos_pro_search_form w-100">
                                             <div class="row">
