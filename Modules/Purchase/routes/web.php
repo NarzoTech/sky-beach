@@ -37,4 +37,5 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
     Route::delete('purchase/return/{id}/destroy', [PurchaseReturnController::class, 'destroy'])->name('purchase.return.destroy');
 
     Route::post('purchase/product-search', [IngredientController::class, 'searchProducts'])->name('purchase.product.search');
+    Route::post('purchase/ingredient-search', [IngredientController::class, 'searchProducts'])->name('purchase.ingredient.search');
 });

@@ -20,7 +20,9 @@ class PurchaseReturnDetails extends Model
         'purchase_return_id',
         'ingredient_id',
         'purchase_id',
+        'unit_id',
         'quantity',
+        'base_quantity',
         'total',
     ];
 
@@ -29,9 +31,21 @@ class PurchaseReturnDetails extends Model
     {
         return $this->belongsTo(PurchaseReturn::class, 'purchase_return_id')->withDefault();
     }
-    public function product()
+
+    public function ingredient()
     {
         return $this->belongsTo(Ingredient::class, 'ingredient_id')->withDefault();
+    }
+
+    // Alias for backward compatibility
+    public function product()
+    {
+        return $this->ingredient();
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(\Modules\Ingredient\app\Models\UnitType::class, 'unit_id')->withDefault();
     }
 
     public function purchase()

@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Purchase\app\Services;
 
+use App\Helpers\UnitConverter;
 use App\Models\Ledger;
 use App\Models\Payment;
 use App\Models\Stock;
@@ -69,6 +70,7 @@ class PurchaseService
     {
         return $this->purchaseReturn->with('purchase', 'returnType', 'purchaseDetails')->latest();
     }
+
     public function store($request)
     {
         $attachment_name = null;
@@ -97,60 +99,86 @@ class PurchaseService
         $purchase->save();
 
         $this->purchaseLedger($request, $purchase->id, $paidAmount, $request->total_amount, 'purchase', 1, $request->due_amount);
-        // $this->updateLedger($request, $purchase->id, $paidAmount, 'purchase');
 
         foreach ($request->ingredient_id as $index => $id) {
             $ingredient = Ingredient::find($id);
-            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
-            $quantity = $request->quantity[$index];
-
-            // Convert quantity to ingredient's base unit for stock tracking
-            $baseQuantity = $quantity;
-            if ($purchaseUnitId != $ingredient->unit_id) {
-                $baseQuantity = \App\Helpers\UnitConverter::convert(
-                    $quantity,
-                    $purchaseUnitId,
-                    $ingredient->unit_id
-                );
+            if (!$ingredient) {
+                continue;
             }
 
+            // Get the unit used for this purchase (from form, or ingredient's default)
+            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+            $quantity = (float) $request->quantity[$index];
+            $unitPrice = (float) $request->unit_price[$index];
+
+            // Get ingredient's stock unit (purchase_unit_id is where we store stock)
+            $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+            // Convert quantity to stock unit if different
+            $stockQuantity = $quantity;
+            $pricePerStockUnit = $unitPrice;
+
+            if ($purchaseUnitId && $stockUnitId && $purchaseUnitId != $stockUnitId) {
+                // Convert quantity to stock units
+                $stockQuantity = UnitConverter::safeConvert($quantity, $purchaseUnitId, $stockUnitId);
+
+                // Convert price to per stock unit
+                // If we bought 5L at ₹100/L, and stock is in ml, price per ml = ₹100/1000 = ₹0.10
+                if ($stockQuantity > 0) {
+                    $pricePerStockUnit = ($quantity * $unitPrice) / $stockQuantity;
+                }
+            }
+
+            // Get base unit quantity for accurate tracking
+            $baseUnitId = UnitConverter::getBaseUnitId($stockUnitId);
+            $baseQuantity = UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
+
+            // Create purchase details record
             $purchaseDetails                 = new PurchaseDetails();
             $purchaseDetails->purchase_id    = $purchase->id;
             $purchaseDetails->ingredient_id  = $id;
             $purchaseDetails->unit_id        = $purchaseUnitId;
             $purchaseDetails->quantity       = $quantity;
-            $purchaseDetails->base_quantity  = $baseQuantity;
-            $purchaseDetails->purchase_price = $request->unit_price[$index];
+            $purchaseDetails->base_quantity  = $stockQuantity; // Store in stock units
+            $purchaseDetails->purchase_price = $unitPrice;
             $purchaseDetails->sale_price     = 0;
             $purchaseDetails->sub_total      = $request->total[$index];
             $purchaseDetails->profit         = 0;
             $purchaseDetails->created_by     = Auth::id();
             $purchaseDetails->save();
 
-            // Calculate weighted average cost
-            // Formula: ((old_stock × old_avg_cost) + (new_qty × new_price)) / (old_stock + new_qty)
+            // Calculate weighted average cost (in stock units)
             $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
-            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->purchase_price ?? 0);
-            $newQty = (float) $baseQuantity;
-            $newPrice = (float) $request->unit_price[$index];
+            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->getRawOriginal('purchase_price') ?? 0);
 
-            if (($oldStock + $newQty) > 0) {
-                $newAvgCost = (($oldStock * $oldAvgCost) + ($newQty * $newPrice)) / ($oldStock + $newQty);
+            if (($oldStock + $stockQuantity) > 0) {
+                $newAvgCost = (($oldStock * $oldAvgCost) + ($stockQuantity * $pricePerStockUnit)) / ($oldStock + $stockQuantity);
             } else {
-                $newAvgCost = $newPrice;
+                $newAvgCost = $pricePerStockUnit;
             }
 
-            // Update ingredient stock with base quantity and weighted average cost
-            $ingredient->stock = $oldStock + $baseQuantity;
+            // Update ingredient - stock is in purchase/stock units
+            $ingredient->stock = $oldStock + $stockQuantity;
             $ingredient->average_cost = $newAvgCost;
-            $ingredient->purchase_price = $newPrice; // Latest purchase price
-            $ingredient->cost = $newPrice;
-            $ingredient->save();
+            $ingredient->purchase_price = $pricePerStockUnit;
+            $ingredient->cost = $pricePerStockUnit;
 
-            // create stock with unit tracking
+            // Update stock status
+            if ($ingredient->stock <= 0) {
+                $ingredient->stock_status = 'out_of_stock';
+            } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                $ingredient->stock_status = 'low_stock';
+            } else {
+                $ingredient->stock_status = 'in_stock';
+            }
+
+            $ingredient->save(); // This triggers boot() which recalculates consumption_unit_cost
+
+            // Create stock record with full unit tracking
             Stock::create([
                 'purchase_id'       => $purchase->id,
                 'ingredient_id'     => $id,
+                'warehouse_id'      => $request->warehouse_id,
                 'unit_id'           => $purchaseUnitId,
                 'date'              => Carbon::createFromFormat('d-m-Y', $request->purchase_date),
                 'type'              => 'Purchase',
@@ -158,20 +186,16 @@ class PurchaseService
                 'in_quantity'       => $quantity,
                 'base_in_quantity'  => $baseQuantity,
                 'sku'               => $ingredient->sku,
-                'purchase_price'    => $request->unit_price[$index],
+                'purchase_price'    => $unitPrice,
                 'average_cost'      => $newAvgCost,
                 'sale_price'        => 0,
-                'rate'              => $request->unit_price[$index],
+                'rate'              => $unitPrice,
                 'profit'            => 0,
                 'created_by'        => auth('admin')->user()->id,
             ]);
         }
 
-        // if ($paidAmount) {
-        //     $this->purchaseLedger($request, $purchase->id, -$paidAmount, 'purchase payment', 1, $request->due_amount);
-        // }
-
-        // create payments
+        // Create payments
         foreach ($request->payment_type as $key => $item) {
             $account = Account::where('account_type', $item);
             if ($item == 'cash') {
@@ -236,43 +260,61 @@ class PurchaseService
 
         $this->purchaseLedger($request, $purchase->id, $paidAmount, $request->total_amount, 'purchase', 1, $request->due_amount, $ledger);
 
-        // restore ingredient stock using base quantity
+        // Restore ingredient stock using base_quantity (stock units)
         foreach ($purchase->purchaseDetails as $purchaseDetail) {
             $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
             if ($ingredient) {
-                $ingredient->stock -= ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                // Use base_quantity which is stored in stock units
+                $restoreQty = (float) ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $ingredient->stock = max(0, $oldStock - $restoreQty);
                 $ingredient->save();
             }
         }
 
-        // delete old purchase details
+        // Delete old purchase details
         $purchase->purchaseDetails()->delete();
         $purchase->payments()->delete();
         $purchase->stock()->delete();
 
-        // store new purchase details with unit conversion
+        // Store new purchase details with unit conversion
         foreach ($request->ingredient_id as $index => $id) {
             $ingredient = Ingredient::find($id);
-            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
-            $quantity = $request->quantity[$index];
-
-            // Convert quantity to ingredient's base unit for stock tracking
-            $baseQuantity = $quantity;
-            if ($purchaseUnitId != $ingredient->unit_id) {
-                $baseQuantity = \App\Helpers\UnitConverter::convert(
-                    $quantity,
-                    $purchaseUnitId,
-                    $ingredient->unit_id
-                );
+            if (!$ingredient) {
+                continue;
             }
+
+            // Get the unit used for this purchase
+            $purchaseUnitId = $request->purchase_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+            $quantity = (float) $request->quantity[$index];
+            $unitPrice = (float) $request->unit_price[$index];
+
+            // Get ingredient's stock unit
+            $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+            // Convert quantity to stock unit if different
+            $stockQuantity = $quantity;
+            $pricePerStockUnit = $unitPrice;
+
+            if ($purchaseUnitId && $stockUnitId && $purchaseUnitId != $stockUnitId) {
+                $stockQuantity = UnitConverter::safeConvert($quantity, $purchaseUnitId, $stockUnitId);
+
+                if ($stockQuantity > 0) {
+                    $pricePerStockUnit = ($quantity * $unitPrice) / $stockQuantity;
+                }
+            }
+
+            // Get base unit quantity
+            $baseUnitId = UnitConverter::getBaseUnitId($stockUnitId);
+            $baseQuantity = UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
 
             $purchaseDetails                 = new PurchaseDetails();
             $purchaseDetails->purchase_id    = $purchase->id;
             $purchaseDetails->ingredient_id  = $id;
             $purchaseDetails->unit_id        = $purchaseUnitId;
             $purchaseDetails->quantity       = $quantity;
-            $purchaseDetails->base_quantity  = $baseQuantity;
-            $purchaseDetails->purchase_price = $request->unit_price[$index];
+            $purchaseDetails->base_quantity  = $stockQuantity;
+            $purchaseDetails->purchase_price = $unitPrice;
             $purchaseDetails->sale_price     = 0;
             $purchaseDetails->sub_total      = $request->total[$index];
             $purchaseDetails->profit         = 0;
@@ -280,29 +322,37 @@ class PurchaseService
             $purchaseDetails->save();
 
             // Calculate weighted average cost
-            // Formula: ((old_stock × old_avg_cost) + (new_qty × new_price)) / (old_stock + new_qty)
             $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
-            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->purchase_price ?? 0);
-            $newQty = (float) $baseQuantity;
-            $newPrice = (float) $request->unit_price[$index];
+            $oldAvgCost = (float) ($ingredient->average_cost ?? $ingredient->getRawOriginal('purchase_price') ?? 0);
 
-            if (($oldStock + $newQty) > 0) {
-                $newAvgCost = (($oldStock * $oldAvgCost) + ($newQty * $newPrice)) / ($oldStock + $newQty);
+            if (($oldStock + $stockQuantity) > 0) {
+                $newAvgCost = (($oldStock * $oldAvgCost) + ($stockQuantity * $pricePerStockUnit)) / ($oldStock + $stockQuantity);
             } else {
-                $newAvgCost = $newPrice;
+                $newAvgCost = $pricePerStockUnit;
             }
 
-            // Update ingredient stock with base quantity and weighted average cost
-            $ingredient->stock = $oldStock + $baseQuantity;
+            // Update ingredient
+            $ingredient->stock = $oldStock + $stockQuantity;
             $ingredient->average_cost = $newAvgCost;
-            $ingredient->purchase_price = $newPrice; // Latest purchase price
-            $ingredient->cost = $newPrice;
+            $ingredient->purchase_price = $pricePerStockUnit;
+            $ingredient->cost = $pricePerStockUnit;
+
+            // Update stock status
+            if ($ingredient->stock <= 0) {
+                $ingredient->stock_status = 'out_of_stock';
+            } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                $ingredient->stock_status = 'low_stock';
+            } else {
+                $ingredient->stock_status = 'in_stock';
+            }
+
             $ingredient->save();
 
-            // create stock with unit tracking
+            // Create stock record
             Stock::create([
                 'purchase_id'       => $purchase->id,
                 'ingredient_id'     => $id,
+                'warehouse_id'      => $request->warehouse_id,
                 'unit_id'           => $purchaseUnitId,
                 'date'              => Carbon::createFromFormat('d-m-Y', $request->purchase_date),
                 'type'              => 'Purchase',
@@ -310,16 +360,16 @@ class PurchaseService
                 'in_quantity'       => $quantity,
                 'base_in_quantity'  => $baseQuantity,
                 'sku'               => $ingredient->sku,
-                'purchase_price'    => $request->unit_price[$index],
+                'purchase_price'    => $unitPrice,
                 'average_cost'      => $newAvgCost,
                 'sale_price'        => 0,
-                'rate'              => $request->unit_price[$index],
+                'rate'              => $unitPrice,
                 'profit'            => 0,
                 'created_by'        => auth('admin')->user()->id,
             ]);
         }
 
-        // create payments
+        // Create payments
         foreach ($request->payment_type as $key => $item) {
             $account = Account::where('account_type', $item);
             if ($item == 'cash') {
@@ -349,13 +399,6 @@ class PurchaseService
             SupplierPayment::create($data);
         }
 
-        // update ledger
-        // $ledger = $this->getLedger($request, $purchase->id, 1, 'purchase payment');
-
-        // if ($paidAmount) {
-        //     $this->purchaseLedger($request, $purchase->id, -$paidAmount, 'purchase payment', 1, $request->due_amount, $ledger);
-        // }
-
         return $purchase;
     }
 
@@ -363,11 +406,24 @@ class PurchaseService
     {
         $purchase = $this->purchase->find($id);
 
-        // restore ingredient stock
-        foreach ($this->purchase->find($id)->purchaseDetails as $purchaseDetail) {
+        // Restore ingredient stock using base_quantity (stock units)
+        foreach ($purchase->purchaseDetails as $purchaseDetail) {
             $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
             if ($ingredient) {
-                $ingredient->stock -= $purchaseDetail->quantity;
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                // Use base_quantity which is stored in stock units
+                $restoreQty = (float) ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $ingredient->stock = max(0, $oldStock - $restoreQty);
+
+                // Update stock status
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+
                 $ingredient->save();
             }
         }
@@ -376,14 +432,11 @@ class PurchaseService
         Stock::where('purchase_id', $id)?->delete();
         SupplierPayment::where('purchase_id', $id)?->delete();
 
-        // delete ledger
+        // Delete ledger
         $ledger = Ledger::where('invoice_type', 'purchase')->orWhere('invoice_type', 'purchase payment')
             ->where('invoice_no', $purchase->invoice_number)
             ->get();
 
-        $ledger = Ledger::where('invoice_type', 'purchase')->orWhere('invoice_type', 'purchase payment')
-            ->where('invoice_no', $purchase->invoice_number)
-            ->get();
         foreach ($ledger as $item) {
             $item->delete();
         }
@@ -404,7 +457,7 @@ class PurchaseService
         if ($purchase) {
             $purchaseInvoice = $purchase->invoice_number;
 
-            // split the invoice number
+            // Split the invoice number
             $split_invoice  = explode('-', $purchaseInvoice);
             $invoice_number = (int) $split_invoice[1] + 1;
             $invoice_number = $prefix . $invoice_number;
@@ -415,12 +468,12 @@ class PurchaseService
 
     public function getPurchase($id)
     {
-        return $this->purchase->with('supplier', 'warehouse', 'purchaseDetails.ingredient.unit', 'payments')->find($id);
+        return $this->purchase->with('supplier', 'warehouse', 'purchaseDetails.ingredient.unit', 'purchaseDetails.unit', 'payments')->find($id);
     }
 
     public function getPurchaseDetails($id)
     {
-        return PurchaseDetails::with('ingredient')->where('purchase_id', $id)->get();
+        return PurchaseDetails::with('ingredient', 'unit')->where('purchase_id', $id)->get();
     }
 
     public function getPurchaseList()
@@ -441,7 +494,7 @@ class PurchaseService
     public function getIngredients(Request $request)
     {
         $ingredients = $this->ingredientService->allActiveIngredients($request);
-        return $ingredients->with('unit', 'purchaseUnit', 'consumptionUnit')->get();
+        return $ingredients->with(['unit', 'purchaseUnit', 'purchaseUnit.children', 'consumptionUnit'])->get();
     }
 
     // Alias for backward compatibility
@@ -464,10 +517,11 @@ class PurchaseService
     {
         return PurchaseReturnType::all();
     }
+
     public function storeReturn(Request $request, $id)
     {
-        // store purchase return
-        $purchase = $this->purchaseReturn->create([
+        // Store purchase return
+        $purchaseReturn = $this->purchaseReturn->create([
             'supplier_id'     => $request->supplier_id,
             'warehouse_id'    => $request->warehouse_id,
             'created_by'      => auth()->user()->id,
@@ -482,29 +536,66 @@ class PurchaseService
             'invoice'         => $this->returnInvoice(),
         ]);
 
-        // store purchase return details
-
+        // Store purchase return details with unit conversion
         foreach ($request->ingredient_id as $index => $val) {
-            $purchase->purchaseDetails()->create([
+            $ingredient = Ingredient::find($val);
+            if (!$ingredient) {
+                continue;
+            }
+
+            $returnQuantity = (float) $request->return_quantity[$index];
+
+            // Get unit from original purchase detail or use ingredient's default
+            $returnUnitId = $request->return_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+            // Get ingredient's stock unit
+            $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+            // Convert return quantity to stock units
+            $stockQuantity = $returnQuantity;
+            if ($returnUnitId && $stockUnitId && $returnUnitId != $stockUnitId) {
+                $stockQuantity = UnitConverter::safeConvert($returnQuantity, $returnUnitId, $stockUnitId);
+            }
+
+            // Get base unit quantity
+            $baseUnitId = UnitConverter::getBaseUnitId($stockUnitId);
+            $baseQuantity = UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
+
+            $purchaseReturn->purchaseDetails()->create([
                 'ingredient_id'  => $val,
-                'purchase_id' => $request->purchase_id,
-                'quantity'    => $request->return_quantity[$index],
-                'total'       => $request->return_subtotal[$index],
+                'purchase_id'    => $request->purchase_id,
+                'unit_id'        => $returnUnitId,
+                'quantity'       => $returnQuantity,
+                'base_quantity'  => $stockQuantity,
+                'total'          => $request->return_subtotal[$index],
             ]);
 
-            // update ingredient stock
-            $ingredient = Ingredient::find($val);
-            $ingredient->stock = $ingredient->stock - $request->return_quantity[$index];
+            // Update ingredient stock (subtract returned quantity)
+            $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+            $ingredient->stock = max(0, $oldStock - $stockQuantity);
+
+            // Update stock status
+            if ($ingredient->stock <= 0) {
+                $ingredient->stock_status = 'out_of_stock';
+            } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                $ingredient->stock_status = 'low_stock';
+            } else {
+                $ingredient->stock_status = 'in_stock';
+            }
+
             $ingredient->save();
 
-            // update stock
+            // Create stock record
             Stock::create([
-                'invoice_number'     => $purchase->invoice,
-                'purchase_return_id' => $purchase->id,
-                'type'               => 'purchase return',
+                'invoice'            => $purchaseReturn->invoice,
+                'purchase_return_id' => $purchaseReturn->id,
+                'type'               => 'Purchase Return',
                 'ingredient_id'      => $val,
+                'warehouse_id'       => $request->warehouse_id,
+                'unit_id'            => $returnUnitId,
                 'date'               => now(),
-                'out_quantity'       => $request->return_quantity[$index],
+                'out_quantity'       => $returnQuantity,
+                'base_out_quantity'  => $baseQuantity,
                 'sku'                => $ingredient->sku,
                 'created_by'         => auth('admin')->user()->id,
             ]);
@@ -518,12 +609,12 @@ class PurchaseService
         }
 
         if ($request->received_amount) {
-            // create ledger
-            $ledger = $this->purchaseReturnLedger($request, $purchase->id, $request->received_amount, 'purchase return', 0);
+            // Create ledger
+            $ledger = $this->purchaseReturnLedger($request, $purchaseReturn->id, $request->received_amount, 'purchase return', 0);
             SupplierPayment::create([
                 'payment_type'       => 'purchase_receive',
                 'purchase_return_id' => $request->purchase_id,
-                'supplier_id'        => $purchase->supplier_id,
+                'supplier_id'        => $purchaseReturn->supplier_id,
                 'account_id'         => $account->id,
                 'is_received'        => 1,
                 'account_type'       => accountList()[$request->payment_type],
@@ -534,7 +625,7 @@ class PurchaseService
             ]);
         }
 
-        return $purchase;
+        return $purchaseReturn;
     }
 
     public function updateReturn($request, $id)
@@ -551,28 +642,97 @@ class PurchaseService
             'received_amount' => $request->received_amount,
             'return_amount'   => $request->invoice_amount,
             'shipping_cost'   => $request->shipping_cost,
-            'invoice'         => $this->returnInvoice(),
         ]);
 
-        // restore ingredient stock
-
+        // Restore ingredient stock using base_quantity
         foreach ($return->purchaseDetails as $purchaseDetail) {
             $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
             if ($ingredient) {
-                $ingredient->stock += $purchaseDetail->quantity;
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                $restoreQty = (float) ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $ingredient->stock = $oldStock + $restoreQty;
+
+                // Update stock status
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+
                 $ingredient->save();
             }
         }
 
-        // delete old purchase details
+        // Delete old purchase details
         $return->purchaseDetails()->delete();
         $return->payments()?->delete();
-        $return->stock()->delete();
+        Stock::where('purchase_return_id', $return->id)?->delete();
+
+        // Store new return details (similar to storeReturn)
+        foreach ($request->ingredient_id as $index => $val) {
+            $ingredient = Ingredient::find($val);
+            if (!$ingredient) {
+                continue;
+            }
+
+            $returnQuantity = (float) $request->return_quantity[$index];
+            $returnUnitId = $request->return_unit_id[$index] ?? $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+            $stockUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+
+            $stockQuantity = $returnQuantity;
+            if ($returnUnitId && $stockUnitId && $returnUnitId != $stockUnitId) {
+                $stockQuantity = UnitConverter::safeConvert($returnQuantity, $returnUnitId, $stockUnitId);
+            }
+
+            $baseUnitId = UnitConverter::getBaseUnitId($stockUnitId);
+            $baseQuantity = UnitConverter::safeConvert($stockQuantity, $stockUnitId, $baseUnitId);
+
+            $return->purchaseDetails()->create([
+                'ingredient_id'  => $val,
+                'purchase_id'    => $request->purchase_id,
+                'unit_id'        => $returnUnitId,
+                'quantity'       => $returnQuantity,
+                'base_quantity'  => $stockQuantity,
+                'total'          => $request->return_subtotal[$index],
+            ]);
+
+            // Update ingredient stock
+            $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+            $ingredient->stock = max(0, $oldStock - $stockQuantity);
+
+            if ($ingredient->stock <= 0) {
+                $ingredient->stock_status = 'out_of_stock';
+            } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                $ingredient->stock_status = 'low_stock';
+            } else {
+                $ingredient->stock_status = 'in_stock';
+            }
+
+            $ingredient->save();
+
+            Stock::create([
+                'invoice'            => $return->invoice,
+                'purchase_return_id' => $return->id,
+                'type'               => 'Purchase Return',
+                'ingredient_id'      => $val,
+                'warehouse_id'       => $request->warehouse_id,
+                'unit_id'            => $returnUnitId,
+                'date'               => now(),
+                'out_quantity'       => $returnQuantity,
+                'base_out_quantity'  => $baseQuantity,
+                'sku'                => $ingredient->sku,
+                'created_by'         => auth('admin')->user()->id,
+            ]);
+        }
+
+        return $return;
     }
 
     public function getPurchaseReturn($id)
     {
-        return $this->purchaseReturn->with('supplier', 'purchaseDetails.ingredient')->find($id);
+        return $this->purchaseReturn->with('supplier', 'purchaseDetails.ingredient', 'purchaseDetails.unit')->find($id);
     }
 
     public function purchaseLedger($request, $id, $paid, $total_amount = 0, $type = 'purchase', $isPaid = 1, $dueAmount = 0, $ledger = null)
@@ -616,6 +776,7 @@ class PurchaseService
 
         return $ledger;
     }
+
     public function getLedger($request, $id, $type, $isPaid = 1)
     {
         $purchase = $this->purchase->find($id);
@@ -627,12 +788,12 @@ class PurchaseService
 
         return $ledger;
     }
+
     public function updateLedger($request, $id, $paidAmount, $type = 'purchase', $isPaid = 1)
     {
         $purchase = $this->purchase->find($id);
 
-        // check if ledger already exist
-
+        // Check if ledger already exist
         $ledger = Ledger::where('supplier_id', $request->supplier_id)
             ->where('invoice_type', 'purchase')
             ->where('invoice_no', $purchase->invoice_number)
@@ -658,7 +819,6 @@ class PurchaseService
 
     public function purchaseReturnCreateLedger($request, $id, $paidAmount, $type = 'purchase', $isPaid = 1)
     {
-
         $this->updateLedger($request, $id, $paidAmount, $type, $isPaid);
     }
 
@@ -666,17 +826,28 @@ class PurchaseService
     {
         $return = $this->purchaseReturn->find($id);
 
-        // restore ingredient stock
-
+        // Restore ingredient stock using base_quantity
         foreach ($return->purchaseDetails as $purchaseDetail) {
             $ingredient = Ingredient::find($purchaseDetail->ingredient_id);
             if ($ingredient) {
-                $ingredient->stock += $purchaseDetail->quantity;
+                $oldStock = (float) str_replace(',', '', $ingredient->getRawOriginal('stock') ?? 0);
+                $restoreQty = (float) ($purchaseDetail->base_quantity ?? $purchaseDetail->quantity);
+                $ingredient->stock = $oldStock + $restoreQty;
+
+                if ($ingredient->stock <= 0) {
+                    $ingredient->stock_status = 'out_of_stock';
+                } elseif ($ingredient->stock_alert && $ingredient->stock <= $ingredient->stock_alert) {
+                    $ingredient->stock_status = 'low_stock';
+                } else {
+                    $ingredient->stock_status = 'in_stock';
+                }
+
                 $ingredient->save();
             }
         }
 
-        $return->payment()->delete();
+        Stock::where('purchase_return_id', $return->id)?->delete();
+        $return->payments()?->delete();
         $return->purchaseDetails()->delete();
         $return->delete();
     }
@@ -684,17 +855,19 @@ class PurchaseService
     public function returnInvoice($id = 0)
     {
         $number         = 1;
-        $prefix         = 'INV-';
+        $prefix         = 'RET-';
         $invoice_number = $prefix . $number;
 
-        $return = $this->purchaseReturn->find($id);
+        $return = $this->purchaseReturn->latest()->first();
         if ($return) {
             $purchaseInvoice = $return->invoice;
 
-            // split the invoice number
+            // Split the invoice number
             $split_invoice  = explode($prefix, $purchaseInvoice);
-            $invoice_number = (int) $split_invoice[1] + 1;
-            $invoice_number = $prefix . $invoice_number;
+            if (count($split_invoice) > 1) {
+                $invoice_number = (int) $split_invoice[1] + 1;
+                $invoice_number = $prefix . $invoice_number;
+            }
         }
 
         return $invoice_number;

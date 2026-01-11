@@ -5,11 +5,11 @@
 
 @push('css')
     <style>
-        .product-name-wrapper {
+        .ingredient-name-wrapper {
             position: relative;
         }
 
-        .product-name-wrapper .product-tooltip {
+        .ingredient-name-wrapper .ingredient-tooltip {
             visibility: hidden;
             opacity: 0;
             position: absolute;
@@ -31,7 +31,7 @@
             text-align: center;
         }
 
-        .product-name-wrapper .product-tooltip::after {
+        .ingredient-name-wrapper .ingredient-tooltip::after {
             content: '';
             position: absolute;
             top: 100%;
@@ -42,7 +42,7 @@
             border-color: #fff transparent transparent transparent;
         }
 
-        .product-name-wrapper .product-tooltip img {
+        .ingredient-name-wrapper .ingredient-tooltip img {
             max-width: 120px;
             max-height: 120px;
             border-radius: 6px;
@@ -50,7 +50,7 @@
             object-fit: cover;
         }
 
-        .product-name-wrapper .product-tooltip .tooltip-name {
+        .ingredient-name-wrapper .ingredient-tooltip .tooltip-name {
             font-weight: 600;
             word-wrap: break-word;
             white-space: normal;
@@ -58,7 +58,7 @@
             overflow-wrap: break-word;
         }
 
-        .product-name-wrapper:hover .product-tooltip {
+        .ingredient-name-wrapper:hover .ingredient-tooltip {
             visibility: visible;
             opacity: 1;
         }
@@ -154,15 +154,15 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        {{-- product search box --}}
+                                        {{-- ingredient search box --}}
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label>{{ __('Product') }}</label>
-                                                <select class="form-control select2" id="product_id">
-                                                    <option value="">{{ __('Select Product') }}</option>
-                                                    @foreach ($products as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}
-                                                            ({{ $product->sku }})
+                                                <label>{{ __('Ingredient') }}</label>
+                                                <select class="form-control select2" id="ingredient_id">
+                                                    <option value="">{{ __('Select Ingredient') }}</option>
+                                                    @foreach ($products as $ingredient)
+                                                        <option value="{{ $ingredient->id }}">{{ $ingredient->name }}
+                                                            ({{ $ingredient->sku }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -176,7 +176,7 @@
                                                     <thead>
                                                         <tr>
                                                             <th>SL</th>
-                                                            <th>{{ __('Product Name') }}</th>
+                                                            <th>{{ __('Ingredient Name') }}</th>
                                                             <th>{{ __('Unit') }}</th>
                                                             <th>{{ __('Stock') }}</th>
                                                             <th>{{ __('Quantity') }}</th>
@@ -196,50 +196,67 @@
                                                             @php
                                                                 $qty += $purchaseDetail->quantity;
                                                                 $sub_total += $purchaseDetail->sub_total;
+                                                                $ingredient = $purchaseDetail->ingredient;
+                                                                $purchaseUnit = $purchaseDetail->unit ?? $ingredient?->purchaseUnit ?? $ingredient?->unit;
+                                                                $stockUnit = $ingredient?->purchaseUnit ?? $ingredient?->unit;
                                                             @endphp
                                                             <tr>
                                                                 <td>{{ $index + 1 }}</td>
                                                                 <td>
-                                                                    <div class="product-name-wrapper">
+                                                                    <div class="ingredient-name-wrapper">
                                                                         <input type="text" class="form-control"
-                                                                            name="product_name[]"
-                                                                            value="{{ $purchaseDetail->product->name }}"
+                                                                            name="ingredient_name[]"
+                                                                            value="{{ $ingredient?->name }}"
                                                                             readonly>
-                                                                        <div class="product-tooltip">
-                                                                            <img src="{{ $purchaseDetail->product->singleImage }}"
-                                                                                alt="{{ $purchaseDetail->product->name }}"
+                                                                        <div class="ingredient-tooltip">
+                                                                            <img src="{{ $ingredient?->singleImage }}"
+                                                                                alt="{{ $ingredient?->name }}"
                                                                                 onerror="this.src='{{ asset('backend/img/image_icon.png') }}'">
                                                                             <div class="tooltip-name">
-                                                                                {{ $purchaseDetail->product->name }}</div>
+                                                                                {{ $ingredient?->name }}</div>
                                                                         </div>
                                                                     </div>
-                                                                    <input type="hidden" name="product_id[]"
-                                                                        value="{{ $purchaseDetail->product_id }}">
+                                                                    <input type="hidden" name="ingredient_id[]"
+                                                                        value="{{ $purchaseDetail->ingredient_id }}">
                                                                 </td>
                                                                 <td>
-                                                                    <span
-                                                                        class="badge bg-info">{{ $purchaseDetail->product->unit->ShortName ?? '-' }}</span>
+                                                                    <select class="form-control purchase-unit-select" name="purchase_unit_id[]" style="width: 120px;">
+                                                                        @if($purchaseUnit)
+                                                                            <option value="{{ $purchaseUnit->id }}" selected>{{ $purchaseUnit->name }} ({{ $purchaseUnit->ShortName }})</option>
+                                                                        @endif
+                                                                        @if($stockUnit && $stockUnit->id != $purchaseUnit?->id)
+                                                                            <option value="{{ $stockUnit->id }}">{{ $stockUnit->name }} ({{ $stockUnit->ShortName }})</option>
+                                                                        @endif
+                                                                        @if($stockUnit?->children)
+                                                                            @foreach($stockUnit->children as $childUnit)
+                                                                                @if($childUnit->id != $purchaseUnit?->id)
+                                                                                    <option value="{{ $childUnit->id }}">{{ $childUnit->name }} ({{ $childUnit->ShortName }})</option>
+                                                                                @endif
+                                                                            @endforeach
+                                                                        @endif
+                                                                    </select>
                                                                 </td>
                                                                 <td>
                                                                     <input type="number" class="form-control"
                                                                         name="stock[]"
-                                                                        value="{{ $purchaseDetail->product->stock }}"
+                                                                        value="{{ $ingredient?->stock }}"
                                                                         readonly>
+                                                                    <small class="text-muted">{{ $stockUnit?->ShortName ?? '-' }}</small>
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" class="form-control"
+                                                                    <input type="number" class="form-control quantity-input"
                                                                         name="quantity[]"
                                                                         value="{{ $purchaseDetail->quantity }}"
-                                                                        min="1">
+                                                                        min="0.01" step="0.01">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" class="form-control"
+                                                                    <input type="number" class="form-control unit-price-input"
                                                                         name="unit_price[]"
                                                                         value="{{ $purchaseDetail->purchase_price }}"
                                                                         min="0" step="0.01">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" class="form-control"
+                                                                    <input type="number" class="form-control total-input"
                                                                         name="total[]"
                                                                         value="{{ $purchaseDetail->sub_total }}" readonly
                                                                         step="0.01">
@@ -377,51 +394,67 @@
             });
         }
 
-        function addPurchaseRow(product) {
+        function addPurchaseRow(ingredient) {
             if ($('#purchase_table tr').length) {
                 let exists = false;
                 $('#purchase_table tr').each(function() {
-                    if ($(this).find('input[name="product_id[]"]').val() == product.id) {
+                    if ($(this).find('input[name="ingredient_id[]"]').val() == ingredient.id) {
                         exists = true;
                     }
                 });
                 if (exists) {
-                    alert('Product already added!');
+                    alert('Ingredient already added!');
                     return;
                 }
             }
 
-            const cost = parseFloat(product.cost) || 0;
+            const cost = parseFloat(ingredient.purchase_price) || parseFloat(ingredient.cost) || 0;
             const serial = $('#purchase_table tr').length + 1;
-            const unitName = product.unit ? product.unit.ShortName : '-';
+            const purchaseUnit = ingredient.purchase_unit || ingredient.unit;
+            const unitName = purchaseUnit ? purchaseUnit.ShortName : '-';
+            const ingredientUnitId = purchaseUnit ? purchaseUnit.id : '';
+
+            // Build unit family options for dropdown
+            let unitOptions = '';
+            if (purchaseUnit) {
+                unitOptions += `<option value="${purchaseUnit.id}" selected>${purchaseUnit.name} (${purchaseUnit.ShortName})</option>`;
+                if (purchaseUnit.children && purchaseUnit.children.length > 0) {
+                    purchaseUnit.children.forEach(childUnit => {
+                        unitOptions += `<option value="${childUnit.id}">${childUnit.name} (${childUnit.ShortName})</option>`;
+                    });
+                }
+            }
 
             let tr = `
                 <tr>
                     <td>${serial}</td>
                     <td>
-                        <div class="product-name-wrapper">
-                            <input type="text" class="form-control" name="product_name[]" value="${product.name}" readonly>
-                            <div class="product-tooltip">
-                                <img src="${product.single_image}" alt="${product.name}" onerror="this.src='{{ asset('backend/img/image_icon.png') }}'">
-                                <div class="tooltip-name">${product.name}</div>
+                        <div class="ingredient-name-wrapper">
+                            <input type="text" class="form-control" name="ingredient_name[]" value="${ingredient.name}" readonly>
+                            <div class="ingredient-tooltip">
+                                <img src="${ingredient.single_image}" alt="${ingredient.name}" onerror="this.src='{{ asset('backend/img/image_icon.png') }}'">
+                                <div class="tooltip-name">${ingredient.name}</div>
                             </div>
                         </div>
-                        <input type="hidden" name="product_id[]" value="${product.id}">
+                        <input type="hidden" name="ingredient_id[]" value="${ingredient.id}">
                     </td>
                     <td>
-                        <span class="badge bg-info">${unitName}</span>
+                        <select class="form-control purchase-unit-select" name="purchase_unit_id[]" style="width: 120px;">
+                            ${unitOptions}
+                        </select>
                     </td>
                     <td>
-                        <input type="number" class="form-control" name="stock[]" value="${product.stock}" readonly>
+                        <input type="number" class="form-control" name="stock[]" value="${ingredient.stock}" readonly>
+                        <small class="text-muted">${unitName}</small>
                     </td>
                     <td>
-                        <input type="number" class="form-control" name="quantity[]" value="1" min="1">
+                        <input type="number" class="form-control quantity-input" name="quantity[]" value="1" min="0.01" step="0.01">
                     </td>
                     <td>
-                        <input type="number" class="form-control" name="unit_price[]" value="${cost}" min="0" step="0.01">
+                        <input type="number" class="form-control unit-price-input" name="unit_price[]" value="${cost}" min="0" step="0.01">
                     </td>
                     <td>
-                        <input type="number" class="form-control" name="total[]" value="${cost}" readonly step="0.01">
+                        <input type="number" class="form-control total-input" name="total[]" value="${cost}" readonly step="0.01">
                     </td>
                     <td>
                         <button type="button" class="btn btn-white" onclick="removePurchaseRow(this)"><i class="fas fa-trash text-danger"></i></button>
@@ -439,18 +472,18 @@
             calculateTotalAmount();
         }
 
-        const products = @json($products);
-        $(document).on('change', '#product_id', function() {
-            let product_id = $(this).val();
-            const product = products.find(p => p.id == product_id);
-            addPurchaseRow(product);
+        const ingredients = @json($products);
+        $(document).on('change', '#ingredient_id', function() {
+            let ingredient_id = $(this).val();
+            const ingredient = ingredients.find(p => p.id == ingredient_id);
+            addPurchaseRow(ingredient);
         });
 
         // Debounce function to limit API calls
         let searchTimeout = null;
 
-        // when search product will not in the product list. it will search from the database;
-        $(document).on('input', '[aria-controls="select2-product_id-results"]', function() {
+        // when search ingredient will not in the ingredient list. it will search from the database;
+        $(document).on('input', '[aria-controls="select2-ingredient_id-results"]', function() {
             let input = $(this).val();
 
             // Clear previous timeout
@@ -462,33 +495,33 @@
                 return;
             }
 
-            // check if input its in product name or product code
-            const filteredProducts = products.filter(p =>
+            // check if input its in ingredient name or ingredient code
+            const filteredIngredients = ingredients.filter(p =>
                 p.name.toLowerCase().includes(input.toLowerCase()) ||
                 (p.barcode && p.barcode.toLowerCase().includes(input.toLowerCase())) ||
                 (p.sku && p.sku.toLowerCase().includes(input.toLowerCase()))
             );
 
-            if (filteredProducts.length == 0) {
+            if (filteredIngredients.length == 0) {
                 // Debounce the API call - wait 300ms after user stops typing
                 searchTimeout = setTimeout(function() {
                     $.ajax({
-                        url: "{{ route('admin.purchase.product.search') }}",
+                        url: "{{ route('admin.purchase.ingredient.search') }}",
                         type: 'POST',
                         data: {
                             keyword: input
                         },
                         success: function(response) {
                             if (response.status) {
-                                response.data.forEach(product => {
-                                    // Check if product already exists in the list
-                                    const existingProduct = products.find(p => p.id ==
-                                        product.id);
+                                response.data.forEach(ingredient => {
+                                    // Check if ingredient already exists in the list
+                                    const existingIngredient = ingredients.find(p => p.id ==
+                                        ingredient.id);
 
-                                    if (!existingProduct) {
-                                        products.push(product);
-                                        $('#product_id').append(
-                                            `<option value="${product.id}">${product.name} (${product.sku})</option>`
+                                    if (!existingIngredient) {
+                                        ingredients.push(ingredient);
+                                        $('#ingredient_id').append(
+                                            `<option value="${ingredient.id}">${ingredient.name} (${ingredient.sku})</option>`
                                         );
                                     }
                                 });
@@ -499,14 +532,22 @@
             }
         })
 
+        // Calculate row total when quantity or price changes
+        $(document).on('input', '.quantity-input, .unit-price-input', function() {
+            let row = $(this).closest('tr');
+            let quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+            let unitPrice = parseFloat(row.find('.unit-price-input').val()) || 0;
+            let total = quantity * unitPrice;
+            row.find('.total-input').val(total.toFixed(2));
+            calculateTotalAmount();
+        });
+
         $(document).on('input', 'input[name="quantity[]"], input[name="unit_price[]"]', function() {
             var tr = $(this).closest('tr');
             var quantity = tr.find('input[name="quantity[]"]').val();
             var unit_price = tr.find('input[name="unit_price[]"]').val();
             var total = quantity * unit_price;
-            tr.find('input[name="total[]"]').val(total);
-
-
+            tr.find('input[name="total[]"]').val(total.toFixed(2));
 
             calculateTotalAmount();
 
@@ -538,30 +579,30 @@
 
             let totalQuantity = 0;
             $('input[name="quantity[]"]').each(function() {
-                totalQuantity += parseFloat($(this).val());
+                totalQuantity += parseFloat($(this).val()) || 0;
             });
             $('[name="items"]').val(totalQuantity);
 
             let totalAmount = 0;
             $('input[name="total[]"]').each(function() {
-                totalAmount += parseFloat($(this).val());
+                totalAmount += parseFloat($(this).val()) || 0;
             });
-            $('[name="total_amount"]').val(totalAmount);
+            $('[name="total_amount"]').val(totalAmount.toFixed(2));
 
             calculateDue()
         }
 
         function calculateDue() {
 
-            let totalAmount = $('[name="total_amount"]').val();
+            let totalAmount = parseFloat($('[name="total_amount"]').val()) || 0;
             let paidAmount = $('[name="paid_amount[]"]');
 
             let dueAmount = totalAmount;
             paidAmount.each(function() {
-                dueAmount -= parseFloat($(this).val());
+                dueAmount -= parseFloat($(this).val()) || 0;
             })
 
-            $('[name="due_amount"]').val(dueAmount);
+            $('[name="due_amount"]').val(dueAmount.toFixed(2));
         }
 
         // Form validation
@@ -598,9 +639,9 @@
                 $('[name="purchase_date"]').closest('.form-group').find('.text-danger').remove();
             }
 
-            // Products validation
+            // Ingredients validation
             if ($('#purchase_table tr').length === 0) {
-                errors.push('{{ __('At least one product is required') }}');
+                errors.push('{{ __('At least one ingredient is required') }}');
             }
 
             // Quantity validation

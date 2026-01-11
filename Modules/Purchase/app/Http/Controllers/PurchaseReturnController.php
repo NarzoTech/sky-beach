@@ -65,7 +65,8 @@ class PurchaseReturnController extends Controller
         checkAdminHasPermissionAndThrowException('purchase.return.create');
         $purchase = $this->purchaseService->getPurchase($id);
         $returnTypes = $this->purchaseService->getReturnTypes();
-        return view('purchase::return.create', compact('purchase', 'returnTypes'));
+        $accounts = $this->purchaseService->getAccounts();
+        return view('purchase::return.create', compact('purchase', 'returnTypes', 'accounts'));
     }
 
     /**
