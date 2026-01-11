@@ -55,7 +55,20 @@ class PosSettingsController extends Controller
     {
       try
         {
-            $data = $request->all();
+            // Explicitly handle checkbox fields - unchecked checkboxes are not sent in form data
+            $data = [
+                'show_phone' => $request->has('show_phone') ? 1 : 0,
+                'show_address' => $request->has('show_address') ? 1 : 0,
+                'show_email' => $request->has('show_email') ? 1 : 0,
+                'show_customer' => $request->has('show_customer') ? 1 : 0,
+                'show_warehouse' => $request->has('show_warehouse') ? 1 : 0,
+                'show_discount' => $request->has('show_discount') ? 1 : 0,
+                'show_barcode' => $request->has('show_barcode') ? 1 : 0,
+                'show_note' => $request->has('show_note') ? 1 : 0,
+                'is_printable' => $request->has('is_printable') ? 1 : 0,
+                'merge_cart_items' => $request->has('merge_cart_items') ? 1 : 0,
+            ];
+
             $pos_settings = PosSettings::first();
             if($pos_settings)
             {

@@ -1171,7 +1171,11 @@ class POSController extends Controller
 
             // Release the table (critical - must succeed)
             if ($order->table) {
+                Log::info('Releasing table', ['table_id' => $order->table->id, 'table_name' => $order->table->name]);
                 $order->table->release();
+                Log::info('Table released', ['table_id' => $order->table->id, 'new_status' => $order->table->status, 'occupied_seats' => $order->table->occupied_seats]);
+            } else {
+                Log::warning('No table found for order', ['order_id' => $order->id, 'table_id' => $order->table_id]);
             }
 
             // Create CustomerPayment records (optional - log errors but don't fail)
