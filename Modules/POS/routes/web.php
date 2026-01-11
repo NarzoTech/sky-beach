@@ -49,6 +49,9 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/running-orders/{id}/remove-item', [POSController::class, 'removeOrderItem'])->name('pos.running-orders.remove-item');
         Route::post('/running-orders/{id}/add-item', [POSController::class, 'addOrderItem'])->name('pos.running-orders.add-item');
 
+        // Tables Routes
+        Route::get('/available-tables', [POSController::class, 'getAvailableTables'])->name('pos.available-tables');
+
         // Loyalty Points Routes
         Route::get('/loyalty/customer', [POSController::class, 'getCustomerLoyalty'])->name('pos.loyalty.customer');
         Route::get('/loyalty/calculate-points', [POSController::class, 'calculatePointsToEarn'])->name('pos.loyalty.calculate');

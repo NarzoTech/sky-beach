@@ -85,8 +85,9 @@ class SaleService
         $isDineIn = $sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->table_id;
         $deferPayment = $request->defer_payment ?? $isDineIn;
 
+        // Status column is integer: 0 = processing/pending, 1 = completed, 2 = cancelled
         if ($deferPayment) {
-            $sale->status = 'processing';
+            $sale->status = 0; // 0 = processing/pending
             $sale->payment_status = 0; // Unpaid
             $sale->payment_method = null;
             $sale->paid_amount = 0;
@@ -94,7 +95,7 @@ class SaleService
             $sale->return_amount = 0;
             $sale->due_amount = $request->total_amount;
         } else {
-            $sale->status = 'completed';
+            $sale->status = 1; // 1 = completed
             $sale->payment_status = 1; // Paid
             $sale->payment_method = json_encode($request->payment_type);
             $sale->paid_amount = array_sum($request->paying_amount ?? [0]);
@@ -123,9 +124,22 @@ class SaleService
         // Mark table as occupied for dine-in orders
         if ($sale->table_id && $sale->order_type === Sale::ORDER_TYPE_DINE_IN) {
             try {
+                Log::info('Occupying table for dine-in order', [
+                    'sale_id' => $sale->id,
+                    'table_id' => $sale->table_id,
+                    'guest_count' => $sale->guest_count,
+                    'order_type' => $sale->order_type
+                ]);
                 $table = RestaurantTable::find($sale->table_id);
                 if ($table) {
                     $table->occupy($sale);
+                    Log::info('Table occupied', [
+                        'table_id' => $table->id,
+                        'occupied_seats' => $table->occupied_seats,
+                        'status' => $table->status
+                    ]);
+                } else {
+                    Log::warning('Table not found', ['table_id' => $sale->table_id]);
                 }
             } catch (\Exception $e) {
                 Log::error('Error occupying table: ' . $e->getMessage());

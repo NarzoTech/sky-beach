@@ -2893,6 +2893,22 @@
             });
         }
 
+        // Refresh available tables (for real-time seat updates)
+        function refreshAvailableTables() {
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('admin.pos.available-tables') }}",
+                success: function(response) {
+                    if (response.success) {
+                        $('#tablesGrid').html(response.html);
+                    }
+                },
+                error: function() {
+                    console.log('Error refreshing tables');
+                }
+            });
+        }
+
         // Load specific page of running orders
         function loadRunningOrdersPage(page) {
             if (page < 1) return;
@@ -3319,6 +3335,7 @@
                         $('#order-details-modal').modal('hide');
                         loadRunningOrdersCount();
                         loadRunningOrders(); // Refresh running orders list
+                        refreshAvailableTables(); // Refresh table availability
 
                         // Show POS receipt modal
                         $('#pos-receipt-body').html(response.receipt);
@@ -3404,6 +3421,7 @@
                                 $('#order-details-modal').modal('hide');
                                 loadRunningOrders();
                                 loadRunningOrdersCount();
+                                refreshAvailableTables(); // Refresh table availability
                             } else {
                                 toastr.error(response.message || "{{ __('Error cancelling order') }}");
                             }
@@ -3778,6 +3796,9 @@
 
                         // Refresh running orders count
                         loadRunningOrdersCount();
+
+                        // Refresh available tables
+                        refreshAvailableTables();
 
                         // Update payment button state
                         updatePaymentButtonState();

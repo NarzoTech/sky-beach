@@ -890,6 +890,43 @@ class POSController extends Controller
     }
 
     /**
+     * Get available tables for AJAX refresh
+     */
+    public function getAvailableTables()
+    {
+        try {
+            $availableTables = RestaurantTable::active()
+                ->with(['activeOrders'])
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
+
+            // Sync occupied_seats based on active orders (ensures accuracy)
+            foreach ($availableTables as $table) {
+                $activeGuestCount = $table->activeOrders->sum('guest_count') ?: $table->activeOrders->count();
+                if ($table->occupied_seats != $activeGuestCount) {
+                    $table->occupied_seats = $activeGuestCount;
+                    $table->status = $activeGuestCount > 0 ? 'occupied' : 'available';
+                    $table->save();
+                }
+            }
+
+            $html = view('pos::partials.tables-list', compact('availableTables'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching available tables: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading tables'
+            ], 500);
+        }
+    }
+
+    /**
      * Get order details for running order
      */
     public function getOrderDetails($id)

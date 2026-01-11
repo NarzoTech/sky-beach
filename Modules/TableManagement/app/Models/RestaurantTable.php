@@ -154,10 +154,22 @@ class RestaurantTable extends Model
      */
     public function occupy(Sale $sale, ?int $guestCount = null): void
     {
-        $guestCount = $guestCount ?? $sale->guest_count ?? 1;
+        // Refresh to get current state from database
+        $this->refresh();
+
+        $initialSeats = $this->occupied_seats;
+        $guestCount = (int) ($guestCount ?? $sale->guest_count ?? 1);
+
+        \Illuminate\Support\Facades\Log::info('Table occupy - before', [
+            'table_id' => $this->id,
+            'initial_occupied_seats' => $initialSeats,
+            'guest_count_to_add' => $guestCount,
+            'capacity' => $this->capacity,
+            'sale_guest_count' => $sale->guest_count
+        ]);
 
         // Add guests to occupied seats
-        $this->occupied_seats = min($this->capacity, $this->occupied_seats + $guestCount);
+        $this->occupied_seats = min($this->capacity, $initialSeats + $guestCount);
 
         // Set status based on occupancy
         if ($this->occupied_seats > 0) {
@@ -168,6 +180,12 @@ class RestaurantTable extends Model
         // Note: For multiple orders, this will be the latest sale
         $this->current_sale_id = $sale->id;
         $this->save();
+
+        \Illuminate\Support\Facades\Log::info('Table occupy - after', [
+            'table_id' => $this->id,
+            'new_occupied_seats' => $this->occupied_seats,
+            'status' => $this->status
+        ]);
     }
 
     /**
