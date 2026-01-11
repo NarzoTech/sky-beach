@@ -272,14 +272,19 @@
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 justify-content-between mt-3">
-        <button type="button" class="btn btn-outline-danger" onclick="cancelRunningOrder({{ $order->id }})">
-            <i class="fas fa-times me-1"></i>{{ __('Cancel Order') }}
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary" onclick="backToRunningOrders()">
+                <i class="fas fa-arrow-left me-1"></i>{{ __('Back') }}
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="cancelRunningOrder({{ $order->id }})">
+                <i class="fas fa-times me-1"></i>{{ __('Cancel Order') }}
+            </button>
+        </div>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-warning" onclick="addItemsToOrder({{ $order->id }})">
                 <i class="fas fa-plus me-1"></i>{{ __('Add More Items') }}
             </button>
-            <button type="button" class="btn btn-success btn-lg" onclick="showPaymentModal({{ $order->id }}, {{ $order->grand_total }}, '{{ $order->invoice }}', '{{ $order->table->name ?? 'N/A' }}')">
+            <button type="button" class="btn btn-success" onclick="showPaymentModal({{ $order->id }}, {{ $order->grand_total }}, '{{ $order->invoice }}', '{{ $order->table->name ?? '' }}')">
                 <i class="fas fa-cash-register me-1"></i>{{ __('Complete & Pay') }}
             </button>
         </div>
@@ -316,7 +321,7 @@
 .table-icon-wrapper {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    background: #e3f2fd;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -325,7 +330,7 @@
 .duration-icon-wrapper {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #fff3cd, #ffc107);
+    background: #fff3cd;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -334,14 +339,14 @@
 .cooking-icon-wrapper {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #ffe0e0, #ff6b6b);
+    background: #ffe0e0;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .cooking-icon-wrapper.bg-success-subtle {
-    background: linear-gradient(135deg, #d4edda, #28a745);
+    background: #d4edda;
 }
 </style>
 

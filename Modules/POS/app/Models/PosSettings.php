@@ -25,5 +25,6 @@ class PosSettings extends Model
         'show_phone',
         'show_address',
         'is_printable',
+        'merge_cart_items',
     ];
 }

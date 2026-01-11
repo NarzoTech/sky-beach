@@ -20,7 +20,24 @@ class PosSettingsController extends Controller
     public function index()
     {
         $pos_settings = PosSettings::first();
-        return view('pos::settings',compact('pos_settings'));
+
+        // Create default settings if none exist
+        if (!$pos_settings) {
+            $pos_settings = new PosSettings([
+                'show_phone' => true,
+                'show_address' => true,
+                'show_email' => true,
+                'show_customer' => true,
+                'show_warehouse' => false,
+                'show_discount' => true,
+                'show_barcode' => false,
+                'show_note' => true,
+                'is_printable' => true,
+                'merge_cart_items' => true,
+            ]);
+        }
+
+        return view('pos::settings', compact('pos_settings'));
     }
 
     /**

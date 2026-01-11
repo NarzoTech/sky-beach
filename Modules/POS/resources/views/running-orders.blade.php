@@ -85,6 +85,40 @@
     </div>
     @endforeach
 </div>
+
+@if($runningOrders->hasPages())
+<div class="d-flex justify-content-center mt-3">
+    <nav aria-label="Running orders pagination">
+        <ul class="pagination pagination-sm mb-0">
+            {{-- Previous Page --}}
+            <li class="page-item {{ $runningOrders->onFirstPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="javascript:void(0)" onclick="loadRunningOrdersPage({{ $runningOrders->currentPage() - 1 }})" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            {{-- Page Numbers --}}
+            @for($i = 1; $i <= $runningOrders->lastPage(); $i++)
+                <li class="page-item {{ $runningOrders->currentPage() == $i ? 'active' : '' }}">
+                    <a class="page-link" href="javascript:void(0)" onclick="loadRunningOrdersPage({{ $i }})">{{ $i }}</a>
+                </li>
+            @endfor
+
+            {{-- Next Page --}}
+            <li class="page-item {{ !$runningOrders->hasMorePages() ? 'disabled' : '' }}">
+                <a class="page-link" href="javascript:void(0)" onclick="loadRunningOrdersPage({{ $runningOrders->currentPage() + 1 }})" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<div class="text-center mt-2">
+    <small class="text-muted">
+        {{ __('Showing') }} {{ $runningOrders->firstItem() }}-{{ $runningOrders->lastItem() }} {{ __('of') }} {{ $runningOrders->total() }} {{ __('orders') }}
+    </small>
+</div>
+@endif
 @else
 <div class="text-center py-5">
     <i class="fas fa-utensils fa-4x text-muted mb-3"></i>

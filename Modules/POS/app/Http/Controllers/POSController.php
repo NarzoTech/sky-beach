@@ -24,6 +24,7 @@ use Modules\GlobalSetting\app\Models\EmailTemplate;
 use Modules\Order\app\Models\Order;
 use Modules\Order\app\Models\OrderDetails;
 use Modules\POS\app\Models\CartHold;
+use Modules\POS\app\Models\PosSettings;
 use Modules\Menu\app\Models\MenuCategory;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Services\MenuItemService;
@@ -156,6 +157,23 @@ class POSController extends Controller
             // Employee module might not be installed
         }
 
+        // Load POS settings
+        $posSettings = PosSettings::first();
+        if (!$posSettings) {
+            $posSettings = new PosSettings([
+                'show_phone' => true,
+                'show_address' => true,
+                'show_email' => true,
+                'show_customer' => true,
+                'show_warehouse' => false,
+                'show_discount' => true,
+                'show_barcode' => false,
+                'show_note' => true,
+                'is_printable' => true,
+                'merge_cart_items' => true,
+            ]);
+        }
+
         return view('pos::index')->with([
             'menuItems' => $menuItems,
             'categories' => $categories,
@@ -173,6 +191,7 @@ class POSController extends Controller
             'editingTableId' => $editingTableId,
             'editingTableName' => $editingTableName,
             'waiters' => $waiters,
+            'posSettings' => $posSettings,
         ]);
     }
 
@@ -321,6 +340,10 @@ class POSController extends Controller
             //
         }
 
+        // Get POS settings for merge behavior
+        $posSettings = PosSettings::first();
+        $mergeCartItems = $posSettings ? $posSettings->merge_cart_items : true;
+
         // Handle menu item or service
         $menuItem = ($type != 'service') ? MenuItem::with('recipes.ingredient')->find($request->menu_item_id ?? $request->product_id) : null;
         $service = $type == 'service' ? $this->services->find($request->product_id ?? $request->menu_item_id) : null;
@@ -335,58 +358,69 @@ class POSController extends Controller
             }
         }
 
-
-
         $cart_contents = session()->get($cartName);
         $cart_contents = $cart_contents ? $cart_contents : [];
 
-
-        // check if item already exist in cart
-        $item_exist = false;
+        // Check if item already exists in cart
+        $existing_rowid = null;
         $sku = $type != 'service' ? ($request->variant_sku ? $request->variant_sku : ($menuItem ? $menuItem->sku : '')) : '';
-        if (count($cart_contents) > 0) {
-            foreach ($cart_contents as $index => $cart_content) {
-                if (($sku && $cart_content['sku'] == $sku) || ($service && $cart_content['id'] == $service->id && $cart_content['type'] == 'service')) {
-                    $item_exist = true;
+        $variant_id = $variant ? $variant->id : null;
+
+        if ($mergeCartItems && count($cart_contents) > 0) {
+            foreach ($cart_contents as $rowid => $cart_content) {
+                // Match by SKU and variant_id for menu items, or by id for services
+                if ($type != 'service') {
+                    if ($sku && $cart_content['sku'] == $sku && ($cart_content['variant_id'] ?? null) == $variant_id) {
+                        $existing_rowid = $rowid;
+                        break;
+                    }
+                } else {
+                    if ($service && $cart_content['id'] == $service->id && $cart_content['type'] == 'service') {
+                        $existing_rowid = $rowid;
+                        break;
+                    }
                 }
             }
         }
 
-        // if ($item_exist) {
-        //     $notification = trans('Item already added');
-        //     return response()->json(['message' => $notification, 'cart' => session()->get('POSCART')], 403);
-        // }
+        // If item exists and merge is enabled, update quantity
+        if ($existing_rowid !== null) {
+            $addQty = $request->qty ? $request->qty : 1;
+            $cart_contents[$existing_rowid]['qty'] += $addQty;
+            $cart_contents[$existing_rowid]['sub_total'] = (float)$cart_contents[$existing_rowid]['price'] * $cart_contents[$existing_rowid]['qty'];
+            session()->put($cartName, $cart_contents);
+        } else {
+            // Add as new item
+            $data = array();
+            $data["rowid"] = uniqid();
+            $data['id'] = $type == 'service' ? $service->id : $menuItem->id;
+            $data['name'] = $type == 'service' ? $service->name : $menuItem->name;
+            $data['type'] = $type == 'service' ? 'service' : 'menu_item';
+            $data['image'] = $type == 'service' ? $service->singleImage : $menuItem->image_url;
+            $data['qty'] = $request->qty ? $request->qty : 1;
 
-        $data = array();
-        $data["rowid"] = uniqid();
-        $data['id'] = $type == 'service' ? $service->id : $menuItem->id;
-        $data['name'] = $type == 'service' ? $service->name : $menuItem->name;
-        $data['type'] = $type == 'service' ? 'service' : 'menu_item';
-        $data['image'] = $type == 'service' ? $service->singleImage : $menuItem->image_url;
-        $data['qty'] = $request->qty ? $request->qty : 1;
+            // Calculate price - use variant price if applicable, otherwise base_price
+            $price = $type == 'service' ? $service->price : ($request->variant_price ?? $menuItem->base_price);
+            if ($variant) {
+                $price = $menuItem->base_price + ($variant->price_adjustment ?? 0);
+            }
 
-        // Calculate price - use variant price if applicable, otherwise base_price
-        $price = $type == 'service' ? $service->price : ($request->variant_price ?? $menuItem->base_price);
-        if ($variant) {
-            $price = $menuItem->base_price + ($variant->price_adjustment ?? 0);
+            $data['price'] = $price;
+            $data['sub_total'] = (float)$data['price'] * $data['qty'];
+            $data['sku'] = $sku;
+            $data['unit'] = '-'; // Menu items don't have unit like ingredients
+            $data['source'] = 1;
+            $data['purchase_price'] = $menuItem ? ($menuItem->cost_price ?? 0) : 0;
+            $data['selling_price'] = $price;
+            $data['variant_id'] = $variant_id;
+
+            if ($request->type == null && $variant) {
+                $data['variant']['attribute'] =  $attributes;
+                $data['variant']['options'] =  $options;
+            }
+
+            session()->put($cartName, [...$cart_contents, $data["rowid"] => $data]);
         }
-
-        $data['price'] = $price;
-        $data['sub_total'] = (float)$data['price'] * $data['qty'];
-        $data['sku'] = $sku;
-        $data['unit'] = '-'; // Menu items don't have unit like ingredients
-        $data['source'] = 1;
-        $data['purchase_price'] = $menuItem ? ($menuItem->cost_price ?? 0) : 0;
-        $data['selling_price'] = $price;
-        $data['variant_id'] = $variant ? $variant->id : null;
-
-        if ($request->type == null && $variant) {
-            $data['variant']['attribute'] =  $attributes;
-            $data['variant']['options'] =  $options;
-        }
-
-
-        session()->put($cartName, [...$cart_contents, $data["rowid"] => $data]);
 
         $cart_contents = session($cartName);
 
@@ -798,22 +832,28 @@ class POSController extends Controller
     /**
      * Get running orders (active dine-in orders)
      */
-    public function getRunningOrders()
+    public function getRunningOrders(Request $request)
     {
         try {
+            $page = $request->get('page', 1);
+            $perPage = 9;
+
             $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
                 ->where('order_type', Sale::ORDER_TYPE_DINE_IN)
                 ->whereNotNull('table_id')
                 ->whereIn('status', ['pending', 'processing'])
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate($perPage, ['*'], 'page', $page);
 
             $html = view('pos::running-orders', compact('runningOrders'))->render();
 
             return response()->json([
                 'success' => true,
                 'html' => $html,
-                'count' => $runningOrders->count()
+                'count' => $runningOrders->total(),
+                'currentPage' => $runningOrders->currentPage(),
+                'lastPage' => $runningOrders->lastPage(),
+                'hasMorePages' => $runningOrders->hasMorePages()
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching running orders: ' . $e->getMessage());
@@ -1096,7 +1136,6 @@ class POSController extends Controller
      */
     public function completeRunningOrder(Request $request, $id)
     {
-        DB::beginTransaction();
         try {
             $order = Sale::with(['table', 'details', 'customer'])->findOrFail($id);
 
@@ -1108,7 +1147,7 @@ class POSController extends Controller
             $totalPaid = array_sum($payingAmounts);
             $dueAmount = max(0, $order->grand_total - $totalPaid);
 
-            // Update order payment information
+            // Update order status and payment information (critical - must succeed)
             $order->update([
                 'status' => 'completed',
                 'payment_status' => $dueAmount <= 0 ? 1 : 0, // 1 = paid, 0 = partial/unpaid
@@ -1120,62 +1159,62 @@ class POSController extends Controller
                 'updated_by' => auth('admin')->id(),
             ]);
 
-            // Create CustomerPayment records for each payment method
-            foreach ($paymentTypes as $key => $paymentType) {
-                $amount = $payingAmounts[$key] ?? 0;
-                if ($amount <= 0) continue;
-
-                // Find the appropriate account
-                $account = null;
-                if ($paymentType === 'cash') {
-                    $account = Account::where('account_type', 'cash')->first();
-                } else {
-                    $accountId = $accountIds[$key] ?? null;
-                    if ($accountId) {
-                        $account = Account::find($accountId);
-                    } else {
-                        // Fallback: find first account of the type
-                        $account = Account::where('account_type', $paymentType)->first();
-                    }
-                }
-
-                if (!$account) {
-                    Log::warning("No account found for payment type: $paymentType");
-                    continue;
-                }
-
-                // Create CustomerPayment record
-                \Modules\Customer\app\Models\CustomerPayment::create([
-                    'sale_id' => $order->id,
-                    'customer_id' => $order->customer_id != 'walk-in-customer' ? $order->customer_id : null,
-                    'is_guest' => $order->customer_id == 'walk-in-customer' || !$order->customer_id ? 1 : 0,
-                    'account_id' => $account->id,
-                    'payment_type' => 'sale',
-                    'amount' => $amount,
-                    'payment_date' => now(),
-                    'is_received' => 1,
-                    'is_paid' => 0,
-                    'created_by' => auth('admin')->id(),
-                ]);
-            }
-
-            // Create CustomerDue record if there's remaining due amount
-            if ($dueAmount > 0 && $order->customer_id && $order->customer_id != 'walk-in-customer') {
-                \Modules\Customer\app\Models\CustomerDue::create([
-                    'invoice' => $order->invoice,
-                    'due_amount' => $dueAmount,
-                    'due_date' => now()->addDays(7),
-                    'status' => 1,
-                    'customer_id' => $order->customer_id,
-                ]);
-            }
-
-            // Release the seats from this order
+            // Release the table (critical - must succeed)
             if ($order->table) {
-                $order->table->releaseForSale($order);
+                $order->table->release();
             }
 
-            DB::commit();
+            // Create CustomerPayment records (optional - log errors but don't fail)
+            try {
+                foreach ($paymentTypes as $key => $paymentType) {
+                    $amount = $payingAmounts[$key] ?? 0;
+                    if ($amount <= 0) continue;
+
+                    // Find the appropriate account
+                    $account = null;
+                    if ($paymentType === 'cash') {
+                        $account = Account::where('account_type', 'cash')->first();
+                    } else {
+                        $accountId = $accountIds[$key] ?? null;
+                        if ($accountId) {
+                            $account = Account::find($accountId);
+                        } else {
+                            $account = Account::where('account_type', $paymentType)->first();
+                        }
+                    }
+
+                    if (!$account) {
+                        Log::warning("No account found for payment type: $paymentType");
+                        continue;
+                    }
+
+                    \Modules\Customer\app\Models\CustomerPayment::create([
+                        'sale_id' => $order->id,
+                        'customer_id' => $order->customer_id != 'walk-in-customer' ? $order->customer_id : null,
+                        'is_guest' => $order->customer_id == 'walk-in-customer' || !$order->customer_id ? 1 : 0,
+                        'account_id' => $account->id,
+                        'payment_type' => 'sale',
+                        'amount' => $amount,
+                        'payment_date' => now(),
+                        'is_received' => 1,
+                        'is_paid' => 0,
+                        'created_by' => auth('admin')->id(),
+                    ]);
+                }
+
+                // Create CustomerDue record if there's remaining due amount
+                if ($dueAmount > 0 && $order->customer_id && $order->customer_id != 'walk-in-customer') {
+                    \Modules\Customer\app\Models\CustomerDue::create([
+                        'invoice' => $order->invoice,
+                        'due_amount' => $dueAmount,
+                        'due_date' => now()->addDays(7),
+                        'status' => 1,
+                        'customer_id' => $order->customer_id,
+                    ]);
+                }
+            } catch (\Exception $paymentException) {
+                Log::warning('Payment record creation failed: ' . $paymentException->getMessage());
+            }
 
             // Generate POS receipt
             $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'payment.account'])->find($order->id);
@@ -1194,7 +1233,6 @@ class POSController extends Controller
                 'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error completing order: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
@@ -1217,9 +1255,9 @@ class POSController extends Controller
                 'updated_by' => auth('admin')->id(),
             ]);
 
-            // Release the seats from this order
+            // Fully release the table (free all seats for next order)
             if ($order->table) {
-                $order->table->releaseForSale($order);
+                $order->table->release(); // Release all seats
             }
 
             DB::commit();

@@ -228,11 +228,25 @@
                                     <div class="card-header">
                                         <form id="product_search_form" class="pos_pro_search_form w-100">
                                             <div class="row">
+                                                @if($posSettings->show_barcode)
+                                                <div class="col-12">
+                                                    <div class="form-group mb-2">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-primary text-white">
+                                                                <i class="fas fa-barcode"></i>
+                                                            </span>
+                                                            <input type="text" class="form-control" id="barcode_input"
+                                                                placeholder="{{ __('Scan Barcode') }}"
+                                                                autocomplete="off" autofocus>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endif
                                                 <div class="col-12">
                                                     <div class="form-group mb-2">
                                                         <input type="text" class="form-control" name="name"
                                                             id="name"
-                                                            placeholder="{{ __('Enter Menu Item name / SKU / Scan bar code') }}"
+                                                            placeholder="{{ __('Enter Menu Item name / SKU') }}"
                                                             autocomplete="off" value="{{ request()->get('name') }}">
                                                         <ul class="dropdown-menu" id="itemList">
                                                         </ul>
@@ -263,6 +277,7 @@
                     <div class="col-lg-7">
                         <div class="card">
                             <div class="card-header pos_sidebar_button">
+                                @if($posSettings->show_customer)
                                 <div class="row w-100">
                                     <div class="col-md-9 col-lg-10">
                                         <div class="form-group mb-2">
@@ -280,6 +295,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                                 <!-- Customer Loyalty Points Display -->
                                 <div class="row w-100 mt-2 d-none" id="customerLoyaltyRow">
                                     <div class="col-12">
@@ -383,6 +399,7 @@
                                                 <td> <span id="total">{{ currency($cumalitive_sub_total) }}</span>
                                                 </td>
                                             </tr>
+                                            @if($posSettings->show_discount)
                                             <tr>
                                                 <td> Extra <small class="text-info"></small> </td>
                                                 <td> <span id="extra">{{ currency(0) }}</span> </td>
@@ -420,6 +437,7 @@
                                                     <input type="hidden" value="0" id="business_vat">
                                                 </td>
                                             </tr>
+                                            @endif
                                             <tr class="pay-row">
                                                 <td colspan="3">
                                                     Total Payable
@@ -1085,10 +1103,77 @@
                         </div>
                     @endif
                 </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createTableModal">
+                        <i class="fas fa-plus me-2"></i>{{ __('New Table') }}
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="button" class="btn btn-primary" id="confirmTableSelection" disabled>
+                            <i class="fas fa-check me-2"></i>{{ __('Confirm Selection') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Table Modal -->
+    <div class="modal fade" id="createTableModal" tabindex="-1" role="dialog" aria-labelledby="createTableModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="createTableModalLabel">
+                        <i class="fas fa-plus-circle me-2"></i>{{ __('Create New Table') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quickCreateTableForm">
+                        <div class="mb-3">
+                            <label for="newTableName" class="form-label fw-bold">
+                                {{ __('Table Name') }} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="newTableName" placeholder="{{ __('e.g., Table 10, VIP 1') }}" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="newTableNumber" class="form-label fw-bold">
+                                    {{ __('Table Number') }}
+                                </label>
+                                <input type="text" class="form-control" id="newTableNumber" placeholder="{{ __('e.g., T10, V1') }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="newTableCapacity" class="form-label fw-bold">
+                                    {{ __('Capacity') }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" class="form-control" id="newTableCapacity" value="4" min="1" max="20" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="newTableShape" class="form-label fw-bold">
+                                    {{ __('Shape') }}
+                                </label>
+                                <select class="form-select" id="newTableShape">
+                                    <option value="square">{{ __('Square') }}</option>
+                                    <option value="round">{{ __('Round') }}</option>
+                                    <option value="rectangle">{{ __('Rectangle') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="newTableLocation" class="form-label fw-bold">
+                                    {{ __('Location') }}
+                                </label>
+                                <input type="text" class="form-control" id="newTableLocation" placeholder="{{ __('e.g., Main Hall, Patio') }}">
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                    <button type="button" class="btn btn-primary" id="confirmTableSelection" disabled>
-                        <i class="fas fa-check me-2"></i>{{ __('Confirm Selection') }}
+                    <button type="button" class="btn btn-success" id="saveNewTable">
+                        <i class="fas fa-save me-2"></i>{{ __('Create & Select') }}
                     </button>
                 </div>
             </div>
@@ -1164,10 +1249,12 @@
                         <label for="dineInWaiter" class="form-label fw-bold">
                             <i class="fas fa-user-tie me-1"></i>{{ __('Assign Waiter') }}
                         </label>
-                        <select class="form-select" id="dineInWaiter">
+                        <select class="form-control" id="dineInWaiter">
                             <option value="">{{ __('-- Select Waiter --') }}</option>
                             @foreach($waiters as $waiter)
-                                <option value="{{ $waiter->id }}">{{ $waiter->name }} @if($waiter->designation) ({{ $waiter->designation }}) @endif</option>
+                                <option value="{{ $waiter->id }}" data-image="{{ $waiter->image ? asset($waiter->image) : '' }}">
+                                    {{ $waiter->name }} @if($waiter->designation) ({{ $waiter->designation }}) @endif
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -1228,6 +1315,15 @@
 @push('js')
     <script src="{{ asset('backend/js/jquery-ui.min.js') }}"></script>
     <script>
+        // POS Settings
+        var posSettings = {
+            show_customer: {{ $posSettings->show_customer ? 'true' : 'false' }},
+            show_discount: {{ $posSettings->show_discount ? 'true' : 'false' }},
+            show_barcode: {{ $posSettings->show_barcode ? 'true' : 'false' }},
+            is_printable: {{ $posSettings->is_printable ? 'true' : 'false' }},
+            merge_cart_items: {{ $posSettings->merge_cart_items ? 'true' : 'false' }}
+        };
+
         $("[name='due_date']").datepicker('destroy');
         // load products
         (function($) {
@@ -1235,6 +1331,73 @@
             $(document).ready(function() {
                 totalSummery();
                 loadProudcts();
+
+                // Barcode Scanner Handler
+                @if($posSettings->show_barcode)
+                var barcodeBuffer = '';
+                var barcodeTimeout;
+
+                $('#barcode_input').on('keypress', function(e) {
+                    if (e.which === 13) { // Enter key
+                        e.preventDefault();
+                        var barcode = $(this).val().trim();
+                        if (barcode) {
+                            searchAndAddByBarcode(barcode);
+                            $(this).val('');
+                        }
+                    }
+                });
+
+                function searchAndAddByBarcode(barcode) {
+                    $.ajax({
+                        type: 'get',
+                        url: "{{ route('admin.load-products') }}",
+                        data: { name: barcode },
+                        success: function(response) {
+                            // Parse the response to find if there's an exact SKU match
+                            var $html = $(response);
+                            var $item = $html.find('.product-item[data-sku="' + barcode + '"]').first();
+
+                            if ($item.length > 0) {
+                                // Found exact match, add to cart
+                                var itemId = $item.data('id');
+                                addToCart(itemId);
+                            } else {
+                                // No exact match, try first item or show message
+                                var $firstItem = $html.find('.product-item').first();
+                                if ($firstItem.length > 0) {
+                                    var itemId = $firstItem.data('id');
+                                    addToCart(itemId);
+                                } else {
+                                    toastr.warning("{{ __('No item found with this barcode') }}");
+                                }
+                            }
+                            // Refocus the barcode input
+                            $('#barcode_input').focus();
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Error searching for item') }}");
+                            $('#barcode_input').focus();
+                        }
+                    });
+                }
+
+                function addToCart(itemId) {
+                    $.ajax({
+                        type: 'get',
+                        url: "{{ route('admin.add-to-cart') }}",
+                        data: { menu_item_id: itemId, qty: 1, serviceType: 'menu_item' },
+                        success: function(response) {
+                            $(".product-table-container").html(response);
+                            totalSummery();
+                            toastr.success("{{ __('Item added to cart') }}");
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Error adding item to cart') }}");
+                        }
+                    });
+                }
+                @endif
                 $("#flatpickr-date,[name='sale_date']").flatpickr({
                     dateFormat: "d-m-Y",
                 });
@@ -1321,13 +1484,16 @@
 
                 // Confirm Start Dine-In Order
                 $('#confirmStartDineIn').on('click', function() {
-                    if (!selectedTableData) {
+                    const tableId = selectedTableData ? selectedTableData.id : $('#table_id').val();
+                    const tableName = selectedTableData ? selectedTableData.name : $('#dineInTableName').text();
+
+                    if (!tableId) {
                         toastr.error("{{ __('Please select a table first') }}");
                         return;
                     }
 
                     const guestCount = parseInt($('#dineInGuestCount').val()) || 1;
-                    const maxGuests = selectedTableData.availableSeats;
+                    const maxGuests = selectedTableData ? selectedTableData.availableSeats : parseInt($('#dineInGuestCount').attr('max')) || 20;
 
                     if (guestCount > maxGuests) {
                         toastr.error("{{ __('Guest count exceeds available seats') }}");
@@ -1335,13 +1501,13 @@
                     }
 
                     // Set hidden input values
-                    $('#table_id').val(selectedTableData.id);
+                    $('#table_id').val(tableId);
                     $('#guest_count').val(guestCount);
                     $('#waiter_id').val($('#dineInWaiter').val());
                     $('#sale_note').val($('#dineInNote').val());
 
                     // Update button display
-                    $('#selectedTableText').html('<i class="fas fa-check-circle me-1"></i>' + selectedTableData.name);
+                    $('#selectedTableText').html('<i class="fas fa-check-circle me-1"></i>' + tableName);
                     $('#selectedTableSeats').text(guestCount + ' {{ __("guests") }}');
                     $('#selectedTableBadge').show();
                     $('#openTableModal').addClass('table-selected');
@@ -1349,11 +1515,139 @@
                     // Close modal
                     $('#startDineInModal').modal('hide');
 
-                    // Update payment button
-                    updatePaymentButtonState();
-
-                    toastr.success("{{ __('Table') }} " + selectedTableData.name + " {{ __('selected with') }} " + guestCount + " {{ __('guests') }}");
+                    // Check if cart has items - if yes, submit order immediately
+                    if ($('.product-table tbody > tr').length > 0) {
+                        submitDineInOrder(guestCount);
+                    } else {
+                        // Just save the selection, user will add items then click Payment
+                        updatePaymentButtonState();
+                        toastr.success("{{ __('Table') }} " + tableName + " {{ __('selected with') }} " + guestCount + " {{ __('guests') }}");
+                    }
                 });
+
+                // Initialize Select2 for waiter dropdown when modal opens
+                var waiterSelect2Initialized = false;
+                $('#startDineInModal').on('shown.bs.modal', function() {
+                    if (!waiterSelect2Initialized) {
+                        // Destroy if already exists
+                        if ($('#dineInWaiter').hasClass('select2-hidden-accessible')) {
+                            $('#dineInWaiter').select2('destroy');
+                        }
+                        $('#dineInWaiter').select2({
+                            dropdownParent: $('#startDineInModal'),
+                            placeholder: "{{ __('-- Select Waiter --') }}",
+                            allowClear: true,
+                            width: '100%',
+                            templateResult: formatWaiterOption,
+                            templateSelection: formatWaiterSelection
+                        });
+                        waiterSelect2Initialized = true;
+                    }
+                });
+
+                // Format waiter option with image
+                function formatWaiterOption(waiter) {
+                    if (!waiter.id) return waiter.text;
+                    var $option = $(waiter.element);
+                    var imageUrl = $option.data('image');
+                    if (imageUrl) {
+                        return $('<span><img src="' + imageUrl + '" class="rounded-circle me-2" style="width:30px;height:30px;object-fit:cover;" /> ' + waiter.text + '</span>');
+                    }
+                    return $('<span><i class="fas fa-user-circle me-2 text-muted" style="font-size:24px;"></i> ' + waiter.text + '</span>');
+                }
+
+                function formatWaiterSelection(waiter) {
+                    if (!waiter.id) return waiter.text;
+                    var $option = $(waiter.element);
+                    var imageUrl = $option.data('image');
+                    if (imageUrl) {
+                        return $('<span><img src="' + imageUrl + '" class="rounded-circle me-1" style="width:20px;height:20px;object-fit:cover;" /> ' + waiter.text + '</span>');
+                    }
+                    return waiter.text;
+                }
+
+                // Create New Table
+                $('#saveNewTable').on('click', function() {
+                    var tableName = $('#newTableName').val().trim();
+                    var tableNumber = $('#newTableNumber').val().trim() || tableName;
+                    var capacity = parseInt($('#newTableCapacity').val()) || 4;
+                    var shape = $('#newTableShape').val();
+                    var location = $('#newTableLocation').val().trim();
+
+                    if (!tableName) {
+                        toastr.error("{{ __('Please enter a table name') }}");
+                        return;
+                    }
+
+                    $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Creating...") }}');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ route('admin.tables.store') }}",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            name: tableName,
+                            table_number: tableNumber,
+                            capacity: capacity,
+                            shape: shape,
+                            location: location,
+                            status: 'available',
+                            is_active: 1
+                        },
+                        success: function(response) {
+                            toastr.success("{{ __('Table created successfully') }}");
+
+                            // Create new table card and add to grid
+                            var newTableHtml = `
+                                <div class="table-card available"
+                                     data-table-id="${response.id || response.table?.id}"
+                                     data-table-name="${tableName}"
+                                     data-table-capacity="${capacity}"
+                                     data-table-available-seats="${capacity}"
+                                     data-table-occupied-seats="0"
+                                     data-table-status="available"
+                                     onclick="selectTable(this)">
+                                    <div class="table-shape ${shape} seats-${Math.min(capacity, 8)}">
+                                        <div class="table-surface">
+                                            <span class="table-number">${tableNumber}</span>
+                                        </div>
+                                        ${generateChairs(capacity)}
+                                    </div>
+                                    <div class="table-info">
+                                        <strong>${tableName}</strong>
+                                        <small class="d-block text-success">
+                                            <i class="fas fa-users"></i> ${capacity} {{ __('seats') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            `;
+
+                            $('#tablesGrid').append(newTableHtml);
+
+                            // Auto-select the new table
+                            var newCard = $('#tablesGrid .table-card').last();
+                            selectTable(newCard[0]);
+
+                            // Close create modal
+                            $('#createTableModal').modal('hide');
+                            $('#quickCreateTableForm')[0].reset();
+                            $('#saveNewTable').prop('disabled', false).html('<i class="fas fa-save me-2"></i>{{ __("Create & Select") }}');
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || "{{ __('Error creating table') }}");
+                            $('#saveNewTable').prop('disabled', false).html('<i class="fas fa-save me-2"></i>{{ __("Create & Select") }}');
+                        }
+                    });
+                });
+
+                // Helper function to generate chair HTML
+                function generateChairs(capacity) {
+                    var chairs = '';
+                    for (var i = 0; i < Math.min(capacity, 8); i++) {
+                        chairs += '<div class="chair chair-' + (i + 1) + '"></div>';
+                    }
+                    return chairs;
+                }
 
                 // Adjust guest count with buttons
                 window.adjustGuestCount = function(delta) {
@@ -2541,7 +2835,10 @@
             loadRunningOrders();
         }
 
-        function loadRunningOrders() {
+        var currentRunningOrdersPage = 1;
+
+        function loadRunningOrders(page = 1) {
+            currentRunningOrdersPage = page;
             $('#running-orders-content').html(`
                 <div class="text-center py-5">
                     <i class="fas fa-spinner fa-spin fa-3x text-info"></i>
@@ -2552,6 +2849,7 @@
             $.ajax({
                 type: 'GET',
                 url: "{{ route('admin.pos.running-orders') }}",
+                data: { page: page },
                 success: function(response) {
                     if (response.success) {
                         $('#running-orders-content').html(response.html);
@@ -2595,6 +2893,12 @@
             });
         }
 
+        // Load specific page of running orders
+        function loadRunningOrdersPage(page) {
+            if (page < 1) return;
+            loadRunningOrders(page);
+        }
+
         function viewOrderDetails(orderId) {
             $('#running-orders-modal').modal('hide');
             $('#order-details-modal').modal('show');
@@ -2628,6 +2932,13 @@
                     `);
                 }
             });
+        }
+
+        // Back to running orders list from order details
+        function backToRunningOrders() {
+            $('#order-details-modal').modal('hide');
+            $('#running-orders-modal').modal('show');
+            loadRunningOrders(currentRunningOrdersPage);
         }
 
         // Update item quantity in running order
@@ -3003,11 +3314,19 @@
                         toastr.success(response.message);
                         $('#order-details-modal').modal('hide');
                         loadRunningOrdersCount();
+                        loadRunningOrders(); // Refresh running orders list
 
                         // Show POS receipt modal
                         $('#pos-receipt-body').html(response.receipt);
                         $('.receipt-full-invoice').attr('href', response.invoiceRoute);
                         $('#posReceiptModal').modal('show');
+
+                        // Auto-print if setting is enabled
+                        if (posSettings.is_printable) {
+                            setTimeout(function() {
+                                printPosReceipt();
+                            }, 500);
+                        }
                     } else {
                         toastr.error(response.message || "{{ __('Error completing order') }}");
                     }
@@ -3053,43 +3372,6 @@
                 </html>
             `);
             printWindow.document.close();
-        }
-
-        // Legacy function for backward compatibility
-        function completeRunningOrder(orderId, paymentData) {
-            $('.preloader_area').removeClass('d-none');
-
-            $.ajax({
-                type: 'POST',
-                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    payment_type: [paymentData.payment_method],
-                    account_id: [null],
-                    paying_amount: [paymentData.receive_amount],
-                    paid_amount: paymentData.receive_amount,
-                    receive_amount: paymentData.receive_amount
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        $('#order-details-modal').modal('hide');
-                        loadRunningOrdersCount();
-
-                        // Show POS receipt modal
-                        $('#pos-receipt-body').html(response.receipt);
-                        $('.receipt-full-invoice').attr('href', response.invoiceRoute);
-                        $('#posReceiptModal').modal('show');
-                    } else {
-                        toastr.error(response.message || "{{ __('Error completing order') }}");
-                    }
-                    $('.preloader_area').addClass('d-none');
-                },
-                error: function(xhr) {
-                    toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
-                    $('.preloader_area').addClass('d-none');
-                }
-            });
         }
 
         function cancelRunningOrder(orderId) {
@@ -3377,7 +3659,7 @@
             updatePointsRedemption();
         };
 
-        // Place dine-in order without payment
+        // Place dine-in order without payment - show Start Dine-In modal or submit if already configured
         function placeDineInOrder() {
             // Check if cart is empty
             if ($('.product-table tbody > tr').length == 0) {
@@ -3385,54 +3667,41 @@
                 return;
             }
 
-            // Get table name from selectedTableData or find from DOM
-            let tableName = selectedTableData ? selectedTableData.name : '';
-            let tableSeats = selectedTableData ? selectedTableData.capacity : '';
-
-            if (!tableName) {
-                // Fallback: get from the button text
-                tableName = $('#selectedTableText').text().replace(/^.*?(?=\w)/, '');
+            // Check if guest count was already set (meaning modal was completed before)
+            const existingGuestCount = parseInt($('#guest_count').val()) || 0;
+            if (existingGuestCount > 0) {
+                // Already configured, submit directly
+                submitDineInOrder(existingGuestCount);
+                return;
             }
 
-            // Get available seats for guest count limit
-            const availableSeats = selectedTableData ? (selectedTableData.availableSeats || tableSeats) : tableSeats;
+            // Get table info from selectedTableData or hidden inputs
+            let tableName = selectedTableData ? selectedTableData.name : $('#selectedTableText').text().replace(/^.*?(?=\w)/, '');
+            let tableSeats = selectedTableData ? selectedTableData.capacity : 4;
+            let availableSeats = selectedTableData ? selectedTableData.availableSeats : tableSeats;
+            let occupiedSeats = selectedTableData ? selectedTableData.occupiedSeats : 0;
 
-            // Confirm dine-in order with guest count input
-            Swal.fire({
-                title: "{{ __('Start Dine-In Order?') }}",
-                html: `
-                    <div class="text-start">
-                        <p class="mb-2"><i class="fas fa-utensils me-2 text-primary"></i>{{ __('Table:') }} <strong>${tableName}</strong></p>
-                        <p class="mb-2"><i class="fas fa-chair me-2 text-warning"></i>{{ __('Available Seats:') }} <strong>${availableSeats}</strong> / ${tableSeats}</p>
-                        <div class="mb-3">
-                            <label class="form-label"><i class="fas fa-users me-2 text-info"></i>{{ __('Number of Guests') }}</label>
-                            <input type="number" id="swal-guest-count" class="form-control" value="1" min="1" max="${availableSeats}" required>
-                            <small class="text-muted">{{ __('Maximum') }}: ${availableSeats} {{ __('guests') }}</small>
-                        </div>
-                        <p class="mb-2"><i class="fas fa-user me-2 text-info"></i>{{ __('Customer:') }} <strong>${$('#customer_id option:selected').text() || 'Walk-in Customer'}</strong></p>
-                        <p class="mb-0"><i class="fas fa-money-bill me-2 text-success"></i>{{ __('Total:') }} <strong>${$('#finalTotal').text()}</strong></p>
-                    </div>
-                    <hr>
-                    <p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i>{{ __('Payment will be collected after the customer finishes eating.') }}</p>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                confirmButtonText: "<i class='fas fa-play-circle me-1'></i>{{ __('Start Order') }}",
-                cancelButtonText: "{{ __('Cancel') }}",
-                preConfirm: () => {
-                    const guestCount = parseInt(document.getElementById('swal-guest-count').value) || 1;
-                    if (guestCount < 1 || guestCount > availableSeats) {
-                        Swal.showValidationMessage(`{{ __('Please enter a valid number of guests (1-') }}${availableSeats})`);
-                        return false;
-                    }
-                    return { guestCount: guestCount };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    submitDineInOrder(result.value.guestCount);
-                }
-            });
+            // Populate Start Dine-In modal
+            $('#dineInTableName').text(tableName);
+            $('#dineInTableCapacity').text(tableSeats);
+
+            // Show available seats if partially occupied
+            if (occupiedSeats > 0) {
+                $('#dineInAvailableSeats').html('<span class="badge bg-warning text-dark">' + availableSeats + ' {{ __("available") }}</span>');
+            } else {
+                $('#dineInAvailableSeats').html('<span class="badge bg-success">{{ __("All available") }}</span>');
+            }
+
+            // Set max guest count based on available seats
+            $('#dineInGuestCount').attr('max', availableSeats).val(1);
+            $('#guestCountHint').text("{{ __('Maximum') }}: " + availableSeats + " {{ __('guests') }}");
+
+            // Reset other fields
+            $('#dineInWaiter').val('').trigger('change');
+            $('#dineInNote').val('');
+
+            // Show Start Dine-In modal
+            $('#startDineInModal').modal('show');
         }
 
         // Submit dine-in order
@@ -3441,6 +3710,8 @@
             const tableId = $('#table_id').val();
             const discountAmount = $('#discount_total_amount').val() || 0;
             const discountType = $('#discount_type').val();
+            const waiterId = $('#dineInWaiter').val() || $('#waiter_id').val() || '';
+            const saleNote = $('#dineInNote').val() || $('#sale_note').val() || '';
 
             $('.preloader_area').removeClass('d-none');
 
@@ -3459,6 +3730,8 @@
                     order_type: 'dine_in',
                     table_id: tableId,
                     guest_count: guestCount,
+                    waiter_id: waiterId,
+                    sale_note: saleNote,
                     defer_payment: 1,
                     discount_amount: discountAmount,
                     discount_type: discountType,
