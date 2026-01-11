@@ -57,19 +57,9 @@ class LoyaltyProgram extends Model
         return $this->hasMany(LoyaltyRule::class, 'loyalty_program_id');
     }
 
-    public function customers(): HasMany
-    {
-        return $this->hasMany(LoyaltyCustomer::class, 'loyalty_program_id');
-    }
-
     public function segments(): HasMany
     {
         return $this->hasMany(LoyaltyCustomerSegment::class, 'loyalty_program_id');
-    }
-
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(LoyaltyTransaction::class, 'loyalty_program_id');
     }
 
     /**

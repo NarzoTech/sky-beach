@@ -45,16 +45,11 @@ Route::middleware(['auth:admin'])->prefix('admin')->group(function () {
     ]);
     Route::post('membership/rules/priorities', [LoyaltyRuleController::class, 'updatePriorities'])->name('membership.rules.updatePriorities');
 
-    // Customers - specific routes BEFORE resource
+    // Customers - specific routes BEFORE resource (only index and show are implemented)
     Route::get('membership/customers/export', [LoyaltyCustomerController::class, 'export'])->name('membership.customers.export');
-    Route::resource('membership/customers', LoyaltyCustomerController::class)->names([
+    Route::resource('membership/customers', LoyaltyCustomerController::class, ['only' => ['index', 'show']])->names([
         'index'   => 'membership.customers.index',
-        'create'  => 'membership.customers.create',
-        'store'   => 'membership.customers.store',
         'show'    => 'membership.customers.show',
-        'edit'    => 'membership.customers.edit',
-        'update'  => 'membership.customers.update',
-        'destroy' => 'membership.customers.destroy',
     ]);
     Route::post('membership/customers/{customer}/adjust-points', [LoyaltyCustomerController::class, 'adjustPoints'])->name('membership.customers.adjustPoints');
     Route::post('membership/customers/{customer}/block', [LoyaltyCustomerController::class, 'block'])->name('membership.customers.block');

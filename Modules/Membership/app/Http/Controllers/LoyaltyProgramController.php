@@ -32,11 +32,7 @@ class LoyaltyProgramController extends Controller
      */
     public function create(): View
     {
-        $warehouses = \App\Models\Warehouse::all();
-
-        return view('membership::programs.create', [
-            'warehouses' => $warehouses,
-        ]);
+        return view('membership::programs.create');
     }
 
     /**
@@ -81,11 +77,8 @@ class LoyaltyProgramController extends Controller
      */
     public function edit(LoyaltyProgram $program): View
     {
-        $warehouses = \App\Models\Warehouse::all();
-
         return view('membership::programs.edit', [
             'program' => $program,
-            'warehouses' => $warehouses,
         ]);
     }
 

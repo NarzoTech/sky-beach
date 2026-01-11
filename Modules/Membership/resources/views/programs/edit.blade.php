@@ -32,6 +32,7 @@
                                     {{ __('Per Amount') }}
                                 </option>
                             </select>
+                            <small class="text-muted">{{ __('Per Transaction: Fixed points per sale. Per Amount: Points based on spend amount.') }}</small>
                             @error('earning_type')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -50,6 +51,7 @@
                         <div class="form-group">
                             <label for="earning_rate">{{ __('Earning Rate') }} <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" name="earning_rate" id="earning_rate" class="form-control" value="{{ old('earning_rate', $program->earning_rate) }}" required>
+                            <small class="text-muted">{{ __('Points earned per transaction or per unit amount (e.g., 1 point per 100 TK)') }}</small>
                             @error('earning_rate')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -59,6 +61,7 @@
                         <div class="form-group">
                             <label for="min_transaction_amount">{{ __('Minimum Transaction Amount') }}</label>
                             <input type="number" step="0.01" name="min_transaction_amount" id="min_transaction_amount" class="form-control" value="{{ old('min_transaction_amount', $program->min_transaction_amount) }}">
+                            <small class="text-muted">{{ __('Minimum purchase amount required to earn points (0 = no minimum)') }}</small>
                             @error('min_transaction_amount')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -78,6 +81,7 @@
                                     {{ __('Cashback') }}
                                 </option>
                             </select>
+                            <small class="text-muted">{{ __('How customers can use their points') }}</small>
                             @error('redemption_type')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -87,6 +91,7 @@
                         <div class="form-group">
                             <label for="points_per_unit">{{ __('Points Per Unit') }} <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" name="points_per_unit" id="points_per_unit" class="form-control" value="{{ old('points_per_unit', $program->points_per_unit) }}" required>
+                            <small class="text-muted">{{ __('Points needed for 1 TK redemption value (e.g., 10 = 10 points per 1 TK)') }}</small>
                             @error('points_per_unit')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -95,6 +100,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="switch switch-square">
+                                <input type="hidden" name="is_active" value="0">
                                 <input type="checkbox" name="is_active" class="switch-input" value="1" {{ old('is_active', $program->is_active) ? 'checked' : '' }}>
                                 <span class="switch-toggle-slider">
                                     <span class="switch-on"><i class="bx bx-check"></i></span>
@@ -113,3 +119,28 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        function toggleMinTransactionAmount() {
+            var earningType = $('#earning_type').val();
+            var minTransactionField = $('#min_transaction_amount').closest('.col-md-6');
+
+            if (earningType === 'per_transaction') {
+                minTransactionField.hide();
+            } else {
+                minTransactionField.show();
+            }
+        }
+
+        // Initial check
+        toggleMinTransactionAmount();
+
+        // On change
+        $('#earning_type').on('change', function() {
+            toggleMinTransactionAmount();
+        });
+    });
+</script>
+@endpush
