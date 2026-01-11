@@ -20,10 +20,23 @@ use Modules\Menu\app\Models\MenuVariant;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
 use Modules\Service\app\Models\Service;
+use Modules\Membership\app\Services\LoyaltyService;
+use Modules\Membership\app\Models\LoyaltyCustomer;
+use Modules\TableManagement\app\Models\RestaurantTable;
 
 class SaleService
 {
-    public function __construct(private Sale $sale) {}
+    protected $loyaltyService;
+
+    public function __construct(private Sale $sale)
+    {
+        // Try to resolve LoyaltyService if available
+        try {
+            $this->loyaltyService = app(LoyaltyService::class);
+        } catch (\Exception $e) {
+            $this->loyaltyService = null;
+        }
+    }
 
     private function parseDate($date)
     {
@@ -60,32 +73,85 @@ class SaleService
         $sale->quantity = 1;
         $sale->total_price = $request->sub_total;
         $sale->order_date = Carbon::createFromFormat('d-m-Y', $request->sale_date);
-        $sale->status = 1;
         $sale->order_type = $request->order_type ?? Sale::ORDER_TYPE_DINE_IN;
         $sale->table_id = $request->table_id;
         $sale->delivery_address = $request->delivery_address;
         $sale->delivery_phone = $request->delivery_phone;
         $sale->delivery_notes = $request->delivery_notes;
-        $sale->payment_status = 1;
 
-        $sale->payment_method = json_encode($request->payment_type);
+        // For dine-in orders, defer payment (status = processing, payment_status = unpaid)
+        $isDineIn = $sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->table_id;
+        $deferPayment = $request->defer_payment ?? $isDineIn;
+
+        if ($deferPayment) {
+            $sale->status = 'processing';
+            $sale->payment_status = 0; // Unpaid
+            $sale->payment_method = null;
+            $sale->paid_amount = 0;
+            $sale->receive_amount = 0;
+            $sale->return_amount = 0;
+            $sale->due_amount = $request->total_amount;
+        } else {
+            $sale->status = 'completed';
+            $sale->payment_status = 1; // Paid
+            $sale->payment_method = json_encode($request->payment_type);
+            $sale->paid_amount = array_sum($request->paying_amount ?? [0]);
+            $sale->receive_amount = $request->receive_amount;
+            $sale->return_amount = $request->return_amount;
+            $due = $request->total_amount - array_sum($request->paying_amount ?? [0]);
+            $sale->due_amount = $due < 0 ? 0 : $due;
+        }
+
         $sale->order_discount = $request->discount_amount;
         $sale->total_tax = $request->total_tax ?? 0;
         $sale->grand_total = $request->total_amount;
         $sale->invoice = $this->genInvoiceNumber();
-
-        $sale->paid_amount = array_sum($request->paying_amount);
-        $sale->receive_amount = $request->receive_amount;
-        $sale->return_amount = $request->return_amount;
-        $due = $request->total_amount - array_sum($request->paying_amount);
-        $sale->due_amount = $due < 0 ? 0 : $due;
         $sale->due_date = $request->due_date ? $this->parseDate($request->due_date) : null;
         $sale->sale_note = $request->remark;
+
+        // Loyalty points redemption
+        $pointsToRedeem = $request->points_to_redeem ?? $request->points_redeemed ?? 0;
+        $sale->points_redeemed = $pointsToRedeem;
+        $sale->points_discount = $request->points_discount ?? 0;
+        $sale->loyalty_customer_id = $request->loyalty_customer_id ?: null;
+
         $sale->created_by = auth('admin')->id();
         $sale->save();
 
+        // Mark table as occupied for dine-in orders
+        if ($sale->table_id && $sale->order_type === Sale::ORDER_TYPE_DINE_IN) {
+            try {
+                $table = RestaurantTable::find($sale->table_id);
+                if ($table) {
+                    $table->occupy($sale);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error occupying table: ' . $e->getMessage());
+            }
+        }
+
+        // Process loyalty points redemption if applicable
+        if ($pointsToRedeem > 0 && $sale->loyalty_customer_id && $this->loyaltyService) {
+            try {
+                $loyaltyCustomer = LoyaltyCustomer::find($sale->loyalty_customer_id);
+                if ($loyaltyCustomer) {
+                    $this->loyaltyService->handleRedemption($loyaltyCustomer->phone, 1, [
+                        'points' => $pointsToRedeem,
+                        'redemption_type' => 'discount',
+                        'value' => $sale->points_discount,
+                        'sale_id' => $sale->id,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error redeeming loyalty points for sale #' . $sale->id . ': ' . $e->getMessage());
+            }
+        }
+
 
         $totalQty = 0;
+
+        // Ensure cart is an array
+        $cart = $cart ?? [];
 
         foreach ($cart as $item) {
             $totalQty += $item['qty'];
@@ -216,31 +282,39 @@ class SaleService
         // Update COGS totals on the sale
         $this->updateSaleCOGSTotals($sale);
 
-        // create payments
-        foreach ($request->payment_type as $key => $item) {
-            $account = Account::where('account_type', $item);
-            if ($item == 'cash') {
-                $account = $account->first();
-            } else {
-                $account = $account->where('id', $request->account_id[$key])->first();
-            }
-            $customerId = $request->order_customer_id;
-            $data = [
-                'payment_type' => 'sale',
-                'sale_id' => $sale->id,
-                'is_received' => 1,
-                'customer_id' => $request->order_customer_id,
-                'account_id' => $account->id,
-                'amount' => $request->paying_amount[$key],
-                'payment_date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
-                'created_by' => auth('admin')->user()->id,
-            ];
-            if ($customerId == 'walk-in-customer') {
-                $data['customer_id'] = null;
-                $data['is_guest'] = 1;
-            }
-            if ($request->paying_amount[$key]) {
-                CustomerPayment::create($data);
+        // create payments (skip for deferred payment orders)
+        $paymentTypes = $request->payment_type ?? [];
+        if (!empty($paymentTypes) && is_array($paymentTypes)) {
+            foreach ($paymentTypes as $key => $item) {
+                if (empty($item)) continue;
+
+                $account = Account::where('account_type', $item);
+                if ($item == 'cash') {
+                    $account = $account->first();
+                } else {
+                    $account = $account->where('id', $request->account_id[$key] ?? null)->first();
+                }
+
+                if (!$account) continue;
+
+                $customerId = $request->order_customer_id;
+                $data = [
+                    'payment_type' => 'sale',
+                    'sale_id' => $sale->id,
+                    'is_received' => 1,
+                    'customer_id' => $request->order_customer_id,
+                    'account_id' => $account->id,
+                    'amount' => $request->paying_amount[$key] ?? 0,
+                    'payment_date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
+                    'created_by' => auth('admin')->user()->id,
+                ];
+                if ($customerId == 'walk-in-customer') {
+                    $data['customer_id'] = null;
+                    $data['is_guest'] = 1;
+                }
+                if (!empty($request->paying_amount[$key])) {
+                    CustomerPayment::create($data);
+                }
             }
         }
 

@@ -202,6 +202,7 @@ class LoyaltyService
         }
 
         return [
+            'customer_id' => $customer->id,
             'phone' => $customer->phone,
             'total_points' => $customer->total_points,
             'available_points' => $customer->total_points,

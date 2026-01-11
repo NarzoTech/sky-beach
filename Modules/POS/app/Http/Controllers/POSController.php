@@ -31,17 +31,21 @@ use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
 use Modules\TableManagement\app\Models\RestaurantTable;
 use Modules\Sales\app\Models\Sale;
+use Modules\Membership\app\Services\LoyaltyService;
+use Modules\Membership\app\Models\LoyaltyProgram;
 
 class POSController extends Controller
 {
     protected $menuItemService;
     protected $orderService;
+    protected $loyaltyService;
 
-    public function __construct(private UserGroupService $userGroup, MenuItemService $menuItemService, OrderService $orderService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services)
+    public function __construct(private UserGroupService $userGroup, MenuItemService $menuItemService, OrderService $orderService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services, LoyaltyService $loyaltyService)
     {
         $this->middleware('auth:admin');
         $this->menuItemService = $menuItemService;
         $this->orderService = $orderService;
+        $this->loyaltyService = $loyaltyService;
     }
     /**
      * Display a listing of the resource.
@@ -118,6 +122,19 @@ class POSController extends Controller
             // Tables module might not be installed yet
         }
 
+        // Load active loyalty program
+        $loyaltyProgram = null;
+        try {
+            $loyaltyProgram = LoyaltyProgram::where('is_active', 1)->first();
+        } catch (\Exception $e) {
+            // Membership module might not be installed
+        }
+
+        // Check if we're editing an existing order
+        $editingOrderId = session('EDITING_ORDER_ID');
+        $editingTableId = session('EDITING_TABLE_ID');
+        $editingTableName = session('EDITING_TABLE_NAME');
+
         return view('pos::index')->with([
             'menuItems' => $menuItems,
             'categories' => $categories,
@@ -130,6 +147,10 @@ class POSController extends Controller
             'cart_holds' => $cart_holds,
             'serviceCategories' => $serviceCategories,
             'availableTables' => $availableTables,
+            'loyaltyProgram' => $loyaltyProgram,
+            'editingOrderId' => $editingOrderId,
+            'editingTableId' => $editingTableId,
+            'editingTableName' => $editingTableName,
         ]);
     }
 
@@ -401,6 +422,11 @@ class POSController extends Controller
 
         session()->put($cartName, []);
 
+        // Clear editing session variables
+        session()->forget('EDITING_ORDER_ID');
+        session()->forget('EDITING_TABLE_ID');
+        session()->forget('EDITING_TABLE_NAME');
+
         $notification = trans('Cart clear successfully');
         $notification = array('messege' => $notification, 'alert-type' => 'success');
         return redirect()->back()->with($notification);
@@ -451,10 +477,13 @@ class POSController extends Controller
     public function place_order(Request $request)
     {
         checkAdminHasPermissionAndThrowException('sales.create');
-        if (session('POSCART') != null && count(session('POSCART')) == 0) {
-            $notification = trans('Your cart is empty!');
-            $notification = array('messege' => $notification, 'alert-type' => 'error');
-            return redirect()->back()->with($notification);
+
+        $cart = session('POSCART');
+        if (empty($cart) || count($cart) == 0) {
+            return response()->json([
+                'message' => trans('Your cart is empty!'),
+                'alert-type' => 'error'
+            ], 400);
         }
 
         $user = null;
@@ -475,17 +504,38 @@ class POSController extends Controller
             $order_result = $this->orderStore($user, $request);
             $sale = $this->saleService->getSales()->find($order_result->id);
 
+            DB::commit();
+
+            // For dine-in deferred payment, don't generate invoice
+            $isDeferredPayment = $request->defer_payment ||
+                ($sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->payment_status == 0);
+
+            if ($isDeferredPayment) {
+                return response()->json([
+                    'order' => $order_result,
+                    'invoice' => null,
+                    'invoiceRoute' => null,
+                    'is_deferred' => true,
+                    'table_name' => $sale->table?->name,
+                    'message' => __('Dine-in order started successfully'),
+                    'alert-type' => 'success',
+                ], 200);
+            }
+
+            // Generate invoice for paid orders
             $invoiceBlade = view('sales::invoice-content')->with([
                 'sale' => $sale,
+                'details' => $sale->details,
             ])->render();
 
             $invoiceRoute = route('admin.sales.invoice', $order_result->id) . '?print=true';
-            DB::commit();
+
             return response()->json([
                 'order' => $order_result,
                 'invoice' => $invoiceBlade,
                 'invoiceRoute' => $invoiceRoute,
-                'message' => 'Sale created successfully',
+                'is_deferred' => false,
+                'message' => __('Sale created successfully'),
                 'alert-type' => 'success',
             ], 200);
         } catch (Exception $ex) {
@@ -770,31 +820,12 @@ class POSController extends Controller
 
             // Store the order ID in session for later reference
             session()->put('EDITING_ORDER_ID', $order->id);
+            session()->put('EDITING_TABLE_ID', $order->table_id);
+            session()->put('EDITING_TABLE_NAME', $order->table->name ?? 'N/A');
 
-            // Clear and populate cart with existing order items
-            $cart = [];
-            foreach ($order->details as $detail) {
-                $rowId = uniqid();
-                $cart[$rowId] = [
-                    'rowid' => $rowId,
-                    'id' => $detail->menu_item_id ?? $detail->service_id,
-                    'name' => $detail->menuItem->name ?? ($detail->service->name ?? 'Unknown'),
-                    'type' => $detail->menu_item_id ? 'menu_item' : 'service',
-                    'image' => $detail->menuItem->image_url ?? '',
-                    'qty' => $detail->quantity,
-                    'price' => $detail->price,
-                    'sub_total' => $detail->sub_total ?? ($detail->quantity * $detail->price),
-                    'sku' => $detail->menuItem->sku ?? '',
-                    'unit' => '-',
-                    'source' => $detail->source ?? 1,
-                    'purchase_price' => $detail->purchase_price ?? ($detail->menuItem->cost_price ?? 0),
-                    'selling_price' => $detail->selling_price ?? $detail->price,
-                    'variant_id' => $detail->variant_id,
-                    'original_detail_id' => $detail->id,
-                ];
-            }
-
-            session()->put('UPDATE_CART', $cart);
+            // Clear and populate POSCART with existing order items for display
+            // We use empty cart so user can add NEW items only
+            session()->put('POSCART', []);
 
             return response()->json([
                 'success' => true,
@@ -819,6 +850,81 @@ class POSController extends Controller
         DB::beginTransaction();
         try {
             $order = Sale::with('details')->findOrFail($id);
+
+            // Check if adding from POSCART (new items only)
+            if ($request->add_from_cart) {
+                $cart = session()->get('POSCART', []);
+
+                if (empty($cart)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No items in cart'
+                    ], 400);
+                }
+
+                // Add new items from cart to the order
+                $addedQuantity = 0;
+                $addedPrice = 0;
+                $addedCogs = 0;
+
+                foreach ($cart as $item) {
+                    $menuItem = null;
+                    if ($item['type'] === 'menu_item') {
+                        $menuItem = MenuItem::find($item['id']);
+                    }
+
+                    // Create new order detail
+                    \Modules\Sales\app\Models\ProductSale::create([
+                        'sale_id' => $order->id,
+                        'menu_item_id' => $item['type'] === 'menu_item' ? $item['id'] : null,
+                        'service_id' => $item['type'] === 'service' ? $item['id'] : null,
+                        'product_sku' => $menuItem?->sku ?? '',
+                        'variant_id' => $item['variant_id'] ?? null,
+                        'attributes' => isset($item['variant']) ? ($item['variant']['attribute'] ?? null) : null,
+                        'price' => $item['price'],
+                        'selling_price' => $item['selling_price'] ?? $item['price'],
+                        'purchase_price' => $item['purchase_price'] ?? 0,
+                        'quantity' => $item['qty'],
+                        'base_quantity' => $item['qty'],
+                        'sub_total' => $item['qty'] * $item['price'],
+                        'source' => $item['source'] ?? 1,
+                    ]);
+
+                    $addedQuantity += $item['qty'];
+                    $addedPrice += $item['qty'] * $item['price'];
+                    $addedCogs += $item['qty'] * ($item['purchase_price'] ?? 0);
+                }
+
+                // Update order totals
+                $newTotalPrice = $order->total_price + $addedPrice;
+                $newGrandTotal = $newTotalPrice - ($order->order_discount ?? 0) + ($order->total_tax ?? 0);
+
+                $order->update([
+                    'quantity' => $order->quantity + $addedQuantity,
+                    'total_price' => $newTotalPrice,
+                    'grand_total' => $newGrandTotal,
+                    'due_amount' => $newGrandTotal - ($order->paid_amount ?? 0),
+                    'total_cogs' => ($order->total_cogs ?? 0) + $addedCogs,
+                    'gross_profit' => $newGrandTotal - (($order->total_cogs ?? 0) + $addedCogs),
+                    'updated_by' => auth('admin')->id(),
+                ]);
+
+                // Clear the cart and editing session
+                session()->forget('POSCART');
+                session()->forget('EDITING_ORDER_ID');
+                session()->forget('EDITING_TABLE_ID');
+                session()->forget('EDITING_TABLE_NAME');
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Items added to order successfully'),
+                    'order' => $order->fresh(['details', 'table'])
+                ]);
+            }
+
+            // Original logic for UPDATE_CART
             $cart = session()->get('UPDATE_CART', []);
 
             if (empty($cart)) {
@@ -890,6 +996,8 @@ class POSController extends Controller
             // Clear the update cart
             session()->forget('UPDATE_CART');
             session()->forget('EDITING_ORDER_ID');
+            session()->forget('EDITING_TABLE_ID');
+            session()->forget('EDITING_TABLE_NAME');
 
             DB::commit();
 
@@ -915,21 +1023,77 @@ class POSController extends Controller
     {
         DB::beginTransaction();
         try {
-            $order = Sale::with(['table', 'details'])->findOrFail($id);
+            $order = Sale::with(['table', 'details', 'customer'])->findOrFail($id);
 
-            // Update payment information
-            $paidAmount = $request->paid_amount ?? $order->grand_total;
-            $dueAmount = $order->grand_total - $paidAmount;
+            // Calculate payment totals
+            $paymentTypes = $request->payment_type ?? ['cash'];
+            $accountIds = $request->account_id ?? [null];
+            $payingAmounts = $request->paying_amount ?? [$order->grand_total];
 
+            $totalPaid = array_sum($payingAmounts);
+            $dueAmount = max(0, $order->grand_total - $totalPaid);
+
+            // Update order payment information
             $order->update([
                 'status' => 'completed',
-                'payment_status' => $dueAmount <= 0 ? 'paid' : 'partial',
-                'payment_method' => $request->payment_method ?? ['cash'],
-                'paid_amount' => $paidAmount,
-                'due_amount' => max(0, $dueAmount),
-                'receive_amount' => $request->receive_amount ?? $paidAmount,
+                'payment_status' => $dueAmount <= 0 ? 1 : 0, // 1 = paid, 0 = partial/unpaid
+                'payment_method' => json_encode($paymentTypes),
+                'paid_amount' => $totalPaid,
+                'due_amount' => $dueAmount,
+                'receive_amount' => $request->receive_amount ?? $totalPaid,
+                'return_amount' => $request->return_amount ?? 0,
                 'updated_by' => auth('admin')->id(),
             ]);
+
+            // Create CustomerPayment records for each payment method
+            foreach ($paymentTypes as $key => $paymentType) {
+                $amount = $payingAmounts[$key] ?? 0;
+                if ($amount <= 0) continue;
+
+                // Find the appropriate account
+                $account = null;
+                if ($paymentType === 'cash') {
+                    $account = Account::where('account_type', 'cash')->first();
+                } else {
+                    $accountId = $accountIds[$key] ?? null;
+                    if ($accountId) {
+                        $account = Account::find($accountId);
+                    } else {
+                        // Fallback: find first account of the type
+                        $account = Account::where('account_type', $paymentType)->first();
+                    }
+                }
+
+                if (!$account) {
+                    Log::warning("No account found for payment type: $paymentType");
+                    continue;
+                }
+
+                // Create CustomerPayment record
+                \Modules\Customer\app\Models\CustomerPayment::create([
+                    'sale_id' => $order->id,
+                    'customer_id' => $order->customer_id != 'walk-in-customer' ? $order->customer_id : null,
+                    'is_guest' => $order->customer_id == 'walk-in-customer' || !$order->customer_id ? 1 : 0,
+                    'account_id' => $account->id,
+                    'payment_type' => 'sale',
+                    'amount' => $amount,
+                    'payment_date' => now(),
+                    'is_received' => 1,
+                    'is_paid' => 0,
+                    'created_by' => auth('admin')->id(),
+                ]);
+            }
+
+            // Create CustomerDue record if there's remaining due amount
+            if ($dueAmount > 0 && $order->customer_id && $order->customer_id != 'walk-in-customer') {
+                \Modules\Customer\app\Models\CustomerDue::create([
+                    'invoice' => $order->invoice,
+                    'due_amount' => $dueAmount,
+                    'due_date' => now()->addDays(7),
+                    'status' => 1,
+                    'customer_id' => $order->customer_id,
+                ]);
+            }
 
             // Release the table
             if ($order->table) {
@@ -942,11 +1106,12 @@ class POSController extends Controller
             $sale = $this->saleService->getSales()->find($order->id);
             $invoiceBlade = view('sales::invoice-content')->with([
                 'sale' => $sale,
+                'details' => $sale->details,
             ])->render();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order completed successfully',
+                'message' => __('Order completed successfully'),
                 'invoice' => $invoiceBlade,
                 'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
             ]);
@@ -991,6 +1156,370 @@ class POSController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error cancelling order'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update item quantity in a running order
+     */
+    public function updateOrderItemQty($id, Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::findOrFail($id);
+            $detailId = $request->detail_id;
+            $quantity = max(1, intval($request->quantity));
+
+            $detail = \Modules\Sales\app\Models\ProductSale::where('sale_id', $id)
+                ->where('id', $detailId)
+                ->firstOrFail();
+
+            $oldSubtotal = $detail->sub_total;
+            $newSubtotal = $detail->price * $quantity;
+
+            $detail->update([
+                'quantity' => $quantity,
+                'base_quantity' => $quantity,
+                'sub_total' => $newSubtotal,
+            ]);
+
+            // Update order totals
+            $totalDiff = $newSubtotal - $oldSubtotal;
+            $order->update([
+                'total_price' => $order->total_price + $totalDiff,
+                'grand_total' => $order->grand_total + $totalDiff,
+                'due_amount' => $order->due_amount + $totalDiff,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Quantity updated'),
+                'new_subtotal' => currency($newSubtotal),
+                'order_total' => currency($order->fresh()->grand_total),
+                'order_subtotal' => currency($order->fresh()->total_price),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating item quantity: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating quantity'
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove item from a running order
+     */
+    public function removeOrderItem($id, Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::findOrFail($id);
+            $detailId = $request->detail_id;
+
+            $detail = \Modules\Sales\app\Models\ProductSale::where('sale_id', $id)
+                ->where('id', $detailId)
+                ->firstOrFail();
+
+            $subtotalToRemove = $detail->sub_total;
+
+            // Delete the item
+            $detail->delete();
+
+            // Update order totals
+            $order->update([
+                'total_price' => $order->total_price - $subtotalToRemove,
+                'grand_total' => $order->grand_total - $subtotalToRemove,
+                'due_amount' => max(0, $order->due_amount - $subtotalToRemove),
+            ]);
+
+            // Check if order has no items left
+            $remainingItems = \Modules\Sales\app\Models\ProductSale::where('sale_id', $id)->count();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Item removed'),
+                'order_total' => currency($order->fresh()->grand_total),
+                'order_subtotal' => currency($order->fresh()->total_price),
+                'items_remaining' => $remainingItems,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error removing item: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing item'
+            ], 500);
+        }
+    }
+
+    /**
+     * Add item to a running order
+     */
+    public function addOrderItem($id, Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $order = Sale::findOrFail($id);
+
+            $menuItemId = $request->menu_item_id;
+            $quantity = max(1, intval($request->quantity ?? 1));
+            $price = $request->price;
+            $variantId = $request->variant_id;
+
+            $menuItem = \Modules\Menu\app\Models\MenuItem::findOrFail($menuItemId);
+
+            if (!$price) {
+                $price = $menuItem->price;
+                if ($variantId) {
+                    $variant = \Modules\Menu\app\Models\MenuVariant::find($variantId);
+                    if ($variant) {
+                        $price = $variant->price;
+                    }
+                }
+            }
+
+            $subTotal = $price * $quantity;
+
+            // Create new order detail
+            $detail = \Modules\Sales\app\Models\ProductSale::create([
+                'sale_id' => $order->id,
+                'menu_item_id' => $menuItem->id,
+                'product_sku' => $menuItem->sku,
+                'variant_id' => $variantId,
+                'price' => $price,
+                'selling_price' => $price,
+                'quantity' => $quantity,
+                'base_quantity' => $quantity,
+                'sub_total' => $subTotal,
+                'source' => 1,
+            ]);
+
+            // Update order totals
+            $order->update([
+                'total_price' => $order->total_price + $subTotal,
+                'grand_total' => $order->grand_total + $subTotal,
+                'due_amount' => $order->due_amount + $subTotal,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Item added'),
+                'item_name' => $menuItem->name,
+                'order_total' => currency($order->fresh()->grand_total),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error adding item: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error adding item: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get customer loyalty info by phone
+     */
+    public function getCustomerLoyalty(Request $request)
+    {
+        try {
+            $phone = $request->phone;
+            $customerId = $request->customer_id;
+
+            if (!$phone && $customerId && $customerId != 'walk-in-customer') {
+                $user = User::find($customerId);
+                $phone = $user?->phone;
+            }
+
+            if (!$phone) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Phone number required'
+                ]);
+            }
+
+            $loyaltyInfo = $this->loyaltyService->getCustomerBalance($phone);
+
+            if (!$loyaltyInfo) {
+                // Customer not enrolled in loyalty program
+                return response()->json([
+                    'success' => true,
+                    'enrolled' => false,
+                    'customer' => null,
+                    'message' => 'Customer not enrolled in loyalty program'
+                ]);
+            }
+
+            // Get active loyalty program for redemption calculation
+            $program = LoyaltyProgram::where('is_active', 1)->first();
+
+            $redemptionRate = $program?->points_per_unit ?? 100;
+            $earningRate = $program?->earning_rate ?? 1;
+
+            return response()->json([
+                'success' => true,
+                'enrolled' => true,
+                'customer' => [
+                    'id' => $loyaltyInfo['customer_id'] ?? null,
+                    'phone' => $loyaltyInfo['phone'],
+                    'total_points' => $loyaltyInfo['total_points'],
+                    'lifetime_earned' => $loyaltyInfo['lifetime_earned'],
+                    'redeemed' => $loyaltyInfo['redeemed'],
+                ],
+                'redemption_rate' => $redemptionRate,
+                'earning_rate' => $earningRate,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching loyalty info: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching loyalty information'
+            ], 500);
+        }
+    }
+
+    /**
+     * Calculate points to be earned for an order
+     */
+    public function calculatePointsToEarn(Request $request)
+    {
+        try {
+            $orderTotal = $request->amount ?? $request->order_total ?? 0;
+
+            $program = LoyaltyProgram::where('is_active', 1)->first();
+
+            if (!$program) {
+                return response()->json([
+                    'success' => false,
+                    'points' => 0,
+                    'message' => 'No active loyalty program'
+                ]);
+            }
+
+            $pointsToEarn = 0;
+
+            if ($program->earning_type === 'per_transaction') {
+                $pointsToEarn = $program->earning_rate;
+            } else {
+                // per_amount - points based on spend
+                if ($orderTotal >= ($program->min_transaction_amount ?? 0)) {
+                    $pointsToEarn = floor($orderTotal / ($program->earning_rate ?: 1));
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'points' => $pointsToEarn,
+                'earning_type' => $program->earning_type,
+                'earning_rate' => $program->earning_rate,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error calculating points: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'points' => 0,
+                'message' => 'Error calculating points'
+            ], 500);
+        }
+    }
+
+    /**
+     * Award points after sale completion
+     */
+    public function awardLoyaltyPoints(Request $request)
+    {
+        try {
+            $phone = $request->phone;
+            $saleId = $request->sale_id;
+            $orderTotal = $request->order_total;
+
+            if (!$phone) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Phone number required'
+                ]);
+            }
+
+            $saleContext = [
+                'amount' => $orderTotal,
+                'sale_id' => $saleId,
+                'items' => [],
+            ];
+
+            $result = $this->loyaltyService->handleSaleCompletion($phone, 1, $saleContext);
+
+            if ($result['success'] ?? false) {
+                // Update the sale with points earned
+                if ($saleId) {
+                    Sale::where('id', $saleId)->update([
+                        'points_earned' => $result['points_earned'] ?? 0
+                    ]);
+                }
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Error awarding loyalty points: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error awarding points: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Redeem loyalty points
+     */
+    public function redeemLoyaltyPoints(Request $request)
+    {
+        try {
+            $phone = $request->phone;
+            $pointsToRedeem = $request->points;
+
+            if (!$phone || !$pointsToRedeem) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Phone and points required'
+                ]);
+            }
+
+            $program = LoyaltyProgram::where('is_active', 1)->first();
+
+            if (!$program) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active loyalty program'
+                ]);
+            }
+
+            // Calculate discount value
+            $discountValue = $pointsToRedeem / $program->points_per_unit;
+
+            $result = $this->loyaltyService->handleRedemption($phone, 1, [
+                'points' => $pointsToRedeem,
+                'redemption_type' => 'discount',
+                'value' => $discountValue,
+            ]);
+
+            if ($result['success'] ?? false) {
+                $result['discount_value'] = $discountValue;
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Error redeeming points: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error redeeming points: ' . $e->getMessage()
             ], 500);
         }
     }

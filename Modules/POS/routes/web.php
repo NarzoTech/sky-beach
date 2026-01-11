@@ -43,6 +43,15 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/running-orders/{id}/update', [POSController::class, 'updateRunningOrder'])->name('pos.running-orders.update');
         Route::post('/running-orders/{id}/complete', [POSController::class, 'completeRunningOrder'])->name('pos.running-orders.complete');
         Route::post('/running-orders/{id}/cancel', [POSController::class, 'cancelRunningOrder'])->name('pos.running-orders.cancel');
+        Route::post('/running-orders/{id}/update-item-qty', [POSController::class, 'updateOrderItemQty'])->name('pos.running-orders.update-item-qty');
+        Route::post('/running-orders/{id}/remove-item', [POSController::class, 'removeOrderItem'])->name('pos.running-orders.remove-item');
+        Route::post('/running-orders/{id}/add-item', [POSController::class, 'addOrderItem'])->name('pos.running-orders.add-item');
+
+        // Loyalty Points Routes
+        Route::get('/loyalty/customer', [POSController::class, 'getCustomerLoyalty'])->name('pos.loyalty.customer');
+        Route::get('/loyalty/calculate-points', [POSController::class, 'calculatePointsToEarn'])->name('pos.loyalty.calculate');
+        Route::post('/loyalty/award-points', [POSController::class, 'awardLoyaltyPoints'])->name('pos.loyalty.award');
+        Route::post('/loyalty/redeem-points', [POSController::class, 'redeemLoyaltyPoints'])->name('pos.loyalty.redeem');
     });
     Route::get('cart/source/update', [POSController::class, 'cartSourceUpdate'])->name('cart.source.update');
     Route::get('cart/price/update', [POSController::class, 'cartPriceUpdate'])->name('cart.price.update');

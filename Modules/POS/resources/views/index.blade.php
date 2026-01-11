@@ -11,6 +11,182 @@
         .ui-autocomplete {
             z-index: 215000000 !important;
         }
+
+        /* Table Selection Modal Styles */
+        .table-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .table-status-dot.available { background: linear-gradient(135deg, #28a745, #20c997); }
+        .table-status-dot.occupied { background: linear-gradient(135deg, #dc3545, #e74c3c); }
+        .table-status-dot.reserved { background: linear-gradient(135deg, #ffc107, #fd7e14); }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .table-card.selected {
+            border-color: #007bff;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        .table-card.available { border-left: 4px solid #28a745; }
+        .table-card.occupied {
+            border-left: 4px solid #dc3545;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .table-card.reserved {
+            border-left: 4px solid #ffc107;
+            opacity: 0.7;
+        }
+
+        .table-shape {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+        }
+
+        .table-surface {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #8B4513, #A0522D);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1);
+            z-index: 1;
+        }
+
+        .table-shape.square .table-surface {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+        }
+        .table-shape.round .table-surface {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+        }
+        .table-shape.rectangle .table-surface {
+            width: 65px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .table-number {
+            color: #fff;
+            font-weight: bold;
+            font-size: 11px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Chairs */
+        .chair {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: linear-gradient(145deg, #666, #888);
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Chair positions for different seat counts */
+        .seats-1 .chair-1 { top: -18px; left: 50%; transform: translateX(-50%); }
+
+        .seats-2 .chair-1 { top: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-2 .chair-2 { bottom: -18px; left: 50%; transform: translateX(-50%); }
+
+        .seats-3 .chair-1 { top: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-3 .chair-2 { bottom: -18px; left: 25%; transform: translateX(-50%); }
+        .seats-3 .chair-3 { bottom: -18px; left: 75%; transform: translateX(-50%); }
+
+        .seats-4 .chair-1 { top: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-4 .chair-2 { bottom: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-4 .chair-3 { left: -18px; top: 50%; transform: translateY(-50%); }
+        .seats-4 .chair-4 { right: -18px; top: 50%; transform: translateY(-50%); }
+
+        .seats-5 .chair-1 { top: -18px; left: 30%; transform: translateX(-50%); }
+        .seats-5 .chair-2 { top: -18px; left: 70%; transform: translateX(-50%); }
+        .seats-5 .chair-3 { bottom: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-5 .chair-4 { left: -18px; top: 50%; transform: translateY(-50%); }
+        .seats-5 .chair-5 { right: -18px; top: 50%; transform: translateY(-50%); }
+
+        .seats-6 .chair-1 { top: -18px; left: 30%; transform: translateX(-50%); }
+        .seats-6 .chair-2 { top: -18px; left: 70%; transform: translateX(-50%); }
+        .seats-6 .chair-3 { bottom: -18px; left: 30%; transform: translateX(-50%); }
+        .seats-6 .chair-4 { bottom: -18px; left: 70%; transform: translateX(-50%); }
+        .seats-6 .chair-5 { left: -18px; top: 50%; transform: translateY(-50%); }
+        .seats-6 .chair-6 { right: -18px; top: 50%; transform: translateY(-50%); }
+
+        .seats-7 .chair-1 { top: -18px; left: 25%; transform: translateX(-50%); }
+        .seats-7 .chair-2 { top: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-7 .chair-3 { top: -18px; left: 75%; transform: translateX(-50%); }
+        .seats-7 .chair-4 { bottom: -18px; left: 30%; transform: translateX(-50%); }
+        .seats-7 .chair-5 { bottom: -18px; left: 70%; transform: translateX(-50%); }
+        .seats-7 .chair-6 { left: -18px; top: 50%; transform: translateY(-50%); }
+        .seats-7 .chair-7 { right: -18px; top: 50%; transform: translateY(-50%); }
+
+        .seats-8 .chair-1 { top: -18px; left: 25%; transform: translateX(-50%); }
+        .seats-8 .chair-2 { top: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-8 .chair-3 { top: -18px; left: 75%; transform: translateX(-50%); }
+        .seats-8 .chair-4 { bottom: -18px; left: 25%; transform: translateX(-50%); }
+        .seats-8 .chair-5 { bottom: -18px; left: 50%; transform: translateX(-50%); }
+        .seats-8 .chair-6 { bottom: -18px; left: 75%; transform: translateX(-50%); }
+        .seats-8 .chair-7 { left: -18px; top: 50%; transform: translateY(-50%); }
+        .seats-8 .chair-8 { right: -18px; top: 50%; transform: translateY(-50%); }
+
+        .table-card.available .chair { background: linear-gradient(145deg, #28a745, #20c997); }
+        .table-card.occupied .chair { background: linear-gradient(145deg, #dc3545, #c0392b); }
+        .table-card.reserved .chair { background: linear-gradient(145deg, #ffc107, #fd7e14); }
+        .table-card.selected .chair { background: linear-gradient(145deg, #007bff, #0056b3); }
+
+        .table-info {
+            margin-top: 5px;
+        }
+        .table-info strong {
+            font-size: 13px;
+            color: #333;
+        }
+        .table-info small {
+            font-size: 11px;
+        }
+
+        #openTableModal {
+            border-style: dashed;
+            padding: 12px 15px;
+        }
+        #openTableModal:hover {
+            background: rgba(0,123,255,0.05);
+        }
+        #openTableModal.table-selected {
+            border-style: solid;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-color: #28a745;
+            color: #28a745;
+        }
     </style>
 @endpush
 @section('content')
@@ -77,6 +253,24 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- Customer Loyalty Points Display -->
+                                <div class="row w-100 mt-2 d-none" id="customerLoyaltyRow">
+                                    <div class="col-12">
+                                        <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="fas fa-star text-warning me-2"></i>
+                                                <strong>{{ __('Loyalty Points:') }}</strong>
+                                                <span id="customerPointsBalance">0</span> {{ __('pts') }}
+                                                <small class="text-muted ms-2">
+                                                    ({{ __('Worth') }} <span id="customerPointsValue">{{ currency_icon() }}0</span>)
+                                                </small>
+                                            </span>
+                                            <span class="badge bg-success" id="pointsToEarn">
+                                                +<span id="earnablePoints">0</span> {{ __('pts on this order') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- Order Type Selection -->
                                 <div class="row w-100 mt-2">
                                     <div class="col-12">
@@ -101,19 +295,16 @@
                                 <!-- Table Selection for Dine In -->
                                 <div class="row w-100 mt-2" id="tableSelectionRow">
                                     <div class="col-12">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <select name="table_id" id="table_id" class="form-control flex-grow-1">
-                                                <option value="">{{ __('Select Table') }}</option>
-                                                @foreach ($availableTables ?? [] as $table)
-                                                    <option value="{{ $table->id }}" data-capacity="{{ $table->capacity }}" data-status="{{ $table->status }}">
-                                                        {{ $table->name }} ({{ $table->capacity }} {{ __('seats') }}) - {{ ucfirst($table->status) }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <a href="{{ route('admin.tables.layout') }}" class="btn btn-outline-primary" target="_blank" title="{{ __('View Table Layout') }}">
-                                                <i class="fas fa-th-large"></i>
-                                            </a>
-                                        </div>
+                                        <input type="hidden" name="table_id" id="table_id" value="">
+                                        <button type="button" class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-between" id="openTableModal">
+                                            <span>
+                                                <i class="fas fa-chair me-2"></i>
+                                                <span id="selectedTableText">{{ __('Click to Select Table') }}</span>
+                                            </span>
+                                            <span class="badge bg-primary" id="selectedTableBadge" style="display: none;">
+                                                <i class="fas fa-users me-1"></i><span id="selectedTableSeats">0</span>
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
                                 <!-- Delivery Info (Hidden by default) -->
@@ -125,6 +316,25 @@
                                         <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="{{ __('Delivery Address') }}">
                                     </div>
                                 </div>
+                                <!-- Edit Mode Banner -->
+                                @if(isset($editingOrderId) && $editingOrderId)
+                                <div class="row w-100 mt-2" id="editModeRow">
+                                    <div class="col-12">
+                                        <div class="alert alert-warning mb-0 py-2 d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="fas fa-edit me-2"></i>
+                                                <strong>{{ __('Adding items to Order') }} #{{ $editingOrderId }}</strong>
+                                                @if($editingTableName)
+                                                <span class="badge bg-primary ms-2">{{ $editingTableName }}</span>
+                                                @endif
+                                            </span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelEditMode()">
+                                                <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
 
                             <div class="card-body pos_pro_table">
@@ -230,9 +440,16 @@
             <button type="button" class="btn cancel-btn" onclick="resetCart()">
                 Clear
             </button>
-            <button type="button" class="btn payment-btn" onclick="openPaymentModal()">
-                Payment
+            @if(isset($editingOrderId) && $editingOrderId)
+            <button type="button" class="btn btn-warning" onclick="addItemsToExistingOrder({{ $editingOrderId }})" id="addToOrderButton">
+                <i class="fas fa-plus me-1"></i>
+                <span id="addToOrderBtnText">{{ __('Add to Order') }} #{{ $editingOrderId }}</span>
             </button>
+            @else
+            <button type="button" class="btn payment-btn" onclick="openPaymentModal()" id="paymentButton">
+                <span id="paymentBtnText">Payment</span>
+            </button>
+            @endif
         </div>
     </footer>
     </div>
@@ -310,6 +527,29 @@
                                             <input type="hidden" name="discount_amount" value="0"
                                                 autocomplete="off">
                                             <td class="text-right w-40" id="discount_amountModal">0.00</td>
+                                        </tr>
+                                        <tr class="points-redemption-row d-none">
+                                            <th class="text-right w-60" colspan="2">
+                                                <i class="fas fa-star text-warning"></i> {{ __('Redeem Points') }}
+                                                <div class="small text-muted" id="availablePointsText">0 pts available</div>
+                                            </th>
+                                            <td class="text-right w-40">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" class="form-control form-control-sm"
+                                                        name="points_to_redeem" id="pointsToRedeem"
+                                                        value="0" min="0" max="0" step="1">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="applyMaxPoints()">Max</button>
+                                                </div>
+                                                <input type="hidden" name="points_discount" id="pointsDiscountInput" value="0">
+                                                <input type="hidden" name="loyalty_customer_id" id="loyaltyCustomerIdInput" value="">
+                                            </td>
+                                        </tr>
+                                        <tr class="points-discount-row d-none">
+                                            <th class="text-right w-60" colspan="2">
+                                                <i class="fas fa-tag text-success"></i> {{ __('Points Discount') }}
+                                            </th>
+                                            <td class="text-right w-40 text-success" id="pointsDiscountModal">-{{ currency_icon() }}0</td>
                                         </tr>
                                         <tr>
                                             <th class="text-right w-60" colspan="2">
@@ -576,11 +816,102 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
-                    <button type="button" class="btn btn-warning" id="add-items-btn">
-                        <i class="fas fa-plus"></i> {{ __('Add Items') }}
-                    </button>
-                    <button type="button" class="btn btn-success" id="complete-order-btn">
-                        <i class="fas fa-check"></i> {{ __('Complete & Pay') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Running Order Payment Modal --}}
+    <div class="modal fade" id="running-order-payment-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrderPaymentModal"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cash-register me-2"></i>{{ __('Complete Payment') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="payment-order-id" value="">
+
+                    <!-- Order Summary -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body py-2">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">{{ __('Order') }}</small>
+                                    <h5 class="mb-0" id="payment-order-invoice">#--</h5>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small class="text-muted">{{ __('Table') }}</small>
+                                    <h5 class="mb-0" id="payment-order-table">--</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Summary -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-body text-center py-3">
+                                    <small class="text-muted d-block">{{ __('Total Amount') }}</small>
+                                    <h3 class="text-primary mb-0" id="payment-total-amount">{{ currency_icon() }}0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-body text-center py-3">
+                                    <small class="text-muted d-block">{{ __('Change Due') }}</small>
+                                    <h3 class="text-success mb-0" id="payment-change-due">{{ currency_icon() }}0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-dark text-white py-2">
+                            <i class="fas fa-wallet me-2"></i>{{ __('Payment Methods') }}
+                        </div>
+                        <div class="card-body" id="payment-methods-container">
+                            <!-- Payment method rows will be added here -->
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPaymentMethod()">
+                                <i class="fas fa-plus me-1"></i>{{ __('Add Payment Method') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Amount Received -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{{ __('Amount Received') }}</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">{{ currency_icon() }}</span>
+                                    <input type="number" class="form-control" id="payment-amount-received" value="0" step="0.01" onchange="calculateChange()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{{ __('Total Paying') }}</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">{{ currency_icon() }}</span>
+                                    <input type="text" class="form-control" id="payment-total-paying" value="0" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="button" class="btn btn-success btn-lg" onclick="processRunningOrderPayment()">
+                        <i class="fas fa-check me-1"></i>{{ __('Complete Payment') }}
                     </button>
                 </div>
             </div>
@@ -631,6 +962,86 @@
     </div>
 
 
+    {{-- Table Selection Modal --}}
+    <div class="modal fade" id="tableSelectionModal" tabindex="-1" role="dialog" aria-labelledby="tableSelectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="tableSelectionModalLabel">
+                        <i class="fas fa-chair me-2"></i>{{ __('Select a Table') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Table Status Legend -->
+                    <div class="d-flex justify-content-center gap-4 mb-4">
+                        <span class="d-flex align-items-center">
+                            <span class="table-status-dot available me-2"></span>
+                            <small>{{ __('Available') }}</small>
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <span class="table-status-dot occupied me-2"></span>
+                            <small>{{ __('Occupied') }}</small>
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <span class="table-status-dot reserved me-2"></span>
+                            <small>{{ __('Reserved') }}</small>
+                        </span>
+                    </div>
+
+                    <!-- Tables Grid -->
+                    <div class="tables-grid" id="tablesGrid">
+                        @foreach ($availableTables ?? [] as $table)
+                            <div class="table-card {{ $table->status }}"
+                                 data-table-id="{{ $table->id }}"
+                                 data-table-name="{{ $table->name }}"
+                                 data-table-capacity="{{ $table->capacity }}"
+                                 data-table-status="{{ $table->status }}"
+                                 onclick="selectTable(this)">
+                                <div class="table-shape {{ $table->shape ?? 'square' }} seats-{{ min($table->capacity, 8) }}">
+                                    <div class="table-surface">
+                                        <span class="table-number">{{ $table->table_number ?? $table->name }}</span>
+                                    </div>
+                                    <!-- Chairs based on capacity -->
+                                    @for ($i = 0; $i < min($table->capacity, 8); $i++)
+                                        <div class="chair chair-{{ $i + 1 }}"></div>
+                                    @endfor
+                                </div>
+                                <div class="table-info">
+                                    <strong>{{ $table->name }}</strong>
+                                    <small class="d-block text-muted">
+                                        <i class="fas fa-users"></i> {{ $table->capacity }} {{ __('seats') }}
+                                    </small>
+                                    @if($table->status === 'occupied' && $table->currentSale)
+                                        <small class="d-block text-danger">
+                                            <i class="fas fa-clock"></i> {{ __('In use') }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if(count($availableTables ?? []) === 0)
+                        <div class="text-center py-5">
+                            <i class="fas fa-chair fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{{ __('No tables available. Please add tables first.') }}</p>
+                            <a href="{{ route('admin.tables.index') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>{{ __('Add Tables') }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="button" class="btn btn-primary" id="confirmTableSelection" disabled>
+                        <i class="fas fa-check me-2"></i>{{ __('Confirm Selection') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="invoiceModal" tabindex="-1" role="dialog" aria-labelledby="invoiceModal"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -674,12 +1085,75 @@
                     } else if (orderType === 'delivery') {
                         $('#tableSelectionRow').addClass('d-none');
                         $('#deliveryInfoRow').removeClass('d-none');
-                        $('#table_id').val('');
+                        clearTableSelection();
                     } else { // take_away
                         $('#tableSelectionRow').addClass('d-none');
                         $('#deliveryInfoRow').addClass('d-none');
-                        $('#table_id').val('');
+                        clearTableSelection();
                     }
+                    updatePaymentButtonState();
+                });
+
+                // Update payment button based on table selection
+                $('#table_id').on('change', function() {
+                    updatePaymentButtonState();
+                });
+
+                // Make updatePaymentButtonState globally accessible
+                window.updatePaymentButtonState = function() {
+                    var orderType = $('input[name="order_type_radio"]:checked').val();
+                    var tableId = $('#table_id').val();
+
+                    if (orderType === 'dine_in' && tableId) {
+                        $('#paymentBtnText').html('<i class="fas fa-play-circle me-1"></i>{{ __("Start Order") }}');
+                        $('.payment-btn').removeClass('btn-warning').addClass('btn-success');
+                    } else if (orderType === 'dine_in') {
+                        $('#paymentBtnText').html('<i class="fas fa-chair me-1"></i>{{ __("Select Table First") }}');
+                        $('.payment-btn').removeClass('btn-success').addClass('btn-warning');
+                    } else {
+                        $('#paymentBtnText').html('<i class="fas fa-credit-card me-1"></i>{{ __("Payment") }}');
+                        $('.payment-btn').removeClass('btn-warning btn-success');
+                    }
+                }
+
+                // Initialize payment button state on page load
+                updatePaymentButtonState();
+
+                // Table Selection Modal
+                $('#openTableModal').on('click', function() {
+                    $('#tableSelectionModal').modal('show');
+                });
+
+                // Confirm table selection
+                $('#confirmTableSelection').on('click', function() {
+                    const selectedCard = $('.table-card.selected');
+                    if (selectedCard.length) {
+                        const tableId = selectedCard.data('table-id');
+                        const tableName = selectedCard.data('table-name');
+                        const tableCapacity = selectedCard.data('table-capacity');
+
+                        // Set hidden input value
+                        $('#table_id').val(tableId);
+
+                        // Update button display
+                        $('#selectedTableText').html('<i class="fas fa-check-circle me-1"></i>' + tableName);
+                        $('#selectedTableSeats').text(tableCapacity);
+                        $('#selectedTableBadge').show();
+                        $('#openTableModal').addClass('table-selected');
+
+                        // Close modal
+                        $('#tableSelectionModal').modal('hide');
+
+                        // Update payment button
+                        updatePaymentButtonState();
+
+                        toastr.success("{{ __('Table selected:') }} " + tableName);
+                    }
+                });
+
+                // Reset selection when modal is closed without confirming
+                $('#tableSelectionModal').on('hidden.bs.modal', function() {
+                    // Keep selection if already confirmed
                 });
 
                 // update pos quantity
@@ -1504,6 +1978,57 @@
     </script>
 
     <script>
+        // Table Selection Functions
+        let selectedTableData = null;
+
+        function selectTable(element) {
+            const $card = $(element);
+            const status = $card.data('table-status');
+
+            // Don't allow selecting occupied tables
+            if (status === 'occupied') {
+                toastr.warning("{{ __('This table is currently occupied') }}");
+                return;
+            }
+
+            // Remove previous selection
+            $('.table-card').removeClass('selected');
+
+            // Add selection to clicked card
+            $card.addClass('selected');
+
+            // Enable confirm button
+            $('#confirmTableSelection').prop('disabled', false);
+
+            // Store selected data
+            selectedTableData = {
+                id: $card.data('table-id'),
+                name: $card.data('table-name'),
+                capacity: $card.data('table-capacity'),
+                status: status
+            };
+        }
+
+        // Double-click to quickly select table
+        $(document).on('dblclick', '.table-card', function() {
+            const status = $(this).data('table-status');
+            if (status === 'occupied') return;
+
+            selectTable(this);
+            $('#confirmTableSelection').click();
+        });
+
+        function clearTableSelection() {
+            $('#table_id').val('');
+            $('#selectedTableText').html("{{ __('Click to Select Table') }}");
+            $('#selectedTableBadge').hide();
+            $('#openTableModal').removeClass('table-selected');
+            $('.table-card').removeClass('selected');
+            $('#confirmTableSelection').prop('disabled', true);
+            selectedTableData = null;
+            updatePaymentButtonState();
+        }
+
         function modalHide(id) {
             $(id).modal('hide')
             $('.pos-footer').css('z-index', 9000)
@@ -1861,89 +2386,397 @@
             });
         }
 
-        function addItemsToOrder(orderId) {
-            $('.preloader_area').removeClass('d-none');
+        // Update item quantity in running order
+        function updateItemQty(orderId, detailId, change) {
+            const qtyInput = $(`input.item-qty[data-detail-id="${detailId}"]`);
+            let newQty = parseInt(qtyInput.val()) + change;
+            if (newQty < 1) newQty = 1;
+
+            updateItemQtyDirect(orderId, detailId, newQty);
+        }
+
+        function updateItemQtyDirect(orderId, detailId, quantity) {
+            quantity = Math.max(1, parseInt(quantity));
+            const qtyInput = $(`input.item-qty[data-detail-id="${detailId}"]`);
+            qtyInput.val(quantity);
 
             $.ajax({
                 type: 'POST',
-                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/load-to-cart",
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/update-item-qty",
                 data: {
-                    _token: "{{ csrf_token() }}"
+                    _token: "{{ csrf_token() }}",
+                    detail_id: detailId,
+                    quantity: quantity
                 },
                 success: function(response) {
                     if (response.success) {
-                        currentEditingOrderId = orderId;
+                        // Update totals in UI
+                        const row = $(`tr[data-detail-id="${detailId}"]`);
+                        row.find('.item-total').text(response.new_subtotal);
+                        $('#orderSubtotal').text(response.order_subtotal);
+                        $('#orderGrandTotal').text(response.order_total);
+                        $('#current-order-total').val(response.order_total.replace(/[^0-9.]/g, ''));
 
-                        // Close modals
-                        $('#order-details-modal').modal('hide');
-                        $('#running-orders-modal').modal('hide');
-
-                        // Load the cart with order items
-                        $.ajax({
-                            type: 'GET',
-                            url: "{{ route('admin.pos') }}",
-                            success: function() {
-                                location.reload();
-                            }
-                        });
-
-                        toastr.info("{{ __('Order loaded. Add items and click Payment to update.') }}");
+                        toastr.success(response.message);
                     } else {
-                        toastr.error(response.message || "{{ __('Error loading order') }}");
+                        toastr.error(response.message);
+                        // Reload to get correct state
+                        loadOrderDetails(orderId);
                     }
-                    $('.preloader_area').addClass('d-none');
                 },
                 error: function() {
-                    toastr.error("{{ __('Server error occurred') }}");
-                    $('.preloader_area').addClass('d-none');
+                    toastr.error("{{ __('Error updating quantity') }}");
+                    loadOrderDetails(orderId);
                 }
             });
         }
 
-        function showPaymentModal(orderId, total) {
-            currentEditingOrderId = orderId;
-            $('#order-details-modal').modal('hide');
-
-            // Create a payment modal for running order
+        // Remove item from running order
+        function removeOrderItem(orderId, detailId) {
             Swal.fire({
-                title: "{{ __('Complete Order') }}",
+                title: "{{ __('Remove Item?') }}",
+                text: "{{ __('Are you sure you want to remove this item from the order?') }}",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: "{{ __('Yes, Remove') }}",
+                cancelButtonText: "{{ __('Cancel') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/remove-item",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            detail_id: detailId
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                if (response.items_remaining === 0) {
+                                    // If no items left, offer to cancel the order
+                                    Swal.fire({
+                                        title: "{{ __('No Items Left') }}",
+                                        text: "{{ __('The order has no items. Would you like to cancel it?') }}",
+                                        icon: 'question',
+                                        showCancelButton: true,
+                                        confirmButtonText: "{{ __('Yes, Cancel Order') }}",
+                                        cancelButtonText: "{{ __('Keep Order') }}"
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            cancelRunningOrder(orderId);
+                                        } else {
+                                            loadOrderDetails(orderId);
+                                        }
+                                    });
+                                } else {
+                                    // Remove row from table
+                                    $(`tr[data-detail-id="${detailId}"]`).fadeOut(300, function() {
+                                        $(this).remove();
+                                        // Update totals
+                                        $('#orderSubtotal').text(response.order_subtotal);
+                                        $('#orderGrandTotal').text(response.order_total);
+                                    });
+                                    toastr.success(response.message);
+                                }
+                            } else {
+                                toastr.error(response.message);
+                            }
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Error removing item') }}");
+                        }
+                    });
+                }
+            });
+        }
+
+        // Reload order details
+        function loadOrderDetails(orderId) {
+            $.ajax({
+                type: 'GET',
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/details",
+                success: function(response) {
+                    if (response.success) {
+                        $('#order-details-content').html(response.html);
+                    } else {
+                        $('#order-details-content').html(response);
+                    }
+                },
+                error: function() {
+                    toastr.error("{{ __('Error loading order details') }}");
+                }
+            });
+        }
+
+        function addItemsToOrder(orderId) {
+            // Close the details modal first
+            $('#order-details-modal').modal('hide');
+            $('#running-orders-modal').modal('hide');
+
+            // Store the order ID for later
+            currentEditingOrderId = orderId;
+
+            // Show a quick menu selection modal
+            Swal.fire({
+                title: "{{ __('Add Items to Order') }}",
                 html: `
                     <div class="text-start">
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Total Amount') }}</label>
-                            <input type="text" class="form-control" value="{{ currency_icon() }}${total}" readonly>
+                        <p class="text-muted mb-3">{{ __('Select items from the POS to add them to this order.') }}</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ __('The page will reload. Add items to cart and click "Update Order" to add them to order #') }}${orderId}
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Payment Method') }}</label>
-                            <select class="form-control" id="swal-payment-method">
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: "{{ __('Continue') }}",
+                cancelButtonText: "{{ __('Cancel') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('.preloader_area').removeClass('d-none');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/load-to-cart",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                location.reload();
+                            } else {
+                                toastr.error(response.message || "{{ __('Error loading order') }}");
+                                $('.preloader_area').addClass('d-none');
+                            }
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Server error occurred') }}");
+                            $('.preloader_area').addClass('d-none');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Payment modal data
+        let paymentOrderTotal = 0;
+        let paymentMethodCounter = 0;
+
+        // Available accounts from database
+        const availableAccounts = @json($accounts->groupBy('account_type'));
+
+        function showPaymentModal(orderId, total, invoice = '', tableName = '') {
+            currentEditingOrderId = orderId;
+            paymentOrderTotal = parseFloat(total);
+            paymentMethodCounter = 0;
+
+            $('#order-details-modal').modal('hide');
+
+            // Set order info
+            $('#payment-order-id').val(orderId);
+            $('#payment-order-invoice').text('#' + (invoice || orderId));
+            $('#payment-order-table').text(tableName || '--');
+            $('#payment-total-amount').text('{{ currency_icon() }}' + paymentOrderTotal.toFixed(2));
+
+            // Clear and add default payment method
+            $('#payment-methods-container').empty();
+            addPaymentMethod(paymentOrderTotal);
+
+            // Set received amount
+            $('#payment-amount-received').val(paymentOrderTotal);
+            calculateChange();
+
+            $('#running-order-payment-modal').modal('show');
+        }
+
+        function addPaymentMethod(amount = 0) {
+            const index = paymentMethodCounter++;
+            const accountOptions = buildAccountOptions();
+
+            const html = `
+                <div class="payment-method-row mb-3 p-3 border rounded" data-index="${index}">
+                    <div class="row align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Payment Type') }}</label>
+                            <select class="form-select payment-type-select" name="payment_type[]" data-index="${index}" onchange="onPaymentTypeChange(${index})">
                                 <option value="cash">{{ __('Cash') }}</option>
+                                <option value="bank">{{ __('Bank Transfer') }}</option>
                                 <option value="card">{{ __('Card') }}</option>
                                 <option value="mobile_banking">{{ __('Mobile Banking') }}</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Amount Received') }}</label>
-                            <input type="number" class="form-control" id="swal-amount-received" value="${total}" step="0.01">
+                        <div class="col-md-3 account-select-col" style="display: none;">
+                            <label class="form-label">{{ __('Account') }}</label>
+                            <select class="form-select account-select" name="account_id[]" data-index="${index}">
+                                ${accountOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Amount') }}</label>
+                            <input type="number" class="form-control payment-amount" name="paying_amount[]" value="${amount}" step="0.01" onchange="calculateTotalPaying()">
+                        </div>
+                        <div class="col-md-2">
+                            ${index > 0 ? `<button type="button" class="btn btn-outline-danger" onclick="removePaymentMethod(${index})"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
                     </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: "{{ __('Complete Payment') }}",
-                cancelButtonText: "{{ __('Cancel') }}",
-                confirmButtonColor: '#28a745',
-                preConfirm: () => {
-                    return {
-                        payment_method: document.getElementById('swal-payment-method').value,
-                        receive_amount: document.getElementById('swal-amount-received').value
-                    };
+                </div>
+            `;
+
+            $('#payment-methods-container').append(html);
+            onPaymentTypeChange(index);
+            calculateTotalPaying();
+        }
+
+        function buildAccountOptions() {
+            let options = '<option value="">{{ __("Select Account") }}</option>';
+
+            // Bank accounts
+            if (availableAccounts.bank) {
+                availableAccounts.bank.forEach(acc => {
+                    const bankName = acc.bank ? acc.bank.name : '';
+                    options += `<option value="${acc.id}" data-type="bank">${bankName} - ${acc.bank_account_number || ''}</option>`;
+                });
+            }
+
+            // Card accounts
+            if (availableAccounts.card) {
+                availableAccounts.card.forEach(acc => {
+                    options += `<option value="${acc.id}" data-type="card">${acc.card_holder_name || ''} - ${acc.card_type || ''}</option>`;
+                });
+            }
+
+            // Mobile banking accounts
+            if (availableAccounts.mobile_banking) {
+                availableAccounts.mobile_banking.forEach(acc => {
+                    options += `<option value="${acc.id}" data-type="mobile_banking">${acc.mobile_bank_name || ''} - ${acc.mobile_number || ''}</option>`;
+                });
+            }
+
+            return options;
+        }
+
+        function onPaymentTypeChange(index) {
+            const row = $(`.payment-method-row[data-index="${index}"]`);
+            const paymentType = row.find('.payment-type-select').val();
+            const accountCol = row.find('.account-select-col');
+            const accountSelect = row.find('.account-select');
+
+            if (paymentType === 'cash') {
+                accountCol.hide();
+                accountSelect.val('');
+            } else {
+                accountCol.show();
+                // Filter accounts by type
+                accountSelect.find('option').each(function() {
+                    const optType = $(this).data('type');
+                    if (!optType || optType === paymentType) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                // Select first visible option
+                accountSelect.find('option:visible').first().prop('selected', true);
+            }
+        }
+
+        function removePaymentMethod(index) {
+            $(`.payment-method-row[data-index="${index}"]`).remove();
+            calculateTotalPaying();
+        }
+
+        function calculateTotalPaying() {
+            let total = 0;
+            $('.payment-amount').each(function() {
+                total += parseFloat($(this).val()) || 0;
+            });
+            $('#payment-total-paying').val(total.toFixed(2));
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const received = parseFloat($('#payment-amount-received').val()) || 0;
+            const totalPaying = parseFloat($('#payment-total-paying').val()) || 0;
+            const change = received - paymentOrderTotal;
+
+            if (change >= 0) {
+                $('#payment-change-due').text('{{ currency_icon() }}' + change.toFixed(2)).removeClass('text-danger').addClass('text-success');
+            } else {
+                $('#payment-change-due').text('-{{ currency_icon() }}' + Math.abs(change).toFixed(2)).removeClass('text-success').addClass('text-danger');
+            }
+        }
+
+        function processRunningOrderPayment() {
+            const orderId = $('#payment-order-id').val();
+            const totalPaying = parseFloat($('#payment-total-paying').val()) || 0;
+            const amountReceived = parseFloat($('#payment-amount-received').val()) || 0;
+
+            if (totalPaying < paymentOrderTotal) {
+                toastr.warning("{{ __('Payment amount is less than total. Remaining will be recorded as due.') }}");
+            }
+
+            // Collect payment methods
+            const paymentTypes = [];
+            const accountIds = [];
+            const payingAmounts = [];
+
+            $('.payment-method-row').each(function() {
+                const type = $(this).find('.payment-type-select').val();
+                const accountId = $(this).find('.account-select').val() || null;
+                const amount = parseFloat($(this).find('.payment-amount').val()) || 0;
+
+                if (amount > 0) {
+                    paymentTypes.push(type);
+                    accountIds.push(accountId);
+                    payingAmounts.push(amount);
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    completeRunningOrder(orderId, result.value);
+            });
+
+            if (paymentTypes.length === 0) {
+                toastr.error("{{ __('Please add at least one payment method') }}");
+                return;
+            }
+
+            $('.preloader_area').removeClass('d-none');
+            $('#running-order-payment-modal').modal('hide');
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    payment_type: paymentTypes,
+                    account_id: accountIds,
+                    paying_amount: payingAmounts,
+                    paid_amount: totalPaying,
+                    receive_amount: amountReceived,
+                    return_amount: Math.max(0, amountReceived - paymentOrderTotal)
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $('#order-details-modal').modal('hide');
+                        loadRunningOrdersCount();
+
+                        // Show invoice
+                        $('.invoice_modal_body').html(response.invoice);
+                        $('.print-redirect').attr('href', response.invoiceRoute);
+                        $('#invoiceModal').modal('show');
+                    } else {
+                        toastr.error(response.message || "{{ __('Error completing order') }}");
+                    }
+                    $('.preloader_area').addClass('d-none');
+                },
+                error: function(xhr) {
+                    toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
+                    $('.preloader_area').addClass('d-none');
                 }
             });
         }
 
+        // Legacy function for backward compatibility
         function completeRunningOrder(orderId, paymentData) {
             $('.preloader_area').removeClass('d-none');
 
@@ -1952,7 +2785,9 @@
                 url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete",
                 data: {
                     _token: "{{ csrf_token() }}",
-                    payment_method: [paymentData.payment_method],
+                    payment_type: [paymentData.payment_method],
+                    account_id: [null],
+                    paying_amount: [paymentData.receive_amount],
                     paid_amount: paymentData.receive_amount,
                     receive_amount: paymentData.receive_amount
                 },
@@ -2017,11 +2852,406 @@
             });
         }
 
+        // Cancel edit mode and return to normal POS
+        function cancelEditMode() {
+            Swal.fire({
+                title: "{{ __('Cancel Edit?') }}",
+                text: "{{ __('Are you sure you want to cancel editing this order? Items in cart will be cleared.') }}",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: "{{ __('Yes, Cancel') }}",
+                cancelButtonText: "{{ __('No, Continue Editing') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'GET',
+                        url: "{{ route('admin.cart-clear') }}",
+                        success: function() {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        }
+
+        // Add items from cart to existing order
+        function addItemsToExistingOrder(orderId) {
+            // Check if cart has items
+            const cartItems = $('.product-table tbody tr').length;
+            if (cartItems === 0) {
+                toastr.warning("{{ __('Please add items to cart first') }}");
+                return;
+            }
+
+            Swal.fire({
+                title: "{{ __('Add Items to Order?') }}",
+                text: "{{ __('The items in cart will be added to the running order.') }}",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                confirmButtonText: "{{ __('Yes, Add Items') }}",
+                cancelButtonText: "{{ __('Cancel') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('.preloader_area').removeClass('d-none');
+
+                    // Get cart items and add them to the order
+                    const cartData = [];
+                    $('.product-table tbody tr').each(function() {
+                        const row = $(this);
+                        cartData.push({
+                            rowid: row.data('rowid'),
+                            id: row.data('id'),
+                            name: row.find('.product-name').text().trim(),
+                            qty: parseInt(row.find('.qty_input').val()) || 1,
+                            price: parseFloat(row.data('price')) || 0
+                        });
+                    });
+
+                    // Submit cart items to add to order via AJAX
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/update",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            add_from_cart: true
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(response.message || "{{ __('Items added to order') }}");
+                                // Clear cart and editing session
+                                $.ajax({
+                                    type: 'GET',
+                                    url: "{{ route('admin.cart-clear') }}",
+                                    success: function() {
+                                        // Show the updated order details
+                                        viewOrderDetails(orderId);
+                                        $('#order-details-modal').modal('show');
+                                        location.reload();
+                                    }
+                                });
+                            } else {
+                                toastr.error(response.message || "{{ __('Error adding items') }}");
+                                $('.preloader_area').addClass('d-none');
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
+                            $('.preloader_area').addClass('d-none');
+                        }
+                    });
+                }
+            });
+        }
+
         // Load running orders count on page load and periodically
         $(document).ready(function() {
             loadRunningOrdersCount();
             // Refresh count every 30 seconds
             setInterval(loadRunningOrdersCount, 30000);
         });
+
+        // Loyalty Points Variables
+        let customerLoyaltyInfo = null;
+        let pointsRedemptionRate = {{ $loyaltyProgram?->redemption_rate ?? 100 }};
+        let pointsEarningRate = {{ $loyaltyProgram?->earning_rate ?? 1 }};
+
+        // Fetch customer loyalty info when customer changes
+        function loadCustomerLoyalty(customerId) {
+            if (!customerId || customerId === 'walk-in-customer') {
+                customerLoyaltyInfo = null;
+                $('#customerLoyaltyRow').addClass('d-none');
+                $('.points-redemption-row').addClass('d-none');
+                $('.points-discount-row').addClass('d-none');
+                return;
+            }
+
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('admin.pos.loyalty.customer') }}",
+                data: { customer_id: customerId },
+                success: function(response) {
+                    if (response.success && response.customer) {
+                        customerLoyaltyInfo = response.customer;
+                        pointsRedemptionRate = response.redemption_rate || 100;
+                        pointsEarningRate = response.earning_rate || 1;
+
+                        // Update UI
+                        $('#customerPointsBalance').text(response.customer.total_points || 0);
+                        const pointsValue = (response.customer.total_points || 0) / pointsRedemptionRate;
+                        $('#customerPointsValue').text('{{ currency_icon() }}' + pointsValue.toFixed(2));
+                        $('#customerLoyaltyRow').removeClass('d-none');
+                        $('#loyaltyCustomerIdInput').val(response.customer.id);
+
+                        // Calculate earnable points for current cart
+                        calculateEarnablePoints();
+                    } else {
+                        customerLoyaltyInfo = null;
+                        $('#customerLoyaltyRow').addClass('d-none');
+                    }
+                },
+                error: function() {
+                    customerLoyaltyInfo = null;
+                    $('#customerLoyaltyRow').addClass('d-none');
+                }
+            });
+        }
+
+        // Calculate points to earn for current order
+        function calculateEarnablePoints() {
+            const total = parseFloat($('#finalTotal').text().replace(/[^0-9.]/g, '')) || 0;
+            if (total > 0 && customerLoyaltyInfo) {
+                $.ajax({
+                    type: 'GET',
+                    url: "{{ route('admin.pos.loyalty.calculate') }}",
+                    data: { amount: total },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#earnablePoints').text(response.points);
+                        }
+                    }
+                });
+            } else {
+                $('#earnablePoints').text(0);
+            }
+        }
+
+        // Update points redemption when opening payment modal
+        function updatePointsRedemption() {
+            if (!customerLoyaltyInfo || customerLoyaltyInfo.total_points <= 0) {
+                $('.points-redemption-row').addClass('d-none');
+                $('.points-discount-row').addClass('d-none');
+                return;
+            }
+
+            const availablePoints = customerLoyaltyInfo.total_points;
+            const total = parseFloat($('#total_amountModal').text()) || 0;
+            const maxRedeemableDiscount = total; // Can't redeem more than total
+            const maxRedeemablePoints = Math.min(availablePoints, Math.floor(maxRedeemableDiscount * pointsRedemptionRate));
+
+            $('#availablePointsText').text(availablePoints + ' pts available');
+            $('#pointsToRedeem').attr('max', maxRedeemablePoints).val(0);
+            $('.points-redemption-row').removeClass('d-none');
+        }
+
+        // Apply maximum points
+        function applyMaxPoints() {
+            const maxPoints = parseInt($('#pointsToRedeem').attr('max')) || 0;
+            $('#pointsToRedeem').val(maxPoints).trigger('change');
+        }
+
+        // Handle points redemption change
+        $(document).on('change input', '#pointsToRedeem', function() {
+            const points = parseInt($(this).val()) || 0;
+            const discount = points / pointsRedemptionRate;
+
+            $('#pointsDiscountInput').val(discount.toFixed(2));
+            $('#pointsDiscountModal').text('-{{ currency_icon() }}' + discount.toFixed(2));
+
+            if (points > 0) {
+                $('.points-discount-row').removeClass('d-none');
+            } else {
+                $('.points-discount-row').addClass('d-none');
+            }
+
+            // Update totals
+            updatePaymentTotals();
+        });
+
+        // Update payment totals with points discount
+        function updatePaymentTotals() {
+            const subTotal = parseFloat($('[name="sub_total"]').val()) || 0;
+            const discountAmount = parseFloat($('[name="discount_amount"]').val()) || 0;
+            const pointsDiscount = parseFloat($('#pointsDiscountInput').val()) || 0;
+
+            const grandTotal = subTotal - discountAmount - pointsDiscount;
+
+            $('#total_amountModal').text(grandTotal.toFixed(2));
+            $('#total_amount_modal_input').val(grandTotal.toFixed(2));
+            $('#total_amountModal2').text(grandTotal.toFixed(2));
+            $('.paying_amount').val(grandTotal.toFixed(2));
+            $('#paid_amountModal').text(grandTotal.toFixed(2));
+        }
+
+        // Override openPaymentModal to handle dine-in flow
+        const originalOpenPaymentModal = openPaymentModal;
+        openPaymentModal = function() {
+            const orderType = $('input[name="order_type_radio"]:checked').val();
+            const tableId = $('#table_id').val();
+
+            // For dine-in, require table selection
+            if (orderType === 'dine_in') {
+                if (!tableId) {
+                    // Open table selection modal
+                    $('#tableSelectionModal').modal('show');
+                    toastr.info("{{ __('Please select a table first') }}");
+                    return;
+                }
+                // Place dine-in order without immediate payment
+                placeDineInOrder();
+                return;
+            }
+
+            // For take-away or delivery, open normal payment modal
+            originalOpenPaymentModal();
+            updatePointsRedemption();
+        };
+
+        // Place dine-in order without payment
+        function placeDineInOrder() {
+            // Check if cart is empty
+            if ($('.product-table tbody > tr').length == 0) {
+                toastr.error("{{ __('Cart is empty') }}");
+                return;
+            }
+
+            // Get table name from selectedTableData or find from DOM
+            let tableName = selectedTableData ? selectedTableData.name : '';
+            let tableSeats = selectedTableData ? selectedTableData.capacity : '';
+
+            if (!tableName) {
+                // Fallback: get from the button text
+                tableName = $('#selectedTableText').text().replace(/^.*?(?=\w)/, '');
+            }
+
+            // Confirm dine-in order
+            Swal.fire({
+                title: "{{ __('Start Dine-In Order?') }}",
+                html: `
+                    <div class="text-start">
+                        <p class="mb-2"><i class="fas fa-utensils me-2 text-primary"></i>{{ __('Table:') }} <strong>${tableName}</strong> ${tableSeats ? '(' + tableSeats + ' seats)' : ''}</p>
+                        <p class="mb-2"><i class="fas fa-user me-2 text-info"></i>{{ __('Customer:') }} <strong>${$('#customer_id option:selected').text() || 'Walk-in Customer'}</strong></p>
+                        <p class="mb-0"><i class="fas fa-money-bill me-2 text-success"></i>{{ __('Total:') }} <strong>${$('#finalTotal').text()}</strong></p>
+                    </div>
+                    <hr>
+                    <p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i>{{ __('Payment will be collected after the customer finishes eating.') }}</p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                confirmButtonText: "<i class='fas fa-play-circle me-1'></i>{{ __('Start Order') }}",
+                cancelButtonText: "{{ __('Cancel') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitDineInOrder();
+                }
+            });
+        }
+
+        // Submit dine-in order
+        function submitDineInOrder() {
+            const customerId = $('#customer_id').val();
+            const tableId = $('#table_id').val();
+            const discountAmount = $('#discount_total_amount').val() || 0;
+            const discountType = $('#discount_type').val();
+
+            $('.preloader_area').removeClass('d-none');
+
+            // Get today's date in d-m-Y format
+            const today = new Date();
+            const saleDate = String(today.getDate()).padStart(2, '0') + '-' +
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                            today.getFullYear();
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ route('admin.place-order') }}",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    order_customer_id: customerId || 'walk-in-customer',
+                    order_type: 'dine_in',
+                    table_id: tableId,
+                    defer_payment: 1,
+                    discount_amount: discountAmount,
+                    discount_type: discountType,
+                    sub_total: $('#total').text().replace(/[^0-9.]/g, ''),
+                    total_amount: $('#finalTotal').text().replace(/[^0-9.]/g, ''),
+                    sale_date: saleDate,
+                    payment_type: [],
+                    paying_amount: [],
+                    account_id: [],
+                    loyalty_customer_id: $('#loyaltyCustomerIdInput').val() || ''
+                },
+                success: function(response) {
+                    if (response['alert-type'] == 'success') {
+                        // Show success message with table info
+                        if (response.table_name) {
+                            toastr.success(response.message + ' - ' + response.table_name);
+                        } else {
+                            toastr.success(response.message);
+                        }
+
+                        // Reset cart
+                        $(".product-table tbody").html('');
+                        $('#titems').text(0);
+                        $('#discount_total_amount').val(0);
+                        $('#tds').text(0);
+                        totalSummery();
+
+                        // Reset selections
+                        $("#customer_id").val('').trigger('change');
+                        $('#discount_type').val(1).trigger('change');
+                        $('.dis-form').hide();
+
+                        // Reset table selection
+                        clearTableSelection();
+
+                        // Reset loyalty info
+                        customerLoyaltyInfo = null;
+                        $('#customerLoyaltyRow').addClass('d-none');
+
+                        // Refresh running orders count
+                        loadRunningOrdersCount();
+
+                        // Update payment button state
+                        updatePaymentButtonState();
+
+                        // Show running orders modal
+                        setTimeout(function() {
+                            openRunningOrders();
+                        }, 500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    $('.preloader_area').addClass('d-none');
+                },
+                error: function(response) {
+                    let errorMsg = "{{ __('Server error occurred') }}";
+                    if (response.responseJSON && response.responseJSON.message) {
+                        errorMsg = response.responseJSON.message;
+                    }
+                    toastr.error(errorMsg);
+                    console.log(response);
+                    $('.preloader_area').addClass('d-none');
+                }
+            });
+        }
+
+        // Update customer change handler
+        const originalCustomerChange = $('#customer_id').data('events')?.change;
+        $('#customer_id').off('change').on('change', function() {
+            let customer_id = $(this).val();
+            $("#order_customer_id").val(customer_id ? customer_id : 'walk-in-customer');
+
+            const discount = $('select#customer_id option:selected').data('discount');
+            if (discount) {
+                $('[name="discount_type"]').val(2).niceSelect('update');
+                $('#discount_total_amount').val(discount);
+                updateDiscountType(2);
+            }
+
+            // Load customer loyalty info
+            loadCustomerLoyalty(customer_id);
+        });
+
+        // Update totals recalculation to include earnable points
+        const originalTotalSummery = totalSummery;
+        totalSummery = function() {
+            originalTotalSummery();
+            if (customerLoyaltyInfo) {
+                calculateEarnablePoints();
+            }
+        };
     </script>
 @endpush
