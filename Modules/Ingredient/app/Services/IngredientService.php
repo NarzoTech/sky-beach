@@ -68,7 +68,6 @@ class IngredientService
     }
     public function storeIngredient($request)
     {
-
         $data = $request->validated();
 
         if ($request->file('image')) {
@@ -104,6 +103,7 @@ class IngredientService
     public function updateIngredient($request, $ingredient)
     {
         $data = $request->validated();
+
         if ($request->file('image')) {
             $data['image'] = file_upload($request->image);
         }

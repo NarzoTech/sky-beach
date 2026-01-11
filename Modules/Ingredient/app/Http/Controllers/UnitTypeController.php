@@ -79,10 +79,18 @@ class UnitTypeController extends Controller
         ]);
         try {
             $this->unitTypeService->update($request, $id);
+            $unit = $this->unitTypeService->findById($id);
+
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Unit updated successfully', 'unit' => $unit, 'status' => 200], 200);
+            }
 
             return $this->redirectWithMessage(RedirectType::UPDATE->value, "admin.unit.index");
         } catch (Exception $ex) {
             Log::error($ex->getMessage());
+            if ($request->ajax()) {
+                return response()->json(['message' => $ex->getMessage(), 'status' => 500], 500);
+            }
             return $this->redirectWithMessage(RedirectType::ERROR->value, "admin.unit.index");
         }
     }

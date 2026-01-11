@@ -450,7 +450,11 @@ class Ingredient extends Model
     }
 
 
-    public function getPurchasePriceAttribute()
+    /**
+     * Get the calculated average purchase price from purchase history
+     * Note: Renamed from getPurchasePriceAttribute to avoid overwriting the database column
+     */
+    public function getCalculatedPurchasePriceAttribute()
     {
         $query = $this->purchaseDetails();
 

@@ -81,7 +81,7 @@ class IngredientController extends Controller
         checkAdminHasPermissionAndThrowException('ingredient.create');
         $categories  = $this->categoryService->getAllIngredientCategoriesForSelect();
         $brands      = $this->brandService->getActiveBrands();
-        $units       = $this->unitService->getParentUnits();
+        $units       = $this->unitService->getActiveAll();
         $parentUnits = $this->unitService->getParentUnits();
         return view('ingredient::ingredients.create', compact('categories', 'brands', 'units', 'parentUnits'));
     }
@@ -141,8 +141,9 @@ class IngredientController extends Controller
             $product = $ingredient; // Alias for backward compatibility in views
             $categories = $this->categoryService->getAllIngredientCategoriesForSelect();
             $brands     = $this->brandService->getActiveBrands();
-            $units      = $this->unitService->getParentUnits();
-            return view('ingredient::ingredients.edit', compact('categories', 'brands', 'ingredient', 'product', 'units'));
+            $units      = $this->unitService->getActiveAll();
+            $parentUnits = $this->unitService->getParentUnits();
+            return view('ingredient::ingredients.edit', compact('categories', 'brands', 'ingredient', 'product', 'units', 'parentUnits'));
         } catch (\Exception $ex) {
             Log::error($ex->getMessage());
             abort(500);

@@ -72,17 +72,43 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="purchase_unit_id">{{ __('Purchase Unit') }}<span
-                                                    class="text-danger">*</span></label>
-                                            <select name="purchase_unit_id" id="purchase_unit_id" class="form-control select2" required>
-                                                <option value="">{{ __('Select Unit') }}</option>
-                                                @foreach ($units as $unit)
-                                                    <option value="{{ $unit->id }}"
-                                                        @if (old('purchase_unit_id', $product->purchase_unit_id) == $unit->id) selected @endif>
-                                                        {{ $unit->name }} ({{ $unit->ShortName }})
+                                            <label for="brand_id">{{ __('Brand') }}</label>
+                                            <select name="brand_id" id="brand_id" class="form-control select2">
+                                                <option value="">{{ __('Select Brand') }}</option>
+                                                @foreach ($brands as $brand)
+                                                    <option value="{{ $brand->id }}"
+                                                        @if (old('brand_id', $product->brand_id) == $brand->id) selected @endif>
+                                                        {{ $brand->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
+                                            @error('brand_id')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="purchase_unit_id">{{ __('Purchase Unit') }}<span
+                                                    class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <select name="purchase_unit_id" id="purchase_unit_id" class="form-control select2" required>
+                                                    <option value="">{{ __('Select Unit') }}</option>
+                                                    @foreach ($units as $unit)
+                                                        <option value="{{ $unit->id }}"
+                                                            @if (old('purchase_unit_id', $product->purchase_unit_id) == $unit->id) selected @endif>
+                                                            {{ $unit->name }} ({{ $unit->ShortName }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div class="input-group-text">
+                                                    <a href="javascript:;" data-bs-toggle="modal"
+                                                        data-bs-target="#unitModal" class="text-primary" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('Add new unit') }}">
+                                                        <i class="fa fa-plus"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
                                             @error('purchase_unit_id')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
@@ -103,6 +129,13 @@
                                                     @endforeach
                                                 </select>
                                                 <div class="input-group-text">
+                                                    <a href="javascript:;" data-bs-toggle="modal"
+                                                        data-bs-target="#unitModal" class="text-primary" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('Add new unit') }}">
+                                                        <i class="fa fa-plus"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="input-group-text">
                                                     <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
                                                         data-bs-placement="top" title="{{ __('In which unit you make food') }}"></i>
                                                 </div>
@@ -118,12 +151,19 @@
                                                     class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <input type="number" step="0.0001" name="conversion_rate" id="conversion_rate"
-                                                    class="form-control" value="{{ old('conversion_rate', $product->conversion_rate ?? 1) }}" required>
+                                                    class="form-control" value="{{ old('conversion_rate', $product->conversion_rate ?? 1) }}" required readonly>
+                                                <div class="input-group-text">
+                                                    <a href="javascript:;" id="enableConversionRate" class="text-primary" data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="{{ __('Click to manually edit') }}">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                </div>
                                                 <div class="input-group-text">
                                                     <i class="fa fa-question-circle text-info" data-bs-toggle="tooltip"
-                                                        data-bs-placement="top" title="{{ __('How many Consumption Unit is equal for 1 Purchase Unit') }}"></i>
+                                                        data-bs-placement="top" title="{{ __('Auto-calculated from unit settings. 1 Purchase Unit = X Consumption Units') }}"></i>
                                                 </div>
                                             </div>
+                                            <small class="text-muted" id="conversionRateHelp"></small>
                                             @error('conversion_rate')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
@@ -220,6 +260,9 @@
             </div>
         </div>
     </div>
+
+    {{-- unit create modal --}}
+    @include('ingredient::unit-types.unit-modal')
 @endsection
 
 @push('js')
@@ -254,6 +297,138 @@
                 $('#purchase_price, #conversion_rate').on('input change', function() {
                     calculateConsumptionCost();
                 });
+
+                // Units data for conversion calculation
+                const unitsData = @json($units);
+
+                // Enable manual edit of conversion rate
+                $('#enableConversionRate').on('click', function() {
+                    $('#conversion_rate').prop('readonly', false).focus();
+                    $(this).hide();
+                });
+
+                // Auto-calculate conversion rate when units change
+                $('#purchase_unit_id, #consumption_unit_id').on('change', function() {
+                    calculateConversionRate();
+                });
+
+                function calculateConversionRate() {
+                    const purchaseUnitId = $('#purchase_unit_id').val();
+                    const consumptionUnitId = $('#consumption_unit_id').val();
+
+                    if (!purchaseUnitId || !consumptionUnitId) {
+                        $('#conversion_rate').val(1);
+                        $('#conversionRateHelp').text('');
+                        calculateConsumptionCost();
+                        return;
+                    }
+
+                    if (purchaseUnitId === consumptionUnitId) {
+                        $('#conversion_rate').val(1);
+                        $('#conversionRateHelp').text('{{ __("Same unit selected") }}');
+                        calculateConsumptionCost();
+                        return;
+                    }
+
+                    const purchaseUnit = unitsData.find(u => u.id == purchaseUnitId);
+                    const consumptionUnit = unitsData.find(u => u.id == consumptionUnitId);
+
+                    if (!purchaseUnit || !consumptionUnit) {
+                        $('#conversion_rate').val(1);
+                        $('#conversionRateHelp').text('');
+                        calculateConsumptionCost();
+                        return;
+                    }
+
+                    // Calculate conversion rate based on unit relationships
+                    let conversionRate = 1;
+                    let helpText = '';
+
+                    // Get base unit IDs
+                    const purchaseBaseId = purchaseUnit.base_unit || purchaseUnit.id;
+                    const consumptionBaseId = consumptionUnit.base_unit || consumptionUnit.id;
+
+                    // Check if units are in the same family
+                    if (purchaseBaseId === consumptionBaseId ||
+                        purchaseUnit.id === consumptionBaseId ||
+                        consumptionUnit.id === purchaseBaseId ||
+                        purchaseUnit.base_unit === consumptionUnit.id ||
+                        consumptionUnit.base_unit === purchaseUnit.id) {
+
+                        // Convert purchase unit to base value
+                        let purchaseToBase = 1;
+                        if (purchaseUnit.base_unit) {
+                            if (purchaseUnit.operator === '*') {
+                                purchaseToBase = parseFloat(purchaseUnit.operator_value) || 1;
+                            } else {
+                                purchaseToBase = 1 / (parseFloat(purchaseUnit.operator_value) || 1);
+                            }
+                        }
+
+                        // Convert base to consumption unit
+                        let baseToConsumption = 1;
+                        if (consumptionUnit.base_unit) {
+                            if (consumptionUnit.operator === '*') {
+                                baseToConsumption = 1 / (parseFloat(consumptionUnit.operator_value) || 1);
+                            } else {
+                                baseToConsumption = parseFloat(consumptionUnit.operator_value) || 1;
+                            }
+                        }
+
+                        // If purchase unit is the base of consumption unit
+                        // e.g., Purchase=Kg, Consumption=Gram (Gram has base_unit=Kg, operator=/, value=1000)
+                        // 1 Gram = 1 Kg / 1000, so 1 Kg = 1000 Grams
+                        if (consumptionUnit.base_unit === purchaseUnit.id) {
+                            if (consumptionUnit.operator === '/') {
+                                // 1 consumption = 1 base / value, so 1 base = value consumption
+                                conversionRate = parseFloat(consumptionUnit.operator_value) || 1;
+                            } else {
+                                // 1 consumption = 1 base * value, so 1 base = 1/value consumption
+                                conversionRate = 1 / (parseFloat(consumptionUnit.operator_value) || 1);
+                            }
+                        }
+                        // If consumption unit is the base of purchase unit
+                        // e.g., Purchase=Gram, Consumption=Kg (Gram has base_unit=Kg, operator=/, value=1000)
+                        // 1 Gram = 1 Kg / 1000, so 1 Gram = 0.001 Kg
+                        else if (purchaseUnit.base_unit === consumptionUnit.id) {
+                            if (purchaseUnit.operator === '/') {
+                                // 1 purchase = 1 base / value, so 1 purchase = 1/value base
+                                conversionRate = 1 / (parseFloat(purchaseUnit.operator_value) || 1);
+                            } else {
+                                // 1 purchase = 1 base * value, so 1 purchase = value base
+                                conversionRate = parseFloat(purchaseUnit.operator_value) || 1;
+                            }
+                        }
+                        // Both have same base unit
+                        else if (purchaseBaseId === consumptionBaseId) {
+                            // Convert: purchase -> base -> consumption
+                            // purchaseToBase: how many base units = 1 purchase unit
+                            // baseToConsumption: how many consumption units = 1 base unit
+                            conversionRate = purchaseToBase * baseToConsumption;
+                        }
+
+                        helpText = `1 ${purchaseUnit.name} = ${conversionRate} ${consumptionUnit.name}`;
+                    } else {
+                        // Different unit families - enable manual input
+                        $('#conversion_rate').prop('readonly', false);
+                        helpText = '{{ __("Different unit families - please enter manually") }}';
+                        $('#enableConversionRate').hide();
+                    }
+
+                    $('#conversion_rate').val(conversionRate.toFixed(4));
+                    $('#conversionRateHelp').text(helpText);
+                    calculateConsumptionCost();
+                }
+
+                // Show current conversion help text on load
+                (function() {
+                    const purchaseUnit = unitsData.find(u => u.id == $('#purchase_unit_id').val());
+                    const consumptionUnit = unitsData.find(u => u.id == $('#consumption_unit_id').val());
+                    if (purchaseUnit && consumptionUnit) {
+                        const rate = parseFloat($('#conversion_rate').val()) || 1;
+                        $('#conversionRateHelp').text(`1 ${purchaseUnit.name} = ${rate} ${consumptionUnit.name}`);
+                    }
+                })();
 
                 $.uploadPreview({
                     input_field: "#image-upload",
