@@ -523,6 +523,9 @@
                     <input type="hidden" name="order_customer_id" id="order_customer_id" value="">
                     <input type="hidden" name="order_type" id="order_type" value="dine_in">
                     <input type="hidden" name="table_id" id="order_table_id" value="">
+                    <input type="hidden" name="guest_count" id="guest_count" value="1">
+                    <input type="hidden" name="waiter_id" id="waiter_id" value="">
+                    <input type="hidden" name="sale_note" id="sale_note" value="">
                     <input type="hidden" name="delivery_address" id="order_delivery_address" value="">
                     <input type="hidden" name="delivery_phone" id="order_delivery_phone" value="">
                     <input type="hidden" name="delivery_notes" id="order_delivery_notes" value="">
@@ -1109,6 +1112,86 @@
         </div>
     </div>
 
+    <!-- Start Dine-In Order Modal -->
+    <div class="modal fade" id="startDineInModal" tabindex="-1" role="dialog" aria-labelledby="startDineInModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="startDineInModalLabel">
+                        <i class="fas fa-utensils me-2"></i>{{ __('Start Dine-In Order') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Selected Table Info -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="table-icon me-3">
+                                    <i class="fas fa-chair fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0" id="dineInTableName">Table Name</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-users me-1"></i>
+                                        <span id="dineInTableCapacity">0</span> {{ __('seats') }}
+                                        <span class="ms-2" id="dineInAvailableSeats"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guest Count -->
+                    <div class="mb-3">
+                        <label for="dineInGuestCount" class="form-label fw-bold">
+                            <i class="fas fa-users me-1"></i>{{ __('Number of Guests') }} <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <button type="button" class="btn btn-outline-secondary" onclick="adjustGuestCount(-1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="form-control text-center" id="dineInGuestCount" value="1" min="1" max="20">
+                            <button type="button" class="btn btn-outline-secondary" onclick="adjustGuestCount(1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted" id="guestCountHint"></small>
+                    </div>
+
+                    <!-- Waiter Selection -->
+                    <div class="mb-3">
+                        <label for="dineInWaiter" class="form-label fw-bold">
+                            <i class="fas fa-user-tie me-1"></i>{{ __('Assign Waiter') }}
+                        </label>
+                        <select class="form-select" id="dineInWaiter">
+                            <option value="">{{ __('-- Select Waiter --') }}</option>
+                            @foreach($waiters as $waiter)
+                                <option value="{{ $waiter->id }}">{{ $waiter->name }} @if($waiter->designation) ({{ $waiter->designation }}) @endif</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Order Note (Optional) -->
+                    <div class="mb-3">
+                        <label for="dineInNote" class="form-label fw-bold">
+                            <i class="fas fa-sticky-note me-1"></i>{{ __('Order Note') }} <small class="text-muted">({{ __('Optional') }})</small>
+                        </label>
+                        <textarea class="form-control" id="dineInNote" rows="2" placeholder="{{ __('Any special instructions...') }}"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back') }}
+                    </button>
+                    <button type="button" class="btn btn-success btn-lg" id="confirmStartDineIn">
+                        <i class="fas fa-play me-1"></i>{{ __('Start Order') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- POS Receipt Modal -->
     <div class="modal fade" id="posReceiptModal" tabindex="-1" role="dialog" aria-labelledby="posReceiptModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 400px;">
@@ -1204,32 +1287,87 @@
                     $('#tableSelectionModal').modal('show');
                 });
 
-                // Confirm table selection
+                // Confirm table selection - show Start Dine-In modal
                 $('#confirmTableSelection').on('click', function() {
                     const selectedCard = $('.table-card.selected');
-                    if (selectedCard.length) {
-                        const tableId = selectedCard.data('table-id');
-                        const tableName = selectedCard.data('table-name');
-                        const tableCapacity = selectedCard.data('table-capacity');
+                    if (selectedCard.length && selectedTableData) {
+                        // Populate Start Dine-In modal
+                        $('#dineInTableName').text(selectedTableData.name);
+                        $('#dineInTableCapacity').text(selectedTableData.capacity);
 
-                        // Set hidden input value
-                        $('#table_id').val(tableId);
+                        // Show available seats if partially occupied
+                        if (selectedTableData.occupiedSeats > 0) {
+                            $('#dineInAvailableSeats').html('<span class="badge bg-warning text-dark">' + selectedTableData.availableSeats + ' {{ __("available") }}</span>');
+                        } else {
+                            $('#dineInAvailableSeats').html('<span class="badge bg-success">{{ __("All available") }}</span>');
+                        }
 
-                        // Update button display
-                        $('#selectedTableText').html('<i class="fas fa-check-circle me-1"></i>' + tableName);
-                        $('#selectedTableSeats').text(tableCapacity);
-                        $('#selectedTableBadge').show();
-                        $('#openTableModal').addClass('table-selected');
+                        // Set max guest count based on available seats
+                        const maxGuests = selectedTableData.availableSeats;
+                        $('#dineInGuestCount').attr('max', maxGuests).val(1);
+                        $('#guestCountHint').text("{{ __('Maximum') }}: " + maxGuests + " {{ __('guests') }}");
 
-                        // Close modal
+                        // Reset other fields
+                        $('#dineInWaiter').val('');
+                        $('#dineInNote').val('');
+
+                        // Hide table selection modal and show Start Dine-In modal
                         $('#tableSelectionModal').modal('hide');
-
-                        // Update payment button
-                        updatePaymentButtonState();
-
-                        toastr.success("{{ __('Table selected:') }} " + tableName);
+                        setTimeout(function() {
+                            $('#startDineInModal').modal('show');
+                        }, 300);
                     }
                 });
+
+                // Confirm Start Dine-In Order
+                $('#confirmStartDineIn').on('click', function() {
+                    if (!selectedTableData) {
+                        toastr.error("{{ __('Please select a table first') }}");
+                        return;
+                    }
+
+                    const guestCount = parseInt($('#dineInGuestCount').val()) || 1;
+                    const maxGuests = selectedTableData.availableSeats;
+
+                    if (guestCount > maxGuests) {
+                        toastr.error("{{ __('Guest count exceeds available seats') }}");
+                        return;
+                    }
+
+                    // Set hidden input values
+                    $('#table_id').val(selectedTableData.id);
+                    $('#guest_count').val(guestCount);
+                    $('#waiter_id').val($('#dineInWaiter').val());
+                    $('#sale_note').val($('#dineInNote').val());
+
+                    // Update button display
+                    $('#selectedTableText').html('<i class="fas fa-check-circle me-1"></i>' + selectedTableData.name);
+                    $('#selectedTableSeats').text(guestCount + ' {{ __("guests") }}');
+                    $('#selectedTableBadge').show();
+                    $('#openTableModal').addClass('table-selected');
+
+                    // Close modal
+                    $('#startDineInModal').modal('hide');
+
+                    // Update payment button
+                    updatePaymentButtonState();
+
+                    toastr.success("{{ __('Table') }} " + selectedTableData.name + " {{ __('selected with') }} " + guestCount + " {{ __('guests') }}");
+                });
+
+                // Adjust guest count with buttons
+                window.adjustGuestCount = function(delta) {
+                    const input = $('#dineInGuestCount');
+                    let value = parseInt(input.val()) || 1;
+                    const min = parseInt(input.attr('min')) || 1;
+                    const max = parseInt(input.attr('max')) || 20;
+
+                    value += delta;
+                    if (value < min) value = min;
+                    if (value > max) value = max;
+
+                    input.val(value);
+                };
 
                 // Reset selection when modal is closed without confirming
                 $('#tableSelectionModal').on('hidden.bs.modal', function() {

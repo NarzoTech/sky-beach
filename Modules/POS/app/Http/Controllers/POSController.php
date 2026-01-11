@@ -146,6 +146,16 @@ class POSController extends Controller
         $editingTableId = session('EDITING_TABLE_ID');
         $editingTableName = session('EDITING_TABLE_NAME');
 
+        // Load waiters/employees for dine-in orders
+        $waiters = [];
+        try {
+            $waiters = \Modules\Employee\app\Models\Employee::where('status', 1)
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            // Employee module might not be installed
+        }
+
         return view('pos::index')->with([
             'menuItems' => $menuItems,
             'categories' => $categories,
@@ -162,6 +172,7 @@ class POSController extends Controller
             'editingOrderId' => $editingOrderId,
             'editingTableId' => $editingTableId,
             'editingTableName' => $editingTableName,
+            'waiters' => $waiters,
         ]);
     }
 
@@ -790,7 +801,7 @@ class POSController extends Controller
     public function getRunningOrders()
     {
         try {
-            $runningOrders = Sale::with(['table', 'details.menuItem', 'customer'])
+            $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
                 ->where('order_type', Sale::ORDER_TYPE_DINE_IN)
                 ->whereNotNull('table_id')
                 ->whereIn('status', ['pending', 'processing'])
@@ -842,7 +853,7 @@ class POSController extends Controller
     public function getOrderDetails($id)
     {
         try {
-            $order = Sale::with(['table', 'details.menuItem', 'details.service', 'customer'])
+            $order = Sale::with(['table', 'details.menuItem', 'details.service', 'customer', 'waiter'])
                 ->findOrFail($id);
 
             $html = view('pos::order-details', compact('order'))->render();
@@ -1167,7 +1178,7 @@ class POSController extends Controller
             DB::commit();
 
             // Generate POS receipt
-            $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'payment.account'])->find($order->id);
+            $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'payment.account'])->find($order->id);
             $setting = \Illuminate\Support\Facades\Cache::get('setting');
 
             $receiptHtml = view('pos::pos-receipt')->with([

@@ -75,6 +75,11 @@
                         {{ currency($order->grand_total) }}
                     </span>
                 </div>
+                @if($order->waiter)
+                <div class="text-muted small mt-1">
+                    <i class="fas fa-user-tie me-1"></i>{{ __('Waiter') }}: {{ $order->waiter->name }}
+                </div>
+                @endif
             </div>
         </div>
     </div>

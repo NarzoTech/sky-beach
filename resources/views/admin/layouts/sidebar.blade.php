@@ -72,6 +72,10 @@
             @include('sales::sidebar')
         @endif
 
+        @if (Module::isEnabled('POS'))
+            @include('pos::sidebar')
+        @endif
+
         @if (Module::isEnabled('Accounts'))
             @include('accounts::sidebar')
         @endif

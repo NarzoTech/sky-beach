@@ -137,23 +137,38 @@
     </div>
     @endif
 
-    <!-- Customer Info -->
-    @if($order->customer_id && $order->customer)
-    <div class="alert alert-info py-2 mb-3 d-flex justify-content-between align-items-center">
-        <span>
-            <i class="fas fa-user me-2"></i>
-            <strong>{{ __('Customer') }}:</strong> {{ $order->customer->name ?? 'Guest' }}
-            @if($order->customer->phone)
-            - <i class="fas fa-phone ms-2 me-1"></i>{{ $order->customer->phone }}
-            @endif
-        </span>
-        @if(isset($customerLoyalty) && $customerLoyalty)
-        <span class="badge bg-success">
-            <i class="fas fa-star me-1"></i>{{ $customerLoyalty['total_points'] ?? 0 }} pts
-        </span>
+    <!-- Customer & Waiter Info -->
+    <div class="row mb-3">
+        @if($order->customer_id && $order->customer)
+        <div class="col-md-{{ $order->waiter ? '6' : '12' }}">
+            <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center h-100">
+                <span>
+                    <i class="fas fa-user me-2"></i>
+                    <strong>{{ __('Customer') }}:</strong> {{ $order->customer->name ?? 'Guest' }}
+                    @if($order->customer->phone)
+                    <br><small><i class="fas fa-phone me-1"></i>{{ $order->customer->phone }}</small>
+                    @endif
+                </span>
+                @if(isset($customerLoyalty) && $customerLoyalty)
+                <span class="badge bg-success">
+                    <i class="fas fa-star me-1"></i>{{ $customerLoyalty['total_points'] ?? 0 }} pts
+                </span>
+                @endif
+            </div>
+        </div>
+        @endif
+        @if($order->waiter)
+        <div class="col-md-{{ ($order->customer_id && $order->customer) ? '6' : '12' }}">
+            <div class="alert alert-secondary py-2 mb-0 h-100">
+                <i class="fas fa-user-tie me-2"></i>
+                <strong>{{ __('Waiter') }}:</strong> {{ $order->waiter->name }}
+                @if($order->waiter->designation)
+                <br><small class="text-muted">({{ $order->waiter->designation }})</small>
+                @endif
+            </div>
+        </div>
         @endif
     </div>
-    @endif
 
     <!-- Order Items - Editable -->
     <div class="card mb-3">

@@ -136,6 +136,12 @@
             <span>Cashier:</span>
             <span>{{ $sale->createdBy->name ?? 'Staff' }}</span>
         </div>
+        @if($sale->waiter)
+        <div>
+            <span>Waiter:</span>
+            <span>{{ $sale->waiter->name }}</span>
+        </div>
+        @endif
     </div>
 
     <!-- Items -->

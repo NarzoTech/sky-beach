@@ -31,6 +31,7 @@ class Sale extends Model
         'status',
         'order_type',
         'table_id',
+        'waiter_id',
         'guest_count',
         'estimated_prep_minutes',
         'delivery_address',
@@ -151,6 +152,11 @@ class Sale extends Model
     public function table()
     {
         return $this->belongsTo(\Modules\TableManagement\app\Models\RestaurantTable::class, 'table_id');
+    }
+
+    public function waiter()
+    {
+        return $this->belongsTo(\Modules\Employee\app\Models\Employee::class, 'waiter_id');
     }
 
     public function getOrderTypeLabelAttribute(): string

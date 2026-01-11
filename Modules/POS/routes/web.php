@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\POS\app\Http\Controllers\POSController;
 use Modules\POS\app\Http\Controllers\PosSettingsController;
+use Modules\POS\app\Http\Controllers\WaiterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,4 +63,15 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
 
     Route::get('pos/settings', [PosSettingsController::class, 'index'])->name('pos.settings');
     Route::post('pos/settings', [PosSettingsController::class, 'store'])->name('pos.settings.store');
+
+    // Waiter Management Routes
+    Route::prefix('pos/waiters')->name('pos.waiters.')->group(function () {
+        Route::get('/', [WaiterController::class, 'index'])->name('index');
+        Route::get('/create', [WaiterController::class, 'create'])->name('create');
+        Route::post('/', [WaiterController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [WaiterController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [WaiterController::class, 'update'])->name('update');
+        Route::delete('/{id}', [WaiterController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/status', [WaiterController::class, 'status'])->name('status');
+    });
 });

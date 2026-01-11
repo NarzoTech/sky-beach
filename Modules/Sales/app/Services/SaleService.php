@@ -76,6 +76,7 @@ class SaleService
         $sale->order_type = $request->order_type ?? Sale::ORDER_TYPE_DINE_IN;
         $sale->table_id = $request->table_id;
         $sale->guest_count = $request->guest_count ?? 1;
+        $sale->waiter_id = $request->waiter_id;
         $sale->delivery_address = $request->delivery_address;
         $sale->delivery_phone = $request->delivery_phone;
         $sale->delivery_notes = $request->delivery_notes;
