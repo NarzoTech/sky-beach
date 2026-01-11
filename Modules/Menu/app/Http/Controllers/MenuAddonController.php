@@ -61,9 +61,10 @@ class MenuAddonController extends Controller
             $this->addonService->create($request->validated());
 
             return $this->redirectWithMessage(
-                'admin.menu-addon.index',
                 'success',
-                __('Add-on created successfully')
+                'admin.menu-addon.index',
+                [],
+                ['messege' => __('Add-on created successfully'), 'alert-type' => 'success']
             );
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
@@ -101,9 +102,10 @@ class MenuAddonController extends Controller
             $this->addonService->update($menuAddon, $request->validated());
 
             return $this->redirectWithMessage(
-                'admin.menu-addon.index',
                 'success',
-                __('Add-on updated successfully')
+                'admin.menu-addon.index',
+                [],
+                ['messege' => __('Add-on updated successfully'), 'alert-type' => 'success']
             );
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();

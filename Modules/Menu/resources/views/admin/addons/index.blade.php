@@ -98,9 +98,8 @@
                                                         <span class="badge bg-info">{{ $addon->menu_items_count ?? $addon->menuItems->count() }} {{ __('items') }}</span>
                                                     </td>
                                                     <td>
-                                                        <div class="custom-control custom-switch">
-                                                            <input type="checkbox" class="custom-control-input status-toggle" id="status{{ $addon->id }}" data-id="{{ $addon->id }}" {{ $addon->status ? 'checked' : '' }}>
-                                                            <label class="custom-control-label" for="status{{ $addon->id }}"></label>
+                                                        <div class="form-check form-switch">
+                                                            <input type="checkbox" class="form-check-input status-toggle" role="switch" id="status{{ $addon->id }}" data-id="{{ $addon->id }}" {{ $addon->status ? 'checked' : '' }}>
                                                         </div>
                                                     </td>
                                                     <td>
