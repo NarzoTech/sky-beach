@@ -162,6 +162,9 @@
                     @if($detail->attributes)
                     <br><small style="color: #666;">{{ $detail->attributes }}</small>
                     @endif
+                    @if(!empty($detail->addons))
+                    <br><small style="color: #0099cc;">+ @foreach($detail->addons as $addon){{ $addon['name'] }}@if(!$loop->last), @endif @endforeach</small>
+                    @endif
                 </td>
                 <td class="text-center">{{ $detail->quantity }}</td>
                 <td class="text-right">{{ number_format($detail->price, 2) }}</td>

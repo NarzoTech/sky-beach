@@ -201,6 +201,8 @@ class SaleService
                 $orderDetails->cogs_amount = $cogsAmount;
                 $orderDetails->profit_amount = $profitAmount;
                 $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
+                $orderDetails->addons = $item['addons'] ?? null;
+                $orderDetails->addons_price = $item['addons_price'] ?? 0;
                 $orderDetails->save();
 
                 // Deduct ingredient stock based on menu item recipes
@@ -472,6 +474,8 @@ class SaleService
                     $orderDetails->cogs_amount = $cogsAmount;
                     $orderDetails->profit_amount = $profitAmount;
                     $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
+                    $orderDetails->addons = $item['addons'] ?? null;
+                    $orderDetails->addons_price = $item['addons_price'] ?? 0;
                     $orderDetails->save();
 
                     // Deduct ingredient stock based on menu item recipes
@@ -720,6 +724,8 @@ class SaleService
                 $data['purchase_price'] = $detail->purchase_price ?? $menuItem->cost_price ?? 0;
                 $data['selling_price'] = $detail->selling_price ?? $detail->price;
                 $data['variant_id'] = $detail->variant_id;
+                $data['addons'] = $detail->addons ?? [];
+                $data['addons_price'] = $detail->addons_price ?? 0;
                 if ($detail->variant_id) {
                     $data['variant']['attribute'] = $detail->attributes;
                     $data['variant']['options'] = [];

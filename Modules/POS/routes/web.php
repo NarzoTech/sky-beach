@@ -37,6 +37,12 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::get('/check-cart-restaurant/{id}', [POSController::class, 'check_cart_restaurant'])->name('check-cart-restaurant');
         Route::get('/modal-cart-clear', [POSController::class, 'modalClearCart'])->name('modal-cart-clear');
 
+        // Cart Addon Routes
+        Route::get('/get-item-addons/{menuItemId}/{rowId}', [POSController::class, 'getItemAddons'])->name('pos.get-item-addons');
+        Route::post('/update-cart-addons', [POSController::class, 'updateCartAddons'])->name('pos.update-cart-addons');
+        Route::post('/update-addon-qty', [POSController::class, 'updateAddonQty'])->name('pos.update-addon-qty');
+        Route::post('/remove-addon', [POSController::class, 'removeAddon'])->name('pos.remove-addon');
+
         // Running Orders Routes
         Route::get('/running-orders', [POSController::class, 'getRunningOrders'])->name('pos.running-orders');
         Route::get('/running-orders/count', [POSController::class, 'getRunningOrdersCount'])->name('pos.running-orders.count');

@@ -172,14 +172,14 @@
 
     <!-- Order Items - Editable -->
     <div class="card mb-3">
-        <div class="card-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center">
             <span><i class="fas fa-list me-2"></i>{{ __('Order Items') }}</span>
-            <span class="badge bg-light text-dark">{{ $order->details->count() }} {{ __('items') }}</span>
+            <span class="badge bg-secondary">{{ $order->details->count() }} {{ __('items') }}</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" id="orderItemsTable">
-                    <thead class="table-light">
+                <table class="table mb-0" id="orderItemsTable">
+                    <thead>
                         <tr>
                             <th style="width: 40px;"></th>
                             <th>{{ __('Item') }}</th>
@@ -202,6 +202,14 @@
                                 <strong>{{ $detail->menuItem->name ?? ($detail->service->name ?? 'Unknown Item') }}</strong>
                                 @if($detail->variant_id && $detail->attributes)
                                 <br><small class="text-muted"><i class="fas fa-tag me-1"></i>{{ $detail->attributes }}</small>
+                                @endif
+                                @if(!empty($detail->addons))
+                                <br><small class="text-muted">
+                                    <i class="fas fa-plus-circle me-1"></i>
+                                    @foreach($detail->addons as $addon)
+                                        {{ $addon['name'] }}@if(!$loop->last), @endif
+                                    @endforeach
+                                </small>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -226,7 +234,7 @@
                         </tr>
                         @endforeach
                     </tbody>
-                    <tfoot class="table-light">
+                    <tfoot>
                         <tr>
                             <td colspan="4" class="text-end"><strong>{{ __('Subtotal') }}:</strong></td>
                             <td class="text-end" id="orderSubtotal">{{ currency($order->total_price) }}</td>
@@ -243,7 +251,7 @@
                             <td class="text-end">{{ currency($order->total_tax) }}</td>
                         </tr>
                         @endif
-                        <tr class="table-success">
+                        <tr>
                             <td colspan="4" class="text-end"><strong class="fs-5">{{ __('Grand Total') }}:</strong></td>
                             <td class="text-end"><strong class="fs-5" id="orderGrandTotal">{{ currency($order->grand_total) }}</strong></td>
                         </tr>

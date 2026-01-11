@@ -29,6 +29,8 @@ class ProductSale extends Model
         'product_sku',
         'variant_id',
         'attributes',
+        'addons',
+        'addons_price',
         'price',
         'tax',
         'discount',
@@ -43,6 +45,8 @@ class ProductSale extends Model
     protected $casts = [
         'cogs_amount' => 'decimal:4',
         'profit_amount' => 'decimal:4',
+        'addons' => 'array',
+        'addons_price' => 'decimal:2',
     ];
 
     public function sale()

@@ -148,6 +148,9 @@
                             @if($detail->attributes)
                                 <br><small class="text-muted">{{ $detail->attributes }}</small>
                             @endif
+                            @if(!empty($detail->addons))
+                                <br><small class="text-info">+ @foreach($detail->addons as $addon){{ $addon['name'] }}@if(!$loop->last), @endif @endforeach</small>
+                            @endif
                         </td>
                         <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                             class="text-center">

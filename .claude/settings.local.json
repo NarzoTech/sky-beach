@@ -21,7 +21,8 @@
       "Bash(curl:*)",
       "mcp__ide__getDiagnostics",
       "Bash(php -l:*)",
-      "Bash(more:*)"
+      "Bash(more:*)",
+      "Bash(php -r:*)"
     ]
   }
 }

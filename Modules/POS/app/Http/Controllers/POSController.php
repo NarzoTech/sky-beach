@@ -199,7 +199,7 @@ class POSController extends Controller
     {
         Paginator::useBootstrap();
 
-        $menuItems = MenuItem::where('status', 1)->where('is_available', 1)
+        $menuItems = MenuItem::with('activeAddons')->where('status', 1)->where('is_available', 1)
             ->where(function ($query) {
                 $query->whereNull('category_id')
                     ->orWhereHas('category', function ($q) {
@@ -283,7 +283,7 @@ class POSController extends Controller
     public function load_products_list(Request $request)
     {
 
-        $menuItems = MenuItem::active()->available()
+        $menuItems = MenuItem::with('activeAddons')->active()->available()
             ->where(function ($query) {
                 $query->whereNull('category_id')
                     ->orWhereHas('category', function ($q) {
@@ -328,6 +328,201 @@ class POSController extends Controller
         ]);
     }
 
+    /**
+     * Check if cart has items from different restaurant (legacy method)
+     * Since this is a single restaurant system, always returns no conflict
+     */
+    public function check_cart_restaurant($id)
+    {
+        // Single restaurant system - no conflict possible
+        return response()->json(['status' => false]);
+    }
+
+    /**
+     * Get available addons for a menu item (for cart addon modal)
+     */
+    public function getItemAddons($menuItemId, $rowId)
+    {
+        $menuItem = MenuItem::with('activeAddons')->find($menuItemId);
+        if (!$menuItem) {
+            return response()->json(['html' => '<p class="text-danger">Item not found</p>'], 404);
+        }
+
+        // Get current cart item to check selected addons
+        $cartName = 'POSCART';
+        $cart = session()->get($cartName, []);
+        $currentAddons = [];
+        $currentAddonQtys = [];
+        if (isset($cart[$rowId]) && !empty($cart[$rowId]['addons'])) {
+            foreach ($cart[$rowId]['addons'] as $addon) {
+                $currentAddons[] = $addon['id'];
+                $currentAddonQtys[$addon['id']] = $addon['qty'] ?? 1;
+            }
+        }
+
+        $html = '<div class="addon-list">';
+        if ($menuItem->activeAddons->count() > 0) {
+            foreach ($menuItem->activeAddons as $addon) {
+                $checked = in_array($addon->id, $currentAddons) ? 'checked' : '';
+                $qty = $currentAddonQtys[$addon->id] ?? 1;
+                $html .= '<div class="form-check mb-2 d-flex align-items-center justify-content-between">';
+                $html .= '<div>';
+                $html .= '<input class="form-check-input cart-addon-checkbox" type="checkbox" value="' . $addon->id . '" id="cart_addon_' . $addon->id . '" ' . $checked . ' data-price="' . $addon->price . '">';
+                $html .= '<label class="form-check-label" for="cart_addon_' . $addon->id . '">';
+                $html .= $addon->name . ' <span class="text-success">(+' . currency($addon->price) . ')</span>';
+                $html .= '</label>';
+                $html .= '</div>';
+                $html .= '<input type="number" min="1" value="' . $qty . '" class="form-control form-control-sm addon-qty-input" style="width: 60px;" data-addon-id="' . $addon->id . '">';
+                $html .= '</div>';
+            }
+        } else {
+            $html .= '<p class="text-muted text-center">' . __('No add-ons available for this item') . '</p>';
+        }
+        $html .= '</div>';
+
+        return response()->json(['html' => $html]);
+    }
+
+    /**
+     * Update cart item with selected addons
+     */
+    public function updateCartAddons(Request $request)
+    {
+        $cartName = 'POSCART';
+        $rowId = $request->rowid;
+        $addonIds = $request->addons ?? [];
+        $addonQtys = $request->addon_qtys ?? []; // Addon quantities keyed by addon ID
+
+        $cart = session()->get($cartName, []);
+
+        if (!isset($cart[$rowId])) {
+            return response()->json(['error' => 'Cart item not found'], 404);
+        }
+
+        $cartItem = $cart[$rowId];
+        $menuItemId = $cartItem['id'];
+
+        // Get the menu item's base price (without addons)
+        $basePrice = $cartItem['base_price'] ?? $cartItem['price'];
+
+        // Calculate addons
+        $addons = [];
+        $addonsPrice = 0;
+
+        if (!empty($addonIds)) {
+            $addonModels = \Modules\Menu\app\Models\MenuAddon::whereIn('id', $addonIds)->where('status', 1)->get();
+            foreach ($addonModels as $addon) {
+                $qty = isset($addonQtys[$addon->id]) ? max(1, intval($addonQtys[$addon->id])) : 1;
+                $addons[] = [
+                    'id' => $addon->id,
+                    'name' => $addon->name,
+                    'price' => $addon->price,
+                    'qty' => $qty,
+                ];
+                $addonsPrice += $addon->price * $qty;
+            }
+        }
+
+        // Update cart item
+        $cart[$rowId]['addons'] = $addons;
+        $cart[$rowId]['addons_price'] = $addonsPrice;
+        $cart[$rowId]['base_price'] = $basePrice;
+        $cart[$rowId]['price'] = $basePrice + $addonsPrice;
+        $cart[$rowId]['sub_total'] = $cart[$rowId]['price'] * $cart[$rowId]['qty'];
+
+        session()->put($cartName, $cart);
+
+        return view('pos::ajax_cart')->with([
+            'cart_contents' => $cart,
+        ]);
+    }
+
+    /**
+     * Update addon quantity in cart item
+     */
+    public function updateAddonQty(Request $request)
+    {
+        $cartName = 'POSCART';
+        $rowId = $request->rowid;
+        $addonId = $request->addon_id;
+        $qty = max(1, intval($request->qty));
+
+        $cart = session()->get($cartName, []);
+
+        if (!isset($cart[$rowId])) {
+            return response()->json(['error' => 'Cart item not found'], 404);
+        }
+
+        $cartItem = $cart[$rowId];
+        $basePrice = $cartItem['base_price'] ?? $cartItem['price'];
+
+        // Update the addon quantity
+        $addonsPrice = 0;
+        if (!empty($cartItem['addons'])) {
+            foreach ($cartItem['addons'] as $index => $addon) {
+                if ($addon['id'] == $addonId) {
+                    $cart[$rowId]['addons'][$index]['qty'] = $qty;
+                }
+                $addonQty = ($addon['id'] == $addonId) ? $qty : ($addon['qty'] ?? 1);
+                $addonsPrice += $addon['price'] * $addonQty;
+            }
+        }
+
+        // Recalculate price
+        $cart[$rowId]['addons_price'] = $addonsPrice;
+        $cart[$rowId]['price'] = $basePrice + $addonsPrice;
+        $cart[$rowId]['sub_total'] = $cart[$rowId]['price'] * $cart[$rowId]['qty'];
+
+        session()->put($cartName, $cart);
+
+        return view('pos::ajax_cart')->with([
+            'cart_contents' => $cart,
+        ]);
+    }
+
+    /**
+     * Remove addon from cart item
+     */
+    public function removeAddon(Request $request)
+    {
+        $cartName = 'POSCART';
+        $rowId = $request->rowid;
+        $addonId = $request->addon_id;
+
+        $cart = session()->get($cartName, []);
+
+        if (!isset($cart[$rowId])) {
+            return response()->json(['error' => 'Cart item not found'], 404);
+        }
+
+        $cartItem = $cart[$rowId];
+        $basePrice = $cartItem['base_price'] ?? $cartItem['price'];
+
+        // Remove the addon
+        $newAddons = [];
+        $addonsPrice = 0;
+        if (!empty($cartItem['addons'])) {
+            foreach ($cartItem['addons'] as $addon) {
+                if ($addon['id'] != $addonId) {
+                    $newAddons[] = $addon;
+                    $addonsPrice += $addon['price'] * ($addon['qty'] ?? 1);
+                }
+            }
+        }
+
+        // Update cart item
+        $cart[$rowId]['addons'] = $newAddons;
+        $cart[$rowId]['addons_price'] = $addonsPrice;
+        $cart[$rowId]['price'] = $basePrice + $addonsPrice;
+        $cart[$rowId]['sub_total'] = $cart[$rowId]['price'] * $cart[$rowId]['qty'];
+
+        session()->put($cartName, $cart);
+
+        return view('pos::ajax_cart')->with([
+            'cart_contents' => $cart,
+        ]);
+    }
+
     public function add_to_cart(Request $request)
     {
 
@@ -358,6 +553,22 @@ class POSController extends Controller
             }
         }
 
+        // Handle addons
+        $addons = [];
+        $addonsPrice = 0;
+        $addonIds = $request->addons ?? [];
+        if ($menuItem && !empty($addonIds)) {
+            $addonModels = \Modules\Menu\app\Models\MenuAddon::whereIn('id', $addonIds)->where('status', 1)->get();
+            foreach ($addonModels as $addon) {
+                $addons[] = [
+                    'id' => $addon->id,
+                    'name' => $addon->name,
+                    'price' => $addon->price,
+                ];
+                $addonsPrice += $addon->price;
+            }
+        }
+
         $cart_contents = session()->get($cartName);
         $cart_contents = $cart_contents ? $cart_contents : [];
 
@@ -366,11 +577,14 @@ class POSController extends Controller
         $sku = $type != 'service' ? ($request->variant_sku ? $request->variant_sku : ($menuItem ? $menuItem->sku : '')) : '';
         $variant_id = $variant ? $variant->id : null;
 
-        if ($mergeCartItems && count($cart_contents) > 0) {
+        // Only merge if no addons selected (items with addons are unique)
+        if ($mergeCartItems && count($cart_contents) > 0 && empty($addonIds)) {
             foreach ($cart_contents as $rowid => $cart_content) {
                 // Match by SKU and variant_id for menu items, or by id for services
                 if ($type != 'service') {
-                    if ($sku && $cart_content['sku'] == $sku && ($cart_content['variant_id'] ?? null) == $variant_id) {
+                    // Only merge if both have no addons
+                    $existingHasAddons = !empty($cart_content['addons'] ?? []);
+                    if ($sku && $cart_content['sku'] == $sku && ($cart_content['variant_id'] ?? null) == $variant_id && !$existingHasAddons) {
                         $existing_rowid = $rowid;
                         break;
                     }
@@ -400,12 +614,16 @@ class POSController extends Controller
             $data['qty'] = $request->qty ? $request->qty : 1;
 
             // Calculate price - use variant price if applicable, otherwise base_price
-            $price = $type == 'service' ? $service->price : ($request->variant_price ?? $menuItem->base_price);
+            $basePrice = $type == 'service' ? $service->price : ($menuItem->base_price);
             if ($variant) {
-                $price = $menuItem->base_price + ($variant->price_adjustment ?? 0);
+                $basePrice = $menuItem->base_price + ($variant->price_adjustment ?? 0);
             }
 
+            // Add addons price to item price
+            $price = $basePrice + $addonsPrice;
+
             $data['price'] = $price;
+            $data['base_price'] = $basePrice;
             $data['sub_total'] = (float)$data['price'] * $data['qty'];
             $data['sku'] = $sku;
             $data['unit'] = '-'; // Menu items don't have unit like ingredients
@@ -413,6 +631,8 @@ class POSController extends Controller
             $data['purchase_price'] = $menuItem ? ($menuItem->cost_price ?? 0) : 0;
             $data['selling_price'] = $price;
             $data['variant_id'] = $variant_id;
+            $data['addons'] = $addons;
+            $data['addons_price'] = $addonsPrice;
 
             if ($request->type == null && $variant) {
                 $data['variant']['attribute'] =  $attributes;
@@ -1181,13 +1401,17 @@ class POSController extends Controller
             $order = Sale::with(['table', 'details', 'customer'])->findOrFail($id);
             Log::info('Order found', ['order_id' => $order->id, 'current_status' => $order->status]);
 
+            // Handle discount if provided
+            $discount = $request->discount ?? $order->order_discount ?? 0;
+            $grandTotal = $order->total_price - $discount + ($order->total_tax ?? 0);
+
             // Calculate payment totals
             $paymentTypes = $request->payment_type ?? ['cash'];
             $accountIds = $request->account_id ?? [null];
-            $payingAmounts = $request->paying_amount ?? [$order->grand_total];
+            $payingAmounts = $request->paying_amount ?? [$grandTotal];
 
             $totalPaid = array_sum($payingAmounts);
-            $dueAmount = max(0, $order->grand_total - $totalPaid);
+            $dueAmount = max(0, $grandTotal - $totalPaid);
 
             // Update order status and payment information (critical - must succeed)
             // Note: status column is integer - 0 = processing, 1 = completed
@@ -1195,10 +1419,13 @@ class POSController extends Controller
                 'status' => 1, // 1 = completed
                 'payment_status' => $dueAmount <= 0 ? 1 : 0, // 1 = paid, 0 = partial/unpaid
                 'payment_method' => json_encode($paymentTypes),
+                'order_discount' => $discount,
+                'grand_total' => $grandTotal,
                 'paid_amount' => $totalPaid,
                 'due_amount' => $dueAmount,
                 'receive_amount' => $request->receive_amount ?? $totalPaid,
                 'return_amount' => $request->return_amount ?? 0,
+                'gross_profit' => $grandTotal - ($order->total_cogs ?? 0),
                 'updated_by' => auth('admin')->id(),
             ]);
 

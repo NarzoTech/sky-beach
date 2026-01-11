@@ -33,17 +33,45 @@
                             // put it in session
                             session()->put('cart', $cart_contents);
                         }
+                        // Check if menu item has addons
+                        $hasAddons = false;
+                        if (($cart_content['type'] ?? '') === 'menu_item') {
+                            $menuItem = \Modules\Menu\app\Models\MenuItem::find($cart_content['id']);
+                            $hasAddons = $menuItem && $menuItem->activeAddons()->count() > 0;
+                        }
                     @endphp
                     <tr data-rowid="{{ $cart_content['rowid'] }}">
                         <td>
                             <p>{{ $i++ }}</p>
                         </td>
                         <td>
-                            <p>{{ $cart_content['name'] }}</p>
+                            <p class="mb-0">{{ $cart_content['name'] }}</p>
                             @if (isset($cart_content['variant']))
-                                <span>
+                                <small class="text-muted">
                                     {{ $cart_content['variant']['attribute'] }}
-                                </span>
+                                </small>
+                            @endif
+                            @if (!empty($cart_content['addons']))
+                                <div class="addon-items mt-1">
+                                    @foreach ($cart_content['addons'] as $addonIndex => $addon)
+                                    <div class="addon-item d-flex align-items-center justify-content-between bg-light rounded px-2 py-1 mb-1" style="font-size: 11px;">
+                                        <span class="text-info">
+                                            <i class="fas fa-plus-circle me-1"></i>{{ $addon['name'] }}
+                                            <span class="text-success">({{ currency($addon['price']) }})</span>
+                                        </span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <input type="number" min="1" value="{{ $addon['qty'] ?? 1 }}"
+                                                class="form-control form-control-sm addon-qty-input"
+                                                style="width: 50px; height: 22px; font-size: 11px; padding: 2px 4px;"
+                                                onchange="updateAddonQty('{{ $cart_content['rowid'] }}', {{ $addon['id'] }}, this.value)">
+                                            <a href="javascript:;" onclick="removeAddon('{{ $cart_content['rowid'] }}', {{ $addon['id'] }})"
+                                                class="text-danger" title="{{ __('Remove') }}">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
                             @endif
                         </td>
                         <td data-rowid="{{ $cart_content['rowid'] }}" class="px-3">
@@ -70,8 +98,14 @@
 
                         <td class="text-center">
                             <div class="d-flex align-items-center gap-1 justify-content-center">
+                                @if($hasAddons)
+                                <a href="javascript:;" onclick="openAddonModal('{{ $cart_content['rowid'] }}', {{ $cart_content['id'] }})"
+                                    class="d-block p-1" title="{{ __('Add-ons') }}">
+                                    <i class="fas fa-plus-circle text-info"></i>
+                                </a>
+                                @endif
                                 <a href="javascript:;" onclick="removeCartItem('{{ $cart_content['rowid'] }}')"
-                                    class="d-block p-2 "><i class="fa fa-trash text-danger" aria-hidden="true"></i></a>
+                                    class="d-block p-1"><i class="fa fa-trash text-danger" aria-hidden="true"></i></a>
 
                                 <a href="javascript:;"
                                     class="edit-btn {{ $cart_content['source'] == '2' ? '' : 'd-none' }}"

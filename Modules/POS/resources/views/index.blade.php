@@ -480,6 +480,35 @@
         </div>
     </div>
 
+    <!-- Cart Item Addon Modal -->
+    <div class="modal fade" id="cartAddonModal" tabindex="-1" role="dialog" aria-labelledby="cartAddonModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="cartAddonModalLabel">
+                        <i class="fas fa-plus-circle me-2"></i>{{ __('Select Add-ons') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="addon_cart_rowid" value="">
+                    <input type="hidden" id="addon_menu_item_id" value="">
+                    <div id="addon-list-container">
+                        <div class="text-center py-3">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="button" class="btn btn-info" onclick="saveCartAddons()">
+                        <i class="fas fa-check me-1"></i>{{ __('Apply Add-ons') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Create new user modal -->
     @include('customer::customer-modal')
 
@@ -860,17 +889,48 @@
                         </div>
                     </div>
 
+                    <!-- Discount Section -->
+                    <div class="card mb-3">
+                        <div class="card-body py-2">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <label class="form-label mb-0 fw-bold">{{ __('Discount') }}</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="payment-discount-amount" value="0" min="0" step="0.01" onchange="applyPaymentDiscount()">
+                                        <span class="input-group-text">{{ currency_icon() }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" id="payment-discount-percent" value="0" min="0" max="100" step="0.1" onchange="applyPaymentDiscountPercent()">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Amount Summary -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="card border-secondary">
+                                <div class="card-body text-center py-3">
+                                    <small class="text-muted d-block">{{ __('Subtotal') }}</small>
+                                    <h4 class="text-secondary mb-0" id="payment-subtotal-amount">{{ currency_icon() }}0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="card border-primary">
                                 <div class="card-body text-center py-3">
-                                    <small class="text-muted d-block">{{ __('Total Amount') }}</small>
+                                    <small class="text-muted d-block">{{ __('Grand Total') }}</small>
                                     <h3 class="text-primary mb-0" id="payment-total-amount">{{ currency_icon() }}0</h3>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card border-success">
                                 <div class="card-body text-center py-3">
                                     <small class="text-muted d-block">{{ __('Change Due') }}</small>
@@ -2107,6 +2167,103 @@
             });
         }
 
+        // Open addon modal for cart item
+        function openAddonModal(rowId, menuItemId) {
+            $('#addon_cart_rowid').val(rowId);
+            $('#addon_menu_item_id').val(menuItemId);
+            $('#addon-list-container').html('<div class="text-center py-3"><i class="fas fa-spinner fa-spin fa-2x"></i></div>');
+            $('#cartAddonModal').modal('show');
+
+            // Fetch available addons for this menu item
+            $.ajax({
+                type: 'get',
+                url: "{{ url('admin/pos/get-item-addons') }}" + "/" + menuItemId + "/" + rowId,
+                success: function(response) {
+                    $('#addon-list-container').html(response.html);
+                },
+                error: function(response) {
+                    $('#addon-list-container').html('<p class="text-danger text-center">{{ __("Error loading add-ons") }}</p>');
+                    toastr.error("{{ __('Error loading add-ons') }}");
+                }
+            });
+        }
+
+        // Save selected addons to cart item
+        function saveCartAddons() {
+            const rowId = $('#addon_cart_rowid').val();
+            const addonIds = [];
+            const addonQtys = {};
+            $('.cart-addon-checkbox:checked').each(function() {
+                const addonId = $(this).val();
+                const qty = $(this).closest('.form-check').find('.addon-qty-input').val() || 1;
+                addonIds.push(addonId);
+                addonQtys[addonId] = parseInt(qty);
+            });
+
+            $.ajax({
+                type: 'post',
+                url: "{{ url('admin/pos/update-cart-addons') }}",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    rowid: rowId,
+                    addons: addonIds,
+                    addon_qtys: addonQtys
+                },
+                success: function(response) {
+                    $(".product-table-container").html(response);
+                    totalSummery();
+                    $('#cartAddonModal').modal('hide');
+                    toastr.success("{{ __('Add-ons updated successfully') }}");
+                },
+                error: function(response) {
+                    toastr.error("{{ __('Error updating add-ons') }}");
+                }
+            });
+        }
+
+        // Update addon quantity in cart
+        function updateAddonQty(rowId, addonId, qty) {
+            if (qty < 1) qty = 1;
+            $.ajax({
+                type: 'post',
+                url: "{{ url('admin/pos/update-addon-qty') }}",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    rowid: rowId,
+                    addon_id: addonId,
+                    qty: qty
+                },
+                success: function(response) {
+                    $(".product-table-container").html(response);
+                    totalSummery();
+                },
+                error: function(response) {
+                    toastr.error("{{ __('Error updating add-on quantity') }}");
+                }
+            });
+        }
+
+        // Remove addon from cart item
+        function removeAddon(rowId, addonId) {
+            $.ajax({
+                type: 'post',
+                url: "{{ url('admin/pos/remove-addon') }}",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    rowid: rowId,
+                    addon_id: addonId
+                },
+                success: function(response) {
+                    $(".product-table-container").html(response);
+                    totalSummery();
+                    toastr.success("{{ __('Add-on removed') }}");
+                },
+                error: function(response) {
+                    toastr.error("{{ __('Error removing add-on') }}");
+                }
+            });
+        }
+
         function calculateTotalFee() {
 
             let subTotal = $('#sub_total').val() || '0.00';
@@ -3099,9 +3256,12 @@
         // Available accounts from database
         const availableAccounts = @json($accounts->groupBy('account_type'));
 
+        var paymentSubtotal = 0; // Store original subtotal before discount
+
         function showPaymentModal(orderId, total, invoice = '', tableName = '') {
             currentEditingOrderId = orderId;
-            paymentOrderTotal = parseFloat(total);
+            paymentSubtotal = parseFloat(total);
+            paymentOrderTotal = paymentSubtotal;
             paymentMethodCounter = 0;
 
             $('#order-details-modal').modal('hide');
@@ -3110,7 +3270,12 @@
             $('#payment-order-id').val(orderId);
             $('#payment-order-invoice').text('#' + (invoice || orderId));
             $('#payment-order-table').text(tableName || '--');
+            $('#payment-subtotal-amount').text('{{ currency_icon() }}' + paymentSubtotal.toFixed(2));
             $('#payment-total-amount').text('{{ currency_icon() }}' + paymentOrderTotal.toFixed(2));
+
+            // Reset discount fields
+            $('#payment-discount-amount').val(0);
+            $('#payment-discount-percent').val(0);
 
             // Clear and add default payment method
             $('#payment-methods-container').empty();
@@ -3121,6 +3286,32 @@
             calculateChange();
 
             $('#running-order-payment-modal').modal('show');
+        }
+
+        function applyPaymentDiscount() {
+            const discountAmount = parseFloat($('#payment-discount-amount').val()) || 0;
+            const discountPercent = paymentSubtotal > 0 ? (discountAmount / paymentSubtotal) * 100 : 0;
+            $('#payment-discount-percent').val(discountPercent.toFixed(1));
+            updatePaymentTotalAfterDiscount(discountAmount);
+        }
+
+        function applyPaymentDiscountPercent() {
+            const discountPercent = parseFloat($('#payment-discount-percent').val()) || 0;
+            const discountAmount = (paymentSubtotal * discountPercent) / 100;
+            $('#payment-discount-amount').val(discountAmount.toFixed(2));
+            updatePaymentTotalAfterDiscount(discountAmount);
+        }
+
+        function updatePaymentTotalAfterDiscount(discountAmount) {
+            paymentOrderTotal = Math.max(0, paymentSubtotal - discountAmount);
+            $('#payment-total-amount').text('{{ currency_icon() }}' + paymentOrderTotal.toFixed(2));
+
+            // Update first payment method amount
+            $('.payment-method-row:first .payment-amount').val(paymentOrderTotal.toFixed(2));
+            $('#payment-amount-received').val(paymentOrderTotal.toFixed(2));
+
+            calculateTotalPaying();
+            calculateChange();
         }
 
         function addPaymentMethod(amount = 0) {
@@ -3244,6 +3435,7 @@
             const orderId = $('#payment-order-id').val();
             const totalPaying = parseFloat($('#payment-total-paying').val()) || 0;
             const amountReceived = parseFloat($('#payment-amount-received').val()) || 0;
+            const discountAmount = parseFloat($('#payment-discount-amount').val()) || 0;
 
             if (totalPaying < paymentOrderTotal) {
                 toastr.warning("{{ __('Payment amount is less than total. Remaining will be recorded as due.') }}");
@@ -3275,7 +3467,7 @@
             $('#running-order-payment-modal').modal('hide');
 
             console.log('Completing order:', orderId);
-            console.log('Payment data:', { paymentTypes, accountIds, payingAmounts, totalPaying, amountReceived });
+            console.log('Payment data:', { paymentTypes, accountIds, payingAmounts, totalPaying, amountReceived, discountAmount });
 
             $.ajax({
                 type: 'POST',
@@ -3287,7 +3479,8 @@
                     paying_amount: payingAmounts,
                     paid_amount: totalPaying,
                     receive_amount: amountReceived,
-                    return_amount: Math.max(0, amountReceived - paymentOrderTotal)
+                    return_amount: Math.max(0, amountReceived - paymentOrderTotal),
+                    discount: discountAmount
                 },
                 success: function(response) {
                     console.log('Complete order response:', response);
@@ -3358,6 +3551,9 @@
         }
 
         function cancelRunningOrder(orderId) {
+            // Hide the modal first to prevent z-index conflict
+            $('#order-details-modal').modal('hide');
+
             Swal.fire({
                 title: "{{ __('Cancel Order?') }}",
                 text: "{{ __('This action cannot be undone. The table will be released.') }}",
@@ -3379,20 +3575,24 @@
                         success: function(response) {
                             if (response.success) {
                                 toastr.success(response.message);
-                                $('#order-details-modal').modal('hide');
                                 loadRunningOrders();
                                 loadRunningOrdersCount();
                                 refreshAvailableTables(); // Refresh table availability
                             } else {
                                 toastr.error(response.message || "{{ __('Error cancelling order') }}");
+                                $('#order-details-modal').modal('show'); // Re-show modal on error
                             }
                             $('.preloader_area').addClass('d-none');
                         },
                         error: function() {
                             toastr.error("{{ __('Server error occurred') }}");
                             $('.preloader_area').addClass('d-none');
+                            $('#order-details-modal').modal('show'); // Re-show modal on error
                         }
                     });
+                } else {
+                    // User clicked "No, Keep It" - re-show the modal
+                    $('#order-details-modal').modal('show');
                 }
             });
         }
