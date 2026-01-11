@@ -4,13 +4,12 @@
             <thead class="text-center" style="background: #00a65a">
                 <tr style="height: 25px; color: #fff;">
                     <th style="padding:4px 0px; margin:0px; width: 5%;">SL</th>
-                    <th style="padding:4px 0px; margin:0px; width: 30%;">Name</th>
-                    <th style="padding:4px 0px; margin:0px; width: 5%;">Source</th>
-                    <th style="padding:4px 0px; margin:0px; width: 10%;">Qty</th>
-                    <th style="padding:4px 0px; margin:0px; width: 5%;">Unit</th>
-                    <th style="padding:4px 0px; margin:0px; width: 7%;">Price</th>
-                    <th style="padding:4px 0px; margin:0px; width: 10%;">Total</th>
-                    <th style="padding:4px 0px; margin:0px; width:7%;">
+                    <th style="padding:4px 0px; margin:0px; width: 35%;">Name</th>
+                    <th style="padding:4px 0px; margin:0px; width: 12%;">Qty</th>
+                    <th style="padding:4px 0px; margin:0px; width: 8%;">Unit</th>
+                    <th style="padding:4px 0px; margin:0px; width: 10%;">Price</th>
+                    <th style="padding:4px 0px; margin:0px; width: 12%;">Total</th>
+                    <th style="padding:4px 0px; margin:0px; width:8%;">
                         Action
                     </th>
                 </tr>
@@ -45,17 +44,6 @@
                                 <span>
                                     {{ $cart_content['variant']['attribute'] }}
                                 </span>
-                            @endif
-                        </td>
-                        <td>
-                            @if ($cart_content['type'] == 'product')
-                                <select name="source" id="source">
-                                    <option value="1" @if ($cart_content['source'] == '1') selected @endif>From Stock
-                                    </option>
-                                    <option value="2" @if ($cart_content['source'] == '2') selected @endif>From Out
-                                        Side
-                                    </option>
-                                </select>
                             @endif
                         </td>
                         <td data-rowid="{{ $cart_content['rowid'] }}" class="px-3">

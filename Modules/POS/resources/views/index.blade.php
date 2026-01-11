@@ -393,63 +393,24 @@
                                     <table id="totalTable" class="summary-table">
                                         <tbody>
                                             <tr>
-                                                <td>Items</td>
-                                                <td><span id="titems">{{ count($cart_contents) }}</span> </td>
-                                                <td class="custom_width">Total</td>
-                                                <td> <span id="total">{{ currency($cumalitive_sub_total) }}</span>
-                                                </td>
+                                                <td>{{ __('Items') }}</td>
+                                                <td class="text-end"><span id="titems">{{ count($cart_contents) }}</span></td>
                                             </tr>
-                                            @if($posSettings->show_discount)
-                                            <tr>
-                                                <td> Extra <small class="text-info"></small> </td>
-                                                <td> <span id="extra">{{ currency(0) }}</span> </td>
-                                                <td class="custom_width">{{ __('Discount') }}
-                                                    <i class="fa fa-edit dis-tgl" style="cursor: pointer;"></i>
-                                                    <div class="dis-form">
-                                                        <select name="discount_type" id="discount_type"
-                                                            onchange="discountExist()">
-                                                            <option value="1" selected>{{ __('Amount') }} (TK )
-                                                            </option>
-                                                            <option value="2">{{ __('Percentage') }} (%)</option>
-                                                        </select>
-                                                        <input type="number" onchange="discountExist()"
-                                                            id="discount_total_amount" value="0" step="0.1"
-                                                            name="discount_total_amount" autocomplete="off" autofocus>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span id="tds">0</span>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td colspan="3"> After Discount Price </td>
-                                                <td>
-                                                    <span id="gtotal">{{ currency($cumalitive_sub_total) }}</span>
-                                                    <input type="hidden" value="0" id="business_vat">
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td colspan="3"> Total Vat </td>
-                                                <td>
-                                                    <span id="totalVat">0</span>
-                                                    <input type="hidden" value="0" id="business_vat">
-                                                </td>
-                                            </tr>
-                                            @endif
                                             <tr class="pay-row">
-                                                <td colspan="3">
-                                                    Total Payable
-                                                    <span id="payable_amount"></span>
-                                                </td>
-                                                <td id="totalAmountWithVat">
-                                                    {{ currency($cumalitive_sub_total) }}
-                                                </td>
+                                                <td>{{ __('Total Payable') }}</td>
+                                                <td class="text-end" id="totalAmountWithVat">{{ currency($cumalitive_sub_total) }}</td>
                                             </tr>
-
                                         </tbody>
                                     </table>
+                                    <!-- Hidden fields for calculations -->
+                                    <input type="hidden" id="total" value="{{ $cumalitive_sub_total }}">
+                                    <input type="hidden" id="extra" value="0">
+                                    <input type="hidden" id="tds" value="0">
+                                    <input type="hidden" id="gtotal" value="{{ $cumalitive_sub_total }}">
+                                    <input type="hidden" id="totalVat" value="0">
+                                    <input type="hidden" id="business_vat" value="0">
+                                    <input type="hidden" id="discount_total_amount" value="0">
+                                    <input type="hidden" id="discount_type" value="1">
                                 </div>
                             </div>
                         </div>
