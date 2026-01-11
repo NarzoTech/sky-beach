@@ -9,6 +9,8 @@ use Modules\Website\app\Models\Chef;
 use Modules\Website\app\Models\WebsiteService;
 use Modules\Website\app\Models\Faq;
 use Modules\Website\app\Models\RestaurantMenuItem;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuCategory;
 
 class WebsiteController extends Controller
 {
@@ -50,20 +52,77 @@ class WebsiteController extends Controller
     /**
      * Display the menu page.
      */
-    public function menu()
+    public function menu(Request $request)
     {
-        $menuItems = RestaurantMenuItem::active()
-            ->forWebsite()
-            ->ordered()
-            ->get();
-            
-        $categories = RestaurantMenuItem::active()
-            ->forWebsite()
-            ->pluck('category')
-            ->unique()
-            ->filter();
+        // Get filter parameters
+        $categoryId = $request->get('category');
+        $search = $request->get('search');
+        $minPrice = $request->get('min_price', 0);
+        $maxPrice = $request->get('max_price', 100);
+        $sortBy = $request->get('sort_by', 'default'); // default, price_low, price_high, name_asc, name_desc, popular
         
-        return view('website::menu', compact('menuItems', 'categories'));
+        // Get all active categories with item counts
+        $categories = MenuCategory::active()
+            ->ordered()
+            ->withCount(['activeMenuItems'])
+            ->get();
+        
+        // Build query for menu items
+        $query = MenuItem::with(['category', 'variants', 'addons'])
+            ->where('status', 1)
+            ->where('is_available', 1);
+        
+        // Apply category filter
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+        
+        // Apply search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('short_description', 'like', "%{$search}%")
+                  ->orWhere('long_description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Apply price filter
+        $query->whereBetween('base_price', [$minPrice, $maxPrice]);
+        
+        // Apply sorting
+        switch ($sortBy) {
+            case 'price_low':
+                $query->orderBy('base_price', 'asc');
+                break;
+            case 'price_high':
+                $query->orderBy('base_price', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'popular':
+                $query->orderBy('is_featured', 'desc')
+                      ->orderBy('display_order', 'asc');
+                break;
+            default:
+                $query->orderBy('display_order', 'asc')
+                      ->orderBy('name', 'asc');
+                break;
+        }
+        
+        // Get results with pagination
+        $menuItems = $query->paginate(9);
+        
+        // Get min and max prices for price range slider
+        $priceRange = MenuItem::where('status', 1)
+            ->where('is_available', 1)
+            ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
+            ->first();
+        
+        return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categoryId', 'search', 'minPrice', 'maxPrice', 'sortBy'));
     }
 
     /**
