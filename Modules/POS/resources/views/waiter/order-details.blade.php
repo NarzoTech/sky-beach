@@ -8,20 +8,18 @@
 <div class="main-content">
     <div class="container-fluid">
         <!-- Header -->
-        <div class="page-header">
+        <div class="page-header mb-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h3 class="page-title mb-0">
-                        <i class="fas fa-receipt me-2"></i>{{ __('Order') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
-                    </h3>
+                    <h4 class="mb-1">{{ __('Order') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</h4>
                 </div>
                 <div class="col-md-6 text-end">
                     <a href="{{ route('admin.waiter.my-orders') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back to Orders') }}
+                        <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
                     </a>
                     @if($order->status == 0)
                     <a href="{{ route('admin.waiter.add-to-order', $order->id) }}" class="btn btn-success">
-                        <i class="fas fa-plus me-1"></i>{{ __('Add Items') }}
+                        <i class="bx bx-plus me-1"></i>{{ __('Add Items') }}
                     </a>
                     @endif
                 </div>
@@ -45,10 +43,10 @@
                                 <td><strong>{{ __('Table') }}</strong></td>
                                 <td>
                                     @if($order->table)
-                                    <span class="badge bg-info">{{ $order->table->name }}</span>
+                                    <span class="badge bg-label-info">{{ $order->table->name }}</span>
                                     @if($order->status == 0)
                                     <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="showChangeTableModal()">
-                                        <i class="fas fa-exchange-alt"></i>
+                                        <i class="bx bx-transfer"></i>
                                     </button>
                                     @endif
                                     @else
@@ -108,7 +106,7 @@
                 <div class="card mt-3">
                     <div class="card-body">
                         <button class="btn btn-danger w-100" onclick="cancelOrder()">
-                            <i class="fas fa-times me-1"></i>{{ __('Cancel Order') }}
+                            <i class="bx bx-x me-1"></i>{{ __('Cancel Order') }}
                         </button>
                     </div>
                 </div>
@@ -260,36 +258,35 @@
 @push('css')
 <style>
     .table-option {
-        border: 2px solid #dee2e6;
-        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
         padding: 15px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
     }
     .table-option:hover {
-        border-color: #0d6efd;
-        background-color: #f8f9fa;
+        border-color: #696cff;
+        background-color: #f5f5f9;
     }
     .table-option.selected {
-        border-color: #0d6efd;
-        background-color: #e7f1ff;
+        border-color: #696cff;
+        background-color: #e8e8ff;
     }
     .table-option .table-name {
-        font-weight: bold;
-        font-size: 1.1rem;
+        font-weight: 600;
+        font-size: 1rem;
     }
     .table-option .table-capacity {
         font-size: 0.85rem;
-        color: #6c757d;
+        color: #8592a3;
     }
     .table-option.available {
-        border-color: #28a745;
+        border-color: #71dd37;
     }
     .table-option.occupied {
-        border-color: #ffc107;
+        border-color: #ffab00;
     }
-    /* Ensure SweetAlert appears above Bootstrap modal */
     .swal2-container {
         z-index: 2000 !important;
     }
@@ -381,8 +378,8 @@
             text: '{{ __("Are you sure you want to move this order to the selected table?") }}',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#0d6efd',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#696cff',
+            cancelButtonColor: '#8592a3',
             confirmButtonText: '{{ __("Yes, Change It") }}',
             cancelButtonText: '{{ __("Cancel") }}'
         }).then((result) => {
@@ -407,7 +404,8 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: '{{ __("Table Changed") }}',
-                                text: response.message
+                                text: response.message,
+                                confirmButtonColor: '#696cff'
                             }).then(() => {
                                 window.location.reload();
                             });
@@ -415,12 +413,13 @@
                     },
                     error: function(xhr) {
                         $('#confirmChangeTableBtn').prop('disabled', false).html(`
-                            <i class="fas fa-check me-1"></i>{{ __('Change Table') }}
+                            <i class="bx bx-check me-1"></i>{{ __('Change Table') }}
                         `);
                         Swal.fire({
                             icon: 'error',
                             title: '{{ __("Error") }}',
-                            text: xhr.responseJSON?.message || '{{ __("Failed to change table.") }}'
+                            text: xhr.responseJSON?.message || '{{ __("Failed to change table.") }}',
+                            confirmButtonColor: '#696cff'
                         });
                     }
                 });
@@ -434,8 +433,8 @@
             text: "{{ __('Are you sure you want to cancel this order? This action cannot be undone.') }}",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
+            confirmButtonColor: '#ff3e1d',
+            cancelButtonColor: '#8592a3',
             confirmButtonText: "{{ __('Yes, Cancel It') }}",
             cancelButtonText: "{{ __('No, Keep It') }}"
         }).then((result) => {
@@ -450,8 +449,9 @@
                         if (response.success) {
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Cancelled',
-                                text: response.message
+                                title: '{{ __("Cancelled") }}',
+                                text: response.message,
+                                confirmButtonColor: '#696cff'
                             }).then(() => {
                                 window.location.reload();
                             });
@@ -460,8 +460,9 @@
                     error: function(xhr) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message || 'Failed to cancel order.'
+                            title: '{{ __("Error") }}',
+                            text: xhr.responseJSON?.message || '{{ __("Failed to cancel order.") }}',
+                            confirmButtonColor: '#696cff'
                         });
                     }
                 });

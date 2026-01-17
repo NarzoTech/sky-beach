@@ -16,17 +16,17 @@
         display: none;
     }
     .category-tabs .nav-link {
-        border-radius: 20px;
-        padding: 8px 20px;
-        margin-right: 10px;
-        background: #f8f9fa;
-        color: #333;
+        border-radius: 6px;
+        padding: 8px 16px;
+        margin-right: 8px;
+        background: #f5f5f9;
+        color: #566a7f;
         border: none;
         font-weight: 500;
     }
     .category-tabs .nav-link.active {
-        background: #28a745;
-        color: white;
+        background: #696cff;
+        color: #fff;
     }
     .menu-item-card {
         cursor: pointer;
@@ -37,13 +37,12 @@
         overflow: hidden;
     }
     .menu-item-card:hover {
-        border-color: #28a745;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #696cff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .menu-item-card.in-cart {
-        border-color: #28a745;
-        background: #f0fff0;
+        border-color: #71dd37;
+        background: #f5faf5;
     }
     .menu-item-card.in-cart::after {
         content: '';
@@ -52,8 +51,8 @@
         right: 0;
         width: 0;
         height: 0;
-        border-top: 30px solid #28a745;
-        border-left: 30px solid transparent;
+        border-top: 25px solid #71dd37;
+        border-left: 25px solid transparent;
     }
     .menu-item-img {
         height: 100px;
@@ -73,7 +72,7 @@
         max-height: 300px;
     }
     .cart-item {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e9ecef;
         padding: 12px 0;
     }
     .cart-item:last-child {
@@ -90,18 +89,18 @@
     }
     .addon-badge {
         font-size: 0.7rem;
-        background: #d4edda;
-        color: #155724;
+        background: #e8fadf;
+        color: #71dd37;
         padding: 2px 8px;
-        border-radius: 10px;
+        border-radius: 4px;
         margin-right: 4px;
         margin-top: 2px;
         display: inline-block;
     }
     .order-info-banner {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
-        border-radius: 10px;
+        background: #71dd37;
+        color: #fff;
+        border-radius: 8px;
         padding: 12px 20px;
     }
     .quick-add-btn {
@@ -110,9 +109,9 @@
         right: 8px;
         width: 32px;
         height: 32px;
-        border-radius: 50%;
+        border-radius: 6px;
         padding: 0;
-        font-size: 18px;
+        font-size: 16px;
         z-index: 10;
     }
     .cart-qty-badge {
@@ -127,13 +126,13 @@
         justify-content: space-between;
         padding: 10px;
         margin-bottom: 8px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
+        background: #f5f5f9;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
     }
     .addon-item.selected {
-        background: #d4edda;
-        border-color: #28a745;
+        background: #e8fadf;
+        border-color: #71dd37;
     }
     .addon-qty-control {
         display: flex;
@@ -145,7 +144,7 @@
         height: 26px;
         padding: 0;
         font-size: 12px;
-        border-radius: 50%;
+        border-radius: 4px;
     }
     .search-box {
         position: relative;
@@ -155,7 +154,7 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #6c757d;
+        color: #8592a3;
     }
     .search-box input {
         padding-left: 38px;
@@ -163,15 +162,15 @@
     .item-price {
         font-size: 1rem;
         font-weight: 600;
-        color: #28a745;
+        color: #71dd37;
     }
     .modal-body-scroll {
         max-height: 60vh;
         overflow-y: auto;
     }
     .existing-items-section {
-        background: #f8f9fa;
-        border-radius: 10px;
+        background: #f5f5f9;
+        border-radius: 8px;
         max-height: 200px;
         overflow-y: auto;
     }
@@ -191,40 +190,40 @@
         overflow: hidden;
     }
     .combo-card:hover {
-        border-color: #ffc107;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #ffab00;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .combo-card.in-cart {
-        border-color: #28a745;
-        background: #f0fff0;
+        border-color: #71dd37;
+        background: #f5faf5;
     }
     .combo-savings {
-        background: #dc3545;
-        color: white;
+        background: #ff3e1d;
+        color: #fff;
         padding: 2px 8px;
-        border-radius: 10px;
+        border-radius: 4px;
         font-size: 0.75rem;
-        font-weight: bold;
+        font-weight: 600;
     }
     .combo-original-price {
         text-decoration: line-through;
-        color: #999;
+        color: #8592a3;
         font-size: 0.85rem;
     }
     .combo-item-list {
         font-size: 0.75rem;
-        color: #666;
+        color: #8592a3;
     }
     .combo-section {
-        background: linear-gradient(135deg, #fff3cd, #ffeeba);
-        border-radius: 10px;
+        background: #fff8e1;
+        border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
+        border: 1px solid #ffe082;
     }
     .combo-section-title {
-        color: #856404;
-        font-weight: bold;
+        color: #ffab00;
+        font-weight: 600;
         margin-bottom: 10px;
     }
 </style>
@@ -237,23 +236,23 @@
         <div class="order-info-banner mb-3">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h4 class="mb-1">
-                        <i class="fas fa-plus-circle me-2"></i>{{ __('Add Items to Order') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
-                    </h4>
+                    <h5 class="mb-1">
+                        <i class="bx bx-plus-circle me-1"></i>{{ __('Add Items') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
+                    </h5>
                     <span>
                         @if($order->table)
-                        <i class="fas fa-utensils me-1"></i>{{ $order->table->name }} |
+                        <i class="bx bx-chair me-1"></i>{{ $order->table->name }} |
                         @endif
-                        <i class="fas fa-clock me-1"></i>{{ $order->created_at->diffForHumans() }} |
-                        <i class="fas fa-user me-1"></i>{{ $order->guest_count ?? 1 }} {{ __('guests') }}
+                        <i class="bx bx-time-five me-1"></i>{{ $order->created_at->diffForHumans() }} |
+                        <i class="bx bx-user me-1"></i>{{ $order->guest_count ?? 1 }} {{ __('guests') }}
                     </span>
                 </div>
                 <div class="col-md-6 text-end">
                     <a href="{{ route('admin.waiter.order-details', $order->id) }}" class="btn btn-light btn-sm">
-                        <i class="fas fa-eye me-1"></i>{{ __('View Order') }}
+                        <i class="bx bx-show me-1"></i>{{ __('View Order') }}
                     </a>
                     <a href="{{ route('admin.waiter.dashboard') }}" class="btn btn-outline-light btn-sm ms-1">
-                        <i class="fas fa-arrow-left me-1"></i>{{ __('Dashboard') }}
+                        <i class="bx bx-arrow-back me-1"></i>{{ __('Dashboard') }}
                     </a>
                 </div>
             </div>
@@ -266,7 +265,7 @@
                 <div class="card mb-3">
                     <div class="card-body py-2">
                         <div class="search-box">
-                            <i class="fas fa-search"></i>
+                            <i class="bx bx-search"></i>
                             <input type="text" class="form-control" id="search-items" placeholder="{{ __('Search menu items...') }}" onkeyup="searchItems(this.value)">
                         </div>
                     </div>
@@ -276,7 +275,7 @@
                 <div class="category-tabs mb-3">
                     <nav class="nav">
                         <a class="nav-link active" href="#" data-category="all" onclick="filterCategory('all', this); return false;">
-                            <i class="fas fa-th me-1"></i>{{ __('All') }}
+                            <i class="bx bx-grid-alt me-1"></i>{{ __('All') }}
                         </a>
                         @if(isset($combos) && $combos->count() > 0)
                         <a class="nav-link" href="#" data-category="combos" onclick="filterCategory('combos', this); return false;">

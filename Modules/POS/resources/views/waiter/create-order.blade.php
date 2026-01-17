@@ -16,17 +16,17 @@
         display: none;
     }
     .category-tabs .nav-link {
-        border-radius: 20px;
-        padding: 8px 20px;
-        margin-right: 10px;
-        background: #f8f9fa;
-        color: #333;
+        border-radius: 6px;
+        padding: 8px 16px;
+        margin-right: 8px;
+        background: #f5f5f9;
+        color: #566a7f;
         border: none;
         font-weight: 500;
     }
     .category-tabs .nav-link.active {
-        background: #007bff;
-        color: white;
+        background: #696cff;
+        color: #fff;
     }
     .menu-item-card {
         cursor: pointer;
@@ -37,13 +37,12 @@
         overflow: hidden;
     }
     .menu-item-card:hover {
-        border-color: #007bff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #696cff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .menu-item-card.in-cart {
-        border-color: #28a745;
-        background: #f0fff0;
+        border-color: #71dd37;
+        background: #f5faf5;
     }
     .menu-item-card.in-cart::after {
         content: '';
@@ -52,8 +51,8 @@
         right: 0;
         width: 0;
         height: 0;
-        border-top: 30px solid #28a745;
-        border-left: 30px solid transparent;
+        border-top: 25px solid #71dd37;
+        border-left: 25px solid transparent;
     }
     .menu-item-img {
         height: 100px;
@@ -73,7 +72,7 @@
         max-height: 400px;
     }
     .cart-item {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e9ecef;
         padding: 12px 0;
     }
     .cart-item:last-child {
@@ -90,18 +89,18 @@
     }
     .addon-badge {
         font-size: 0.7rem;
-        background: #d4edda;
-        color: #155724;
+        background: #e8fadf;
+        color: #71dd37;
         padding: 2px 8px;
-        border-radius: 10px;
+        border-radius: 4px;
         margin-right: 4px;
         margin-top: 2px;
         display: inline-block;
     }
     .table-info-banner {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
-        border-radius: 10px;
+        background: #696cff;
+        color: #fff;
+        border-radius: 8px;
         padding: 12px 20px;
     }
     .quick-add-btn {
@@ -110,9 +109,9 @@
         right: 8px;
         width: 32px;
         height: 32px;
-        border-radius: 50%;
+        border-radius: 6px;
         padding: 0;
-        font-size: 18px;
+        font-size: 16px;
         z-index: 10;
     }
     .cart-qty-badge {
@@ -127,13 +126,13 @@
         justify-content: space-between;
         padding: 10px;
         margin-bottom: 8px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
+        background: #f5f5f9;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
     }
     .addon-item.selected {
-        background: #d4edda;
-        border-color: #28a745;
+        background: #e8fadf;
+        border-color: #71dd37;
     }
     .addon-qty-control {
         display: flex;
@@ -145,7 +144,7 @@
         height: 26px;
         padding: 0;
         font-size: 12px;
-        border-radius: 50%;
+        border-radius: 4px;
     }
     .search-box {
         position: relative;
@@ -155,7 +154,7 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #6c757d;
+        color: #8592a3;
     }
     .search-box input {
         padding-left: 38px;
@@ -163,7 +162,7 @@
     .item-price {
         font-size: 1rem;
         font-weight: 600;
-        color: #28a745;
+        color: #71dd37;
     }
     .modal-body-scroll {
         max-height: 60vh;
@@ -178,13 +177,12 @@
         overflow: hidden;
     }
     .combo-card:hover {
-        border-color: #ffc107;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-color: #ffab00;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .combo-card.in-cart {
-        border-color: #28a745;
-        background: #f0fff0;
+        border-color: #71dd37;
+        background: #f5faf5;
     }
     .combo-card.in-cart::after {
         content: '';
@@ -193,8 +191,8 @@
         right: 0;
         width: 0;
         height: 0;
-        border-top: 30px solid #28a745;
-        border-left: 30px solid transparent;
+        border-top: 25px solid #71dd37;
+        border-left: 25px solid transparent;
     }
     .combo-badge {
         position: absolute;
@@ -203,31 +201,32 @@
         z-index: 10;
     }
     .combo-savings {
-        background: #dc3545;
-        color: white;
+        background: #ff3e1d;
+        color: #fff;
         padding: 2px 8px;
-        border-radius: 10px;
+        border-radius: 4px;
         font-size: 0.75rem;
-        font-weight: bold;
+        font-weight: 600;
     }
     .combo-original-price {
         text-decoration: line-through;
-        color: #999;
+        color: #8592a3;
         font-size: 0.85rem;
     }
     .combo-item-list {
         font-size: 0.75rem;
-        color: #666;
+        color: #8592a3;
     }
     .combo-section {
-        background: linear-gradient(135deg, #fff3cd, #ffeeba);
-        border-radius: 10px;
+        background: #fff8e1;
+        border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
+        border: 1px solid #ffe082;
     }
     .combo-section-title {
-        color: #856404;
-        font-weight: bold;
+        color: #ffab00;
+        font-weight: 600;
         margin-bottom: 10px;
     }
 </style>
@@ -240,12 +239,12 @@
         <div class="table-info-banner mb-3">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h4 class="mb-1"><i class="fas fa-utensils me-2"></i>{{ $table->name }}</h4>
-                    <span><i class="fas fa-users me-1"></i>{{ __('Capacity') }}: {{ $table->capacity }} {{ __('seats') }}</span>
+                    <h5 class="mb-1"><i class="bx bx-chair me-1"></i>{{ $table->name }}</h5>
+                    <span><i class="bx bx-user me-1"></i>{{ __('Capacity') }}: {{ $table->capacity }} {{ __('seats') }}</span>
                 </div>
                 <div class="col-md-6 text-end">
                     <button onclick="changeTable()" class="btn btn-light btn-sm">
-                        <i class="fas fa-exchange-alt me-1"></i>{{ __('Change Table') }}
+                        <i class="bx bx-transfer me-1"></i>{{ __('Change Table') }}
                     </button>
                     <button onclick="clearCart()" class="btn btn-outline-light btn-sm ms-1">
                         <i class="fas fa-trash me-1"></i>{{ __('Clear Cart') }}

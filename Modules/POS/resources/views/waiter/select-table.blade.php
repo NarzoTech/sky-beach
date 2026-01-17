@@ -8,79 +8,72 @@
 <style>
     .table-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 20px;
-        padding: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+        padding: 15px;
     }
     .table-item {
         aspect-ratio: 1;
-        border-radius: 15px;
+        border-radius: 8px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s;
-        border: 3px solid transparent;
+        transition: all 0.2s;
+        border: 2px solid transparent;
         position: relative;
     }
     .table-item:hover {
-        transform: scale(1.08);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        opacity: 0.85;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .table-item.available {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
-    }
-    .table-item.available:hover {
-        border-color: #fff;
+        background-color: #71dd37;
+        color: #fff;
     }
     .table-item.partial {
-        background: linear-gradient(135deg, #fd7e14, #ffc107);
-        color: white;
-    }
-    .table-item.partial:hover {
-        border-color: #fff;
+        background-color: #ffab00;
+        color: #fff;
     }
     .table-item.occupied {
-        background: linear-gradient(135deg, #dc3545, #c82333);
-        color: white;
+        background-color: #ff3e1d;
+        color: #fff;
         cursor: not-allowed;
-        opacity: 0.7;
+        opacity: 0.6;
     }
     .table-item.reserved {
-        background: linear-gradient(135deg, #6c757d, #495057);
-        color: white;
+        background-color: #8592a3;
+        color: #fff;
         cursor: not-allowed;
-        opacity: 0.7;
+        opacity: 0.6;
     }
     .table-item.maintenance {
-        background: linear-gradient(135deg, #6c757d, #495057);
-        color: white;
+        background-color: #8592a3;
+        color: #fff;
         cursor: not-allowed;
         opacity: 0.5;
     }
     .table-name {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.25rem;
+        font-weight: 600;
     }
     .table-capacity {
-        font-size: 1rem;
+        font-size: 0.9rem;
         opacity: 0.9;
         margin-top: 5px;
     }
     .status-badge {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 8px;
+        right: 8px;
         font-size: 0.7rem;
-        padding: 3px 8px;
-        border-radius: 10px;
-        background: rgba(255,255,255,0.3);
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.25);
     }
-    .seats-available {
+    .seats-info {
         font-size: 0.8rem;
-        font-weight: bold;
         margin-top: 3px;
     }
 </style>
@@ -90,17 +83,15 @@
 <div class="main-content">
     <div class="container-fluid">
         <!-- Header -->
-        <div class="page-header">
+        <div class="page-header mb-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h3 class="page-title mb-0">
-                        <i class="fas fa-chair me-2"></i>{{ __('Select a Table') }}
-                    </h3>
+                    <h4 class="mb-1">{{ __('Select Table') }}</h4>
                     <p class="text-muted mb-0">{{ __('Choose a table to start a new order') }}</p>
                 </div>
                 <div class="col-md-6 text-end">
                     <a href="{{ route('admin.waiter.dashboard') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back to Dashboard') }}
+                        <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
                     </a>
                 </div>
             </div>
@@ -110,10 +101,10 @@
         <div class="card mb-3">
             <div class="card-body py-2">
                 <div class="d-flex justify-content-center gap-4 flex-wrap">
-                    <span><span class="badge bg-success px-3">&nbsp;</span> {{ __('Available') }}</span>
-                    <span><span class="badge px-3" style="background: #fd7e14;">&nbsp;</span> {{ __('Partial') }}</span>
-                    <span><span class="badge bg-danger px-3">&nbsp;</span> {{ __('Full') }}</span>
-                    <span><span class="badge bg-secondary px-3">&nbsp;</span> {{ __('Reserved/Maintenance') }}</span>
+                    <span><span class="badge bg-success">&nbsp;&nbsp;</span> {{ __('Available') }}</span>
+                    <span><span class="badge bg-warning">&nbsp;&nbsp;</span> {{ __('Partial') }}</span>
+                    <span><span class="badge bg-danger">&nbsp;&nbsp;</span> {{ __('Full') }}</span>
+                    <span><span class="badge bg-secondary">&nbsp;&nbsp;</span> {{ __('Unavailable') }}</span>
                 </div>
             </div>
         </div>
@@ -142,21 +133,23 @@
                                 {{ __('Partial') }}
                             @elseif($table->status === 'occupied')
                                 {{ __('Full') }}
+                            @elseif($table->status === 'available')
+                                {{ __('Open') }}
                             @else
                                 {{ ucfirst($table->status) }}
                             @endif
                         </span>
-                        <i class="fas fa-utensils fa-2x mb-2 opacity-75"></i>
+                        <i class="bx bx-chair bx-md mb-1"></i>
                         <div class="table-name">{{ $table->name }}</div>
                         <div class="table-capacity">
-                            <i class="fas fa-users"></i> {{ $table->capacity }} {{ __('seats') }}
+                            <i class="bx bx-user"></i> {{ $table->capacity }} {{ __('seats') }}
                         </div>
                         @if($table->occupied_seats > 0)
-                        <div class="seats-available">
+                        <div class="seats-info">
                             @if($availableSeats > 0)
-                                <i class="fas fa-chair"></i> {{ $availableSeats }} {{ __('available') }}
+                                {{ $availableSeats }} {{ __('available') }}
                             @else
-                                <i class="fas fa-ban"></i> {{ __('Full') }}
+                                {{ __('Full') }}
                             @endif
                         </div>
                         @endif
@@ -174,7 +167,7 @@
 
                 @if($availableTables === 0)
                 <div class="text-center py-5 text-muted">
-                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                    <i class="bx bx-error-circle bx-lg mb-2"></i>
                     <h5>{{ __('No tables available') }}</h5>
                     <p>{{ __('All tables are currently full or reserved.') }}</p>
                 </div>
