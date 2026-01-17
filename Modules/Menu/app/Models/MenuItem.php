@@ -52,7 +52,7 @@ class MenuItem extends Model
         'status' => 'boolean',
     ];
 
-    protected $appends = ['image_url', 'final_price', 'profit_margin'];
+    protected $appends = ['image_url', 'final_price', 'profit_margin', 'price'];
 
     protected static function boot()
     {
@@ -93,6 +93,11 @@ class MenuItem extends Model
     }
 
     public function getFinalPriceAttribute()
+    {
+        return $this->base_price;
+    }
+
+    public function getPriceAttribute()
     {
         return $this->base_price;
     }

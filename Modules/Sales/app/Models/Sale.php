@@ -53,6 +53,7 @@ class Sale extends Model
         'exchange_rate',
         'paid_amount',
         'sale_note',
+        'special_instructions',
         'staff_note',
         'order_date',
         'created_by',
@@ -62,7 +63,8 @@ class Sale extends Model
         'discount_amount',
         'due_date',
         'return_amount',
-
+        'original_table_id',
+        'table_transfer_log',
     ];
 
     const ORDER_TYPE_DINE_IN = 'dine_in';
@@ -78,7 +80,18 @@ class Sale extends Model
     protected $casts = [
         'order_date' => 'date',
         'payment_method' => 'array',
+        'table_transfer_log' => 'array',
     ];
+
+    protected $appends = ['total'];
+
+    /**
+     * Get total attribute (alias for grand_total)
+     */
+    public function getTotalAttribute()
+    {
+        return $this->grand_total ?? $this->total_price ?? 0;
+    }
 
     public function details()
     {
@@ -127,6 +140,14 @@ class Sale extends Model
     public function payment()
     {
         return $this->hasMany(CustomerPayment::class, 'sale_id');
+    }
+
+    /**
+     * Alias for payment relationship
+     */
+    public function payments()
+    {
+        return $this->payment();
     }
 
     public function createdBy()

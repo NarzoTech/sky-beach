@@ -101,6 +101,14 @@ class Combo extends Model
         return $this->hasMany(ComboItem::class);
     }
 
+    /**
+     * Alias for comboItems relationship
+     */
+    public function items(): HasMany
+    {
+        return $this->comboItems();
+    }
+
     public function calculateOriginalPrice()
     {
         $total = 0;

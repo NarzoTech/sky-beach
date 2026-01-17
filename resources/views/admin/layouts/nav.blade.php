@@ -76,6 +76,13 @@
                     </a>
                 </li>
             @endadminCan
+            @adminCan('waiter.order.create')
+                <li class="nav-item me-2">
+                    <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-sm d-flex align-items-center">
+                        <i class='bx bx-plus me-1'></i> <span class="d-none d-md-inline">{{ __('New Order') }}</span>
+                    </a>
+                </li>
+            @endadminCan
             <!-- User -->
             <li class="navbar-dropdown dropdown-user dropdown ms-3">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">

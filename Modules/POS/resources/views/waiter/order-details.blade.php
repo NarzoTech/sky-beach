@@ -46,6 +46,11 @@
                                 <td>
                                     @if($order->table)
                                     <span class="badge bg-info">{{ $order->table->name }}</span>
+                                    @if($order->status == 0)
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="showChangeTableModal()">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                    @endif
                                     @else
                                     -
                                     @endif
@@ -212,10 +217,217 @@
         </div>
     </div>
 </div>
+<!-- Change Table Modal -->
+<div class="modal fade" id="changeTableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>{{ __('Change Table') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ __('Current Table') }}</label>
+                    <div class="badge bg-info fs-6" id="currentTableBadge">{{ $order->table?->name ?? '-' }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ __('Select New Table') }}</label>
+                    <div id="availableTablesContainer">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span class="ms-2">{{ __('Loading tables...') }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ __('Reason (Optional)') }}</label>
+                    <textarea class="form-control" id="changeTableReason" rows="2" placeholder="{{ __('Enter reason for table change...') }}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="confirmChangeTableBtn" disabled onclick="confirmChangeTable()">
+                    <i class="fas fa-check me-1"></i>{{ __('Change Table') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('css')
+<style>
+    .table-option {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .table-option:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+    .table-option.selected {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+    .table-option .table-name {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .table-option .table-capacity {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .table-option.available {
+        border-color: #28a745;
+    }
+    .table-option.occupied {
+        border-color: #ffc107;
+    }
+    /* Ensure SweetAlert appears above Bootstrap modal */
+    .swal2-container {
+        z-index: 2000 !important;
+    }
+</style>
+@endpush
 
 @push('js')
 <script>
+    let selectedNewTableId = null;
+
+    function showChangeTableModal() {
+        selectedNewTableId = null;
+        $('#confirmChangeTableBtn').prop('disabled', true);
+        $('#changeTableReason').val('');
+
+        // Load available tables
+        $('#availableTablesContainer').html(`
+            <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <span class="ms-2">{{ __('Loading tables...') }}</span>
+            </div>
+        `);
+
+        $('#changeTableModal').modal('show');
+
+        $.get("{{ route('admin.waiter.change-table.data', $order->id) }}", function(data) {
+            let html = '<div class="row g-2">';
+
+            if (data.available_tables && data.available_tables.length > 0) {
+                data.available_tables.forEach(function(table) {
+                    let statusClass = table.status === 'available' ? 'available' : 'occupied';
+                    let availableSeats = table.capacity - (table.occupied_seats || 0);
+
+                    html += `
+                        <div class="col-4">
+                            <div class="table-option ${statusClass}" data-table-id="${table.id}" onclick="selectNewTable(${table.id}, this)">
+                                <div class="table-name">${table.name}</div>
+                                <div class="table-capacity">
+                                    <i class="fas fa-user"></i> ${availableSeats}/${table.capacity}
+                                </div>
+                                <small class="text-${table.status === 'available' ? 'success' : 'warning'}">
+                                    ${table.status === 'available' ? '{{ __("Available") }}' : '{{ __("Partial") }}'}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="col-12 text-center py-4 text-muted">
+                        <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                        <p class="mb-0">{{ __('No available tables found') }}</p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            $('#availableTablesContainer').html(html);
+        }).fail(function(xhr) {
+            $('#availableTablesContainer').html(`
+                <div class="alert alert-danger">
+                    {{ __('Failed to load available tables') }}
+                </div>
+            `);
+        });
+    }
+
+    function selectNewTable(tableId, element) {
+        $('.table-option').removeClass('selected');
+        $(element).addClass('selected');
+        selectedNewTableId = tableId;
+        $('#confirmChangeTableBtn').prop('disabled', false);
+    }
+
+    function confirmChangeTable() {
+        if (!selectedNewTableId) {
+            Swal.fire({
+                icon: 'warning',
+                title: '{{ __("Select Table") }}',
+                text: '{{ __("Please select a table to transfer to.") }}'
+            });
+            return;
+        }
+
+        const reason = $('#changeTableReason').val();
+
+        Swal.fire({
+            title: '{{ __("Change Table?") }}',
+            text: '{{ __("Are you sure you want to move this order to the selected table?") }}',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '{{ __("Yes, Change It") }}',
+            cancelButtonText: '{{ __("Cancel") }}'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#confirmChangeTableBtn').prop('disabled', true).html(`
+                    <span class="spinner-border spinner-border-sm me-1"></span>{{ __('Changing...') }}
+                `);
+
+                $.ajax({
+                    url: "{{ route('admin.waiter.change-table', $order->id) }}",
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        new_table_id: selectedNewTableId,
+                        reason: reason
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#changeTableModal').modal('hide');
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("Table Changed") }}',
+                                text: response.message
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#confirmChangeTableBtn').prop('disabled', false).html(`
+                            <i class="fas fa-check me-1"></i>{{ __('Change Table') }}
+                        `);
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ __("Error") }}',
+                            text: xhr.responseJSON?.message || '{{ __("Failed to change table.") }}'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
     function cancelOrder() {
         Swal.fire({
             title: "{{ __('Cancel Order?') }}",

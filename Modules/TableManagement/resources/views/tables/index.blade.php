@@ -109,9 +109,6 @@
                 <h4 class="section_title">{{ __('Restaurant Tables') }}</h4>
             </div>
             <div class="btn-actions-pane-right actions-icon-btn">
-                <a href="{{ route('admin.tables.layout') }}" class="btn btn-info mr-2">
-                    <i class="fa fa-th-large"></i> {{ __('Layout View') }}
-                </a>
                 <a href="{{ route('admin.tables.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ __('Add Table') }}
                 </a>

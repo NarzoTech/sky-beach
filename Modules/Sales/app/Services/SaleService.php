@@ -15,6 +15,7 @@ use Modules\Customer\app\Models\CustomerDue;
 use Modules\Customer\app\Models\CustomerPayment;
 use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Ingredient\app\Models\Variant;
+use Modules\Menu\app\Models\Combo;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuVariant;
 use Modules\Sales\app\Models\ProductSale;
@@ -292,6 +293,62 @@ class SaleService
                 $orderDetails->sub_total = $item['sub_total'];
                 $orderDetails->save();
             }
+            // Handle combo type - expand combo into individual menu items
+            elseif ($itemType == 'combo') {
+                $combo = Combo::with(['items.menuItem.recipes.ingredient', 'items.variant'])->find($item['id']);
+                if ($combo) {
+                    // Store each combo item as individual menu items
+                    foreach ($combo->items as $comboItem) {
+                        $menuItem = $comboItem->menuItem;
+                        if (!$menuItem) continue;
+
+                        $comboItemQty = $comboItem->quantity * $saleQuantity;
+
+                        // Calculate proportional price from combo
+                        $menuItemOriginalPrice = $menuItem->price;
+                        if ($comboItem->variant) {
+                            $menuItemOriginalPrice += $comboItem->variant->price_adjustment ?? 0;
+                        }
+
+                        // Calculate proportional share of combo price
+                        $proportionalShare = ($combo->original_price > 0)
+                            ? ($menuItemOriginalPrice * $comboItem->quantity) / $combo->original_price
+                            : 1 / $combo->items->count();
+                        $proportionalPrice = ($combo->combo_price * $proportionalShare) / $comboItem->quantity;
+                        $itemSubTotal = $proportionalPrice * $comboItemQty;
+
+                        // Calculate COGS
+                        $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $comboItemQty);
+                        $profitAmount = $itemSubTotal - $cogsAmount;
+
+                        $orderDetails = new ProductSale();
+                        $orderDetails->sale_id = $sale->id;
+                        $orderDetails->menu_item_id = $menuItem->id;
+                        $orderDetails->service_id = null;
+                        $orderDetails->product_sku = $menuItem->sku ?? '';
+                        $orderDetails->variant_id = $comboItem->variant_id;
+                        $orderDetails->price = $proportionalPrice;
+                        $orderDetails->source = 1;
+                        $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                        $orderDetails->selling_price = $proportionalPrice;
+                        $orderDetails->quantity = $comboItemQty;
+                        $orderDetails->base_quantity = $comboItemQty;
+                        $orderDetails->sub_total = $itemSubTotal;
+                        $orderDetails->cogs_amount = $cogsAmount;
+                        $orderDetails->profit_amount = $profitAmount;
+                        $orderDetails->attributes = $comboItem->variant ? $comboItem->variant->name : null;
+                        $orderDetails->combo_id = $combo->id;
+                        $orderDetails->combo_name = $combo->name;
+                        $orderDetails->note = $item['note'] ?? null;
+                        $orderDetails->save();
+
+                        // Deduct ingredient stock
+                        if ($menuItem) {
+                            $this->deductIngredientStockFromRecipe($menuItem, $comboItemQty, $sale, $request);
+                        }
+                    }
+                }
+            }
         }
 
         $sale->quantity = $totalQty;
@@ -381,6 +438,204 @@ class SaleService
         }
 
         return $sale;
+    }
+
+    /**
+     * Create a sale from waiter order (accepts array data instead of Request)
+     *
+     * @param array $saleData Sale information
+     * @param array $cart Cart items
+     * @param mixed $customer Customer info (optional)
+     * @param array $payments Payment info (optional)
+     * @return Sale
+     */
+    public function createWaiterOrder(array $saleData, array $cart, $customer = null, array $payments = []): Sale
+    {
+        $sale = new Sale();
+        $sale->user_id = $customer?->id ?? null;
+        $sale->customer_id = $saleData['customer_id'] ?? null;
+        $sale->warehouse_id = 1;
+        $sale->quantity = 1;
+        $sale->total_price = $saleData['subtotal'] ?? 0;
+        $sale->order_date = Carbon::now();
+        $sale->order_type = $saleData['order_type'] ?? Sale::ORDER_TYPE_DINE_IN;
+        $sale->table_id = $saleData['table_id'] ?? null;
+        $sale->guest_count = $saleData['guest_count'] ?? 1;
+        $sale->waiter_id = $saleData['waiter_id'] ?? null;
+        $sale->special_instructions = $saleData['special_instructions'] ?? null;
+
+        // Waiter orders are always deferred payment (unpaid)
+        $sale->status = 0; // Processing
+        $sale->payment_status = 0; // Unpaid
+        $sale->payment_method = null;
+        $sale->paid_amount = 0;
+        $sale->receive_amount = 0;
+        $sale->return_amount = 0;
+        $sale->due_amount = $saleData['total'] ?? $saleData['subtotal'] ?? 0;
+
+        $sale->order_discount = $saleData['discount'] ?? 0;
+        $sale->total_tax = $saleData['tax'] ?? 0;
+        $sale->grand_total = $saleData['total'] ?? $saleData['subtotal'] ?? 0;
+        $sale->invoice = $this->genInvoiceNumber();
+        $sale->sale_note = $saleData['note'] ?? null;
+        $sale->created_by = auth('admin')->id();
+        $sale->save();
+
+        $totalQty = 0;
+
+        foreach ($cart as $item) {
+            $totalQty += $item['qty'];
+            $saleQuantity = $item['qty'];
+            $itemType = $item['type'] ?? 'menu_item';
+
+            // Handle menu item type
+            if ($itemType == 'menu_item') {
+                $menuItem = MenuItem::with('recipes.ingredient')->find($item['id']);
+                $menuVariant = isset($item['variant_id']) ? MenuVariant::find($item['variant_id']) : null;
+
+                // Calculate COGS for this menu item
+                $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $saleQuantity);
+                $subTotal = $item['sub_total'];
+                $profitAmount = $subTotal - $cogsAmount;
+
+                $orderDetails = new ProductSale();
+                $orderDetails->sale_id = $sale->id;
+                $orderDetails->menu_item_id = $menuItem->id;
+                $orderDetails->service_id = null;
+                $orderDetails->product_sku = $item['sku'] ?? $menuItem->sku ?? '';
+                $orderDetails->variant_id = $menuVariant ? $menuVariant->id : null;
+                $orderDetails->price = $item['price'];
+                $orderDetails->source = $item['source'] ?? 1;
+                $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                $orderDetails->selling_price = $item['selling_price'] ?? $item['price'];
+                $orderDetails->quantity = $saleQuantity;
+                $orderDetails->base_quantity = $saleQuantity;
+                $orderDetails->sub_total = $subTotal;
+                $orderDetails->cogs_amount = $cogsAmount;
+                $orderDetails->profit_amount = $profitAmount;
+                $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
+                $orderDetails->addons = !empty($item['addons']) ? $item['addons'] : null;
+                $orderDetails->note = $item['note'] ?? null;
+                $orderDetails->save();
+
+                // Deduct ingredient stock based on menu item recipes
+                if ($menuItem && ($item['source'] ?? 1) == 1) {
+                    $this->deductIngredientStockForWaiterOrder($menuItem, $saleQuantity, $sale);
+                }
+            }
+            // Handle combo type
+            elseif ($itemType == 'combo') {
+                $combo = Combo::with(['items.menuItem.recipes.ingredient', 'items.variant'])->find($item['id']);
+                if ($combo) {
+                    foreach ($combo->items as $comboItem) {
+                        $menuItem = $comboItem->menuItem;
+                        if (!$menuItem) continue;
+
+                        $comboItemQty = $comboItem->quantity * $saleQuantity;
+
+                        // Calculate proportional price
+                        $menuItemOriginalPrice = $menuItem->price;
+                        if ($comboItem->variant) {
+                            $menuItemOriginalPrice += $comboItem->variant->price_adjustment ?? 0;
+                        }
+
+                        $proportionalShare = ($combo->original_price > 0)
+                            ? ($menuItemOriginalPrice * $comboItem->quantity) / $combo->original_price
+                            : 1 / $combo->items->count();
+                        $proportionalPrice = ($combo->combo_price * $proportionalShare) / $comboItem->quantity;
+                        $itemSubTotal = $proportionalPrice * $comboItemQty;
+
+                        $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $comboItemQty);
+                        $profitAmount = $itemSubTotal - $cogsAmount;
+
+                        $orderDetails = new ProductSale();
+                        $orderDetails->sale_id = $sale->id;
+                        $orderDetails->menu_item_id = $menuItem->id;
+                        $orderDetails->product_sku = $menuItem->sku ?? '';
+                        $orderDetails->variant_id = $comboItem->variant_id;
+                        $orderDetails->price = $proportionalPrice;
+                        $orderDetails->source = 1;
+                        $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                        $orderDetails->selling_price = $proportionalPrice;
+                        $orderDetails->quantity = $comboItemQty;
+                        $orderDetails->base_quantity = $comboItemQty;
+                        $orderDetails->sub_total = $itemSubTotal;
+                        $orderDetails->cogs_amount = $cogsAmount;
+                        $orderDetails->profit_amount = $profitAmount;
+                        $orderDetails->attributes = $comboItem->variant ? $comboItem->variant->name : null;
+                        $orderDetails->combo_id = $combo->id;
+                        $orderDetails->combo_name = $combo->name;
+                        $orderDetails->note = $item['note'] ?? null;
+                        $orderDetails->save();
+
+                        // Deduct ingredient stock
+                        $this->deductIngredientStockForWaiterOrder($menuItem, $comboItemQty, $sale);
+                    }
+                }
+            }
+        }
+
+        $sale->quantity = $totalQty;
+
+        // Calculate estimated prep time
+        $maxPrepTime = 0;
+        foreach ($cart as $item) {
+            $itemType = $item['type'] ?? 'menu_item';
+            if ($itemType === 'menu_item') {
+                $menuItem = MenuItem::find($item['id']);
+                if ($menuItem && $menuItem->preparation_time) {
+                    $maxPrepTime = max($maxPrepTime, $menuItem->preparation_time);
+                }
+            }
+        }
+        if ($maxPrepTime > 0) {
+            $sale->estimated_prep_minutes = $maxPrepTime;
+        }
+
+        $sale->save();
+
+        // Update COGS totals
+        $this->updateSaleCOGSTotals($sale);
+
+        return $sale;
+    }
+
+    /**
+     * Deduct ingredient stock for waiter orders (doesn't require Request object)
+     */
+    private function deductIngredientStockForWaiterOrder(MenuItem $menuItem, $quantity, Sale $sale)
+    {
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            $deductQuantity = $recipe->quantity_required * $quantity;
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+            $ingredient->stock = $ingredient->stock - $deductInPurchaseUnit;
+            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
+            $ingredient->save();
+
+            Stock::create([
+                'sale_id' => $sale->id,
+                'product_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => Carbon::now(),
+                'type' => 'Sale',
+                'invoice' => route('admin.sales.invoice', $sale->id),
+                'invoice_number' => $sale->invoice,
+                'out_quantity' => $deductQuantity,
+                'base_out_quantity' => $deductInPurchaseUnit,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'sale_price' => 0,
+                'rate' => $ingredient->consumption_unit_cost ?? 0,
+                'profit' => 0,
+                'note' => 'Waiter Order - Menu Item: ' . $menuItem->name,
+                'created_by' => auth('admin')->id(),
+            ]);
+        }
     }
 
     public function updateSale(Request $request, $user, $cart, $id): Sale

@@ -5,6 +5,7 @@ namespace Modules\Sales\app\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Menu\app\Models\Combo;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Sales\Database\factories\ProductSaleFactory;
 use Modules\Service\app\Models\Service;
@@ -22,6 +23,8 @@ class ProductSale extends Model
         'ingredient_id',
         'menu_item_id',
         'service_id',
+        'combo_id',
+        'combo_name',
         'quantity',
         'sale_unit_id',
         'unit_id',
@@ -39,7 +42,8 @@ class ProductSale extends Model
         'profit_amount',
         'source',
         'selling_price',
-        'purchase_price'
+        'purchase_price',
+        'note'
     ];
 
     protected $casts = [
@@ -72,6 +76,11 @@ class ProductSale extends Model
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id')->withDefault();
+    }
+
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class, 'combo_id')->withDefault();
     }
 
     public function getSaleReturnAttribute()

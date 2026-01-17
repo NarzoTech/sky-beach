@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 use Modules\Currency\database\seeders\CurrencySeeder;
 use Modules\GlobalSetting\database\seeders\EmailTemplateSeeder;
 use Modules\GlobalSetting\database\seeders\GlobalSettingInfoSeeder;
-
-
 use Modules\Language\database\seeders\LanguageSeeder;
+use Modules\Menu\database\seeders\MenuDataSeeder;
+use Modules\TableManagement\database\seeders\TableManagementDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,6 +27,10 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             AdminInfoSeeder::class,
             DemoDataSeeder::class,
+            // Menu Module Seeders (includes addons linking)
+            MenuDataSeeder::class,
+            // Table Management Seeder
+            TableManagementDatabaseSeeder::class,
             // Restaurant/Website Module Seeders
             BlogSeeder::class,
             ChefSeeder::class,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Employee\app\Models\Employee;
+use Modules\Menu\app\Models\Combo;
 use Modules\Menu\app\Models\MenuCategory;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\POS\app\Models\PosSettings;
@@ -81,14 +82,22 @@ class WaiterDashboardController extends Controller
 
         $categories = MenuCategory::where('status', 1)
             ->with(['menuItems' => function ($query) {
-                $query->where('status', 1);
+                $query->where('status', 1)->with(['addons' => function ($q) {
+                    $q->where('status', 1);
+                }]);
             }])
             ->orderBy('display_order')
             ->get();
 
+        // Get active combos
+        $combos = Combo::currentlyAvailable()
+            ->with(['items.menuItem', 'items.variant'])
+            ->orderBy('name')
+            ->get();
+
         $posSettings = PosSettings::first();
 
-        return view('pos::waiter.create-order', compact('table', 'categories', 'posSettings'));
+        return view('pos::waiter.create-order', compact('table', 'categories', 'combos', 'posSettings'));
     }
 
     /**
@@ -101,13 +110,25 @@ class WaiterDashboardController extends Controller
         $validated = $request->validate([
             'table_id' => 'required|exists:restaurant_tables,id',
             'guest_count' => 'required|integer|min:1',
-            'items' => 'required|array|min:1',
+            'items' => 'nullable|array',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.addons' => 'nullable|array',
             'items.*.note' => 'nullable|string|max:500',
+            'combos' => 'nullable|array',
+            'combos.*.combo_id' => 'required|exists:combos,id',
+            'combos.*.quantity' => 'required|integer|min:1',
+            'combos.*.note' => 'nullable|string|max:500',
             'special_instructions' => 'nullable|string|max:1000',
         ]);
+
+        // Must have at least one item or combo
+        if (empty($validated['items']) && empty($validated['combos'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please add at least one item or combo to the order.',
+            ], 400);
+        }
 
         $admin = Auth::guard('admin')->user();
         $employee = $admin->employee;
@@ -125,36 +146,78 @@ class WaiterDashboardController extends Controller
         $cartItems = [];
         $subtotal = 0;
 
-        foreach ($validated['items'] as $item) {
-            $menuItem = MenuItem::findOrFail($item['menu_item_id']);
-            $itemTotal = $menuItem->price * $item['quantity'];
+        // Process regular menu items
+        if (!empty($validated['items'])) {
+            foreach ($validated['items'] as $item) {
+                $menuItem = MenuItem::findOrFail($item['menu_item_id']);
+                $itemTotal = $menuItem->price * $item['quantity'];
 
-            $addons = [];
-            if (!empty($item['addons'])) {
-                foreach ($item['addons'] as $addonData) {
-                    $addons[] = [
-                        'id' => $addonData['id'],
-                        'name' => $addonData['name'],
-                        'price' => $addonData['price'],
-                        'qty' => $addonData['qty'] ?? 1,
-                    ];
-                    $itemTotal += ($addonData['price'] * ($addonData['qty'] ?? 1));
+                $addons = [];
+                if (!empty($item['addons'])) {
+                    foreach ($item['addons'] as $addonData) {
+                        $addons[] = [
+                            'id' => $addonData['id'],
+                            'name' => $addonData['name'],
+                            'price' => $addonData['price'],
+                            'qty' => $addonData['qty'] ?? 1,
+                        ];
+                        $itemTotal += ($addonData['price'] * ($addonData['qty'] ?? 1));
+                    }
                 }
+
+                $cartItems[] = [
+                    'id' => $menuItem->id,
+                    'name' => $menuItem->name,
+                    'type' => 'menu_item',
+                    'qty' => $item['quantity'],
+                    'price' => $menuItem->price,
+                    'base_price' => $menuItem->price,
+                    'sub_total' => $itemTotal,
+                    'addons' => $addons,
+                    'note' => $item['note'] ?? null,
+                ];
+
+                $subtotal += $itemTotal;
             }
+        }
 
-            $cartItems[] = [
-                'id' => $menuItem->id,
-                'name' => $menuItem->name,
-                'type' => 'menu_item',
-                'qty' => $item['quantity'],
-                'price' => $menuItem->price,
-                'base_price' => $menuItem->price,
-                'sub_total' => $itemTotal,
-                'addons' => $addons,
-                'note' => $item['note'] ?? null,
-            ];
+        // Process combo items
+        if (!empty($validated['combos'])) {
+            foreach ($validated['combos'] as $comboItem) {
+                $combo = Combo::with(['items.menuItem', 'items.variant'])->findOrFail($comboItem['combo_id']);
+                $comboTotal = $combo->combo_price * $comboItem['quantity'];
 
-            $subtotal += $itemTotal;
+                // Build combo items list for display/printing
+                $comboContents = [];
+                foreach ($combo->items as $item) {
+                    $itemName = $item->menuItem->name;
+                    if ($item->variant) {
+                        $itemName .= ' (' . $item->variant->name . ')';
+                    }
+                    $comboContents[] = [
+                        'menu_item_id' => $item->menu_item_id,
+                        'name' => $itemName,
+                        'quantity' => $item->quantity,
+                        'variant_id' => $item->variant_id,
+                    ];
+                }
+
+                $cartItems[] = [
+                    'id' => $combo->id,
+                    'name' => $combo->name,
+                    'type' => 'combo',
+                    'qty' => $comboItem['quantity'],
+                    'price' => $combo->combo_price,
+                    'base_price' => $combo->combo_price,
+                    'original_price' => $combo->original_price,
+                    'sub_total' => $comboTotal,
+                    'combo_items' => $comboContents,
+                    'addons' => [],
+                    'note' => $comboItem['note'] ?? null,
+                ];
+
+                $subtotal += $comboTotal;
+            }
         }
 
         // Create sale using SaleService
@@ -172,7 +235,7 @@ class WaiterDashboardController extends Controller
 
         try {
             $saleService = app(SaleService::class);
-            $sale = $saleService->createSale($saleData, $cartItems, null, []);
+            $sale = $saleService->createWaiterOrder($saleData, $cartItems, null, []);
 
             // Mark table as occupied
             $table->occupy($sale, $validated['guest_count']);
@@ -255,7 +318,13 @@ class WaiterDashboardController extends Controller
             ->orderBy('display_order')
             ->get();
 
-        return view('pos::waiter.add-to-order', compact('order', 'categories'));
+        // Get active combos
+        $combos = Combo::currentlyAvailable()
+            ->with(['items.menuItem', 'items.variant'])
+            ->orderBy('name')
+            ->get();
+
+        return view('pos::waiter.add-to-order', compact('order', 'categories', 'combos'));
     }
 
     /**
@@ -274,53 +343,114 @@ class WaiterDashboardController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'items' => 'required|array|min:1',
+            'items' => 'nullable|array',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.addons' => 'nullable|array',
             'items.*.note' => 'nullable|string|max:500',
+            'combos' => 'nullable|array',
+            'combos.*.combo_id' => 'required|exists:combos,id',
+            'combos.*.quantity' => 'required|integer|min:1',
+            'combos.*.note' => 'nullable|string|max:500',
         ]);
 
-        $newItems = [];
-
-        foreach ($validated['items'] as $item) {
-            $menuItem = MenuItem::findOrFail($item['menu_item_id']);
-            $itemTotal = $menuItem->price * $item['quantity'];
-
-            $addons = [];
-            if (!empty($item['addons'])) {
-                foreach ($item['addons'] as $addonData) {
-                    $addons[] = [
-                        'id' => $addonData['id'],
-                        'name' => $addonData['name'],
-                        'price' => $addonData['price'],
-                        'qty' => $addonData['qty'] ?? 1,
-                    ];
-                    $itemTotal += ($addonData['price'] * ($addonData['qty'] ?? 1));
-                }
-            }
-
-            // Add to order details
-            $order->details()->create([
-                'menu_item_id' => $menuItem->id,
-                'quantity' => $item['quantity'],
-                'price' => $menuItem->price,
-                'sub_total' => $itemTotal,
-                'addons' => !empty($addons) ? json_encode($addons) : null,
-                'note' => $item['note'] ?? null,
-            ]);
-
-            $newItems[] = [
-                'name' => $menuItem->name,
-                'qty' => $item['quantity'],
-                'addons' => $addons,
-                'note' => $item['note'] ?? null,
-            ];
-
-            $order->subtotal += $itemTotal;
-            $order->total += $itemTotal;
+        // Must have at least one item or combo
+        if (empty($validated['items']) && empty($validated['combos'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please add at least one item or combo.',
+            ], 400);
         }
 
+        $newItems = [];
+        $addedTotal = 0;
+
+        // Process regular menu items
+        if (!empty($validated['items'])) {
+            foreach ($validated['items'] as $item) {
+                $menuItem = MenuItem::findOrFail($item['menu_item_id']);
+                $itemTotal = $menuItem->price * $item['quantity'];
+
+                $addons = [];
+                if (!empty($item['addons'])) {
+                    foreach ($item['addons'] as $addonData) {
+                        $addons[] = [
+                            'id' => $addonData['id'],
+                            'name' => $addonData['name'],
+                            'price' => $addonData['price'],
+                            'qty' => $addonData['qty'] ?? 1,
+                        ];
+                        $itemTotal += ($addonData['price'] * ($addonData['qty'] ?? 1) * $item['quantity']);
+                    }
+                }
+
+                // Add to order details
+                $order->details()->create([
+                    'menu_item_id' => $menuItem->id,
+                    'quantity' => $item['quantity'],
+                    'price' => $menuItem->price,
+                    'sub_total' => $itemTotal,
+                    'addons' => !empty($addons) ? json_encode($addons) : null,
+                    'note' => $item['note'] ?? null,
+                ]);
+
+                $newItems[] = [
+                    'name' => $menuItem->name,
+                    'qty' => $item['quantity'],
+                    'addons' => $addons,
+                    'note' => $item['note'] ?? null,
+                ];
+
+                $addedTotal += $itemTotal;
+            }
+        }
+
+        // Process combo items
+        if (!empty($validated['combos'])) {
+            foreach ($validated['combos'] as $comboItem) {
+                $combo = Combo::with(['items.menuItem', 'items.variant'])->findOrFail($comboItem['combo_id']);
+                $comboTotal = $combo->combo_price * $comboItem['quantity'];
+
+                // Build combo items list for display/printing
+                $comboContents = [];
+                foreach ($combo->items as $item) {
+                    $itemName = $item->menuItem->name;
+                    if ($item->variant) {
+                        $itemName .= ' (' . $item->variant->name . ')';
+                    }
+                    $comboContents[] = [
+                        'menu_item_id' => $item->menu_item_id,
+                        'name' => $itemName,
+                        'quantity' => $item->quantity,
+                        'variant_id' => $item->variant_id,
+                    ];
+                }
+
+                // Add to order details
+                $order->details()->create([
+                    'combo_id' => $combo->id,
+                    'combo_name' => $combo->name,
+                    'quantity' => $comboItem['quantity'],
+                    'price' => $combo->combo_price,
+                    'sub_total' => $comboTotal,
+                    'note' => $comboItem['note'] ?? null,
+                ]);
+
+                $newItems[] = [
+                    'name' => $combo->name . ' (Combo)',
+                    'qty' => $comboItem['quantity'],
+                    'addons' => [],
+                    'combo_items' => $comboContents,
+                    'note' => $comboItem['note'] ?? null,
+                ];
+
+                $addedTotal += $comboTotal;
+            }
+        }
+
+        // Update order totals
+        $order->total_price = ($order->total_price ?? 0) + $addedTotal;
+        $order->grand_total = ($order->grand_total ?? 0) + $addedTotal;
         $order->save();
 
         // Print only new items to kitchen
