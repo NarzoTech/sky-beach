@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Modules\POS\app\Http\Controllers\POSController;
 use Modules\POS\app\Http\Controllers\PosSettingsController;
 use Modules\POS\app\Http\Controllers\WaiterController;
+use Modules\POS\app\Http\Controllers\WaiterDashboardController;
+use Modules\POS\app\Http\Controllers\PrinterController;
+use Modules\POS\app\Http\Controllers\KitchenDisplayController;
+use Modules\POS\app\Http\Controllers\TableTransferController;
+use Modules\POS\app\Http\Controllers\SplitBillController;
+use Modules\POS\app\Http\Controllers\VoidItemController;
+use Modules\POS\app\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,7 +80,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
     Route::get('pos/settings', [PosSettingsController::class, 'index'])->name('pos.settings');
     Route::post('pos/settings', [PosSettingsController::class, 'store'])->name('pos.settings.store');
 
-    // Waiter Management Routes
+    // Waiter Management Routes (Admin)
     Route::prefix('pos/waiters')->name('pos.waiters.')->group(function () {
         Route::get('/', [WaiterController::class, 'index'])->name('index');
         Route::get('/create', [WaiterController::class, 'create'])->name('create');
@@ -82,5 +89,92 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::put('/{id}', [WaiterController::class, 'update'])->name('update');
         Route::delete('/{id}', [WaiterController::class, 'destroy'])->name('destroy');
         Route::get('/{id}/status', [WaiterController::class, 'status'])->name('status');
+    });
+
+    // Printer Management Routes
+    Route::prefix('pos/printers')->name('pos.printers.')->group(function () {
+        Route::get('/', [PrinterController::class, 'index'])->name('index');
+        Route::get('/create', [PrinterController::class, 'create'])->name('create');
+        Route::post('/', [PrinterController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [PrinterController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PrinterController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PrinterController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [PrinterController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{id}/test', [PrinterController::class, 'test'])->name('test');
+        Route::get('/ajax/list', [PrinterController::class, 'getPrinters'])->name('ajax.list');
+    });
+
+    // Waiter Dashboard Routes
+    Route::prefix('waiter')->name('waiter.')->group(function () {
+        Route::get('/', [WaiterDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/select-table', [WaiterDashboardController::class, 'selectTable'])->name('select-table');
+        Route::get('/create-order/{tableId}', [WaiterDashboardController::class, 'createOrder'])->name('create-order');
+        Route::post('/store-order', [WaiterDashboardController::class, 'storeOrder'])->name('store-order');
+        Route::get('/my-orders', [WaiterDashboardController::class, 'myOrders'])->name('my-orders');
+        Route::get('/order/{id}', [WaiterDashboardController::class, 'orderDetails'])->name('order-details');
+        Route::get('/add-to-order/{id}', [WaiterDashboardController::class, 'showAddToOrder'])->name('add-to-order');
+        Route::post('/add-to-order/{id}', [WaiterDashboardController::class, 'addToOrder'])->name('add-to-order.store');
+        Route::post('/cancel-order/{id}', [WaiterDashboardController::class, 'cancelOrder'])->name('cancel-order');
+        Route::get('/menu-items', [WaiterDashboardController::class, 'getMenuItems'])->name('menu-items');
+        Route::get('/table-status/{id}', [WaiterDashboardController::class, 'getTableStatus'])->name('table-status');
+    });
+
+    // Print Job Routes
+    Route::prefix('pos/print')->name('pos.print.')->group(function () {
+        Route::get('/pending-jobs', [PrinterController::class, 'getPendingJobs'])->name('pending-jobs');
+        Route::get('/job/{id}/content', [PrinterController::class, 'getJobContent'])->name('job-content');
+        Route::post('/job/{id}/mark-printed', [PrinterController::class, 'markAsPrinted'])->name('mark-printed');
+        Route::post('/job/{id}/mark-failed', [PrinterController::class, 'markAsFailed'])->name('mark-failed');
+        Route::post('/job/{id}/retry', [PrinterController::class, 'retryJob'])->name('retry');
+    });
+
+    // Kitchen Display Routes
+    Route::prefix('kitchen')->name('kitchen.')->group(function () {
+        Route::get('/', [KitchenDisplayController::class, 'index'])->name('index');
+        Route::get('/orders', [KitchenDisplayController::class, 'getOrders'])->name('orders');
+        Route::get('/history', [KitchenDisplayController::class, 'history'])->name('history');
+        Route::post('/item/{id}/status', [KitchenDisplayController::class, 'updateItemStatus'])->name('item.status');
+        Route::post('/item/{id}/start', [KitchenDisplayController::class, 'startPreparing'])->name('item.start');
+        Route::post('/item/{id}/ready', [KitchenDisplayController::class, 'markReady'])->name('item.ready');
+        Route::post('/item/{id}/served', [KitchenDisplayController::class, 'markServed'])->name('item.served');
+        Route::post('/order/{id}/status', [KitchenDisplayController::class, 'updateOrderStatus'])->name('order.status');
+        Route::post('/order/{id}/bump', [KitchenDisplayController::class, 'bumpOrder'])->name('order.bump');
+        Route::post('/order/{id}/recall', [KitchenDisplayController::class, 'recallOrder'])->name('order.recall');
+    });
+
+    // Table Transfer Routes
+    Route::prefix('pos/table-transfer')->name('pos.table-transfer.')->group(function () {
+        Route::get('/{orderId}', [TableTransferController::class, 'getTransferData'])->name('data');
+        Route::post('/{orderId}', [TableTransferController::class, 'transfer'])->name('transfer');
+        Route::post('/merge', [TableTransferController::class, 'merge'])->name('merge');
+    });
+
+    // Split Bill Routes
+    Route::prefix('pos/split-bill')->name('pos.split-bill.')->group(function () {
+        Route::get('/{orderId}', [SplitBillController::class, 'show'])->name('show');
+        Route::get('/{orderId}/data', [SplitBillController::class, 'getOrderData'])->name('data');
+        Route::post('/{orderId}/create', [SplitBillController::class, 'createSplits'])->name('create');
+        Route::post('/{orderId}/split-equally', [SplitBillController::class, 'splitEqually'])->name('split-equally');
+        Route::post('/{orderId}/remove', [SplitBillController::class, 'removeSplits'])->name('remove');
+        Route::post('/pay/{splitId}', [SplitBillController::class, 'processPayment'])->name('pay');
+        Route::get('/print/{splitId}', [SplitBillController::class, 'printSplitReceipt'])->name('print');
+    });
+
+    // Void Item Routes
+    Route::prefix('pos/void')->name('pos.void.')->group(function () {
+        Route::post('/item/{itemId}', [VoidItemController::class, 'voidItem'])->name('item');
+        Route::post('/items', [VoidItemController::class, 'voidMultiple'])->name('items');
+        Route::get('/history/{orderId}', [VoidItemController::class, 'getVoidHistory'])->name('history');
+        Route::post('/restore/{itemId}', [VoidItemController::class, 'restoreItem'])->name('restore');
+    });
+
+    // Notification Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread', [NotificationController::class, 'getUnread'])->name('unread');
+        Route::get('/count', [NotificationController::class, 'unreadCount'])->name('count');
+        Route::post('/{id}/read', [NotificationController::class, 'markRead'])->name('read');
+        Route::post('/read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+        Route::post('/clear-old', [NotificationController::class, 'clearOld'])->name('clear-old');
     });
 });

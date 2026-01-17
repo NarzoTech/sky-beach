@@ -223,7 +223,6 @@ trait PermissionsTrait
     public static array $salesPermissions = [
         'group_name'  => 'Sales',
         'permissions' => [
-            'pos.view',
             'sales.view',
             'sales.create',
             'sales.edit',
@@ -236,6 +235,79 @@ trait PermissionsTrait
             'sales.return.pdf.download',
             'sales.excel.download',
             'sales.pdf.download',
+        ],
+    ];
+
+    public static array $posPermissions = [
+        'group_name'  => 'POS',
+        'permissions' => [
+            'pos.view',
+            'pos.settings.view',
+            'pos.settings.update',
+            'pos.running_orders.view',
+            'pos.running_orders.update',
+            'pos.running_orders.cancel',
+        ],
+    ];
+
+    public static array $tablePermissions = [
+        'group_name'  => 'Table Management',
+        'permissions' => [
+            'table.view',
+            'table.create',
+            'table.edit',
+            'table.delete',
+            'table.status',
+            'reservation.view',
+            'reservation.create',
+            'reservation.edit',
+            'reservation.delete',
+            'reservation.status',
+        ],
+    ];
+
+    public static array $waiterManagementPermissions = [
+        'group_name'  => 'Waiter Management',
+        'permissions' => [
+            'waiter.manage.view',
+            'waiter.manage.create',
+            'waiter.manage.edit',
+            'waiter.manage.delete',
+            'waiter.manage.status',
+        ],
+    ];
+
+    public static array $restaurantPermissions = [
+        'group_name'  => 'Restaurant Website',
+        'permissions' => [
+            'restaurant.blog.view',
+            'restaurant.blog.create',
+            'restaurant.blog.edit',
+            'restaurant.blog.delete',
+            'restaurant.chef.view',
+            'restaurant.chef.create',
+            'restaurant.chef.edit',
+            'restaurant.chef.delete',
+            'restaurant.service.view',
+            'restaurant.service.create',
+            'restaurant.service.edit',
+            'restaurant.service.delete',
+            'restaurant.booking.view',
+            'restaurant.booking.create',
+            'restaurant.booking.edit',
+            'restaurant.booking.delete',
+            'restaurant.cms.view',
+            'restaurant.cms.create',
+            'restaurant.cms.edit',
+            'restaurant.cms.delete',
+            'restaurant.faq.view',
+            'restaurant.faq.create',
+            'restaurant.faq.edit',
+            'restaurant.faq.delete',
+            'restaurant.menu_item.view',
+            'restaurant.menu_item.create',
+            'restaurant.menu_item.edit',
+            'restaurant.menu_item.delete',
         ],
     ];
     public static array $accountPermissions = [
@@ -431,6 +503,57 @@ trait PermissionsTrait
             'membership.edit',
             'membership.manage_points',
             'membership.view_transactions',
+        ],
+    ];
+
+    public static array $waiterPermissions = [
+        'group_name'  => 'waiter',
+        'permissions' => [
+            'waiter.dashboard',
+            'waiter.table.view',
+            'waiter.order.create',
+            'waiter.order.view',
+            'waiter.order.update',
+            'waiter.order.cancel',
+        ],
+    ];
+
+    public static array $printerPermissions = [
+        'group_name'  => 'printer',
+        'permissions' => [
+            'printer.view',
+            'printer.create',
+            'printer.edit',
+            'printer.delete',
+            'printer.test',
+        ],
+    ];
+
+    public static array $kitchenPermissions = [
+        'group_name'  => 'kitchen',
+        'permissions' => [
+            'kitchen.view',
+            'kitchen.update_status',
+            'kitchen.bump_order',
+            'kitchen.view_history',
+        ],
+    ];
+
+    public static array $splitBillPermissions = [
+        'group_name'  => 'split bill',
+        'permissions' => [
+            'split.view',
+            'split.create',
+            'split.process_payment',
+        ],
+    ];
+
+    public static array $voidPermissions = [
+        'group_name'  => 'void',
+        'permissions' => [
+            'void.item',
+            'void.restore',
+            'void.view_history',
         ],
     ];
 

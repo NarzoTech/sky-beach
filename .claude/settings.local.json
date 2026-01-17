@@ -22,7 +22,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(php -l:*)",
       "Bash(more:*)",
-      "Bash(php -r:*)"
+      "Bash(php -r:*)",
+      "Bash(tree:*)",
+      "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\database\\\\migrations\\\\2026_01_17_160001_add_item_status_to_product_sales_table.php\")"
     ]
   }
 }

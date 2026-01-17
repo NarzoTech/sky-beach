@@ -89,6 +89,22 @@ class Admin extends Authenticatable
         return $query->where('is_super_admin', 0);
     }
 
+    /**
+     * Get the employee record linked to this admin
+     */
+    public function employee()
+    {
+        return $this->hasOne(\Modules\Employee\app\Models\Employee::class, 'admin_id');
+    }
+
+    /**
+     * Check if admin is a waiter
+     */
+    public function isWaiter(): bool
+    {
+        return $this->employee && $this->employee->is_waiter;
+    }
+
     public static function roleHasPermission($role, $permissions)
     {
         $hasPermission = true;

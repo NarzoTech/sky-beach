@@ -26,7 +26,38 @@ class Employee extends Model
         'yearly_leaves',
         'image',
         'status',
+        'admin_id',
+        'is_waiter',
+        'pin_code',
     ];
+
+    protected $casts = [
+        'is_waiter' => 'boolean',
+    ];
+
+    /**
+     * Get the admin account linked to this employee
+     */
+    public function admin()
+    {
+        return $this->belongsTo(\App\Models\Admin::class);
+    }
+
+    /**
+     * Scope to get only waiters
+     */
+    public function scopeWaiters($query)
+    {
+        return $query->where('is_waiter', true);
+    }
+
+    /**
+     * Scope to get active waiters
+     */
+    public function scopeActiveWaiters($query)
+    {
+        return $query->where('is_waiter', true)->where('status', 'active');
+    }
 
     public function getImageUrlAttribute()
     {

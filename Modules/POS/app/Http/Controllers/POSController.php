@@ -34,19 +34,22 @@ use Modules\TableManagement\app\Models\RestaurantTable;
 use Modules\Sales\app\Models\Sale;
 use Modules\Membership\app\Services\LoyaltyService;
 use Modules\Membership\app\Models\LoyaltyProgram;
+use Modules\POS\app\Services\PrintService;
 
 class POSController extends Controller
 {
     protected $menuItemService;
     protected $orderService;
     protected $loyaltyService;
+    protected $printService;
 
-    public function __construct(private UserGroupService $userGroup, MenuItemService $menuItemService, OrderService $orderService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services, LoyaltyService $loyaltyService)
+    public function __construct(private UserGroupService $userGroup, MenuItemService $menuItemService, OrderService $orderService, private AreaService $areaService, private SaleService $saleService, private ServicesService $services, LoyaltyService $loyaltyService, PrintService $printService)
     {
         $this->middleware('auth:admin');
         $this->menuItemService = $menuItemService;
         $this->orderService = $orderService;
         $this->loyaltyService = $loyaltyService;
+        $this->printService = $printService;
     }
     /**
      * Display a listing of the resource.
@@ -826,6 +829,14 @@ class POSController extends Controller
             // Check if this is a deferred payment (running order)
             // Deferred payment applies to: Dine-in, Take Away, and Delivery when payment_status is 0
             $isDeferredPayment = $request->defer_payment || $sale->payment_status == 0;
+
+            // Trigger printing to both printers (kitchen & cash counter)
+            try {
+                $this->printService->printNewOrder($sale);
+            } catch (\Exception $printException) {
+                // Log print error but don't fail the order
+                Log::warning('Print service error: ' . $printException->getMessage());
+            }
 
             if ($isDeferredPayment) {
                 $orderTypeLabel = match($sale->order_type) {
