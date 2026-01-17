@@ -1,37 +1,25 @@
-<tr data-counter="1">
-    <td>
-        <select name="payment_type[]" class="form-control pay_by" required>
-            @foreach (accountList() as $key => $list)
-                <option value="{{ $key }}" @if ($key == 'cash') selected @endif
-                    data-name="{{ $list }}">{{ $list }}
-                </option>
-            @endforeach
-        </select>
-    </td>
-    <td class="account_info">
-        <div class="form-group mb-0">
-            <input type="text" name="account_id[]" value="Cash" class="form-control" readonly>
+<div class="payment-row mb-2 p-2 border rounded {{ isset($add) ? '' : 'bg-light' }}" data-counter="{{ $counter ?? 1 }}">
+    <div class="row g-2 align-items-center">
+        <div class="col-5">
+            <select name="payment_type[]" class="form-select form-select-sm pay_by" required>
+                @foreach (accountList() as $key => $list)
+                    <option value="{{ $key }}" @if ($key == 'cash') selected @endif data-name="{{ $list }}">
+                        {{ $list }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-    </td>
-    <td>
-        <div class="form-group mb-0">
-            <input type="text" name="paying_amount[]" class="form-control text-center paying_amount"
-                id="payingAmount" placeholder="Amount" required autocomplete="off">
+        <div class="col-5">
+            <input type="number" name="paying_amount[]" class="form-control form-control-sm text-center paying_amount"
+                id="payingAmount" placeholder="{{ __('Amount') }}" required autocomplete="off" step="0.01">
+            <input type="hidden" name="account_id[]" value="Cash" class="account_id_input">
         </div>
-    </td>
-    <td>
-        <div class="btn-group btn-group-sm">
+        <div class="col-2 text-center">
             @if (isset($add))
-                <a href="javascript:0" class="btn btn-sm btn-danger remove-payment">
-                    <i class="fa fa-trash"></i>
-                </a>
-            @else
-                <a href="javascript:0" class="btn btn-sm btn-primary add-payment">
-                    <i class="fa fa-plus"></i>
-                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-payment">
+                    <i class="fas fa-times"></i>
+                </button>
             @endif
-
-
         </div>
-    </td>
-</tr>
+    </div>
+</div>

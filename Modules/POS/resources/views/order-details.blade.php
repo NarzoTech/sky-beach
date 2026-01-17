@@ -1,3 +1,11 @@
+@php
+    $orderTypeConfig = match($order->order_type) {
+        'dine_in' => ['icon' => 'fa-chair', 'color' => 'primary', 'label' => __('Dine-in')],
+        'take_away' => ['icon' => 'fa-shopping-bag', 'color' => 'success', 'label' => __('Take Away')],
+        'delivery' => ['icon' => 'fa-motorcycle', 'color' => 'info', 'label' => __('Delivery')],
+        default => ['icon' => 'fa-receipt', 'color' => 'secondary', 'label' => __('Order')]
+    };
+@endphp
 <div class="order-details-content" data-order-id="{{ $order->id }}" data-created-at="{{ $order->created_at->timestamp }}">
     <!-- Order Header -->
     <div class="row mb-3">
@@ -5,14 +13,21 @@
             <div class="card bg-light border-0 shadow-sm">
                 <div class="card-body py-2">
                     <div class="d-flex align-items-center">
-                        <div class="table-icon-wrapper me-3">
-                            <i class="fas fa-chair fa-2x text-primary"></i>
+                        <div class="table-icon-wrapper me-3" style="background: {{ $order->order_type == 'dine_in' ? '#e3f2fd' : ($order->order_type == 'take_away' ? '#e8f5e9' : '#e0f7fa') }};">
+                            <i class="fas {{ $orderTypeConfig['icon'] }} fa-2x text-{{ $orderTypeConfig['color'] }}"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">{{ $order->table->name ?? 'No Table' }}</h5>
-                            <small class="text-muted">
-                                <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }} {{ __('guests') }} / {{ $order->table->capacity ?? '-' }} {{ __('seats') }}
-                            </small>
+                            @if($order->order_type == 'dine_in' && $order->table)
+                                <h5 class="mb-0">{{ $order->table->name }}</h5>
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }} {{ __('guests') }} / {{ $order->table->capacity ?? '-' }} {{ __('seats') }}
+                                </small>
+                            @else
+                                <h5 class="mb-0">{{ $orderTypeConfig['label'] }}</h5>
+                                <small class="text-muted">
+                                    <span class="badge bg-{{ $orderTypeConfig['color'] }}">{{ $orderTypeConfig['label'] }}</span>
+                                </small>
+                            @endif
                         </div>
                     </div>
                 </div>

@@ -823,33 +823,44 @@ class POSController extends Controller
 
             DB::commit();
 
-            // For dine-in deferred payment, don't generate invoice
-            $isDeferredPayment = $request->defer_payment ||
-                ($sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->payment_status == 0);
+            // Check if this is a deferred payment (running order)
+            // Deferred payment applies to: Dine-in, Take Away, and Delivery when payment_status is 0
+            $isDeferredPayment = $request->defer_payment || $sale->payment_status == 0;
 
             if ($isDeferredPayment) {
+                $orderTypeLabel = match($sale->order_type) {
+                    Sale::ORDER_TYPE_DINE_IN => __('Dine-in'),
+                    Sale::ORDER_TYPE_TAKE_AWAY => __('Take Away'),
+                    Sale::ORDER_TYPE_DELIVERY => __('Delivery'),
+                    default => __('Order')
+                };
+
                 return response()->json([
                     'order' => $order_result,
                     'invoice' => null,
                     'invoiceRoute' => null,
                     'is_deferred' => true,
                     'table_name' => $sale->table?->name,
-                    'message' => __('Dine-in order started successfully'),
+                    'order_type' => $sale->order_type,
+                    'message' => $orderTypeLabel . ' ' . __('order started successfully'),
                     'alert-type' => 'success',
                 ], 200);
             }
 
-            // Generate invoice for paid orders
-            $invoiceBlade = view('sales::invoice-content')->with([
+            // Generate POS receipt for paid orders
+            $setting = \Illuminate\Support\Facades\Cache::get('setting');
+            $sale->load(['details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'table', 'payment.account']);
+
+            $receiptHtml = view('pos::pos-receipt')->with([
                 'sale' => $sale,
-                'details' => $sale->details,
+                'setting' => $setting,
             ])->render();
 
             $invoiceRoute = route('admin.sales.invoice', $order_result->id) . '?print=true';
 
             return response()->json([
                 'order' => $order_result,
-                'invoice' => $invoiceBlade,
+                'invoice' => $receiptHtml,
                 'invoiceRoute' => $invoiceRoute,
                 'is_deferred' => false,
                 'message' => __('Sale created successfully'),
@@ -1050,7 +1061,7 @@ class POSController extends Controller
     }
 
     /**
-     * Get running orders (active dine-in orders)
+     * Get running orders (active orders - Dine-in, Take Away, Delivery)
      */
     public function getRunningOrders(Request $request)
     {
@@ -1059,9 +1070,9 @@ class POSController extends Controller
             $perPage = 9;
 
             // Note: status column is integer - 0 = processing/pending, 1 = completed
+            // Include all order types: Dine-in, Take Away, Delivery
             $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
-                ->where('order_type', Sale::ORDER_TYPE_DINE_IN)
-                ->whereNotNull('table_id')
+                ->whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY, Sale::ORDER_TYPE_DELIVERY])
                 ->where('status', 0) // 0 = processing/pending
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage, ['*'], 'page', $page);
@@ -1092,8 +1103,8 @@ class POSController extends Controller
     {
         try {
             // Note: status column is integer - 0 = processing/pending, 1 = completed
-            $count = Sale::where('order_type', Sale::ORDER_TYPE_DINE_IN)
-                ->whereNotNull('table_id')
+            // Include all order types: Dine-in, Take Away, Delivery
+            $count = Sale::whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY, Sale::ORDER_TYPE_DELIVERY])
                 ->where('status', 0) // 0 = processing/pending
                 ->count();
 
@@ -1433,13 +1444,13 @@ class POSController extends Controller
             $order->refresh();
             Log::info('Order updated', ['order_id' => $order->id, 'new_status' => $order->status]);
 
-            // Release the table (critical - must succeed)
+            // Release the table if this is a dine-in order
             if ($order->table) {
                 Log::info('Releasing table', ['table_id' => $order->table->id, 'table_name' => $order->table->name]);
                 $order->table->release();
                 Log::info('Table released', ['table_id' => $order->table->id, 'new_status' => $order->table->status, 'occupied_seats' => $order->table->occupied_seats]);
             } else {
-                Log::warning('No table found for order', ['order_id' => $order->id, 'table_id' => $order->table_id]);
+                Log::info('No table to release (Take Away/Delivery order)', ['order_id' => $order->id, 'order_type' => $order->order_type]);
             }
 
             // Create CustomerPayment records (optional - log errors but don't fail)

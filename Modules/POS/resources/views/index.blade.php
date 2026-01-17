@@ -522,9 +522,8 @@
         </div>
     </div>
 
-    <div class="modal fade bd-example-modal-lg" id="payment-modal" role="dialog" aria-labelledby="myLargeModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+    <div class="modal fade" id="payment-modal" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <form method="POST" action="" id="checkoutForm" onSubmit="paymentSubmit(event)">
                     @csrf
@@ -537,202 +536,174 @@
                     <input type="hidden" name="delivery_address" id="order_delivery_address" value="">
                     <input type="hidden" name="delivery_phone" id="order_delivery_phone" value="">
                     <input type="hidden" name="delivery_notes" id="order_delivery_notes" value="">
-                    <div class="row">
-                        <!-- Left Column -->
-                        <div class="col-md-4">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-condensed payment_det_table">
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="3" class="text-center">
-                                                <h5 class="m-0">Payment Details</h5>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th class="text-right w-60" colspan="2">
-                                                Subtotal
-                                            </th>
-                                            <input type="hidden" name="sub_total" value="" autocomplete="off">
-                                            <td class="text-right w-40" id="sub_totalModal">0</td>
-                                        </tr>
+                    <input type="hidden" name="sub_total" value="" autocomplete="off">
+                    <input type="hidden" name="total_amount" value="0" id="total_amount_modal_input" autocomplete="off">
+                    <input type="hidden" name="discount_amount" value="0" autocomplete="off">
+                    <input type="hidden" name="points_discount" id="pointsDiscountInput" value="0">
+                    <input type="hidden" name="loyalty_customer_id" id="loyaltyCustomerIdInput" value="">
+                    <input type="hidden" name="sale_date" value="{{ formatDate(now()) }}" autocomplete="off">
 
-                                        <tr class="discount-row">
-                                            <th class="text-right w-60" colspan="2">
-                                                Discount
-                                            </th>
-                                            <input type="hidden" name="discount_amount" value="0"
-                                                autocomplete="off">
-                                            <td class="text-right w-40" id="discount_amountModal">0.00</td>
-                                        </tr>
-                                        <tr class="points-redemption-row d-none">
-                                            <th class="text-right w-60" colspan="2">
-                                                <i class="fas fa-star text-warning"></i> {{ __('Redeem Points') }}
-                                                <div class="small text-muted" id="availablePointsText">0 pts available</div>
-                                            </th>
-                                            <td class="text-right w-40">
-                                                <div class="input-group input-group-sm">
-                                                    <input type="number" class="form-control form-control-sm"
-                                                        name="points_to_redeem" id="pointsToRedeem"
-                                                        value="0" min="0" max="0" step="1">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary"
-                                                        onclick="applyMaxPoints()">Max</button>
-                                                </div>
-                                                <input type="hidden" name="points_discount" id="pointsDiscountInput" value="0">
-                                                <input type="hidden" name="loyalty_customer_id" id="loyaltyCustomerIdInput" value="">
-                                            </td>
-                                        </tr>
-                                        <tr class="points-discount-row d-none">
-                                            <th class="text-right w-60" colspan="2">
-                                                <i class="fas fa-tag text-success"></i> {{ __('Points Discount') }}
-                                            </th>
-                                            <td class="text-right w-40 text-success" id="pointsDiscountModal">-{{ currency_icon() }}0</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-right w-60" colspan="2">
-                                                Total Amount <br><small class="ng-binding">(<span id="itemModal">0</span>
-                                                    items)</small>
-                                            </th>
-                                            <input type="hidden" name="total_amount" value="0"
-                                                id="total_amount_modal_input" autocomplete="off">
-                                            <td class="text-right w-40" id="total_amountModal">0.00</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-right w-60" colspan="2">
-                                                Paid Amount</th>
-                                            <td class="text-right w-40" id="paid_amountModal">0</td>
-                                        </tr>
+                    <!-- Modal Header -->
+                    <div class="modal-header py-2">
+                        <h5 class="modal-title">
+                            <i class="fas fa-cash-register me-2"></i>{{ __('Checkout') }}
+                            <span class="badge bg-secondary ms-2" id="orderTypeBadge">{{ __('Dine-in') }}</span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
 
-                                        <tr class="due d-none">
-                                            <th class="text-right w-60" colspan="2">
-                                                <label>Previous Due</label>
-                                            </th>
-                                            <td class="text-right w-40" id="previous_due" data-amount="0">0</td>
-                                        </tr>
-
-                                        <tr class="due d-none">
-                                            <th class="text-right w-60" colspan="2">
-                                                Total Due
-                                            </th>
-                                            <td class="text-right w-40" id="due_amountModal">0</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-right w-60" colspan="2">
-                                                Sale Date
-                                            </th>
-                                            <td class="text-right w-40">
-                                                <div class="form-group mb-0">
-                                                    <input type="text" class="form-control" name="sale_date"
-                                                        value="{{ formatDate(now()) }}" autocomplete="off">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                    <div class="modal-body">
+                        <!-- Total Amount Display -->
+                        <div class="text-center mb-4 py-3 bg-dark rounded">
+                            <small class="text-muted d-block">{{ __('Total Amount') }}</small>
+                            <h1 class="text-white mb-0">
+                                <span id="total_amountModal2">0</span>
+                                <small class="fs-4">{{ currency_icon() }}</small>
+                            </h1>
+                            <small class="text-muted"><span id="itemModal">0</span> {{ __('items') }}</small>
                         </div>
 
-                        <!-- Right Column -->
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-block btn-secondary w-100">
-                                        Total Amount:
-                                        <span class="text-warning mx-2 fs-3 fw-bold" id="total_amountModal2">0</span>
-                                        TK
-                                    </button>
+                        <div class="row">
+                            <!-- Left: Order Summary -->
+                            <div class="col-md-5">
+                                <div class="card mb-3">
+                                    <div class="card-header py-2">
+                                        <strong>{{ __('Order Summary') }}</strong>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <table class="table table-sm mb-0">
+                                            <tr>
+                                                <td>{{ __('Subtotal') }}</td>
+                                                <td class="text-end" id="sub_totalModal">0</td>
+                                            </tr>
+                                            <tr class="discount-row">
+                                                <td>{{ __('Discount') }}</td>
+                                                <td class="text-end text-danger" id="discount_amountModal">0</td>
+                                            </tr>
+                                            <tr class="points-redemption-row d-none">
+                                                <td>
+                                                    <i class="fas fa-star text-warning"></i> {{ __('Points') }}
+                                                    <small class="text-muted d-block" id="availablePointsText">0 pts</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="input-group input-group-sm" style="width: 100px; margin-left: auto;">
+                                                        <input type="number" class="form-control form-control-sm text-center"
+                                                            name="points_to_redeem" id="pointsToRedeem"
+                                                            value="0" min="0" max="0" step="1">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            onclick="applyMaxPoints()">Max</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="points-discount-row d-none">
+                                                <td><i class="fas fa-tag text-success"></i> {{ __('Points Discount') }}</td>
+                                                <td class="text-end text-success" id="pointsDiscountModal">-0</td>
+                                            </tr>
+                                            <tr class="due d-none">
+                                                <td>{{ __('Previous Due') }}</td>
+                                                <td class="text-end" id="previous_due" data-amount="0">0</td>
+                                            </tr>
+                                            <tr class="table-dark">
+                                                <td><strong>{{ __('Grand Total') }}</strong></td>
+                                                <td class="text-end"><strong id="total_amountModal">0</strong></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Cash Summary -->
+                                <div class="card">
+                                    <div class="card-body p-2">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label small mb-1">{{ __('Paid') }}</label>
+                                                <div class="fw-bold text-primary" id="paid_amountModal">0</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label small mb-1">{{ __('Change') }}</label>
+                                                <div class="fw-bold text-success">
+                                                    <input type="text" class="form-control form-control-sm change_amount text-success fw-bold"
+                                                        name="return_amount" value="0" readonly style="background: transparent; border: none;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="due d-none mt-2 pt-2 border-top">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-danger">{{ __('Due Amount') }}</span>
+                                                <strong class="text-danger" id="due_amountModal">0</strong>
+                                            </div>
+                                            <input type="text" class="form-control form-control-sm mt-1 d-none" name="total_due" readonly>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="table-responsive">
-                                <table class="table payment payment_det_table_2 mt-2">
-                                    <thead>
-                                        <tr>
-                                            <td style="vertical-align: middle; width: 30%; text-transform: capitalize">
-                                                Payment Type
-                                            </td>
-                                            <td style="vertical-align: middle; width: 30%; text-transform: capitalize">
-                                                Payment Option
-                                            </td>
-                                            <td style="vertical-align: middle; width: 30%; text-transform: capitalize">
-                                                Amount Received
-                                            </td>
-                                            <td style="vertical-align: middle; width: 10%; text-transform: capitalize">
-                                                Action
-                                            </td>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody id="paymentRow">
+                            <!-- Right: Payment Section -->
+                            <div class="col-md-7">
+                                <!-- Payment Method -->
+                                <div class="card mb-3">
+                                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                        <strong>{{ __('Payment Method') }}</strong>
+                                        <button type="button" class="btn btn-sm btn-outline-primary add-payment">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-2" id="paymentRow">
                                         @include('pos::payment-row')
-                                    </tbody>
+                                    </div>
+                                </div>
 
-                                    <tfoot id="normalPayment">
-                                        <tr class="due d-none">
-                                            <td class="pl-2" style="vertical-align: middle">
-                                                <label>Due</label>
-                                            </td>
-                                            <td colspan="3">
-                                                <input type="text" class="form-control" name="total_due" readonly>
-                                            </td>
-                                        </tr>
-                                        <tr class="due-date d-none">
-                                            <td class="pl-2" style="vertical-align: middle">
-                                                <label>Due Date</label>
-                                            </td>
-                                            <td colspan="3">
-                                                <input type="date" class="form-control" name="due_date"
-                                                    id="flatpickr-date">
-                                            </td>
-                                        </tr>
+                                <!-- Cash Received -->
+                                <div class="card mb-3">
+                                    <div class="card-header py-2">
+                                        <strong>{{ __('Cash Received') }}</strong>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <input type="number" class="form-control form-control-lg text-center receive_cash removeZero"
+                                            name="receive_amount" value="0" step="0.01" style="font-size: 1.5rem; font-weight: bold;">
 
-                                        <tr>
-                                            <td class="pl-2" style="vertical-align: middle">
-                                                <label>Receive Cash</label>
-                                            </td>
-                                            <td colspan="3">
-                                                <div class="form-group mb-0">
-                                                    <input type="number" class="form-control receive_cash removeZero"
-                                                        name="receive_amount" value="0" step="0.01">
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <!-- Quick Amount Buttons -->
+                                        <div class="d-flex flex-wrap gap-1 mt-2" id="quickAmountBtns">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill quick-amount-btn" data-amount="50">50</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill quick-amount-btn" data-amount="100">100</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill quick-amount-btn" data-amount="200">200</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill quick-amount-btn" data-amount="500">500</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill quick-amount-btn" data-amount="1000">1000</button>
+                                            <button type="button" class="btn btn-outline-primary btn-sm flex-fill" onclick="setExactAmount()">{{ __('Exact') }}</button>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                        <tr>
-                                            <td class="pl-2" style="vertical-align: middle">
-                                                <label>Change</label>
-                                            </td>
-                                            <td colspan="3">
-                                                <div class="form-group mb-0">
-                                                    <input type="text" class="form-control change_amount removeZero"
-                                                        name="return_amount" value="0" readonly>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                <!-- Due Date (hidden by default) -->
+                                <div class="due-date d-none mb-3">
+                                    <div class="card">
+                                        <div class="card-body p-2">
+                                            <label class="form-label small mb-1">{{ __('Due Date') }}</label>
+                                            <input type="date" class="form-control form-control-sm" name="due_date" id="flatpickr-date">
+                                        </div>
+                                    </div>
+                                </div>
 
-                                        <tr>
-                                            <td class="pl-2" style="vertical-align: middle">
-                                                <label>Remark</label>
-                                            </td>
-                                            <td colspan="3">
-                                                <div class="form-group mb-0">
-                                                    <input type="text" class="form-control" name="remark"
-                                                        value="" autocomplete="off" placeholder="Remark">
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 text-end">
-                                    <button type="button" class="btn btn-danger"
-                                        onclick="modalHide('#payment-modal')">Cancel [Esc]</button>
-                                    <button type="submit" id="checkout" class="btn btn-primary"> Checkout </button>
+                                <!-- Remark -->
+                                <div class="mb-2">
+                                    <input type="text" class="form-control form-control-sm" name="remark"
+                                        value="" autocomplete="off" placeholder="{{ __('Remark (optional)') }}">
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-secondary" onclick="modalHide('#payment-modal')">
+                            <i class="fas fa-times me-1"></i>{{ __('Cancel') }} <small class="text-muted">[Esc]</small>
+                        </button>
+                        <button type="button" class="btn btn-warning" id="startOrderBtn" onclick="startRunningOrder()">
+                            <i class="fas fa-clock me-1"></i>{{ __('Start Order') }}
+                        </button>
+                        <button type="submit" id="checkout" class="btn btn-success btn-lg px-4">
+                            <i class="fas fa-check me-1"></i>{{ __('Complete Payment') }}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1920,14 +1891,15 @@
 
 
                 // add payment row
-                $('.add-payment').on('click', function() {
+                $(document).on('click', '.add-payment', function() {
                     const row = `@include('pos::payment-row', ['add' => true])`;
-                    $('#paymentRow').append(row)
+                    $('#paymentRow').append(row);
                     $('[name="payment_type[]"]').niceSelect();
+                });
 
-                })
                 $(document).on('click', '.remove-payment', function() {
-                    $(this).parents('tr').remove()
+                    $(this).closest('.payment-row').remove();
+                    calDue();
                 })
 
                 $(document).on('click', '.price', function() {
@@ -2370,8 +2342,10 @@
             $('#order_delivery_address').val($('#delivery_address').val());
             $('#order_delivery_phone').val($('#delivery_phone').val());
 
-            // total items
+            // Update order type badge
+            updateOrderTypeBadge();
 
+            // total items
             $('#itemModal').text(item);
 
 
@@ -2698,6 +2672,114 @@
             }
         });
 
+        // Quick amount buttons
+        $(document).on('click', '.quick-amount-btn', function() {
+            const amount = parseFloat($(this).data('amount'));
+            const currentAmount = parseFloat($('.receive_cash').val()) || 0;
+            $('.receive_cash').val(currentAmount + amount).trigger('input');
+        });
+
+        // Set exact amount
+        function setExactAmount() {
+            const totalAmount = parseFloat($('#total_amount_modal_input').val()) || 0;
+            $('.receive_cash').val(totalAmount).trigger('input');
+            // Also set the paying amount
+            $('.paying_amount').first().val(totalAmount).trigger('keyup');
+        }
+
+        // Update order type badge in modal
+        function updateOrderTypeBadge() {
+            const orderType = $('#order_type').val();
+            const badge = $('#orderTypeBadge');
+            const startBtn = $('#startOrderBtn');
+
+            switch(orderType) {
+                case 'dine_in':
+                    badge.text("{{ __('Dine-in') }}").removeClass('bg-success bg-info').addClass('bg-primary');
+                    startBtn.show();
+                    break;
+                case 'take_away':
+                    badge.text("{{ __('Take Away') }}").removeClass('bg-primary bg-info').addClass('bg-success');
+                    startBtn.show();
+                    break;
+                case 'delivery':
+                    badge.text("{{ __('Delivery') }}").removeClass('bg-primary bg-success').addClass('bg-info');
+                    startBtn.show();
+                    break;
+                default:
+                    badge.text("{{ __('Order') }}").removeClass('bg-primary bg-success bg-info').addClass('bg-secondary');
+                    startBtn.hide();
+            }
+        }
+
+        // Start running order (deferred payment)
+        function startRunningOrder() {
+            if ($('.product-table tbody > tr').length == 0) {
+                toastr.error("{{ __('Cart is empty') }}");
+                return;
+            }
+
+            // Set defer_payment flag
+            const formData = $('#checkoutForm').serialize() + '&defer_payment=1';
+
+            $.ajax({
+                type: 'POST',
+                data: formData,
+                url: "{{ route('admin.place-order') }}",
+                success: function(response) {
+                    console.log(response);
+                    if (response.is_deferred) {
+                        toastr.success(response.message);
+                        modalHide('#payment-modal');
+
+                        // Clear the cart (same as successful order)
+                        $(".product-table tbody").html('');
+                        $('#titems').text(0);
+                        $('#discount_total_amount').val(0);
+                        $('#tds').text(0);
+                        totalSummery();
+
+                        // Reset customer select
+                        $("#customer_id").val('').trigger('change');
+
+                        // Reset discount
+                        $('#discount_type').val(0).trigger('change');
+                        $('.dis-form').hide();
+
+                        // Reset payment row
+                        $('#paymentRow').html(`@include('pos::payment-row')`);
+                        $('[name="payment_type[]"]').niceSelect();
+
+                        // Reset form
+                        $('#checkoutForm').trigger('reset');
+
+                        // Refresh running orders
+                        loadRunningOrdersCount();
+                        loadRunningOrders();
+
+                        // Reset table selection if dine-in
+                        if (selectedTableData) {
+                            selectedTableData = null;
+                            $('#selected_table_display').addClass('d-none');
+                            $('#table_id').val('');
+                            refreshAvailableTables();
+                        }
+                    } else {
+                        toastr.error(response.message || "{{ __('Error starting order') }}");
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr);
+                    toastr.error(xhr.responseJSON?.message || "{{ __('Error starting order') }}");
+                }
+            });
+        }
+
+        // Update badge when payment modal opens
+        $('#payment-modal').on('show.bs.modal', function() {
+            updateOrderTypeBadge();
+        });
+
         function paymentSubmit(e) {
             e.preventDefault();
 
@@ -2826,6 +2908,20 @@
 
             // products.length
             $('#titems').text(products.length)
+
+            // Update checkout/start order button states
+            updateCheckoutButtonState(products.length);
+        }
+
+        // Update checkout button state based on cart items
+        function updateCheckoutButtonState(itemCount) {
+            const hasItems = itemCount > 0;
+            $('#checkout, #startOrderBtn').prop('disabled', !hasItems);
+            if (hasItems) {
+                $('#checkout, #startOrderBtn').removeClass('disabled');
+            } else {
+                $('#checkout, #startOrderBtn').addClass('disabled');
+            }
         }
 
         // load customer

@@ -1,13 +1,25 @@
 @if($runningOrders->count() > 0)
 <div class="row">
     @foreach($runningOrders as $order)
+    @php
+        $orderTypeConfig = match($order->order_type) {
+            'dine_in' => ['icon' => 'fa-chair', 'color' => 'primary', 'label' => __('Dine-in')],
+            'take_away' => ['icon' => 'fa-shopping-bag', 'color' => 'success', 'label' => __('Take Away')],
+            'delivery' => ['icon' => 'fa-motorcycle', 'color' => 'info', 'label' => __('Delivery')],
+            default => ['icon' => 'fa-receipt', 'color' => 'secondary', 'label' => __('Order')]
+        };
+    @endphp
     <div class="col-md-4 col-sm-6 mb-3">
         <div class="card h-100 running-order-card" style="cursor: pointer;" onclick="viewOrderDetails({{ $order->id }})">
-            <div class="card-header bg-{{ $order->status == 'processing' ? 'warning' : 'primary' }} text-white py-2">
+            <div class="card-header bg-{{ $orderTypeConfig['color'] }} text-white py-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="fw-bold">
-                        <i class="fas fa-chair me-1"></i>
-                        {{ $order->table->name ?? 'No Table' }}
+                        <i class="fas {{ $orderTypeConfig['icon'] }} me-1"></i>
+                        @if($order->order_type == 'dine_in' && $order->table)
+                            {{ $order->table->name }}
+                        @else
+                            {{ $orderTypeConfig['label'] }}
+                        @endif
                     </span>
                     <span class="badge bg-light text-dark">
                         #{{ $order->invoice }}
@@ -123,6 +135,6 @@
 <div class="text-center py-5">
     <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
     <h5 class="text-muted">{{ __('No Running Orders') }}</h5>
-    <p class="text-muted">{{ __('Active dine-in orders will appear here') }}</p>
+    <p class="text-muted">{{ __('Active orders (Dine-in, Take Away, Delivery) will appear here') }}</p>
 </div>
 @endif
