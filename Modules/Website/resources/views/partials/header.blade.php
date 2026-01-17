@@ -1,8 +1,14 @@
-﻿<!--==========MENU START===========-->
+@php
+    use Modules\Website\app\Models\WebsiteCart;
+    $headerCartItems = WebsiteCart::getCart();
+    $headerCartCount = $headerCartItems->sum('quantity');
+    $headerCartTotal = $headerCartItems->sum('subtotal');
+@endphp
+<!--==========MENU START===========-->
 <nav class="navbar navbar-expand-lg main_menu">
     <div class="container">
         <a class="navbar-brand" href="{{ route('website.index') }}">
-            <img src="{{ asset('website/images/logo.png') }}" alt="CTAKE" class="img-fluid w-100">
+            <img src="{{ asset('website/images/logo.png') }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -13,32 +19,28 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav m-auto">
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('website.index') ? 'active' : '' }}" href="{{ route('website.index') }}">Home</a>
+                    <a class="nav-link {{ request()->routeIs('website.index') ? 'active' : '' }}" href="{{ route('website.index') }}">{{ __('Home') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('website.menu') ? 'active' : '' }}" href="{{ route('website.menu') }}">Menu</a>
+                    <a class="nav-link {{ request()->routeIs('website.menu*') ? 'active' : '' }}" href="{{ route('website.menu') }}">{{ __('Menu') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('website.about') ? 'active' : '' }}" href="{{ route('website.about') }}">About</a>
+                    <a class="nav-link {{ request()->routeIs('website.about') ? 'active' : '' }}" href="{{ route('website.about') }}">{{ __('About') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Pages <i class="fal fa-plus"></i></a>
+                    <a class="nav-link" href="#">{{ __('Pages') }} <i class="fal fa-plus"></i></a>
                     <ul class="droap_menu">
-                        <li><a href="{{ route('website.blogs') }}">blogs</a></li>
-                        <li><a href="{{ route('website.chefs') }}">chefs</a></li>
-                        <li><a href="{{ route('website.cart-view') }}">cart view</a></li>
-                        <li><a href="{{ route('website.checkout') }}">checkout</a></li>
-                        <li><a href="{{ route('website.faq') }}">FAQ's</a></li>
-                        <li><a href="{{ route('website.reservation') }}">reservation</a></li>
-                        <li><a href="{{ route('website.service') }}">service</a></li>
-                        <li><a href="{{ route('website.service-details', 'sample-service') }}">service details</a></li>
-                        <li><a href="{{ route('website.privacy-policy') }}">privacy policy</a></li>
-                        <li><a href="{{ route('website.terms-condition') }}">terms & condition</a></li>
-                        <li><a href="{{ route('website.error') }}">error/404</a></li>
+                        <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
+                        <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
+                        <li><a href="{{ route('website.faq') }}">{{ __('FAQs') }}</a></li>
+                        <li><a href="{{ route('website.reservation') }}">{{ __('Reservation') }}</a></li>
+                        <li><a href="{{ route('website.service') }}">{{ __('Services') }}</a></li>
+                        <li><a href="{{ route('website.privacy-policy') }}">{{ __('Privacy Policy') }}</a></li>
+                        <li><a href="{{ route('website.terms-condition') }}">{{ __('Terms & Condition') }}</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('website.contact') ? 'active' : '' }}" href="{{ route('website.contact') }}">Contact</a>
+                    <a class="nav-link {{ request()->routeIs('website.contact') ? 'active' : '' }}" href="{{ route('website.contact') }}">{{ __('Contact') }}</a>
                 </li>
             </ul>
             <ul class="menu_right">
@@ -47,12 +49,14 @@
                 </li>
                 <li>
                     <a class="menu_cart" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight"
-                        aria-controls="offcanvasRight"><i class="far fa-shopping-basket"></i> <span
-                            class="qnty">15</span></a>
+                        aria-controls="offcanvasRight">
+                        <i class="far fa-shopping-basket"></i>
+                        <span class="qnty cart-badge" style="{{ $headerCartCount == 0 ? 'display:none;' : '' }}">{{ $headerCartCount }}</span>
+                    </a>
                 </li>
                 <li>
                     <a class="menu_order common_btn" href="{{ route('website.reservation') }}">
-                        reserve now
+                        {{ __('Reserve Now') }}
                     </a>
                 </li>
             </ul>
@@ -61,9 +65,9 @@
 </nav>
 
 <div class="menu_search_area">
-    <form>
-        <input type="text" placeholder="Search Item...">
-        <button class="common_btn" type="submit">Search</button>
+    <form action="{{ route('website.menu') }}" method="GET">
+        <input type="text" name="search" placeholder="{{ __('Search Menu...') }}" value="{{ request('search') }}">
+        <button class="common_btn" type="submit">{{ __('Search') }}</button>
         <span class="close_search"><i class="far fa-times"></i></span>
     </form>
 </div>
@@ -71,69 +75,104 @@
 <div class="mini_cart">
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasRightLabel"> my cart <span>(05)</span></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"><i
-                    class="far fa-times"></i></button>
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">
+                {{ __('My Cart') }} <span id="mini-cart-count">({{ $headerCartCount }})</span>
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close">
+                <i class="far fa-times"></i>
+            </button>
         </div>
         <div class="offcanvas-body">
-            <ul>
-                <li>
+            <ul id="mini-cart-items">
+                @forelse($headerCartItems as $cartItem)
+                <li data-cart-item-id="{{ $cartItem->id }}">
                     <div class="img">
-                        <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="product" class="img-fluid w-100">
+                        @if($cartItem->menuItem && $cartItem->menuItem->image)
+                            <img src="{{ asset($cartItem->menuItem->image) }}" alt="{{ $cartItem->menuItem->name }}" class="img-fluid w-100">
+                        @else
+                            <img src="{{ asset('website/images/placeholder-food.png') }}" alt="Item" class="img-fluid w-100">
+                        @endif
                     </div>
                     <div class="text">
-                        <h5>Chicken Thai Biriyani</h5>
-                        <p>$99 <span>Qty: 1</span></p>
+                        <h5>{{ $cartItem->menuItem->name ?? __('Item') }}</h5>
+                        <p>
+                            ${{ number_format($cartItem->unit_price, 2) }}
+                            <span>{{ __('Qty') }}: {{ $cartItem->quantity }}</span>
+                        </p>
+                        @if($cartItem->variant_name)
+                            <small class="text-muted">{{ $cartItem->variant_name }}</small>
+                        @endif
                     </div>
-                    <span class="close_cart"><i class="far fa-times"></i></span>
+                    <span class="close_cart" onclick="removeMiniCartItem({{ $cartItem->id }})">
+                        <i class="far fa-times"></i>
+                    </span>
                 </li>
-                <li>
-                    <div class="img">
-                        <img src="{{ asset('website/images/menu_img_2.jpg') }}" alt="product" class="img-fluid w-100">
-                    </div>
-                    <div class="text">
-                        <h5>Beef Masala</h5>
-                        <p>$85 <span>Qty: 2</span></p>
-                    </div>
-                    <span class="close_cart"><i class="far fa-times"></i></span>
+                @empty
+                <li class="empty-cart-message text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">{{ __('Your cart is empty') }}</p>
+                    <a href="{{ route('website.menu') }}" class="btn btn-sm btn-outline-primary">
+                        {{ __('Browse Menu') }}
+                    </a>
                 </li>
-                <li>
-                    <div class="img">
-                        <img src="{{ asset('website/images/menu_img_3.jpg') }}" alt="product" class="img-fluid w-100">
-                    </div>
-                    <div class="text">
-                        <h5>Dal Makhani</h5>
-                        <p>$75 <span>Qty: 1</span></p>
-                    </div>
-                    <span class="close_cart"><i class="far fa-times"></i></span>
-                </li>
-                <li>
-                    <div class="img">
-                        <img src="{{ asset('website/images/menu_img_4.jpg') }}" alt="product" class="img-fluid w-100">
-                    </div>
-                    <div class="text">
-                        <h5>Chicken Chowmein</h5>
-                        <p>$65 <span>Qty: 2</span></p>
-                    </div>
-                    <span class="close_cart"><i class="far fa-times"></i></span>
-                </li>
-                <li>
-                    <div class="img">
-                        <img src="{{ asset('website/images/menu_img_5.jpg') }}" alt="product" class="img-fluid w-100">
-                    </div>
-                    <div class="text">
-                        <h5>Beef Burger</h5>
-                        <p>$55 <span>Qty: 1</span></p>
-                    </div>
-                    <span class="close_cart"><i class="far fa-times"></i></span>
-                </li>
+                @endforelse
             </ul>
-            <div class="mini_cart_button">
-                <h6>Total <span>$569</span></h6>
-                <a class="common_btn" href="{{ route('website.cart-view') }}">view cart</a>
-                <a class="common_btn" href="{{ route('website.checkout') }}">checkout</a>
+            <div class="mini_cart_button" id="mini-cart-footer" style="{{ $headerCartCount == 0 ? 'display:none;' : '' }}">
+                <h6>{{ __('Total') }} <span id="mini-cart-total">${{ number_format($headerCartTotal, 2) }}</span></h6>
+                <a class="common_btn" href="{{ route('website.cart.index') }}">{{ __('View Cart') }}</a>
+                <a class="common_btn" href="{{ route('website.checkout.index') }}">{{ __('Checkout') }}</a>
             </div>
         </div>
     </div>
 </div>
 <!--==========MENU END===========-->
+
+<script>
+    // Mini cart remove item function
+    function removeMiniCartItem(itemId) {
+        fetch("{{ url('/cart/remove') }}/" + itemId, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove item from mini cart
+                const item = document.querySelector(`#mini-cart-items li[data-cart-item-id="${itemId}"]`);
+                if (item) item.remove();
+
+                // Update counts
+                updateCartBadge(data.cart_count);
+                document.getElementById('mini-cart-count').textContent = '(' + data.cart_count + ')';
+                document.getElementById('mini-cart-total').textContent = '$' + data.cart_total.toFixed(2);
+
+                // Show empty message if cart is empty
+                if (data.cart_count === 0) {
+                    document.getElementById('mini-cart-items').innerHTML = `
+                        <li class="empty-cart-message text-center py-4">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{{ __('Your cart is empty') }}</p>
+                            <a href="{{ route('website.menu') }}" class="btn btn-sm btn-outline-primary">
+                                {{ __('Browse Menu') }}
+                            </a>
+                        </li>
+                    `;
+                    document.getElementById('mini-cart-footer').style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Update cart badge in header
+    function updateCartBadge(count) {
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+</script>

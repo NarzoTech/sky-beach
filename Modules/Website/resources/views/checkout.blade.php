@@ -1,102 +1,455 @@
-﻿@extends('website::layouts.master')
+@extends('website::layouts.master')
 
-@section('title', 'checkout - CTAKE')
+@section('title', __('Checkout') . ' - ' . config('app.name'))
 
 @section('content')
 <div id="smooth-wrapper">
-        <div id="smooth-content">
+    <div id="smooth-content">
 
-            <!--==========BREADCRUMB AREA START===========-->
-            <section class="breadcrumb_area" style="background: url(assets/images/breadcrumb_bg.jpg);">
-                <div class="container">
-                    <div class="row wow fadeInUp">
-                        <div class="col-12">
-                            <div class="breadcrumb_text">
-                                <h1>checkout</h1>
-                                <ul>
-                                    <li><a href="#">Home </a></li>
-                                    <li><a href="#">checkout</a></li>
-                                </ul>
-                            </div>
+        <!--==========BREADCRUMB AREA START===========-->
+        <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+            <div class="container">
+                <div class="row wow fadeInUp">
+                    <div class="col-12">
+                        <div class="breadcrumb_text">
+                            <h1>{{ __('Checkout') }}</h1>
+                            <ul>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.cart.index') }}">{{ __('Cart') }}</a></li>
+                                <li><a href="#">{{ __('Checkout') }}</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </section>
-            <!--==========BREADCRUMB AREA END===========-->
+            </div>
+        </section>
+        <!--==========BREADCRUMB AREA END===========-->
 
 
-            <!--==========CHECKOUT START===========-->
-            <section class="checkout pt_110 xs_pt_90">
-                <div class="container">
+        <!--==========CHECKOUT START===========-->
+        <section class="checkout pt_110 xs_pt_90">
+            <div class="container">
+                <form id="checkout-form" action="{{ route('website.checkout.process') }}" method="POST">
+                    @csrf
                     <div class="row">
                         <div class="col-lg-8 wow fadeInLeft">
                             <div class="checkout_area">
-                                <h2>Billing Details</h2>
-                                <form action="#">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <input type="text" placeholder="Fast Name">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" placeholder="Last Name">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="email" placeholder="Your Email">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" placeholder="Your Phone">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" placeholder="Company (Optional)">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <select class="select_2" name="state">
-                                                <option value="AL">Select Country</option>
-                                                <option value="">Japan</option>
-                                                <option value="">Korea</option>
-                                                <option value="">Thailand</option>
-                                                <option value="">singapore</option>
-                                                <option value="">Landon</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <select class="select_2" name="state">
-                                                <option value="AL">Select city</option>
-                                                <option value="">Dhaka</option>
-                                                <option value="">cox's bazal</option>
-                                                <option value="">rajshahi</option>
-                                                <option value="">khulna</option>
-                                                <option value="">pabna</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" placeholder="Zip">
-                                        </div>
-                                        <div class="col-md-12">
-                                            <input type="text" placeholder="Address">
-                                        </div>
-                                        <div class="col-md-12">
-                                            <textarea rows="7" placeholder="Additional Information"></textarea>
+                                <!-- Order Type Selection -->
+                                <h2>{{ __('Order Type') }}</h2>
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="order-type-card" data-type="delivery">
+                                            <input type="radio" name="order_type" value="delivery" id="type_delivery" checked>
+                                            <label for="type_delivery">
+                                                <i class="fas fa-motorcycle fa-2x mb-2"></i>
+                                                <span>{{ __('Delivery') }}</span>
+                                                <small>{{ __('Get it delivered to your door') }}</small>
+                                            </label>
                                         </div>
                                     </div>
-                                </form>
+                                    <div class="col-md-6">
+                                        <div class="order-type-card" data-type="take_away">
+                                            <input type="radio" name="order_type" value="take_away" id="type_takeaway">
+                                            <label for="type_takeaway">
+                                                <i class="fas fa-shopping-bag fa-2x mb-2"></i>
+                                                <span>{{ __('Take Away') }}</span>
+                                                <small>{{ __('Pick up from our location') }}</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h2>{{ __('Contact Details') }}</h2>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <input type="text" name="first_name" placeholder="{{ __('First Name') }} *"
+                                                value="{{ $user->first_name ?? old('first_name') }}" required>
+                                            @error('first_name')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <input type="text" name="last_name" placeholder="{{ __('Last Name') }} *"
+                                                value="{{ $user->last_name ?? old('last_name') }}" required>
+                                            @error('last_name')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <input type="email" name="email" placeholder="{{ __('Email Address') }} *"
+                                                value="{{ $user->email ?? old('email') }}" required>
+                                            @error('email')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <input type="tel" name="phone" placeholder="{{ __('Phone Number') }} *"
+                                                value="{{ $user->phone ?? old('phone') }}" required>
+                                            @error('phone')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Delivery Address Section -->
+                                <div id="delivery-address-section">
+                                    <h2>{{ __('Delivery Address') }}</h2>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <input type="text" name="address" id="address" placeholder="{{ __('Street Address') }} *"
+                                                    value="{{ old('address') }}">
+                                                @error('address')
+                                                    <span class="text-danger small">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <input type="text" name="city" id="city" placeholder="{{ __('City') }} *"
+                                                    value="{{ old('city') }}">
+                                                @error('city')
+                                                    <span class="text-danger small">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <input type="text" name="postal_code" placeholder="{{ __('Postal Code') }}"
+                                                    value="{{ old('postal_code') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <textarea name="delivery_notes" rows="3" placeholder="{{ __('Delivery Instructions (Optional)') }}">{{ old('delivery_notes') }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <h2>{{ __('Payment Method') }}</h2>
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="payment-method-card">
+                                            <input type="radio" name="payment_method" value="cash" id="pay_cash" checked>
+                                            <label for="pay_cash">
+                                                <i class="fas fa-money-bill-wave fa-lg me-2"></i>
+                                                <span>{{ __('Cash on Delivery') }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="payment-method-card">
+                                            <input type="radio" name="payment_method" value="card" id="pay_card">
+                                            <label for="pay_card">
+                                                <i class="fas fa-credit-card fa-lg me-2"></i>
+                                                <span>{{ __('Card Payment') }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @guest
+                                <div class="guest-notice mb-4">
+                                    <p class="mb-2"><i class="fas fa-info-circle me-2"></i>{{ __('Have an account?') }}</p>
+                                    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">{{ __('Login') }}</a>
+                                    <span class="mx-2">{{ __('or') }}</span>
+                                    <a href="{{ route('register') }}" class="btn btn-outline-secondary btn-sm">{{ __('Register') }}</a>
+                                </div>
+                                @endguest
                             </div>
                         </div>
+
                         <div class="col-lg-4 col-md-7 wow fadeInRight">
                             <div class="checkout_sidebar">
-                                <h2>Your Order</h2>
+                                <h2>{{ __('Your Order') }}</h2>
+                                <div class="order_items">
+                                    @foreach($cartItems as $item)
+                                    <div class="order_item">
+                                        <div class="d-flex justify-content-between">
+                                            <div class="item_info">
+                                                <strong>{{ $item->menuItem->name ?? 'Item' }}</strong>
+                                                <span class="quantity">x{{ $item->quantity }}</span>
+                                                @if($item->variant_name)
+                                                    <small class="d-block text-muted">{{ $item->variant_name }}</small>
+                                                @endif
+                                                @if(!empty($item->addon_names))
+                                                    <small class="d-block text-muted">+ {{ implode(', ', $item->addon_names) }}</small>
+                                                @endif
+                                            </div>
+                                            <div class="item_price">
+                                                ${{ number_format($item->subtotal, 2) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+
                                 <div class="cart_summery">
-                                    <h6>total cart (02)</h6>
-                                    <p>subtotal: <span>$124.00</span></p>
-                                    <p>delivery: <span>$00.00</span></p>
-                                    <p>discount: <span>$10.00</span></p>
-                                    <p class="total"><span>total:</span> <span>$134.00</span></p>
-                                    <a class="common_btn" href="check_out.html">checkout</a>
+                                    <h6>{{ __('Order Summary') }}</h6>
+                                    <p>{{ __('Subtotal') }}: <span>${{ number_format($cartTotal, 2) }}</span></p>
+                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">$0.00</span></p>
+                                    <p>{{ __('Tax') }}: <span>$0.00</span></p>
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">${{ number_format($cartTotal, 2) }}</span></p>
+
+                                    <button type="submit" class="common_btn w-100" id="place-order-btn">
+                                        <i class="fas fa-check me-2"></i>{{ __('Place Order') }}
+                                    </button>
+
+                                    <a href="{{ route('website.cart.index') }}" class="text-center d-block mt-3">
+                                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back to Cart') }}
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-            <!--==========CHECKOUT END===========-->
+                </form>
+            </div>
+        </section>
+        <!--==========CHECKOUT END===========-->
+
 @endsection
+
+@push('styles')
+<style>
+    .order-type-card,
+    .payment-method-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 15px;
+    }
+
+    .order-type-card:hover,
+    .payment-method-card:hover {
+        border-color: #ff6b35;
+    }
+
+    .order-type-card input,
+    .payment-method-card input {
+        display: none;
+    }
+
+    .order-type-card input:checked + label,
+    .payment-method-card input:checked + label {
+        color: #ff6b35;
+    }
+
+    .order-type-card:has(input:checked),
+    .payment-method-card:has(input:checked) {
+        border-color: #ff6b35;
+        background-color: rgba(255, 107, 53, 0.05);
+    }
+
+    .order-type-card label,
+    .payment-method-card label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .order-type-card label span,
+    .payment-method-card label span {
+        font-weight: 600;
+        margin-top: 5px;
+    }
+
+    .order-type-card label small {
+        color: #888;
+        font-size: 12px;
+    }
+
+    .payment-method-card label {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .order_items {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        padding-right: 10px;
+    }
+
+    .order_item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order_item:last-child {
+        border-bottom: none;
+    }
+
+    .order_item .quantity {
+        color: #ff6b35;
+        margin-left: 5px;
+        font-size: 14px;
+    }
+
+    .guest-notice {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .checkout_area .form-group {
+        margin-bottom: 20px;
+    }
+
+    .checkout_area input,
+    .checkout_area textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .checkout_area input:focus,
+    .checkout_area textarea:focus {
+        border-color: #ff6b35;
+        outline: none;
+    }
+
+    #place-order-btn {
+        padding: 15px 30px;
+        font-size: 16px;
+    }
+
+    #place-order-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
+        const deliverySection = document.getElementById('delivery-address-section');
+        const deliveryFeeRow = document.getElementById('delivery-fee-row');
+        const addressInput = document.getElementById('address');
+        const cityInput = document.getElementById('city');
+
+        // Toggle delivery address section based on order type
+        orderTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'delivery') {
+                    deliverySection.style.display = 'block';
+                    deliveryFeeRow.style.display = 'block';
+                    addressInput.setAttribute('required', '');
+                    cityInput.setAttribute('required', '');
+                } else {
+                    deliverySection.style.display = 'none';
+                    deliveryFeeRow.style.display = 'none';
+                    addressInput.removeAttribute('required');
+                    cityInput.removeAttribute('required');
+                }
+            });
+        });
+
+        // Make order type cards clickable
+        document.querySelectorAll('.order-type-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Make payment method cards clickable
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+
+        // Form submission
+        const form = document.getElementById('checkout-form');
+        const submitBtn = document.getElementById('place-order-btn');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Disable button to prevent double submission
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Processing...") }}';
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '{{ __("Order Placed!") }}',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 2000
+                        }).then(() => {
+                            window.location.href = data.redirect_url;
+                        });
+                    } else {
+                        alert(data.message);
+                        window.location.href = data.redirect_url;
+                    }
+                } else {
+                    // Show error
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ __("Error") }}',
+                            text: data.message || '{{ __("Failed to place order. Please try again.") }}'
+                        });
+                    } else {
+                        alert(data.message || '{{ __("Failed to place order. Please try again.") }}');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>{{ __("Place Order") }}';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '{{ __("Error") }}',
+                        text: '{{ __("Something went wrong. Please try again.") }}'
+                    });
+                } else {
+                    alert('{{ __("Something went wrong. Please try again.") }}');
+                }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>{{ __("Place Order") }}';
+            });
+        });
+    });
+</script>
+@endpush
