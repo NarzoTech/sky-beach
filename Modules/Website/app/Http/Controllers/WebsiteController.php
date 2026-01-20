@@ -19,8 +19,9 @@ class WebsiteController extends Controller
      */
     public function index()
     {
-        $featuredMenuItems = RestaurantMenuItem::active()
-            ->forWebsite()
+        $featuredMenuItems = MenuItem::with('category')
+            ->active()
+            ->available()
             ->featured()
             ->ordered()
             ->take(6)

@@ -126,20 +126,17 @@
                     </div>
                     <div class="row">
                         @forelse($featuredMenuItems as $item)
-                            @php
-                                $menuItem = $item->menuItem ?? $item;
-                            @endphp
                             <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
                                 <div class="single_menu">
                                     <div class="single_menu_img">
-                                        @if($menuItem->image)
-                                            <img src="{{ asset($menuItem->image) }}" alt="{{ $menuItem->name }}" class="img-fluid w-100">
+                                        @if($item->image)
+                                            <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                         @else
-                                            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $menuItem->name }}" class="img-fluid w-100">
+                                            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                         @endif
                                         <ul>
-                                            <li><a href="{{ route('website.menu-details', $menuItem->slug) }}"><i class="far fa-eye"></i></a></li>
-                                            <li><a href="#" class="favorite-btn" data-item-id="{{ $menuItem->id }}"><i class="far fa-heart"></i></a></li>
+                                            <li><a href="{{ route('website.menu-details', $item->slug) }}"><i class="far fa-eye"></i></a></li>
+                                            <li><a href="#" class="favorite-btn" data-item-id="{{ $item->id }}"><i class="far fa-heart"></i></a></li>
                                         </ul>
                                     </div>
                                     <div class="single_menu_text">
@@ -150,14 +147,14 @@
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
                                         </p>
-                                        @if($menuItem->category)
-                                            <a class="category" href="{{ route('website.menu', ['category' => $menuItem->category_id]) }}">{{ $menuItem->category->name }}</a>
+                                        @if($item->category)
+                                            <a class="category" href="{{ route('website.menu', ['category' => $item->category_id]) }}">{{ $item->category->name }}</a>
                                         @endif
-                                        <a class="title" href="{{ route('website.menu-details', $menuItem->slug) }}">{{ $menuItem->name }}</a>
-                                        <p class="descrption">{{ Str::limit($menuItem->short_description, 40) }}</p>
+                                        <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
+                                        <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
                                         <div class="d-flex flex-wrap align-items-center">
-                                            <a class="add_to_cart" href="{{ route('website.menu-details', $menuItem->slug) }}">buy now</a>
-                                            <h3>${{ number_format($menuItem->base_price, 2) }}</h3>
+                                            <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">buy now</a>
+                                            <h3>${{ number_format($item->base_price, 2) }}</h3>
                                         </div>
                                     </div>
                                 </div>

@@ -79,16 +79,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <input type="email" name="email" placeholder="{{ __('Email Address') }} *"
-                                                value="{{ $user->email ?? old('email') }}" required>
-                                            @error('email')
-                                                <span class="text-danger small">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <input type="tel" name="phone" placeholder="{{ __('Phone Number') }} *"
                                                 value="{{ $user->phone ?? old('phone') }}" required>
@@ -138,34 +129,17 @@
                                 <!-- Payment Method -->
                                 <h2>{{ __('Payment Method') }}</h2>
                                 <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="payment-method-card">
-                                            <input type="radio" name="payment_method" value="cash" id="pay_cash" checked>
-                                            <label for="pay_cash">
-                                                <i class="fas fa-money-bill-wave fa-lg me-2"></i>
-                                                <span>{{ __('Cash on Delivery') }}</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="payment-method-card">
-                                            <input type="radio" name="payment_method" value="card" id="pay_card">
-                                            <label for="pay_card">
-                                                <i class="fas fa-credit-card fa-lg me-2"></i>
-                                                <span>{{ __('Card Payment') }}</span>
+                                    <div class="col-md-12">
+                                        <div class="payment-method-card" style="border-color: #e2136e; background-color: rgba(226, 19, 110, 0.05);">
+                                            <input type="radio" name="payment_method" value="bkash" id="pay_bkash" checked>
+                                            <label for="pay_bkash">
+                                                <img src="{{ asset('website/images/bkash-logo.png') }}" alt="bKash" style="height: 30px; margin-right: 10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                                <i class="fas fa-mobile-alt fa-lg me-2" style="display: none; color: #e2136e;"></i>
+                                                <span style="color: #e2136e; font-weight: 600;">{{ __('bKash') }}</span>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
-
-                                @guest
-                                <div class="guest-notice mb-4">
-                                    <p class="mb-2"><i class="fas fa-info-circle me-2"></i>{{ __('Have an account?') }}</p>
-                                    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">{{ __('Login') }}</a>
-                                    <span class="mx-2">{{ __('or') }}</span>
-                                    <a href="{{ route('register') }}" class="btn btn-outline-secondary btn-sm">{{ __('Register') }}</a>
-                                </div>
-                                @endguest
                             </div>
                         </div>
 
@@ -187,7 +161,7 @@
                                                 @endif
                                             </div>
                                             <div class="item_price">
-                                                ${{ number_format($item->subtotal, 2) }}
+                                                TK {{ number_format($item->subtotal, 2) }}
                                             </div>
                                         </div>
                                     </div>
@@ -196,10 +170,10 @@
 
                                 <div class="cart_summery">
                                     <h6>{{ __('Order Summary') }}</h6>
-                                    <p>{{ __('Subtotal') }}: <span>${{ number_format($cartTotal, 2) }}</span></p>
-                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">$0.00</span></p>
-                                    <p>{{ __('Tax') }}: <span>$0.00</span></p>
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">${{ number_format($cartTotal, 2) }}</span></p>
+                                    <p>{{ __('Subtotal') }}: <span>TK {{ number_format($cartTotal, 2) }}</span></p>
+                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">TK 0.00</span></p>
+                                    <p>{{ __('Tax') }}: <span>TK 0.00</span></p>
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">TK {{ number_format($cartTotal, 2) }}</span></p>
 
                                     <button type="submit" class="common_btn w-100" id="place-order-btn">
                                         <i class="fas fa-check me-2"></i>{{ __('Place Order') }}
@@ -300,13 +274,6 @@
         color: #ff6b35;
         margin-left: 5px;
         font-size: 14px;
-    }
-
-    .guest-notice {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
     }
 
     .checkout_area .form-group {

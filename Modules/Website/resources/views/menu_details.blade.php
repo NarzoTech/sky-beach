@@ -458,26 +458,81 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Update cart count in header
-                const cartBadge = document.querySelector('.cart-count');
-                if (cartBadge) {
-                    cartBadge.textContent = data.cart_count;
-                }
+                // Update cart badge in header
+                updateCartBadge(data.cart_count);
 
                 if (buyNow) {
                     window.location.href = '{{ route("website.checkout.index") }}';
                 } else {
-                    // Show success message
-                    alert(data.message || '{{ __("Item added to cart!") }}');
+                    // Show success toast
+                    showToast(data.message || '{{ __("Item added to cart!") }}', 'success');
                 }
             } else {
-                alert(data.message || '{{ __("Failed to add item to cart.") }}');
+                showToast(data.message || '{{ __("Failed to add item to cart.") }}', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('{{ __("An error occurred. Please try again.") }}');
+            showToast('{{ __("An error occurred. Please try again.") }}', 'error');
         });
+    }
+
+    // Update cart badge in header
+    function updateCartBadge(count) {
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
+        `;
+        toast.textContent = message;
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(toast);
+
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     // Initialize price calculation
