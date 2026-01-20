@@ -5,6 +5,7 @@ use Modules\Website\app\Http\Controllers\WebsiteController;
 use Modules\Website\app\Http\Controllers\MenuActionController;
 use Modules\Website\app\Http\Controllers\CartController;
 use Modules\Website\app\Http\Controllers\CheckoutController;
+use Modules\Website\app\Http\Controllers\BkashController;
 use Modules\Website\app\Http\Controllers\OrderController;
 use Modules\Website\app\Http\Controllers\ReservationController;
 use Modules\Website\app\Http\Controllers\CateringController;
@@ -63,6 +64,12 @@ Route::group([], function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/process', [CheckoutController::class, 'processOrder'])->name('process');
         Route::get('/success/{id}', [CheckoutController::class, 'orderSuccess'])->name('success');
+    });
+
+    // bKash Payment Routes
+    Route::prefix('bkash')->name('website.bkash.')->group(function() {
+        Route::post('/create', [BkashController::class, 'createPayment'])->name('create');
+        Route::get('/callback', [BkashController::class, 'callback'])->name('callback');
     });
 
     // Legacy cart routes (redirect to new routes)

@@ -67,7 +67,9 @@
                                         <div class="info_item">
                                             <label>{{ __('Payment Method') }}</label>
                                             <strong>
-                                                @if(is_array($order->payment_method) && in_array('cash', $order->payment_method))
+                                                @if(is_array($order->payment_method) && in_array('bkash', $order->payment_method))
+                                                    <span style="color: #e2136e;"><i class="fas fa-mobile-alt me-1"></i>{{ __('bKash') }}</span>
+                                                @elseif(is_array($order->payment_method) && in_array('cash', $order->payment_method))
                                                     <i class="fas fa-money-bill-wave me-1"></i>{{ __('Cash on Delivery') }}
                                                 @else
                                                     <i class="fas fa-credit-card me-1"></i>{{ __('Card Payment') }}
@@ -75,6 +77,19 @@
                                             </strong>
                                         </div>
                                     </div>
+                                    @if($order->payment_status === 'success' && $order->payment_details)
+                                        @php
+                                            $paymentDetails = is_string($order->payment_details) ? json_decode($order->payment_details, true) : $order->payment_details;
+                                        @endphp
+                                        @if(isset($paymentDetails['transaction_id']))
+                                        <div class="col-md-12">
+                                            <div class="info_item">
+                                                <label>{{ __('Transaction ID') }}</label>
+                                                <strong style="color: #e2136e;">{{ $paymentDetails['transaction_id'] }}</strong>
+                                            </div>
+                                        </div>
+                                        @endif
+                                    @endif
                                 </div>
                             </div>
 
@@ -114,30 +129,30 @@
                                                     @endif
                                                 </td>
                                                 <td>{{ $item->quantity }}</td>
-                                                <td>${{ number_format($item->sub_total, 2) }}</td>
+                                                <td>TK {{ number_format($item->sub_total, 2) }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>
                                         <tfoot>
                                             <tr>
                                                 <td colspan="2" class="text-end"><strong>{{ __('Subtotal') }}:</strong></td>
-                                                <td><strong>${{ number_format($order->total_price, 2) }}</strong></td>
+                                                <td><strong>TK {{ number_format($order->total_price, 2) }}</strong></td>
                                             </tr>
                                             @if($order->shipping_cost > 0)
                                             <tr>
                                                 <td colspan="2" class="text-end">{{ __('Delivery Fee') }}:</td>
-                                                <td>${{ number_format($order->shipping_cost, 2) }}</td>
+                                                <td>TK {{ number_format($order->shipping_cost, 2) }}</td>
                                             </tr>
                                             @endif
                                             @if($order->total_tax > 0)
                                             <tr>
                                                 <td colspan="2" class="text-end">{{ __('Tax') }}:</td>
-                                                <td>${{ number_format($order->total_tax, 2) }}</td>
+                                                <td>TK {{ number_format($order->total_tax, 2) }}</td>
                                             </tr>
                                             @endif
                                             <tr class="total_row">
                                                 <td colspan="2" class="text-end"><strong>{{ __('Total') }}:</strong></td>
-                                                <td><strong>${{ number_format($order->grand_total, 2) }}</strong></td>
+                                                <td><strong>TK {{ number_format($order->grand_total, 2) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                     </table>

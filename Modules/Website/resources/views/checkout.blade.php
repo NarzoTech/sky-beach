@@ -29,7 +29,7 @@
         <!--==========CHECKOUT START===========-->
         <section class="checkout pt_110 xs_pt_90">
             <div class="container">
-                <form id="checkout-form" action="{{ route('website.checkout.process') }}" method="POST">
+                <form id="checkout-form" action="{{ route('website.bkash.create') }}" method="POST">
                     @csrf
                     <div class="row">
                         <div class="col-lg-8 wow fadeInLeft">
@@ -175,8 +175,8 @@
                                     <p>{{ __('Tax') }}: <span>TK 0.00</span></p>
                                     <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">TK {{ number_format($cartTotal, 2) }}</span></p>
 
-                                    <button type="submit" class="common_btn w-100" id="place-order-btn">
-                                        <i class="fas fa-check me-2"></i>{{ __('Place Order') }}
+                                    <button type="submit" class="common_btn w-100" id="place-order-btn" style="background: linear-gradient(135deg, #e2136e 0%, #d1105d 100%);">
+                                        <i class="fas fa-mobile-alt me-2"></i>{{ __('Pay with bKash') }}
                                     </button>
 
                                     <a href="{{ route('website.cart.index') }}" class="text-center d-block mt-3">
@@ -210,7 +210,16 @@
 
     .order-type-card:hover,
     .payment-method-card:hover {
-        border-color: #ff6b35;
+        border-color: #e2136e;
+    }
+
+    .payment-method-card:has(input[value="bkash"]:checked) {
+        border-color: #e2136e !important;
+        background-color: rgba(226, 19, 110, 0.05) !important;
+    }
+
+    .payment-method-card:has(input[value="bkash"]:checked) label span {
+        color: #e2136e !important;
     }
 
     .order-type-card input,
@@ -350,7 +359,7 @@
             });
         });
 
-        // Form submission
+        // Form submission - bKash Payment
         const form = document.getElementById('checkout-form');
         const submitBtn = document.getElementById('place-order-btn');
 
@@ -359,7 +368,7 @@
 
             // Disable button to prevent double submission
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Processing...") }}';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Connecting to bKash...") }}';
 
             const formData = new FormData(form);
 
@@ -373,35 +382,35 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Show success message
+                if (data.success && data.bkashURL) {
+                    // Redirect to bKash payment page
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            icon: 'success',
-                            title: '{{ __("Order Placed!") }}',
-                            text: data.message,
+                            icon: 'info',
+                            title: '{{ __("Redirecting to bKash") }}',
+                            text: '{{ __("Please complete your payment on bKash...") }}',
                             showConfirmButton: false,
-                            timer: 2000
-                        }).then(() => {
-                            window.location.href = data.redirect_url;
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
                         });
-                    } else {
-                        alert(data.message);
-                        window.location.href = data.redirect_url;
                     }
+                    // Redirect to bKash
+                    window.location.href = data.bkashURL;
                 } else {
                     // Show error
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             icon: 'error',
-                            title: '{{ __("Error") }}',
-                            text: data.message || '{{ __("Failed to place order. Please try again.") }}'
+                            title: '{{ __("Payment Error") }}',
+                            text: data.message || '{{ __("Failed to initiate payment. Please try again.") }}'
                         });
                     } else {
-                        alert(data.message || '{{ __("Failed to place order. Please try again.") }}');
+                        alert(data.message || '{{ __("Failed to initiate payment. Please try again.") }}');
                     }
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>{{ __("Place Order") }}';
+                    submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
                 }
             })
             .catch(error => {
@@ -416,7 +425,7 @@
                     alert('{{ __("Something went wrong. Please try again.") }}');
                 }
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>{{ __("Place Order") }}';
+                submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
             });
         });
     });
