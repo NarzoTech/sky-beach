@@ -10,6 +10,7 @@ use Modules\Website\app\Http\Controllers\ReservationController;
 use Modules\Website\app\Http\Controllers\CateringController;
 use Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController;
 use Modules\Website\app\Http\Controllers\Admin\CateringController as AdminCateringController;
+use Modules\Website\app\Http\Controllers\Admin\CouponController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,8 @@ Route::group([], function () {
         Route::delete('/remove/{id}', [CartController::class, 'removeItem'])->name('remove');
         Route::delete('/clear', [CartController::class, 'clearCart'])->name('clear');
         Route::post('/coupon', [CartController::class, 'applyCoupon'])->name('coupon');
+        Route::delete('/coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+        Route::get('/coupon', [CartController::class, 'getAppliedCoupon'])->name('coupon.get');
     });
 
     // Checkout Routes
@@ -149,4 +152,17 @@ Route::prefix('admin/catering')->middleware(['auth:admin'])->name('admin.caterin
     Route::get('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesShow'])->name('inquiries.show');
     Route::patch('/inquiries/{inquiry}/status', [AdminCateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
     Route::delete('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
+});
+
+// Admin Coupons Routes
+Route::prefix('admin/coupons')->middleware(['auth:admin'])->name('admin.coupons.')->group(function() {
+    Route::get('/', [CouponController::class, 'index'])->name('index');
+    Route::get('/create', [CouponController::class, 'create'])->name('create');
+    Route::post('/', [CouponController::class, 'store'])->name('store');
+    Route::get('/generate-code', [CouponController::class, 'generateCode'])->name('generate-code');
+    Route::get('/{coupon}', [CouponController::class, 'show'])->name('show');
+    Route::get('/{coupon}/edit', [CouponController::class, 'edit'])->name('edit');
+    Route::put('/{coupon}', [CouponController::class, 'update'])->name('update');
+    Route::delete('/{coupon}', [CouponController::class, 'destroy'])->name('destroy');
+    Route::post('/{coupon}/toggle-status', [CouponController::class, 'toggleStatus'])->name('toggle-status');
 });

@@ -128,9 +128,39 @@ class WebsiteController extends Controller
     /**
      * Display the menu details page.
      */
-    public function menuDetails()
+    public function menuDetails($slug)
     {
-        return view('website::menu_details');
+        $menuItem = MenuItem::with(['category', 'activeVariants', 'activeAddons'])
+            ->where('slug', $slug)
+            ->where('status', 1)
+            ->where('is_available', 1)
+            ->firstOrFail();
+
+        // Get related items from same category
+        $relatedItems = MenuItem::with('category')
+            ->where('status', 1)
+            ->where('is_available', 1)
+            ->where('id', '!=', $menuItem->id)
+            ->where('category_id', $menuItem->category_id)
+            ->inRandomOrder()
+            ->take(5)
+            ->get();
+
+        // If not enough related items from same category, get popular items
+        if ($relatedItems->count() < 5) {
+            $additionalItems = MenuItem::with('category')
+                ->where('status', 1)
+                ->where('is_available', 1)
+                ->where('id', '!=', $menuItem->id)
+                ->whereNotIn('id', $relatedItems->pluck('id'))
+                ->where('is_featured', 1)
+                ->inRandomOrder()
+                ->take(5 - $relatedItems->count())
+                ->get();
+            $relatedItems = $relatedItems->concat($additionalItems);
+        }
+
+        return view('website::menu_details', compact('menuItem', 'relatedItems'));
     }
 
     /**

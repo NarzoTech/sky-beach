@@ -33,7 +33,7 @@
                         <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
                         <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
                         <li><a href="{{ route('website.faq') }}">{{ __('FAQs') }}</a></li>
-                        <li><a href="{{ route('website.reservation') }}">{{ __('Reservation') }}</a></li>
+                        <li><a href="{{ route('website.reservation.index') }}">{{ __('Reservation') }}</a></li>
                         <li><a href="{{ route('website.service') }}">{{ __('Services') }}</a></li>
                         <li><a href="{{ route('website.privacy-policy') }}">{{ __('Privacy Policy') }}</a></li>
                         <li><a href="{{ route('website.terms-condition') }}">{{ __('Terms & Condition') }}</a></li>
@@ -55,7 +55,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="menu_order common_btn" href="{{ route('website.reservation') }}">
+                    <a class="menu_order common_btn" href="{{ route('website.reservation.index') }}">
                         {{ __('Reserve Now') }}
                     </a>
                 </li>
