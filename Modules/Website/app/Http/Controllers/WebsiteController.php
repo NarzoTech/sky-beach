@@ -46,7 +46,19 @@ class WebsiteController extends Controller
      */
     public function about()
     {
-        return view('website::about');
+        $chefs = Chef::active()
+            ->featured()
+            ->ordered()
+            ->take(4)
+            ->get();
+
+        $blogs = Blog::active()
+            ->published()
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return view('website::about', compact('chefs', 'blogs'));
     }
 
     /**
@@ -248,9 +260,8 @@ class WebsiteController extends Controller
     {
         $faqs = Faq::active()
             ->ordered()
-            ->get()
-            ->groupBy('category');
-        
+            ->get();
+
         return view('website::faq', compact('faqs'));
     }
 
@@ -287,13 +298,18 @@ class WebsiteController extends Controller
         $service = WebsiteService::active()
             ->where('slug', $slug)
             ->firstOrFail();
-            
+
         $relatedServices = WebsiteService::active()
             ->where('id', '!=', $service->id)
-            ->take(3)
+            ->take(4)
             ->get();
-        
-        return view('website::service_details', compact('service', 'relatedServices'));
+
+        $faqs = Faq::active()
+            ->ordered()
+            ->take(5)
+            ->get();
+
+        return view('website::service_details', compact('service', 'relatedServices', 'faqs'));
     }
 
     /**

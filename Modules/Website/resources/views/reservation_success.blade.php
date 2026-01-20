@@ -136,6 +136,8 @@
         </section>
         <!--==========RESERVATION SUCCESS END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

@@ -160,6 +160,8 @@
         </section>
         <!--==========PACKAGE DETAILS END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

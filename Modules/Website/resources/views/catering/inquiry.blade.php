@@ -183,6 +183,8 @@
         </section>
         <!--==========INQUIRY FORM END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

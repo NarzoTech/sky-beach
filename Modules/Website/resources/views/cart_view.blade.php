@@ -145,6 +145,8 @@
         </section>
         <!--==========CART VIEW END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('scripts')

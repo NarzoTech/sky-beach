@@ -1,0 +1,49 @@
+=== FRONT-END BLADE FILES ===
+
+--- Pages ---
+Modules/Website/resources/views/index.blade.php
+Modules/Website/resources/views/about.blade.php
+Modules/Website/resources/views/menu.blade.php
+Modules/Website/resources/views/menu_details.blade.php
+Modules/Website/resources/views/blogs.blade.php
+Modules/Website/resources/views/blog_details.blade.php
+Modules/Website/resources/views/chefs.blade.php
+Modules/Website/resources/views/contact.blade.php
+Modules/Website/resources/views/faq.blade.php
+Modules/Website/resources/views/service.blade.php
+Modules/Website/resources/views/service_details.blade.php
+Modules/Website/resources/views/privacy_policy.blade.php
+Modules/Website/resources/views/terms_condition.blade.php
+
+--- Cart & Checkout ---
+Modules/Website/resources/views/cart_view.blade.php
+Modules/Website/resources/views/checkout.blade.php
+Modules/Website/resources/views/checkout_success.blade.php
+
+--- Orders ---
+Modules/Website/resources/views/orders/index.blade.php
+Modules/Website/resources/views/orders/details.blade.php
+Modules/Website/resources/views/orders/track.blade.php
+
+--- Reservation ---
+Modules/Website/resources/views/reservation.blade.php
+Modules/Website/resources/views/reservation_success.blade.php
+Modules/Website/resources/views/my_reservations.blade.php
+
+--- Catering ---
+Modules/Website/resources/views/catering/index.blade.php
+Modules/Website/resources/views/catering/show.blade.php
+Modules/Website/resources/views/catering/inquiry.blade.php
+Modules/Website/resources/views/catering/inquiry_success.blade.php
+
+--- Layouts ---
+Modules/Website/resources/views/layouts/master.blade.php
+
+--- Partials ---
+Modules/Website/resources/views/partials/header.blade.php
+Modules/Website/resources/views/partials/footer.blade.php
+Modules/Website/resources/views/partials/blog-card.blade.php
+Modules/Website/resources/views/partials/chef-card.blade.php
+Modules/Website/resources/views/partials/menu-item.blade.php
+
+Total: 30 front-end blade files

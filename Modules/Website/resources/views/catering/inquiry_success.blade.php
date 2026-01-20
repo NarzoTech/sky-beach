@@ -127,6 +127,8 @@
         </section>
         <!--==========SUCCESS SECTION END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

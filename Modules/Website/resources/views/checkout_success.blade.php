@@ -205,6 +205,8 @@
         </section>
         <!--==========ORDER SUCCESS END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

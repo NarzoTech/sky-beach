@@ -201,6 +201,8 @@
         </section>
         <!--==========INFO SECTION END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

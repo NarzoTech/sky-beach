@@ -222,6 +222,8 @@
         </section>
         <!--==========EVENT TYPES END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

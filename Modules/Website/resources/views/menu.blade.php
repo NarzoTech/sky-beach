@@ -7,15 +7,15 @@
         <div id="smooth-content">
 
             <!--==========BREADCRUMB AREA START===========-->
-            <section class="breadcrumb_area" style="background: url(assets/images/breadcrumb_bg.jpg);">
+            <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
                 <div class="container">
                     <div class="row wow fadeInUp">
                         <div class="col-12">
                             <div class="breadcrumb_text">
-                                <h1>menu style 03</h1>
+                                <h1>Our Menu</h1>
                                 <ul>
-                                    <li><a href="#">Home </a></li>
-                                    <li><a href="#">menu style 03</a></li>
+                                    <li><a href="{{ route('website.index') }}">Home</a></li>
+                                    <li><a href="{{ route('website.menu') }}">Menu</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -121,7 +121,7 @@
                                             @if($item->category)
                                             <a class="category" href="{{ route('website.menu', ['category' => $item->category_id]) }}">{{ $item->category->name }}</a>
                                             @endif
-                                            <a class="title" href="{{ route('website.menu-details') }}">{{ $item->name }}</a>
+                                            <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
                                             <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>
                                             <div class="d-flex flex-wrap align-items-center">
                                                 <a class="add_to_cart" href="#" onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">Add to Cart</a>
@@ -151,6 +151,9 @@
                 </div>
             </section>
             <!--==========MENU PAGE END===========-->
+
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

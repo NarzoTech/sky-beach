@@ -217,6 +217,8 @@
         </section>
         <!--==========CHECKOUT END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

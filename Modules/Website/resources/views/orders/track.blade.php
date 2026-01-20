@@ -214,6 +214,8 @@
         </section>
         <!--==========TRACK ORDER END===========-->
 
+    </div>
+</div>
 @endsection
 
 @push('styles')

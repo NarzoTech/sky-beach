@@ -344,6 +344,9 @@
             </section>
         @endif
         <!--==========RELATED MENU END===========-->
+
+    </div>
+</div>
 @endsection
 
 @push('scripts')
