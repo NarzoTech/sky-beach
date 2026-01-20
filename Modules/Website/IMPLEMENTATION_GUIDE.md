@@ -167,7 +167,7 @@ function updateCartBadge()
 
 ## PHASE 2: Order Management System
 
-### Status: ⏳ Pending
+### Status: ✅ COMPLETED (January 20, 2026)
 
 ### 2.1 Use Existing Sale Model
 
@@ -250,7 +250,7 @@ Route::prefix('admin/website-orders')->name('admin.website-orders.')->group(func
 
 ## PHASE 3: Reservation System
 
-### Status: ⏳ Pending
+### Status: ✅ COMPLETED (January 20, 2026)
 
 ### 3.1 Update Booking Model
 
@@ -550,22 +550,23 @@ Schema::create('reviews', function (Blueprint $table) {
 - [x] Add cart badge to header
 - [ ] Test full cart flow (manual testing required)
 
-### Phase 2: Order Management
-- [ ] Add 'website' order type to Sale model
-- [ ] Create OrderController
-- [ ] Create Admin WebsiteOrderController
-- [ ] Create order views (frontend)
-- [ ] Create order views (admin)
-- [ ] Add order routes
-- [ ] Test order flow
+### Phase 2: Order Management ✅ COMPLETED
+- [x] Add 'website' order type to Sale model
+- [x] Create OrderController
+- [x] Create Admin WebsiteOrderController
+- [x] Create order views (frontend)
+- [x] Create order views (admin)
+- [x] Add order routes
+- [ ] Test order flow (manual testing required)
 
-### Phase 3: Reservation System
-- [ ] Update Booking model
-- [ ] Create ReservationController
-- [ ] Update reservation.blade.php
-- [ ] Create confirmation views
-- [ ] Add reservation routes
-- [ ] Test reservation flow
+### Phase 3: Reservation System ✅ COMPLETED
+- [x] Update Booking model
+- [x] Create ReservationController
+- [x] Update reservation.blade.php
+- [x] Create confirmation views (reservation_success.blade.php)
+- [x] Create my_reservations.blade.php
+- [x] Add reservation routes
+- [ ] Test reservation flow (manual testing required)
 
 ### Phase 4: Contact Form
 - [ ] Create ContactMessage model & migration
@@ -629,4 +630,4 @@ php artisan cache:clear && php artisan config:clear && php artisan view:clear
 
 ---
 
-*Last Updated: January 17, 2026*
+*Last Updated: January 20, 2026 (Phase 3 Completed)*

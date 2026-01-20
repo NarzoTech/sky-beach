@@ -1,246 +1,416 @@
-﻿@extends('website::layouts.master')
+@extends('website::layouts.master')
 
-@section('title', 'reservation - CTAKE')
+@section('title', __('Reservations') . ' - ' . config('app.name'))
 
 @section('content')
 <div id="smooth-wrapper">
-        <div id="smooth-content">
+    <div id="smooth-content">
 
-            <!--==========BREADCRUMB AREA START===========-->
-            <section class="breadcrumb_area" style="background: url(assets/images/breadcrumb_bg.jpg);">
-                <div class="container">
-                    <div class="row wow fadeInUp">
-                        <div class="col-12">
-                            <div class="breadcrumb_text">
-                                <h1>Reservations</h1>
-                                <ul>
-                                    <li><a href="#">Home </a></li>
-                                    <li><a href="#">Reservations</a></li>
-                                </ul>
-                            </div>
+        <!--==========BREADCRUMB AREA START===========-->
+        <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+            <div class="container">
+                <div class="row wow fadeInUp">
+                    <div class="col-12">
+                        <div class="breadcrumb_text">
+                            <h1>{{ __('Reservations') }}</h1>
+                            <ul>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="#">{{ __('Reservations') }}</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </section>
-            <!--==========BREADCRUMB AREA END===========-->
+            </div>
+        </section>
+        <!--==========BREADCRUMB AREA END===========-->
 
 
-            <!--==========RESERVATION PAGE START===========-->
-            <section class="reservation_page pt_120 xs_pt_100">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-6 wow fadeInLeft">
-                            <div class="reservation_img">
-                                <img src="{{ asset('website/images/reservation_img_2.jpg') }}" alt="reservation"
-                                    class="img-fluid w-100">
-                            </div>
+        <!--==========RESERVATION PAGE START===========-->
+        <section class="reservation_page pt_120 xs_pt_100">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 wow fadeInLeft">
+                        <div class="reservation_img">
+                            <img src="{{ asset('website/images/reservation_img_2.jpg') }}" alt="reservation"
+                                class="img-fluid w-100">
                         </div>
-                        <div class="col-lg-6 wow fadeInRight">
-                            <div class="reservation_form">
-                                <h2>ONLINE RESERVATION</h2>
-                                <form action="#">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <input type="text" placeholder="Your Name">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <input type="email" placeholder="Your Email">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <input type="text" placeholder="Phone">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <input type="date">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <select class="select_2" name="state">
-                                                    <option value="AL">Select Time</option>
-                                                    <option value="">08.00 am to 09.00 am</option>
-                                                    <option value="">09.00 am to 10.00 am</option>
-                                                    <option value="">11.00 am to 12.00 am</option>
-                                                    <option value="">02.00 am to 03.00 am</option>
-                                                    <option value="">05.00 am to 06.00 am</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="reservation_form_input">
-                                                <select class="select_2" name="state">
-                                                    <option value="AL">Select Person</option>
-                                                    <option value="">1 Person</option>
-                                                    <option value="">2 Person</option>
-                                                    <option value="">3 Person</option>
-                                                    <option value="">4 Person</option>
-                                                    <option value="">5 Person</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="reservation_form_input">
-                                                <textarea rows="7" placeholder="Write Message..."></textarea>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" value=""
-                                                        id="flexCheckDefault">
-                                                    <label class="form-check-label" for="flexCheckDefault">
-                                                        Select to subscribe to our newsletter and updates and we will
-                                                        send you
-                                                        all updates about our services.
-                                                    </label>
-                                                </div>
-                                                <button class="common_btn" type="submit">Make A reserve</button>
-                                            </div>
+                    </div>
+                    <div class="col-lg-6 wow fadeInRight">
+                        <div class="reservation_form">
+                            <h2>{{ __('ONLINE RESERVATION') }}</h2>
+
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+
+                            <div id="formAlerts"></div>
+
+                            <form id="reservationForm" action="{{ route('website.reservation.store') }}" method="POST">
+                                @csrf
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <input type="text" name="name" placeholder="{{ __('Your Name') }} *"
+                                                   value="{{ old('name', $user->name ?? '') }}" required>
+                                            @error('name')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <input type="email" name="email" placeholder="{{ __('Your Email') }} *"
+                                                   value="{{ old('email', $user->email ?? '') }}" required>
+                                            @error('email')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <input type="tel" name="phone" placeholder="{{ __('Phone Number') }} *"
+                                                   value="{{ old('phone', $user->phone ?? '') }}" required>
+                                            @error('phone')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <input type="date" name="booking_date" id="bookingDate"
+                                                   min="{{ date('Y-m-d') }}"
+                                                   value="{{ old('booking_date') }}" required>
+                                            @error('booking_date')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <select class="select_2" name="booking_time" id="bookingTime" required>
+                                                <option value="">{{ __('Select Time') }} *</option>
+                                                @foreach($timeSlots as $value => $display)
+                                                    <option value="{{ $value }}" {{ old('booking_time') == $value ? 'selected' : '' }}>
+                                                        {{ $display }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('booking_time')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                            <small id="timeAvailability" class="availability-hint"></small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="reservation_form_input">
+                                            <select class="select_2" name="number_of_guests" id="numberOfGuests" required>
+                                                <option value="">{{ __('Number of Guests') }} *</option>
+                                                @for($i = 1; $i <= 20; $i++)
+                                                    <option value="{{ $i }}" {{ old('number_of_guests') == $i ? 'selected' : '' }}>
+                                                        {{ $i }} {{ $i === 1 ? __('Person') : __('Persons') }}
+                                                    </option>
+                                                @endfor
+                                            </select>
+                                            @error('number_of_guests')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="reservation_form_input">
+                                            <select class="select_2" name="table_preference">
+                                                <option value="any">{{ __('Table Preference (Optional)') }}</option>
+                                                @foreach($tablePreferences as $value => $label)
+                                                    <option value="{{ $value }}" {{ old('table_preference') == $value ? 'selected' : '' }}>
+                                                        {{ __($label) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="reservation_form_input">
+                                            <textarea name="special_request" rows="5"
+                                                      placeholder="{{ __('Special Requests (dietary requirements, occasion, etc.)') }}">{{ old('special_request') }}</textarea>
+                                            @error('special_request')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+
+                                            <button class="common_btn" type="submit" id="submitBtn">
+                                                <span class="btn-text">{{ __('Make A Reservation') }}</span>
+                                                <span class="btn-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> {{ __('Submitting...') }}
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                            @auth
+                                <div class="mt-3 text-center">
+                                    <a href="{{ route('website.reservations.index') }}" class="text-primary">
+                                        <i class="fas fa-list me-1"></i> {{ __('View My Reservations') }}
+                                    </a>
+                                </div>
+                            @endauth
                         </div>
                     </div>
                 </div>
-            </section>
-            <!--==========RESERVATION PAGE END===========-->
+            </div>
+        </section>
+        <!--==========RESERVATION PAGE END===========-->
 
 
-            <!--==========GALLERY START===========-->
-            <section class="gallery mt_120 xs_mt_100">
-                <div class="row gallery_slider">
-                    <div class="col-xl-3 wow fadeInUp">
-                        <div class="gallery_item">
-                            <img src="{{ asset('website/images/gallery_img_1.jpg') }}" alt="gallery" class="img-fluid w-100">
-                            <div class="text">
-                                <a class="title" href="{{ route('website.menu-details') }}">Breakfast Burritos</a>
-                                <p>Breakfast item</p>
+        <!--==========INFO SECTION START===========-->
+        <section class="reservation_info pt_100 xs_pt_80 pb_120 xs_pb_100">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 wow fadeInUp">
+                        <div class="info_card">
+                            <div class="icon">
+                                <i class="fas fa-clock"></i>
                             </div>
+                            <h4>{{ __('Opening Hours') }}</h4>
+                            <p>{{ __('Monday - Sunday') }}<br>10:00 AM - 10:00 PM</p>
                         </div>
                     </div>
-                    <div class="col-xl-3 wow fadeInUp">
-                        <div class="gallery_item">
-                            <img src="{{ asset('website/images/gallery_img_2.jpg') }}" alt="gallery" class="img-fluid w-100">
-                            <div class="text">
-                                <a class="title" href="{{ route('website.menu-details') }}">Breakfast Burritos</a>
-                                <p>Breakfast item</p>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp">
+                        <div class="info_card">
+                            <div class="icon">
+                                <i class="fas fa-phone-alt"></i>
                             </div>
+                            <h4>{{ __('Call Us') }}</h4>
+                            <p>{{ __('For immediate assistance') }}<br>+1 234 567 8900</p>
                         </div>
                     </div>
-                    <div class="col-xl-3 wow fadeInUp">
-                        <div class="gallery_item">
-                            <img src="{{ asset('website/images/gallery_img_3.jpg') }}" alt="gallery" class="img-fluid w-100">
-                            <div class="text">
-                                <a class="title" href="{{ route('website.menu-details') }}">Breakfast Burritos</a>
-                                <p>Breakfast item</p>
+                    <div class="col-lg-4 col-md-6 wow fadeInUp">
+                        <div class="info_card">
+                            <div class="icon">
+                                <i class="fas fa-info-circle"></i>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 wow fadeInUp">
-                        <div class="gallery_item">
-                            <img src="{{ asset('website/images/gallery_img_4.jpg') }}" alt="gallery" class="img-fluid w-100">
-                            <div class="text">
-                                <a class="title" href="{{ route('website.menu-details') }}">Breakfast Burritos</a>
-                                <p>Breakfast item</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 wow fadeInUp">
-                        <div class="gallery_item">
-                            <img src="{{ asset('website/images/gallery_img_3.jpg') }}" alt="gallery" class="img-fluid w-100">
-                            <div class="text">
-                                <a class="title" href="{{ route('website.menu-details') }}">Breakfast Burritos</a>
-                                <p>Breakfast item</p>
-                            </div>
+                            <h4>{{ __('Cancellation Policy') }}</h4>
+                            <p>{{ __('Free cancellation up to 2 hours before your reservation') }}</p>
                         </div>
                     </div>
                 </div>
-            </section>
-            <!--==========GALLERY START===========-->
+            </div>
+        </section>
+        <!--==========INFO SECTION END===========-->
 
-
-            <!--==========BLOG START===========-->
-            <section class="blog pt_110 xs_pt_90">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-8 m-auto wow fadeInUp">
-                            <div class="section_heading mb_25">
-                                <h2>Our Latest News & Article</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Burger</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">WHAT IS THE DIFFERENCE BETWEEN
-                                        HAMBURGERS & BURGERS?</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_2.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Snacks</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">PAIRING WINE WITH INDIAN FOOD:
-                                        TIPS FROM A SOMMELIER</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-sm-6 wow fadeInUp">
-                            <div class="single_blog">
-                                <div class="single_blog_img">
-                                    <img src="{{ asset('website/images/blog_img_3.jpg') }}" alt="blog" class="img-fluid w-100">
-                                    <a class="category" href="#">Taste</a>
-                                </div>
-                                <div class="single_blog_text">
-                                    <ul>
-                                        <li>
-                                            <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar"
-                                                    class="img-fluid"></span>
-                                            April 18, 2026
-                                        </li>
-                                        <li>BY Admin</li>
-                                    </ul>
-                                    <a class="title" href="{{ route('website.blog-details', 'sample-blog') }}">THE WONDERS OF THAI CUISINE
-                                        SWEET, SALTY & SOUR</a>
-                                    <a class="read_btn" href="{{ route('website.blog-details', 'sample-blog') }}">Read More <i
-                                            class="far fa-arrow-right"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <!--==========BLOG END===========-->
 @endsection
+
+@push('styles')
+<style>
+    .reservation_form {
+        background: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .reservation_form h2 {
+        margin-bottom: 30px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .reservation_form_input {
+        margin-bottom: 20px;
+    }
+
+    .reservation_form_input input,
+    .reservation_form_input select,
+    .reservation_form_input textarea {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+    }
+
+    .reservation_form_input input:focus,
+    .reservation_form_input select:focus,
+    .reservation_form_input textarea:focus {
+        border-color: #ff6b35;
+        outline: none;
+    }
+
+    .reservation_form_input small.text-danger {
+        display: block;
+        margin-top: 5px;
+    }
+
+    .availability-hint {
+        display: block;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    .availability-hint.available {
+        color: #28a745;
+    }
+
+    .availability-hint.unavailable {
+        color: #dc3545;
+    }
+
+    .availability-hint.checking {
+        color: #666;
+    }
+
+    .info_card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        height: 100%;
+    }
+
+    .info_card .icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #ff6b35, #f54749);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .info_card .icon i {
+        font-size: 28px;
+        color: #fff;
+    }
+
+    .info_card h4 {
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .info_card p {
+        color: #666;
+        margin-bottom: 0;
+    }
+
+    .common_btn .btn-loading {
+        display: none;
+    }
+
+    .common_btn.loading .btn-text {
+        display: none;
+    }
+
+    .common_btn.loading .btn-loading {
+        display: inline;
+    }
+
+    @media (max-width: 992px) {
+        .reservation_form {
+            margin-top: 40px;
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('reservationForm');
+    const dateInput = document.getElementById('bookingDate');
+    const timeSelect = document.getElementById('bookingTime');
+    const guestsSelect = document.getElementById('numberOfGuests');
+    const submitBtn = document.getElementById('submitBtn');
+    const availabilityHint = document.getElementById('timeAvailability');
+    const formAlerts = document.getElementById('formAlerts');
+
+    // Check availability when date or time changes
+    function checkAvailability() {
+        const date = dateInput.value;
+        const time = timeSelect.value;
+        const guests = guestsSelect.value || 1;
+
+        if (!date || !time) {
+            availabilityHint.textContent = '';
+            availabilityHint.className = 'availability-hint';
+            return;
+        }
+
+        availabilityHint.textContent = '{{ __("Checking availability...") }}';
+        availabilityHint.className = 'availability-hint checking';
+
+        fetch(`{{ route('website.reservation.check') }}?date=${date}&time=${time}&guests=${guests}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.available) {
+                availabilityHint.textContent = '{{ __("✓ This time slot is available!") }}';
+                availabilityHint.className = 'availability-hint available';
+            } else {
+                availabilityHint.textContent = '{{ __("✗ This time slot is not available") }}';
+                availabilityHint.className = 'availability-hint unavailable';
+            }
+        })
+        .catch(error => {
+            availabilityHint.textContent = '';
+            availabilityHint.className = 'availability-hint';
+        });
+    }
+
+    dateInput.addEventListener('change', checkAvailability);
+    timeSelect.addEventListener('change', checkAvailability);
+    guestsSelect.addEventListener('change', checkAvailability);
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        formAlerts.innerHTML = '';
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirect to success page
+                window.location.href = data.redirect_url;
+            } else {
+                formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${data.message || '{{ __("An error occurred. Please try again.") }}'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ __("An error occurred. Please try again.") }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+        });
+    });
+});
+</script>
+@endpush

@@ -5,6 +5,11 @@ use Modules\Website\app\Http\Controllers\WebsiteController;
 use Modules\Website\app\Http\Controllers\MenuActionController;
 use Modules\Website\app\Http\Controllers\CartController;
 use Modules\Website\app\Http\Controllers\CheckoutController;
+use Modules\Website\app\Http\Controllers\OrderController;
+use Modules\Website\app\Http\Controllers\ReservationController;
+use Modules\Website\app\Http\Controllers\CateringController;
+use Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController;
+use Modules\Website\app\Http\Controllers\Admin\CateringController as AdminCateringController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,8 +73,23 @@ Route::group([], function () {
     // FAQ Page
     Route::get('/faq', [WebsiteController::class, 'faq'])->name('website.faq');
 
-    // Reservation Page
-    Route::get('/reservation', [WebsiteController::class, 'reservation'])->name('website.reservation');
+    // Reservation Routes
+    Route::prefix('reservation')->name('website.reservation.')->group(function() {
+        Route::get('/', [ReservationController::class, 'index'])->name('index');
+        Route::post('/', [ReservationController::class, 'store'])->name('store');
+        Route::get('/check', [ReservationController::class, 'checkAvailability'])->name('check');
+        Route::get('/success/{code}', [ReservationController::class, 'success'])->name('success');
+    });
+
+    // Catering Routes
+    Route::prefix('catering')->name('website.catering.')->group(function() {
+        Route::get('/', [CateringController::class, 'index'])->name('index');
+        Route::get('/inquiry', [CateringController::class, 'inquiryForm'])->name('inquiry');
+        Route::post('/inquiry', [CateringController::class, 'submitInquiry'])->name('inquiry.submit');
+        Route::get('/inquiry/success/{inquiryNumber}', [CateringController::class, 'inquirySuccess'])->name('inquiry.success');
+        Route::get('/price-estimate', [CateringController::class, 'getPriceEstimate'])->name('price-estimate');
+        Route::get('/{slug}', [CateringController::class, 'show'])->name('show');
+    });
 
     // Service Pages
     Route::get('/service', [WebsiteController::class, 'service'])->name('website.service');
@@ -86,4 +106,47 @@ Route::group([], function () {
     Route::post('/menu/favorite/{itemId}', [MenuActionController::class, 'toggleFavorite'])->name('website.menu.favorite');
     Route::get('/menu/favorites', [MenuActionController::class, 'getFavorites'])->name('website.menu.favorites.get');
     Route::post('/menu/add-to-cart', [CartController::class, 'addItem'])->name('website.menu.add-to-cart');
+});
+
+// Frontend Order Routes (Auth Required)
+Route::middleware('auth')->group(function() {
+    // Orders
+    Route::get('/my-orders', [OrderController::class, 'myOrders'])->name('website.orders.index');
+    Route::get('/order/{id}', [OrderController::class, 'orderDetails'])->name('website.orders.show');
+    Route::get('/order/{id}/track', [OrderController::class, 'trackOrder'])->name('website.orders.track');
+    Route::get('/order/{id}/status', [OrderController::class, 'getOrderStatus'])->name('website.orders.status');
+    Route::post('/order/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('website.orders.cancel');
+    Route::post('/order/{id}/reorder', [OrderController::class, 'reorder'])->name('website.orders.reorder');
+
+    // Reservations
+    Route::get('/my-reservations', [ReservationController::class, 'myReservations'])->name('website.reservations.index');
+    Route::delete('/reservation/{id}', [ReservationController::class, 'cancel'])->name('website.reservation.cancel');
+});
+
+// Admin Website Orders Routes
+Route::prefix('admin/website-orders')->middleware(['auth:admin'])->name('admin.website-orders.')->group(function() {
+    Route::get('/', [WebsiteOrderController::class, 'index'])->name('index');
+    Route::get('/export', [WebsiteOrderController::class, 'export'])->name('export');
+    Route::get('/{id}', [WebsiteOrderController::class, 'show'])->name('show');
+    Route::get('/{id}/print', [WebsiteOrderController::class, 'printOrder'])->name('print');
+    Route::put('/{id}/status', [WebsiteOrderController::class, 'updateStatus'])->name('status');
+    Route::post('/bulk-status', [WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
+});
+
+// Admin Catering Routes
+Route::prefix('admin/catering')->middleware(['auth:admin'])->name('admin.catering.')->group(function() {
+    // Packages Management
+    Route::get('/packages', [AdminCateringController::class, 'packagesIndex'])->name('packages.index');
+    Route::get('/packages/create', [AdminCateringController::class, 'packagesCreate'])->name('packages.create');
+    Route::post('/packages', [AdminCateringController::class, 'packagesStore'])->name('packages.store');
+    Route::get('/packages/{package}/edit', [AdminCateringController::class, 'packagesEdit'])->name('packages.edit');
+    Route::put('/packages/{package}', [AdminCateringController::class, 'packagesUpdate'])->name('packages.update');
+    Route::delete('/packages/{package}', [AdminCateringController::class, 'packagesDestroy'])->name('packages.destroy');
+
+    // Inquiries Management
+    Route::get('/inquiries', [AdminCateringController::class, 'inquiriesIndex'])->name('inquiries.index');
+    Route::get('/inquiries/export', [AdminCateringController::class, 'inquiriesExport'])->name('inquiries.export');
+    Route::get('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesShow'])->name('inquiries.show');
+    Route::patch('/inquiries/{inquiry}/status', [AdminCateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
+    Route::delete('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
 });

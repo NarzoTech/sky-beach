@@ -70,11 +70,24 @@ class Sale extends Model
     const ORDER_TYPE_DINE_IN = 'dine_in';
     const ORDER_TYPE_TAKE_AWAY = 'take_away';
     const ORDER_TYPE_DELIVERY = 'delivery';
+    const ORDER_TYPE_WEBSITE = 'website';
 
     const ORDER_TYPES = [
         self::ORDER_TYPE_DINE_IN => 'Dine In',
         self::ORDER_TYPE_TAKE_AWAY => 'Take Away',
         self::ORDER_TYPE_DELIVERY => 'Delivery',
+        self::ORDER_TYPE_WEBSITE => 'Website',
+    ];
+
+    const ORDER_STATUSES = [
+        'pending' => 'Pending',
+        'confirmed' => 'Confirmed',
+        'preparing' => 'Preparing',
+        'ready' => 'Ready',
+        'out_for_delivery' => 'Out for Delivery',
+        'delivered' => 'Delivered',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
     ];
 
     protected $casts = [
@@ -198,5 +211,54 @@ class Sale extends Model
     public function isDelivery(): bool
     {
         return $this->order_type === self::ORDER_TYPE_DELIVERY;
+    }
+
+    public function isWebsite(): bool
+    {
+        return $this->order_type === self::ORDER_TYPE_WEBSITE;
+    }
+
+    /**
+     * Get status label attribute
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return self::ORDER_STATUSES[$this->status] ?? ucfirst($this->status);
+    }
+
+    /**
+     * Get status badge class
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match($this->status) {
+            'pending' => 'bg-warning',
+            'confirmed' => 'bg-info',
+            'preparing' => 'bg-primary',
+            'ready' => 'bg-success',
+            'out_for_delivery' => 'bg-info',
+            'delivered', 'completed' => 'bg-success',
+            'cancelled' => 'bg-danger',
+            default => 'bg-secondary',
+        };
+    }
+
+    /**
+     * Scope for website orders
+     */
+    public function scopeWebsiteOrders($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('order_type', self::ORDER_TYPE_WEBSITE)
+              ->orWhereRaw("JSON_EXTRACT(notes, '$.source') = 'website'");
+        });
+    }
+
+    /**
+     * Check if order can be cancelled
+     */
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, ['pending', 'confirmed']);
     }
 }
