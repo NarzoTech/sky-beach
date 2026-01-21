@@ -25,19 +25,10 @@
                     <a class="nav-link {{ request()->routeIs('website.menu*') ? 'active' : '' }}" href="{{ route('website.menu') }}">{{ __('Menu') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('website.about') ? 'active' : '' }}" href="{{ route('website.about') }}">{{ __('About') }}</a>
+                    <a class="nav-link {{ request()->routeIs('website.service*') ? 'active' : '' }}" href="{{ route('website.service') }}">{{ __('Services') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">{{ __('Pages') }} <i class="fal fa-plus"></i></a>
-                    <ul class="droap_menu">
-                        <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
-                        <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
-                        <li><a href="{{ route('website.faq') }}">{{ __('FAQs') }}</a></li>
-                        <li><a href="{{ route('website.reservation.index') }}">{{ __('Reservation') }}</a></li>
-                        <li><a href="{{ route('website.service') }}">{{ __('Services') }}</a></li>
-                        <li><a href="{{ route('website.privacy-policy') }}">{{ __('Privacy Policy') }}</a></li>
-                        <li><a href="{{ route('website.terms-condition') }}">{{ __('Terms & Condition') }}</a></li>
-                    </ul>
+                    <a class="nav-link {{ request()->routeIs('website.about') ? 'active' : '' }}" href="{{ route('website.about') }}">{{ __('About') }}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('website.contact') ? 'active' : '' }}" href="{{ route('website.contact') }}">{{ __('Contact') }}</a>

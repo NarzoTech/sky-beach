@@ -101,5 +101,16 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         
         // Restaurant Menu Items Management
         Route::resource('menu-items', \Modules\Website\app\Http\Controllers\Admin\RestaurantMenuItemController::class)->except('show');
+
+        // Service Contacts Management
+        Route::resource('service-contacts', \Modules\Website\app\Http\Controllers\Admin\ServiceContactController::class)->only(['index', 'show', 'destroy']);
+        Route::put('service-contacts/{serviceContact}/status', [\Modules\Website\app\Http\Controllers\Admin\ServiceContactController::class, 'updateStatus'])->name('service-contacts.update-status');
+
+        // Service FAQs Management
+        Route::resource('service-faqs', \Modules\Website\app\Http\Controllers\Admin\ServiceFaqController::class)->except('show');
+
+        // Contact Messages Management
+        Route::resource('contact-messages', \Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class)->only(['index', 'show', 'destroy']);
+        Route::put('contact-messages/{contactMessage}/status', [\Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class, 'updateStatus'])->name('contact-messages.update-status');
     });
 });

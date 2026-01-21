@@ -17,51 +17,52 @@
             </div>
             <div class="col-lg-2 col-sm-6 col-md-4">
                 <div class="footer_link">
-                    <h3>Our Menu</h3>
+                    <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="#">Breakfast</a></li>
-                        <li><a href="#">Lunch</a></li>
-                        <li><a href="#">Dinner</a></li>
-                        <li><a href="#">Vegetable</a></li>
-                        <li><a href="#">Korean Food</a></li>
+                        <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                        <li><a href="{{ route('website.menu') }}">{{ __('Menu') }}</a></li>
+                        <li><a href="{{ route('website.service') }}">{{ __('Services') }}</a></li>
+                        <li><a href="{{ route('website.about') }}">{{ __('About') }}</a></li>
+                        <li><a href="{{ route('website.contact') }}">{{ __('Contact') }}</a></li>
                     </ul>
                 </div>
             </div>
             <div class="col-lg-2 col-sm-6 col-md-4">
                 <div class="footer_link">
-                    <h3>Resources</h3>
+                    <h3>Pages</h3>
                     <ul>
-                        <li><a href="{{ route('website.index') }}">Home</a></li>
-                        <li><a href="{{ route('website.about') }}">About</a></li>
-                        <li><a href="{{ route('website.contact') }}">Contact</a></li>
-                        <li><a href="{{ route('website.blogs') }}">Blog</a></li>
-                        <li><a href="{{ route('website.service') }}">Services</a></li>
+                        <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
+                        <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
+                        <li><a href="{{ route('website.faq') }}">{{ __('FAQs') }}</a></li>
+                        <li><a href="{{ route('website.reservation.index') }}">{{ __('Reservation') }}</a></li>
+                        <li><a href="{{ route('website.catering.index') }}">{{ __('Catering') }}</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-9">
-                <div class=" footer_post">
-                    <h3>Recent Post</h3>
+            <div class="col-lg-2 col-sm-6 col-md-4">
+                <div class="footer_link">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="{{ route('website.privacy-policy') }}">{{ __('Privacy Policy') }}</a></li>
+                        <li><a href="{{ route('website.terms-condition') }}">{{ __('Terms & Conditions') }}</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-8">
+                <div class="footer_contact">
+                    <h3>Contact Us</h3>
                     <ul>
                         <li>
-                            <div class="img">
-                                <img src="{{ asset('website/images/footer_post_img_1.jpg') }}" alt="post"
-                                    class="img-fluid w-100">
-                            </div>
-                            <div class="text">
-                                <p><i class="far fa-clock"></i> March 24, 2026</p>
-                                <a href="#">THE WONDERS OF THAI CUISINE SWEET, SALTY & SOUR</a>
-                            </div>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>16/A, Romadan House City Tower New York, United States</span>
                         </li>
                         <li>
-                            <div class="img">
-                                <img src="{{ asset('website/images/footer_post_img_2.jpg') }}" alt="post"
-                                    class="img-fluid w-100">
-                            </div>
-                            <div class="text">
-                                <p><i class="far fa-clock"></i> March 24, 2026</p>
-                                <a href="#">PAIRING WINE WITH INDIAN FOOD: TIPS FROM A SOMMELIER</a>
-                            </div>
+                            <i class="fas fa-phone-alt"></i>
+                            <a href="tel:+990123456789">+990 123 456 789</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope"></i>
+                            <a href="mailto:info@ctake.com">info@ctake.com</a>
                         </li>
                     </ul>
                 </div>

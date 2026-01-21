@@ -34,26 +34,42 @@
                     <div class="col-lg-6 wow fadeInRight">
                         <div class="contact_form">
                             <h2>Get In Touch</h2>
+                            @if(session('success'))
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
+                            @if($errors->any())
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <ul class="mb-0">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            @endif
                             <form action="{{ route('website.contact.store') }}" method="POST">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" name="name" placeholder="Your Name" required>
+                                        <input type="text" name="name" placeholder="Your Name" value="{{ old('name') }}" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="email" name="email" placeholder="Your Email" required>
+                                        <input type="email" name="email" placeholder="Your Email" value="{{ old('email') }}" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="text" name="phone" placeholder="Phone Number">
+                                        <input type="text" name="phone" placeholder="Phone Number" value="{{ old('phone') }}">
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="text" name="subject" placeholder="Subject" required>
+                                        <input type="text" name="subject" placeholder="Subject" value="{{ old('subject') }}" required>
                                     </div>
                                     <div class="col-md-12">
-                                        <textarea rows="7" name="message" placeholder="Write Message..." required></textarea>
+                                        <textarea rows="7" name="message" placeholder="Write Message..." required>{{ old('message') }}</textarea>
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="newsletter" value="1"
-                                                id="flexCheckDefault">
+                                                id="flexCheckDefault" {{ old('newsletter') ? 'checked' : '' }}>
                                             <label class="form-check-label" for="flexCheckDefault">
                                                 Subscribe to our newsletter for updates about our services.
                                             </label>

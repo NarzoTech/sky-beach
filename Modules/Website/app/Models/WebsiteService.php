@@ -46,4 +46,14 @@ class WebsiteService extends Model
     {
         return $query->orderBy('order', 'asc');
     }
+
+    public function contacts()
+    {
+        return $this->hasMany(ServiceContact::class, 'service_id');
+    }
+
+    public function faqs()
+    {
+        return $this->hasMany(ServiceFaq::class, 'service_id');
+    }
 }

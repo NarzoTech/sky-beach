@@ -8,6 +8,9 @@ use Modules\Website\app\Models\Blog;
 use Modules\Website\app\Models\Chef;
 use Modules\Website\app\Models\WebsiteService;
 use Modules\Website\app\Models\Faq;
+use Modules\Website\app\Models\ServiceContact;
+use Modules\Website\app\Models\ServiceFaq;
+use Modules\Website\app\Models\ContactMessage;
 use Modules\Website\app\Models\RestaurantMenuItem;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuCategory;
@@ -305,12 +308,39 @@ class WebsiteController extends Controller
             ->take(4)
             ->get();
 
+        // Get service-specific FAQs first, then general FAQs if none exist
+        $serviceFaqs = ServiceFaq::where('service_id', $service->id)
+            ->active()
+            ->ordered()
+            ->get();
+
         $faqs = Faq::active()
             ->ordered()
             ->take(5)
             ->get();
 
-        return view('website::service_details', compact('service', 'relatedServices', 'faqs'));
+        return view('website::service_details', compact('service', 'relatedServices', 'faqs', 'serviceFaqs'));
+    }
+
+    /**
+     * Store a service contact inquiry.
+     */
+    public function storeServiceContact(Request $request)
+    {
+        $validated = $request->validate([
+            'service_id' => 'required|exists:website_services,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'message' => 'required|string',
+        ]);
+
+        ServiceContact::create($validated);
+
+        $service = WebsiteService::find($validated['service_id']);
+
+        return redirect()->route('website.service-details', $service->slug)
+            ->with('success', 'Your inquiry has been submitted successfully. We will get back to you soon.');
     }
 
     /**
@@ -335,5 +365,27 @@ class WebsiteController extends Controller
     public function error()
     {
         return view('website::error');
+    }
+
+    /**
+     * Store a contact message.
+     */
+    public function storeContact(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
+            'newsletter' => 'nullable|boolean',
+        ]);
+
+        $validated['newsletter'] = $request->has('newsletter');
+
+        ContactMessage::create($validated);
+
+        return redirect()->route('website.contact')
+            ->with('success', 'Your message has been sent successfully. We will get back to you soon.');
     }
 }

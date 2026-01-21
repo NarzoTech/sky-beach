@@ -41,6 +41,7 @@ Route::group([], function () {
 
     // Contact Page
     Route::get('/contact', [WebsiteController::class, 'contact'])->name('website.contact');
+    Route::post('/contact', [WebsiteController::class, 'storeContact'])->name('website.contact.store');
 
     // Chefs Page
     Route::get('/chefs', [WebsiteController::class, 'chefs'])->name('website.chefs');
@@ -104,6 +105,7 @@ Route::group([], function () {
     // Service Pages
     Route::get('/service', [WebsiteController::class, 'service'])->name('website.service');
     Route::get('/service/{slug}', [WebsiteController::class, 'serviceDetails'])->name('website.service-details');
+    Route::post('/service-contact', [WebsiteController::class, 'storeServiceContact'])->name('website.service-contact.store');
 
     // Privacy Policy & Terms
     Route::get('/privacy-policy', [WebsiteController::class, 'privacyPolicy'])->name('website.privacy-policy');

@@ -206,6 +206,23 @@
                                 </a>
                             </li>
                         @endadminCan
+                        @adminCan('restaurant.service.view')
+                            <li class="menu-item {{ request()->is('admin/restaurant/service-faqs*') ? 'active' : '' }}">
+                                <a class="menu-link" href="{{ route('admin.restaurant.service-faqs.index') }}">
+                                    {{ __('Service FAQs') }}
+                                </a>
+                            </li>
+                            <li class="menu-item {{ request()->is('admin/restaurant/service-contacts*') ? 'active' : '' }}">
+                                <a class="menu-link" href="{{ route('admin.restaurant.service-contacts.index') }}">
+                                    {{ __('Service Inquiries') }}
+                                </a>
+                            </li>
+                        @endadminCan
+                        <li class="menu-item {{ request()->is('admin/restaurant/contact-messages*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.restaurant.contact-messages.index') }}">
+                                {{ __('Contact Messages') }}
+                            </a>
+                        </li>
                         @adminCan('restaurant.menu_item.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/menu-items*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.menu-items.index') }}">

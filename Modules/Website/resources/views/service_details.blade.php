@@ -60,40 +60,101 @@
                             @endif
                         </div>
 
-                        @if($faqs->count() > 0)
+                        @if($serviceFaqs->count() > 0 || $faqs->count() > 0)
                         <div class="accordion faq_accordion service_accordion" id="serviceFaqAccordion">
                             <h3>Frequently Asked Questions</h3>
-                            @foreach($faqs as $index => $faq)
+                            @php $faqIndex = 0; @endphp
+
+                            {{-- Service-specific FAQs --}}
+                            @foreach($serviceFaqs as $faq)
                             <div class="accordion-item">
-                                <h2 class="accordion-header" id="faqHeading{{ $index }}">
-                                    <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button"
+                                <h2 class="accordion-header" id="faqHeading{{ $faqIndex }}">
+                                    <button class="accordion-button {{ $faqIndex > 0 ? 'collapsed' : '' }}" type="button"
                                         data-bs-toggle="collapse"
-                                        data-bs-target="#faqCollapse{{ $index }}"
-                                        aria-expanded="{{ $index == 0 ? 'true' : 'false' }}"
-                                        aria-controls="faqCollapse{{ $index }}">
+                                        data-bs-target="#faqCollapse{{ $faqIndex }}"
+                                        aria-expanded="{{ $faqIndex == 0 ? 'true' : 'false' }}"
+                                        aria-controls="faqCollapse{{ $faqIndex }}">
                                         {{ $faq->question }}
                                     </button>
                                 </h2>
-                                <div id="faqCollapse{{ $index }}"
-                                    class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}"
-                                    aria-labelledby="faqHeading{{ $index }}">
+                                <div id="faqCollapse{{ $faqIndex }}"
+                                    class="accordion-collapse collapse {{ $faqIndex == 0 ? 'show' : '' }}"
+                                    aria-labelledby="faqHeading{{ $faqIndex }}">
                                     <div class="accordion-body">
                                         {!! $faq->answer !!}
                                     </div>
                                 </div>
                             </div>
+                            @php $faqIndex++; @endphp
                             @endforeach
+
+                            {{-- General FAQs (shown if no service-specific FAQs) --}}
+                            @if($serviceFaqs->count() == 0)
+                            @foreach($faqs as $faq)
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqHeading{{ $faqIndex }}">
+                                    <button class="accordion-button {{ $faqIndex > 0 ? 'collapsed' : '' }}" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#faqCollapse{{ $faqIndex }}"
+                                        aria-expanded="{{ $faqIndex == 0 ? 'true' : 'false' }}"
+                                        aria-controls="faqCollapse{{ $faqIndex }}">
+                                        {{ $faq->question }}
+                                    </button>
+                                </h2>
+                                <div id="faqCollapse{{ $faqIndex }}"
+                                    class="accordion-collapse collapse {{ $faqIndex == 0 ? 'show' : '' }}"
+                                    aria-labelledby="faqHeading{{ $faqIndex }}">
+                                    <div class="accordion-body">
+                                        {!! $faq->answer !!}
+                                    </div>
+                                </div>
+                            </div>
+                            @php $faqIndex++; @endphp
+                            @endforeach
+                            @endif
                         </div>
                         @endif
                     </div>
 
                     <div class="col-lg-4 col-md-8 wow fadeInRight">
                         <div class="blog_sidebar">
-                            <div class="sidebar_wizard sidebar_search">
-                                <h2>Search Services</h2>
-                                <form action="{{ route('website.service') }}" method="GET">
-                                    <input type="text" name="search" placeholder="Search here..." value="{{ request('search') }}">
-                                    <button type="submit"><i class="far fa-search"></i></button>
+                            <!-- Contact Form for Service -->
+                            <div class="sidebar_wizard contact_sidebar mb-4">
+                                <h2>Inquire About This Service</h2>
+                                @if(session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        {{ session('success') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                @endif
+                                <form action="{{ route('website.service-contact.store') }}" method="POST" class="service_contact_form">
+                                    @csrf
+                                    <input type="hidden" name="service_id" value="{{ $service->id }}">
+                                    <div class="mb-3">
+                                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="Your Name *" value="{{ old('name') }}" required>
+                                        @error('name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" placeholder="Your Email *" value="{{ old('email') }}" required>
+                                        @error('email')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Phone Number" value="{{ old('phone') }}">
+                                        @error('phone')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="4" placeholder="Your Message *" required>{{ old('message') }}</textarea>
+                                        @error('message')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <button type="submit" class="common_btn w-100">Send Inquiry</button>
                                 </form>
                             </div>
 
