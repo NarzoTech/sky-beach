@@ -126,30 +126,30 @@
                                                     @endif
                                                 </td>
                                                 <td>{{ $item->quantity }}</td>
-                                                <td>TK {{ number_format($item->sub_total, 2) }}</td>
+                                                <td>{{ currency($item->sub_total) }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>
                                         <tfoot>
                                             <tr>
                                                 <td colspan="2" class="text-end"><strong>{{ __('Subtotal') }}:</strong></td>
-                                                <td><strong>TK {{ number_format($order->total_price, 2) }}</strong></td>
+                                                <td><strong>{{ currency($order->total_price) }}</strong></td>
                                             </tr>
                                             @if($order->shipping_cost > 0)
                                             <tr>
                                                 <td colspan="2" class="text-end">{{ __('Delivery Fee') }}:</td>
-                                                <td>TK {{ number_format($order->shipping_cost, 2) }}</td>
+                                                <td>{{ currency($order->shipping_cost) }}</td>
                                             </tr>
                                             @endif
                                             @if($order->total_tax > 0)
                                             <tr>
                                                 <td colspan="2" class="text-end">{{ __('Tax') }}:</td>
-                                                <td>TK {{ number_format($order->total_tax, 2) }}</td>
+                                                <td>{{ currency($order->total_tax) }}</td>
                                             </tr>
                                             @endif
                                             <tr class="total_row">
                                                 <td colspan="2" class="text-end"><strong>{{ __('Total') }}:</strong></td>
-                                                <td><strong>TK {{ number_format($order->grand_total, 2) }}</strong></td>
+                                                <td><strong>{{ currency($order->grand_total) }}</strong></td>
                                             </tr>
                                         </tfoot>
                                     </table>

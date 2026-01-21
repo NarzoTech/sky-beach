@@ -26,20 +26,5 @@
         @if($chef->bio)
             <p class="bio">{{ Str::limit($chef->bio, 120) }}</p>
         @endif
-        
-        <ul class="social_links">
-            @if($chef->facebook)
-                <li><a href="{{ $chef->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-            @endif
-            @if($chef->twitter)
-                <li><a href="{{ $chef->twitter }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
-            @endif
-            @if($chef->instagram)
-                <li><a href="{{ $chef->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
-            @endif
-            @if($chef->linkedin)
-                <li><a href="{{ $chef->linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
-            @endif
-        </ul>
     </div>
 </div>

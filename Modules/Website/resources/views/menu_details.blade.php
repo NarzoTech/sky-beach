@@ -81,7 +81,7 @@
                                 </a>
                             @endif
 
-                            <p class="price" id="displayPrice">${{ number_format($menuItem->base_price, 2) }}</p>
+                            <p class="price" id="displayPrice">{{ currency($menuItem->base_price) }}</p>
 
                             @if($menuItem->short_description)
                                 <div class="details_short_description">
@@ -123,9 +123,9 @@
                                             <label class="form-check-label" for="variant_{{ $variant->id }}">
                                                 {{ $variant->name }}
                                                 @if($variant->price_adjustment > 0)
-                                                    <span>+ ${{ number_format($variant->price_adjustment, 2) }}</span>
+                                                    <span>+ {{ currency($variant->price_adjustment) }}</span>
                                                 @elseif($variant->price_adjustment < 0)
-                                                    <span>- ${{ number_format(abs($variant->price_adjustment), 2) }}</span>
+                                                    <span>- {{ currency(abs($variant->price_adjustment)) }}</span>
                                                 @endif
                                             </label>
                                         </div>
@@ -146,7 +146,7 @@
                                             <label class="form-check-label" for="addon_{{ $addon->id }}">
                                                 {{ $addon->name }}
                                                 @if($addon->price > 0)
-                                                    <span>+ ${{ number_format($addon->price, 2) }}</span>
+                                                    <span>+ {{ currency($addon->price) }}</span>
                                                 @endif
                                             </label>
                                         </div>
@@ -162,7 +162,7 @@
                                         <input type="text" id="quantity" value="1" readonly>
                                         <button type="button" class="btn btn-success" id="increaseQty"><i class="fal fa-plus"></i></button>
                                     </div>
-                                    <h3 id="totalPrice">${{ number_format($menuItem->base_price, 2) }}</h3>
+                                    <h3 id="totalPrice">{{ currency($menuItem->base_price) }}</h3>
                                 </div>
                             </div>
 
@@ -306,7 +306,7 @@
                                         @endif
                                         <div class="d-flex flex-wrap align-items-center">
                                             <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('View') }}</a>
-                                            <h3>${{ number_format($item->base_price, 2) }}</h3>
+                                            <h3>{{ currency($item->base_price) }}</h3>
                                         </div>
                                     </div>
                                 </div>
@@ -355,8 +355,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateDisplay() {
-        displayPrice.textContent = '$' + currentPrice.toFixed(2);
-        totalPrice.textContent = '$' + (currentPrice * quantity).toFixed(2);
+        displayPrice.textContent = '{{ currency_icon() }}' + currentPrice.toFixed(2);
+        totalPrice.textContent = '{{ currency_icon() }}' + (currentPrice * quantity).toFixed(2);
     }
 
     // Quantity controls

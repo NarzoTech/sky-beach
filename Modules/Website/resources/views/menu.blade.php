@@ -48,7 +48,7 @@
                                                data-slider-value="[{{ $minPrice ?? 0 }},{{ $maxPrice ?? 100 }}]" />
                                     </div>
                                     <div class="price-display mt-3 text-center">
-                                        <span style="color: #333;">Price: $<span id="min-price">{{ $minPrice ?? 0 }}</span> - $<span id="max-price">{{ $maxPrice ?? 100 }}</span></span>
+                                        <span style="color: #333;">Price: {{ currency_icon() }}<span id="min-price">{{ $minPrice ?? 0 }}</span> - {{ currency_icon() }}<span id="max-price">{{ $maxPrice ?? 100 }}</span></span>
                                         <button type="button" class="btn btn-sm btn-primary mt-2 w-100" onclick="applyPriceFilter()">Apply Filter</button>
                                     </div>
                                 </div>
@@ -117,7 +117,7 @@
                                             <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>
                                             <div class="d-flex flex-wrap align-items-center">
                                                 <a class="add_to_cart" href="#" onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">Add to Cart</a>
-                                                <h3>${{ number_format($item->base_price, 2) }}</h3>
+                                                <h3>{{ currency($item->base_price) }}</h3>
                                             </div>
                                         </div>
                                     </div>

@@ -33,10 +33,10 @@
         <div class="menu_bottom d-flex align-items-center justify-content-between">
             <div class="menu_price">
                 @if($item->discount_price)
-                    <del class="old_price">${{ number_format($item->price, 2) }}</del>
-                    <span class="new_price">${{ number_format($item->discount_price, 2) }}</span>
+                    <del class="old_price">{{ currency($item->price) }}</del>
+                    <span class="new_price">{{ currency($item->discount_price) }}</span>
                 @else
-                    <span class="price">${{ number_format($item->price, 2) }}</span>
+                    <span class="price">{{ currency($item->price) }}</span>
                 @endif
             </div>
             <a class="cart_btn" href="#"><i class="far fa-shopping-basket"></i></a>

@@ -169,7 +169,7 @@
                                                 @endif
                                             </div>
                                             <div class="item_price">
-                                                TK {{ number_format($item->subtotal, 2) }}
+                                                {{ currency($item->subtotal) }}
                                             </div>
                                         </div>
                                     </div>
@@ -178,10 +178,10 @@
 
                                 <div class="cart_summery">
                                     <h6>{{ __('Order Summary') }}</h6>
-                                    <p>{{ __('Subtotal') }}: <span>TK {{ number_format($cartTotal, 2) }}</span></p>
-                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">TK 0.00</span></p>
-                                    <p>{{ __('Tax') }}: <span>TK 0.00</span></p>
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">TK {{ number_format($cartTotal, 2) }}</span></p>
+                                    <p>{{ __('Subtotal') }}: <span>{{ currency($cartTotal) }}</span></p>
+                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">{{ currency(0) }}</span></p>
+                                    <p>{{ __('Tax') }}: <span>{{ currency(0) }}</span></p>
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal) }}</span></p>
 
                                     <button type="submit" class="common_btn w-100" id="place-order-btn" style="background: linear-gradient(135deg, #e2136e 0%, #d1105d 100%);">
                                         <i class="fas fa-mobile-alt me-2"></i>{{ __('Pay with bKash') }}

@@ -87,7 +87,7 @@
                     <div class="text">
                         <h5>{{ $cartItem->menuItem->name ?? __('Item') }}</h5>
                         <p>
-                            ${{ number_format($cartItem->unit_price, 2) }}
+                            {{ currency($cartItem->unit_price) }}
                             <span>{{ __('Qty') }}: {{ $cartItem->quantity }}</span>
                         </p>
                         @if($cartItem->variant_name)
@@ -109,7 +109,7 @@
                 @endforelse
             </ul>
             <div class="mini_cart_button" id="mini-cart-footer" style="{{ $headerCartCount == 0 ? 'display:none;' : '' }}">
-                <h6>{{ __('Total') }} <span id="mini-cart-total">${{ number_format($headerCartTotal, 2) }}</span></h6>
+                <h6>{{ __('Total') }} <span id="mini-cart-total">{{ currency($headerCartTotal) }}</span></h6>
                 <a class="common_btn" href="{{ route('website.cart.index') }}">{{ __('View Cart') }}</a>
                 <a class="common_btn" href="{{ route('website.checkout.index') }}">{{ __('Checkout') }}</a>
             </div>
@@ -138,7 +138,7 @@
                 // Update counts
                 updateCartBadge(data.cart_count);
                 document.getElementById('mini-cart-count').textContent = '(' + data.cart_count + ')';
-                document.getElementById('mini-cart-total').textContent = '$' + data.cart_total.toFixed(2);
+                document.getElementById('mini-cart-total').textContent = '{{ currency_icon() }}' + data.cart_total.toFixed(2);
 
                 // Show empty message if cart is empty
                 if (data.cart_count === 0) {

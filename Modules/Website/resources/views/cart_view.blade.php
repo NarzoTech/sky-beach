@@ -85,7 +85,7 @@
                                                 </td>
 
                                                 <td class="pro_tk">
-                                                    <h6>${{ number_format($item->unit_price, 2) }}</h6>
+                                                    <h6>{{ currency($item->unit_price) }}</h6>
                                                 </td>
 
                                                 <td class="pro_select">
@@ -101,7 +101,7 @@
                                                 </td>
 
                                                 <td class="pro_tk">
-                                                    <h6 class="item-subtotal">${{ number_format($item->subtotal, 2) }}</h6>
+                                                    <h6 class="item-subtotal">{{ currency($item->subtotal) }}</h6>
                                                 </td>
 
                                                 <td class="pro_icon">
@@ -128,10 +128,10 @@
                             <div class="col-xl-4 col-md-6 col-lg-5">
                                 <div class="cart_summery">
                                     <h6>{{ __('Cart Summary') }} (<span id="cart-count">{{ $cartCount }}</span> {{ __('items') }})</h6>
-                                    <p>{{ __('Subtotal') }}: <span id="cart-subtotal">${{ number_format($cartTotal, 2) }}</span></p>
-                                    <p>{{ __('Delivery') }}: <span id="cart-delivery">$0.00</span></p>
-                                    <p id="discount-row" style="display: none;">{{ __('Discount') }}: <span id="cart-discount">$0.00</span></p>
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="cart-total">${{ number_format($cartTotal, 2) }}</span></p>
+                                    <p>{{ __('Subtotal') }}: <span id="cart-subtotal">{{ currency($cartTotal) }}</span></p>
+                                    <p>{{ __('Delivery') }}: <span id="cart-delivery">{{ currency(0) }}</span></p>
+                                    <p id="discount-row" style="display: none;">{{ __('Discount') }}: <span id="cart-discount">{{ currency(0) }}</span></p>
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="cart-total">{{ currency($cartTotal) }}</span></p>
                                     <a class="common_btn" href="{{ route('website.checkout.index') }}">{{ __('Proceed to Checkout') }}</a>
                                 </div>
                             </div>
@@ -177,7 +177,7 @@
                     // Update quantity input
                     const row = document.querySelector(`tr[data-cart-item-id="${itemId}"]`);
                     row.querySelector('.cart-qty-input').value = newQuantity;
-                    row.querySelector('.item-subtotal').textContent = '$' + data.item.subtotal.toFixed(2);
+                    row.querySelector('.item-subtotal').textContent = '{{ currency_icon() }}' + data.item.subtotal.toFixed(2);
 
                     // Update buttons
                     const minusBtn = row.querySelector('.quentity_btn button:first-child');
@@ -285,8 +285,8 @@
                 showToast(data.message, 'success');
                 // Update discount display
                 document.getElementById('discount-row').style.display = 'block';
-                document.getElementById('cart-discount').textContent = '-$' + data.discount.toFixed(2);
-                document.getElementById('cart-total').textContent = '$' + data.new_total.toFixed(2);
+                document.getElementById('cart-discount').textContent = '-{{ currency_icon() }}' + data.discount.toFixed(2);
+                document.getElementById('cart-total').textContent = '{{ currency_icon() }}' + data.new_total.toFixed(2);
             } else {
                 showToast(data.message || 'Invalid coupon code', 'error');
             }
@@ -299,8 +299,8 @@
 
     function updateCartSummary(count, total) {
         document.getElementById('cart-count').textContent = count;
-        document.getElementById('cart-subtotal').textContent = '$' + total.toFixed(2);
-        document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('cart-subtotal').textContent = '{{ currency_icon() }}' + total.toFixed(2);
+        document.getElementById('cart-total').textContent = '{{ currency_icon() }}' + total.toFixed(2);
     }
 
     function updateCartBadge(count) {

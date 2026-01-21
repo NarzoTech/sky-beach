@@ -46,18 +46,6 @@
                             @else
                                 <p>No detailed description available for this service.</p>
                             @endif
-
-                            @if($service->price)
-                                <div class="service_price mt-4">
-                                    <h4>Price: <span class="text-primary">${{ number_format($service->price, 2) }}</span></h4>
-                                </div>
-                            @endif
-
-                            @if($service->duration)
-                                <div class="service_duration mt-2">
-                                    <p><strong>Duration:</strong> {{ $service->duration }} minutes</p>
-                                </div>
-                            @endif
                         </div>
 
                         @if($serviceFaqs->count() > 0 || $faqs->count() > 0)
