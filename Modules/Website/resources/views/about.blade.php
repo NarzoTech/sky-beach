@@ -116,66 +116,83 @@
                     </div>
                     <div class="col-lg-6 wow fadeInRight">
                         <div class="reservation_form">
-                            <h2>ONLINE RESERVATION</h2>
-                            <form action="{{ route('website.reservation.store') }}" method="POST">
+                            <h2>{{ __('ONLINE RESERVATION') }}</h2>
+                            <div id="aboutFormAlerts"></div>
+                            <form id="aboutReservationForm" action="{{ route('website.reservation.store') }}" method="POST">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="text" name="name" placeholder="Your Name" required>
+                                            <input type="text" name="name" placeholder="{{ __('Your Name') }} *" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="email" name="email" placeholder="Your Email" required>
+                                            <input type="tel" name="phone" id="aboutPhone" placeholder="01XXX-XXXXXX *"
+                                                   required maxlength="12" pattern="01[3-9][0-9]{2}-?[0-9]{6}"
+                                                   title="{{ __('Enter a valid Bangladesh mobile number (e.g., 01712-345678)') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="reservation_form_input">
+                                            <input type="email" name="email" placeholder="{{ __('Your Email (Optional)') }}">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="text" name="phone" placeholder="Phone" required>
+                                            <input type="date" name="booking_date" min="{{ date('Y-m-d') }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="date" name="date" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="reservation_form_input">
-                                            <select class="select_2" name="time" required>
-                                                <option value="">Select Time</option>
-                                                <option value="08:00-09:00">08:00 AM to 09:00 AM</option>
-                                                <option value="09:00-10:00">09:00 AM to 10:00 AM</option>
-                                                <option value="11:00-12:00">11:00 AM to 12:00 PM</option>
-                                                <option value="14:00-15:00">02:00 PM to 03:00 PM</option>
-                                                <option value="17:00-18:00">05:00 PM to 06:00 PM</option>
+                                            <select class="select_2" name="booking_time" required>
+                                                <option value="">{{ __('Select Time') }} *</option>
+                                                <option value="10:00">10:00 AM</option>
+                                                <option value="10:30">10:30 AM</option>
+                                                <option value="11:00">11:00 AM</option>
+                                                <option value="11:30">11:30 AM</option>
+                                                <option value="12:00">12:00 PM</option>
+                                                <option value="12:30">12:30 PM</option>
+                                                <option value="13:00">01:00 PM</option>
+                                                <option value="13:30">01:30 PM</option>
+                                                <option value="14:00">02:00 PM</option>
+                                                <option value="14:30">02:30 PM</option>
+                                                <option value="15:00">03:00 PM</option>
+                                                <option value="15:30">03:30 PM</option>
+                                                <option value="16:00">04:00 PM</option>
+                                                <option value="16:30">04:30 PM</option>
+                                                <option value="17:00">05:00 PM</option>
+                                                <option value="17:30">05:30 PM</option>
+                                                <option value="18:00">06:00 PM</option>
+                                                <option value="18:30">06:30 PM</option>
+                                                <option value="19:00">07:00 PM</option>
+                                                <option value="19:30">07:30 PM</option>
+                                                <option value="20:00">08:00 PM</option>
+                                                <option value="20:30">08:30 PM</option>
+                                                <option value="21:00">09:00 PM</option>
+                                                <option value="21:30">09:30 PM</option>
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="reservation_form_input">
-                                            <select class="select_2" name="guests" required>
-                                                <option value="">Select Person</option>
-                                                <option value="1">1 Person</option>
-                                                <option value="2">2 Persons</option>
-                                                <option value="3">3 Persons</option>
-                                                <option value="4">4 Persons</option>
-                                                <option value="5">5 Persons</option>
-                                                <option value="6">6+ Persons</option>
+                                            <select class="select_2" name="number_of_guests" required>
+                                                <option value="">{{ __('Number of Guests') }} *</option>
+                                                @for($i = 1; $i <= 20; $i++)
+                                                    <option value="{{ $i }}">{{ $i }} {{ $i === 1 ? __('Person') : __('Persons') }}</option>
+                                                @endfor
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="reservation_form_input">
-                                            <textarea rows="7" name="message" placeholder="Write Message..."></textarea>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="newsletter" value="1"
-                                                    id="flexCheckDefault">
-                                                <label class="form-check-label" for="flexCheckDefault">
-                                                    Subscribe to our newsletter for updates about our services.
-                                                </label>
-                                            </div>
-                                            <button class="common_btn" type="submit">Make A Reservation</button>
+                                            <textarea rows="5" name="special_request" placeholder="{{ __('Special Requests (dietary requirements, occasion, etc.)') }}"></textarea>
+                                            <button class="common_btn" type="submit" id="aboutSubmitBtn">
+                                                <span class="btn-text">{{ __('Make A Reservation') }}</span>
+                                                <span class="btn-loading">
+                                                    <i class="fas fa-spinner fa-spin"></i> {{ __('Submitting...') }}
+                                                </span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -392,3 +409,96 @@
         </section>
         <!--==========ABOUT US PAGE END===========-->
 @endsection
+
+@push('styles')
+<style>
+    .common_btn .btn-loading {
+        display: none;
+    }
+    .common_btn.loading .btn-text {
+        display: none;
+    }
+    .common_btn.loading .btn-loading {
+        display: inline;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bangladesh phone number formatting
+    const phoneInput = document.getElementById('aboutPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) {
+                value = value.slice(0, 11);
+            }
+            if (value.length > 5) {
+                value = value.slice(0, 5) + '-' + value.slice(5);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Form submission
+    const form = document.getElementById('aboutReservationForm');
+    const submitBtn = document.getElementById('aboutSubmitBtn');
+    const formAlerts = document.getElementById('aboutFormAlerts');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            formAlerts.innerHTML = '';
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => {
+                return response.json().then(data => {
+                    if (!response.ok) {
+                        if (data.errors) {
+                            const errorMessages = Object.values(data.errors).flat().join('<br>');
+                            throw new Error(errorMessages);
+                        }
+                        throw new Error(data.message || '{{ __("An error occurred. Please try again.") }}');
+                    }
+                    return data;
+                });
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        ${data.message || '{{ __("An error occurred. Please try again.") }}'}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`;
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${error.message || '{{ __("An error occurred. Please try again.") }}'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>`;
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            });
+        });
+    }
+});
+</script>
+@endpush

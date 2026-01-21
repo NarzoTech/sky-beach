@@ -24,5 +24,6 @@
     "Ingredient": true,
     "StockAdjustment": true,
     "TableManagement": true,
-    "Membership": true
+    "Membership": true,
+    "CMS": true
 }
