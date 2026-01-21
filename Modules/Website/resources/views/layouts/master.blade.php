@@ -25,16 +25,23 @@
 </head>
 
 <body>
-    {{-- Header Navigation --}}
+    {{-- Header Navigation (Outside smooth-wrapper) --}}
     @include('website::partials.header')
 
-    {{-- Main Content --}}
-    @yield('content')
+    {{-- Smooth Scroll Wrapper --}}
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
 
-    {{-- Footer --}}
-    @include('website::partials.footer')
+            {{-- Main Content --}}
+            @yield('content')
 
-    {{-- Scroll Button --}}
+            {{-- Footer (Inside smooth-content) --}}
+            @include('website::partials.footer')
+
+        </div>
+    </div>
+
+    {{-- Scroll Button (Outside smooth-wrapper) --}}
     <div class="progress-wrap">
         <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
             <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />

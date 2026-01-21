@@ -3,9 +3,6 @@
 @section('title', 'CTAKE - Food & Restaurant')
 
 @section('content')
-    <div id="smooth-wrapper">
-        <div id="smooth-content">
-
             <!--==========BANNER START===========-->
             <section class="banner" style="background: url({{ asset('website/images/banner_bg.jpg') }});">
                 <div class="container">
@@ -464,7 +461,4 @@
                 </div>
             </section>
             <!--==========BLOG END===========-->
-
-        </div>
-    </div>
 @endsection

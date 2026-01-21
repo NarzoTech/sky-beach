@@ -3,9 +3,6 @@
 @section('title', 'Blogs - CTAKE')
 
 @section('content')
-<div id="smooth-wrapper">
-    <div id="smooth-content">
-
         <!--==========BREADCRUMB AREA START===========-->
         <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
@@ -77,7 +74,4 @@
             </div>
         </section>
         <!--==========BLOGS END===========-->
-
-    </div>
-</div>
 @endsection

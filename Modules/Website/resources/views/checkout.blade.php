@@ -3,9 +3,6 @@
 @section('title', __('Checkout') . ' - ' . config('app.name'))
 
 @section('content')
-<div id="smooth-wrapper">
-    <div id="smooth-content">
-
         <!--==========BREADCRUMB AREA START===========-->
         <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
@@ -81,8 +78,10 @@
                                     </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <input type="tel" name="phone" placeholder="{{ __('Phone Number') }} *"
-                                                value="{{ $user->phone ?? old('phone') }}" required>
+                                            <input type="tel" name="phone" id="phone" placeholder="01XXX-XXXXXX *"
+                                                value="{{ $user->phone ?? old('phone') }}" required
+                                                maxlength="12" pattern="01[3-9][0-9]{2}-?[0-9]{6}"
+                                                title="{{ __('Enter a valid Bangladesh mobile number (e.g., 01712-345678)') }}">
                                             @error('phone')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
@@ -190,9 +189,6 @@
             </div>
         </section>
         <!--==========CHECKOUT END===========-->
-
-    </div>
-</div>
 @endsection
 
 @push('styles')
@@ -319,6 +315,34 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Bangladesh phone number formatting
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+
+                // Limit to 11 digits
+                if (value.length > 11) {
+                    value = value.slice(0, 11);
+                }
+
+                // Format as 01XXX-XXXXXX
+                if (value.length > 5) {
+                    value = value.slice(0, 5) + '-' + value.slice(5);
+                }
+
+                e.target.value = value;
+            });
+
+            // Format existing value on page load
+            if (phoneInput.value) {
+                let value = phoneInput.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                if (value.length > 5) value = value.slice(0, 5) + '-' + value.slice(5);
+                phoneInput.value = value;
+            }
+        }
+
         const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
         const deliverySection = document.getElementById('delivery-address-section');
         const deliveryFeeRow = document.getElementById('delivery-fee-row');

@@ -3,9 +3,6 @@
 @section('title', __('My Orders') . ' - ' . config('app.name'))
 
 @section('content')
-<div id="smooth-wrapper">
-    <div id="smooth-content">
-
         <!--==========BREADCRUMB AREA START===========-->
         <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
@@ -185,9 +182,6 @@
                 </div>
             </div>
         </div>
-
-    </div>
-</div>
 @endsection
 
 @push('styles')

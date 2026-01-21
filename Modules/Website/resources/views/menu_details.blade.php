@@ -3,9 +3,6 @@
 @section('title', $menuItem->name . ' - ' . config('app.name'))
 
 @section('content')
-<div id="smooth-wrapper">
-    <div id="smooth-content">
-
         <!--==========BREADCRUMB AREA START===========-->
         <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
@@ -344,9 +341,6 @@
             </section>
         @endif
         <!--==========RELATED MENU END===========-->
-
-    </div>
-</div>
 @endsection
 
 @push('scripts')
