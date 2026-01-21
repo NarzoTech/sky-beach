@@ -32,7 +32,7 @@
                                     <h2>Search</h2>
                                     <form method="GET" action="{{ route('website.menu') }}" id="menu-search-form">
                                         <input type="text" name="search" placeholder="Search here..." value="{{ $search ?? '' }}">
-                                        <input type="hidden" name="category" value="{{ $categoryId ?? '' }}">
+                                        <input type="hidden" name="category" value="{{ $categorySlug ?? '' }}">
                                         <input type="hidden" name="min_price" id="hidden_min_price" value="{{ $minPrice ?? 0 }}">
                                         <input type="hidden" name="max_price" id="hidden_max_price" value="{{ $maxPrice ?? 100 }}">
                                         <button type="submit"><i class="far fa-search"></i></button>
@@ -56,15 +56,15 @@
                                     <h2>Categories</h2>
                                     <ul>
                                         <li>
-                                            <a href="{{ route('website.menu') }}" class="{{ !$categoryId ? 'active' : '' }}" style="{{ !$categoryId ? 'color: #B99D6B; font-weight: 600;' : '' }}">
+                                            <a href="{{ route('website.menu') }}" class="{{ !$categorySlug ? 'active' : '' }}" style="{{ !$categorySlug ? 'color: #B99D6B; font-weight: 600;' : '' }}">
                                                 All Items <span>({{ $menuItems->total() }})</span>
                                             </a>
                                         </li>
                                         @foreach($categories as $category)
                                             <li>
-                                                <a href="{{ route('website.menu', ['category' => $category->id, 'search' => $search ?? '', 'min_price' => $minPrice ?? 0, 'max_price' => $maxPrice ?? 100]) }}" 
-                                                   class="{{ $categoryId == $category->id ? 'active' : '' }}"
-                                                   style="{{ $categoryId == $category->id ? 'color: #B99D6B; font-weight: 600;' : '' }}">
+                                                <a href="{{ route('website.menu', ['category' => $category->slug, 'search' => $search ?? '', 'min_price' => $minPrice ?? 0, 'max_price' => $maxPrice ?? 100]) }}"
+                                                   class="{{ $categorySlug == $category->slug ? 'active' : '' }}"
+                                                   style="{{ $categorySlug == $category->slug ? 'color: #B99D6B; font-weight: 600;' : '' }}">
                                                     {{ $category->name }} <span>({{ $category->active_menu_items_count }})</span>
                                                 </a>
                                             </li>
@@ -111,7 +111,7 @@
                                         </div>
                                         <div class="single_menu_text">
                                             @if($item->category)
-                                            <a class="category" href="{{ route('website.menu', ['category' => $item->category_id]) }}">{{ $item->category->name }}</a>
+                                            <a class="category" href="{{ route('website.menu', ['category' => $item->category->slug]) }}">{{ $item->category->name }}</a>
                                             @endif
                                             <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
                                             <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>

@@ -71,26 +71,29 @@ class WebsiteController extends Controller
     public function menu(Request $request)
     {
         // Get filter parameters
-        $categoryId = $request->get('category');
+        $categorySlug = $request->get('category');
         $search = $request->get('search');
         $minPrice = $request->get('min_price', 0);
         $maxPrice = $request->get('max_price', 100);
         $sortBy = $request->get('sort_by', 'default'); // default, price_low, price_high, name_asc, name_desc, popular
-        
+
         // Get all active categories with item counts
         $categories = MenuCategory::active()
             ->ordered()
             ->withCount(['activeMenuItems'])
             ->get();
-        
+
         // Build query for menu items
         $query = MenuItem::with(['category', 'variants', 'addons'])
             ->where('status', 1)
             ->where('is_available', 1);
-        
-        // Apply category filter
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
+
+        // Apply category filter by slug
+        if ($categorySlug) {
+            $category = MenuCategory::where('slug', $categorySlug)->first();
+            if ($category) {
+                $query->where('category_id', $category->id);
+            }
         }
         
         // Apply search filter
@@ -138,7 +141,7 @@ class WebsiteController extends Controller
             ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
             ->first();
         
-        return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categoryId', 'search', 'minPrice', 'maxPrice', 'sortBy'));
+        return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categorySlug', 'search', 'minPrice', 'maxPrice', 'sortBy'));
     }
 
     /**

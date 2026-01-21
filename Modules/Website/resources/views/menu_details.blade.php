@@ -14,7 +14,7 @@
                                 <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
                                 <li><a href="{{ route('website.menu') }}">{{ __('Menu') }}</a></li>
                                 @if($menuItem->category)
-                                    <li><a href="{{ route('website.menu', ['category' => $menuItem->category_id]) }}">{{ $menuItem->category->name }}</a></li>
+                                    <li><a href="{{ route('website.menu', ['category' => $menuItem->category->slug]) }}">{{ $menuItem->category->name }}</a></li>
                                 @endif
                                 <li><a href="#">{{ $menuItem->name }}</a></li>
                             </ul>
@@ -76,7 +76,7 @@
                             <h2 class="details_title">{{ $menuItem->name }}</h2>
 
                             @if($menuItem->category)
-                                <a href="{{ route('website.menu', ['category' => $menuItem->category_id]) }}" class="badge bg-secondary mb-2">
+                                <a href="{{ route('website.menu', ['category' => $menuItem->category->slug]) }}" class="badge bg-secondary mb-2">
                                     {{ $menuItem->category->name }}
                                 </a>
                             @endif
@@ -298,7 +298,7 @@
                                     </div>
                                     <div class="single_menu_text">
                                         @if($item->category)
-                                            <a class="category" href="{{ route('website.menu', ['category' => $item->category_id]) }}">{{ $item->category->name }}</a>
+                                            <a class="category" href="{{ route('website.menu', ['category' => $item->category->slug]) }}">{{ $item->category->name }}</a>
                                         @endif
                                         <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
                                         @if($item->short_description)
