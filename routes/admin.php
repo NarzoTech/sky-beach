@@ -113,4 +113,52 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::resource('contact-messages', \Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class)->only(['index', 'show', 'destroy']);
         Route::put('contact-messages/{contactMessage}/status', [\Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class, 'updateStatus'])->name('contact-messages.update-status');
     });
+
+    // CMS Management Routes
+    Route::prefix('cms')->name('cms.')->group(function () {
+        // Site Settings
+        Route::get('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'index'])->name('site-settings.index');
+        Route::get('site-settings/create', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'create'])->name('site-settings.create');
+        Route::post('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'store'])->name('site-settings.store');
+        Route::put('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'update'])->name('site-settings.update');
+        Route::delete('site-settings/{id}', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'destroy'])->name('site-settings.destroy');
+
+        // Testimonials
+        Route::resource('testimonials', \Modules\CMS\app\Http\Controllers\TestimonialController::class)->except('show');
+        Route::post('testimonials/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\TestimonialController::class, 'toggleStatus'])->name('testimonials.toggle-status');
+        Route::post('testimonials/delete-all', [\Modules\CMS\app\Http\Controllers\TestimonialController::class, 'deleteAll'])->name('testimonials.delete-all');
+
+        // Counters
+        Route::resource('counters', \Modules\CMS\app\Http\Controllers\CounterController::class)->except('show');
+        Route::post('counters/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\CounterController::class, 'toggleStatus'])->name('counters.toggle-status');
+
+        // Page Sections
+        Route::resource('page-sections', \Modules\CMS\app\Http\Controllers\PageSectionController::class)->except('show');
+        Route::post('page-sections/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\PageSectionController::class, 'toggleStatus'])->name('page-sections.toggle-status');
+
+        // Promotional Banners
+        Route::resource('banners', \Modules\CMS\app\Http\Controllers\PromotionalBannerController::class)->except('show');
+        Route::post('banners/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\PromotionalBannerController::class, 'toggleStatus'])->name('banners.toggle-status');
+
+        // Legal Pages
+        Route::resource('legal-pages', \Modules\CMS\app\Http\Controllers\LegalPageController::class)->except('show');
+        Route::post('legal-pages/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\LegalPageController::class, 'toggleStatus'])->name('legal-pages.toggle-status');
+
+        // Gallery Images
+        Route::resource('gallery', \Modules\CMS\app\Http\Controllers\GalleryImageController::class)->except('show');
+        Route::post('gallery/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\GalleryImageController::class, 'toggleStatus'])->name('gallery.toggle-status');
+        Route::post('gallery/delete-all', [\Modules\CMS\app\Http\Controllers\GalleryImageController::class, 'deleteAll'])->name('gallery.delete-all');
+
+        // Info Cards
+        Route::resource('info-cards', \Modules\CMS\app\Http\Controllers\InfoCardController::class)->except('show');
+        Route::post('info-cards/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\InfoCardController::class, 'toggleStatus'])->name('info-cards.toggle-status');
+
+        // Event Types
+        Route::resource('event-types', \Modules\CMS\app\Http\Controllers\EventTypeController::class)->except('show');
+        Route::post('event-types/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\EventTypeController::class, 'toggleStatus'])->name('event-types.toggle-status');
+
+        // Features
+        Route::resource('features', \Modules\CMS\app\Http\Controllers\FeatureController::class)->except('show');
+        Route::post('features/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\FeatureController::class, 'toggleStatus'])->name('features.toggle-status');
+    });
 });

@@ -149,6 +149,53 @@
             @include('attendance::sidebar')
         @endif
 
+        {{-- CMS Management Menu --}}
+        @if (Module::isEnabled('CMS'))
+            <li class="menu-item {{ request()->is('admin/cms/*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class='menu-icon tf-icons bx bx-cog'></i>
+                    <div class="text-truncate" data-i18n="{{ __('CMS') }}">{{ __('CMS') }}</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->is('admin/cms/site-settings*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.site-settings.index') }}">
+                            {{ __('Site Settings') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/page-sections*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.page-sections.index') }}">
+                            {{ __('Page Sections') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
+                            {{ __('Testimonials') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/counters*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.counters.index') }}">
+                            {{ __('Counters') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/gallery*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.gallery.index') }}">
+                            {{ __('Gallery') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/banners*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.banners.index') }}">
+                            {{ __('Banners') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/legal-pages*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.legal-pages.index') }}">
+                            {{ __('Legal Pages') }}
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+
         {{-- Restaurant/Website Management Menu --}}
         @if (Module::isEnabled('Website'))
             @if (checkAdminHasPermission('restaurant.blog.view') ||
