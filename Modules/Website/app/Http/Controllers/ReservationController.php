@@ -28,59 +28,86 @@ class ReservationController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'booking_date' => 'required|date|after_or_equal:today',
-            'booking_time' => 'required|date_format:H:i',
-            'number_of_guests' => 'required|integer|min:1|max:20',
-            'table_preference' => 'nullable|string|in:' . implode(',', array_keys(Booking::TABLE_PREFERENCES)),
-            'special_request' => 'nullable|string|max:500',
-        ]);
+        \Log::info('=== Reservation Store Started ===');
+        \Log::info('Request data:', $request->all());
 
-        // Check availability
-        $isAvailable = $this->checkSlotAvailability(
-            $validated['booking_date'],
-            $validated['booking_time'],
-            $validated['number_of_guests']
-        );
+        try {
+            \Log::info('Validating request...');
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'email' => 'nullable|email|max:255',
+                'phone' => 'required|string|max:20',
+                'booking_date' => 'required|date|after_or_equal:today',
+                'booking_time' => 'required|date_format:H:i',
+                'number_of_guests' => 'required|integer|min:1|max:20',
+                'table_preference' => 'nullable|string|in:' . implode(',', array_keys(Booking::TABLE_PREFERENCES)),
+                'special_request' => 'nullable|string|max:500',
+            ]);
+            \Log::info('Validation passed:', $validated);
 
-        if (!$isAvailable) {
-            if ($request->ajax()) {
+            // Check availability
+            \Log::info('Checking availability...');
+            $isAvailable = $this->checkSlotAvailability(
+                $validated['booking_date'],
+                $validated['booking_time'],
+                $validated['number_of_guests']
+            );
+            \Log::info('Availability check result: ' . ($isAvailable ? 'Available' : 'Not Available'));
+
+            if (!$isAvailable) {
+                \Log::warning('Time slot not available');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('Sorry, the selected time slot is no longer available. Please choose another time.'),
+                    ], 400);
+                }
+                return back()->withInput()->with('error', __('Sorry, the selected time slot is no longer available.'));
+            }
+
+            // Create booking
+            \Log::info('Creating booking...');
+            $booking = Booking::create([
+                'user_id' => Auth::id(),
+                'name' => $validated['name'],
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'],
+                'booking_date' => $validated['booking_date'],
+                'booking_time' => $validated['booking_time'],
+                'number_of_guests' => $validated['number_of_guests'],
+                'table_preference' => $validated['table_preference'] ?? 'any',
+                'special_request' => $validated['special_request'] ?? null,
+                'status' => Booking::STATUS_PENDING,
+            ]);
+            \Log::info('Booking created successfully. ID: ' . $booking->id . ', Code: ' . $booking->confirmation_code);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                \Log::info('Returning JSON success response');
+                return response()->json([
+                    'success' => true,
+                    'message' => __('Reservation submitted successfully!'),
+                    'confirmation_code' => $booking->confirmation_code,
+                    'redirect_url' => route('website.reservation.success', $booking->confirmation_code),
+                ]);
+            }
+
+            return redirect()->route('website.reservation.success', $booking->confirmation_code)
+                ->with('success', __('Reservation submitted successfully!'));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', $e->errors());
+            throw $e; // Let Laravel handle validation exceptions
+        } catch (\Exception $e) {
+            \Log::error('Reservation Error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Sorry, the selected time slot is no longer available. Please choose another time.'),
-                ], 400);
+                    'message' => __('An error occurred while processing your reservation. Please try again.'),
+                    'error' => config('app.debug') ? $e->getMessage() : null,
+                ], 500);
             }
-            return back()->withInput()->with('error', __('Sorry, the selected time slot is no longer available.'));
+            return back()->withInput()->with('error', __('An error occurred. Please try again.'));
         }
-
-        // Create booking
-        $booking = Booking::create([
-            'user_id' => Auth::id(),
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'booking_date' => $validated['booking_date'],
-            'booking_time' => $validated['booking_time'],
-            'number_of_guests' => $validated['number_of_guests'],
-            'table_preference' => $validated['table_preference'] ?? 'any',
-            'special_request' => $validated['special_request'],
-            'status' => Booking::STATUS_PENDING,
-        ]);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => __('Reservation submitted successfully!'),
-                'confirmation_code' => $booking->confirmation_code,
-                'redirect_url' => route('website.reservation.success', $booking->confirmation_code),
-            ]);
-        }
-
-        return redirect()->route('website.reservation.success', $booking->confirmation_code)
-            ->with('success', __('Reservation submitted successfully!'));
     }
 
     /**

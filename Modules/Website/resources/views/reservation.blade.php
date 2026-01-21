@@ -59,20 +59,20 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="email" name="email" placeholder="{{ __('Your Email') }} *"
-                                                   value="{{ old('email', $user->email ?? '') }}" required>
-                                            @error('email')
-                                                <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="reservation_form_input">
                                             <input type="tel" name="phone" id="phone" placeholder="01XXX-XXXXXX *"
                                                    value="{{ old('phone', $user->phone ?? '') }}" required
                                                    maxlength="12" pattern="01[3-9][0-9]{2}-?[0-9]{6}"
                                                    title="{{ __('Enter a valid Bangladesh mobile number (e.g., 01712-345678)') }}">
                                             @error('phone')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="reservation_form_input">
+                                            <input type="email" name="email" placeholder="{{ __('Your Email (Optional)') }}"
+                                                   value="{{ old('email', $user->email ?? '') }}">
+                                            @error('email')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
                                         </div>
@@ -140,7 +140,7 @@
 
                                             <button class="common_btn" type="submit" id="submitBtn">
                                                 <span class="btn-text">{{ __('Make A Reservation') }}</span>
-                                                <span class="btn-loading" style="display: none;">
+                                                <span class="btn-loading">
                                                     <i class="fas fa-spinner fa-spin"></i> {{ __('Submitting...') }}
                                                 </span>
                                             </button>
@@ -414,7 +414,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            return response.json().then(data => {
+                if (!response.ok) {
+                    // Handle validation errors (422) or other errors
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join('<br>');
+                        throw new Error(errorMessages);
+                    }
+                    throw new Error(data.message || '{{ __("An error occurred. Please try again.") }}');
+                }
+                return data;
+            });
+        })
         .then(data => {
             if (data.success) {
                 // Redirect to success page
@@ -430,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ __("An error occurred. Please try again.") }}
+                ${error.message || '{{ __("An error occurred. Please try again.") }}'}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>`;
             submitBtn.classList.remove('loading');

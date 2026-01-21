@@ -76,13 +76,22 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <input type="tel" name="phone" id="phone" placeholder="01XXX-XXXXXX *"
                                                 value="{{ $user->phone ?? old('phone') }}" required
                                                 maxlength="12" pattern="01[3-9][0-9]{2}-?[0-9]{6}"
                                                 title="{{ __('Enter a valid Bangladesh mobile number (e.g., 01712-345678)') }}">
                                             @error('phone')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <input type="email" name="email" placeholder="{{ __('Email (Optional)') }}"
+                                                value="{{ $user->email ?? old('email') }}">
+                                            @error('email')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
                                         </div>

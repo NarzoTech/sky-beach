@@ -225,7 +225,7 @@
                     </div>
                 </div>
 
-                <!-- Description & Reviews Tabs -->
+                <!-- Description Tab -->
                 <div class="row mt_120 xs_mt_100 wow fadeInUp">
                     <div class="col-12">
                         <div class="menu_det_content_area">
@@ -234,9 +234,6 @@
                                     <button class="nav-link active" id="nav-description-tab" data-bs-toggle="tab"
                                             data-bs-target="#nav-description" type="button" role="tab"
                                             aria-controls="nav-description" aria-selected="true">{{ __('Description') }}</button>
-                                    <button class="nav-link" id="nav-reviews-tab" data-bs-toggle="tab"
-                                            data-bs-target="#nav-reviews" type="button" role="tab"
-                                            aria-controls="nav-reviews" aria-selected="false">{{ __('Reviews') }}</button>
                                 </div>
                             </nav>
                             <div class="tab-content" id="nav-tabContent">
@@ -266,27 +263,6 @@
                                                 </ul>
                                             </div>
                                         @endif
-                                    </div>
-                                </div>
-
-                                <!-- Reviews Tab -->
-                                <div class="tab-pane fade" id="nav-reviews" role="tabpanel"
-                                     aria-labelledby="nav-reviews-tab" tabindex="0">
-                                    <div class="menu_det_review_area">
-                                        <div class="row">
-                                            <div class="col-lg-8">
-                                                <div class="text-center py-5 text-muted">
-                                                    <i class="far fa-comments fa-3x mb-3"></i>
-                                                    <p>{{ __('Reviews coming soon!') }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4">
-                                                <div class="review_input_area">
-                                                    <h2>{{ __('Write A Review') }}</h2>
-                                                    <p class="text-muted">{{ __('Review feature coming soon.') }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -110,11 +110,6 @@
                                             </ul>
                                         </div>
                                         <div class="single_menu_text">
-                                            <p class="rating">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <i class="fas fa-star"></i>
-                                                @endfor
-                                            </p>
                                             @if($item->category)
                                             <a class="category" href="{{ route('website.menu', ['category' => $item->category_id]) }}">{{ $item->category->name }}</a>
                                             @endif
