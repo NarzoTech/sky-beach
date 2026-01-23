@@ -2,39 +2,49 @@
 
 @section('title', __('Reservations') . ' - ' . config('app.name'))
 
+@php
+    $sections = site_sections('reservation');
+    $breadcrumb = $sections['reservation_breadcrumb'] ?? null;
+    $formSection = $sections['reservation_form'] ?? null;
+    $infoSection = $sections['reservation_info'] ?? null;
+@endphp
+
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
-        <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+        @if(!$breadcrumb || $breadcrumb->section_status)
+        <section class="breadcrumb_area" style="background: url({{ $breadcrumb?->background_image ? asset($breadcrumb->background_image) : asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>{{ __('Reservations') }}</h1>
+                            <h1>{{ $breadcrumb?->title ?? __('Reservations') }}</h1>
                             <ul>
                                 <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
-                                <li><a href="#">{{ __('Reservations') }}</a></li>
+                                <li><a href="#">{{ $breadcrumb?->title ?? __('Reservations') }}</a></li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        @endif
         <!--==========BREADCRUMB AREA END===========-->
 
 
         <!--==========RESERVATION PAGE START===========-->
+        @if(!$formSection || $formSection->section_status)
         <section class="reservation_page pt_120 xs_pt_100">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-6 wow fadeInLeft">
                         <div class="reservation_img">
-                            <img src="{{ asset('website/images/reservation_img_2.jpg') }}" alt="reservation"
+                            <img src="{{ $formSection?->image ? asset($formSection->image) : asset('website/images/reservation_img_2.jpg') }}" alt="reservation"
                                 class="img-fluid w-100">
                         </div>
                     </div>
                     <div class="col-lg-6 wow fadeInRight">
                         <div class="reservation_form">
-                            <h2>{{ __('ONLINE RESERVATION') }}</h2>
+                            <h2>{{ $formSection?->title ?? __('ONLINE RESERVATION') }}</h2>
 
                             @if(session('error'))
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -161,10 +171,12 @@
                 </div>
             </div>
         </section>
+        @endif
         <!--==========RESERVATION PAGE END===========-->
 
 
         <!--==========INFO SECTION START===========-->
+        @if(!$infoSection || $infoSection->section_status)
         <section class="reservation_info pt_100 xs_pt_80 pb_120 xs_pb_100">
             <div class="container">
                 <div class="row">
@@ -174,7 +186,7 @@
                                 <i class="fas fa-clock"></i>
                             </div>
                             <h4>{{ __('Opening Hours') }}</h4>
-                            <p>{{ __('Monday - Sunday') }}<br>10:00 AM - 10:00 PM</p>
+                            <p>{{ cms_hours()['hours.weekday'] ?? __('Monday - Sunday') }}<br>{{ cms_hours()['hours.time'] ?? '10:00 AM - 10:00 PM' }}</p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp">
@@ -183,7 +195,7 @@
                                 <i class="fas fa-phone-alt"></i>
                             </div>
                             <h4>{{ __('Call Us') }}</h4>
-                            <p>{{ __('For immediate assistance') }}<br>+1 234 567 8900</p>
+                            <p>{{ __('For immediate assistance') }}<br>{{ cms_contact('phone') ?? '+1 234 567 8900' }}</p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp">
@@ -198,6 +210,7 @@
                 </div>
             </div>
         </section>
+        @endif
         <!--==========INFO SECTION END===========-->
 @endsection
 

@@ -157,11 +157,39 @@
                     <div class="text-truncate" data-i18n="{{ __('CMS') }}">{{ __('CMS') }}</div>
                 </a>
                 <ul class="menu-sub">
-                    <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || request()->is('admin/cms/sections/hero*') || request()->is('admin/cms/sections/popular*') || request()->is('admin/cms/sections/advertisement*') || request()->is('admin/cms/sections/featured*') || request()->is('admin/cms/sections/special*') || request()->is('admin/cms/sections/app*') || request()->is('admin/cms/sections/our*') || request()->is('admin/cms/sections/testimonials*') || request()->is('admin/cms/sections/counters*') || request()->is('admin/cms/sections/latest*') ? 'active' : '' }}">
+                    {{-- Page Sections --}}
+                    <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'home') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.sections.homepage') }}">
-                            <i class='bx bx-home-alt me-2'></i>{{ __('Homepage Sections') }}
+                            <i class='bx bx-home-alt me-2'></i>{{ __('Homepage') }}
                         </a>
                     </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/about*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'about') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.about') }}">
+                            <i class='bx bx-info-circle me-2'></i>{{ __('About Page') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/contact*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'contact') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.contact') }}">
+                            <i class='bx bx-envelope me-2'></i>{{ __('Contact Page') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/menu*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.menu') }}">
+                            <i class='bx bx-food-menu me-2'></i>{{ __('Menu Page') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/reservation*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'reservation') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.reservation') }}">
+                            <i class='bx bx-calendar-check me-2'></i>{{ __('Reservation Page') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/service*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'service') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.service') }}">
+                            <i class='bx bx-wrench me-2'></i>{{ __('Service Page') }}
+                        </a>
+                    </li>
+                    {{-- Data Management --}}
+                    <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Data') }}</span></li>
                     <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
                             <i class='bx bx-message-square-dots me-2'></i>{{ __('Testimonials') }}

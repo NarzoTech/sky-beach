@@ -2,23 +2,31 @@
 
 @section('title', 'menu - CTAKE')
 
+@php
+    $sections = site_sections('menu');
+    $breadcrumb = $sections['menu_breadcrumb'] ?? null;
+    $filtersSection = $sections['menu_filters'] ?? null;
+@endphp
+
 @section('content')
             <!--==========BREADCRUMB AREA START===========-->
-            <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+            @if(!$breadcrumb || $breadcrumb->section_status)
+            <section class="breadcrumb_area" style="background: url({{ $breadcrumb?->background_image ? asset($breadcrumb->background_image) : asset('website/images/breadcrumb_bg.jpg') }});">
                 <div class="container">
                     <div class="row wow fadeInUp">
                         <div class="col-12">
                             <div class="breadcrumb_text">
-                                <h1>Our Menu</h1>
+                                <h1>{{ $breadcrumb?->title ?? 'Our Menu' }}</h1>
                                 <ul>
                                     <li><a href="{{ route('website.index') }}">Home</a></li>
-                                    <li><a href="{{ route('website.menu') }}">Menu</a></li>
+                                    <li><a href="{{ route('website.menu') }}">{{ $breadcrumb?->title ?? 'Menu' }}</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
+            @endif
             <!--==========BREADCRUMB AREA END===========-->
 
 

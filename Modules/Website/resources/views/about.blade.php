@@ -2,50 +2,65 @@
 
 @section('title', 'About Us - CTAKE')
 
+@php
+    $sections = site_sections('about');
+    $breadcrumb = $sections['about_breadcrumb'] ?? null;
+    $story = $sections['about_story'] ?? null;
+    $gallery = $sections['about_gallery'] ?? null;
+    $showcase = $sections['about_showcase'] ?? null;
+    $reservation = $sections['about_reservation'] ?? null;
+    $testimonialSection = $sections['about_testimonials'] ?? null;
+    $countersSection = $sections['about_counters'] ?? null;
+    $chefsSection = $sections['about_chefs'] ?? null;
+    $blogsSection = $sections['about_blogs'] ?? null;
+@endphp
+
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
-        <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+        @if(!$breadcrumb || $breadcrumb->section_status)
+        <section class="breadcrumb_area" style="background: url({{ $breadcrumb?->background_image ? asset($breadcrumb->background_image) : asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>About Us</h1>
+                            <h1>{{ $breadcrumb?->title ?? 'About Us' }}</h1>
                             <ul>
                                 <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.about') }}">About Us</a></li>
+                                <li><a href="{{ route('website.about') }}">{{ $breadcrumb?->title ?? 'About Us' }}</a></li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        @endif
         <!--==========BREADCRUMB AREA END===========-->
 
 
         <!--==========ABOUT US PAGE START===========-->
+        @if(!$story || $story->section_status)
         <section class="about_us_story pt_95 xs_pt_65">
             <div class="container">
                 <div class="row justify-content-between">
                     <div class="col-xl-5 wow fadeInLeft">
                         <div class="about_us_story_text">
-                            <h2>We invite you to visit our restaurant</h2>
-                            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-                                laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
-                                architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
-                                voluptas sit
-                                aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione
-                                voluptatem sequi nesciunt</p>
-                            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-                                laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
-                                architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia
-                                voluptas sit
-                                aspernatur aut odit aut fugit</p>
+                            <h2>{{ $story?->title ?? 'We invite you to visit our restaurant' }}</h2>
+                            {!! nl2br(e($story?->description ?? 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.')) !!}
+                            @if($story?->button_text)
+                            <a class="common_btn" href="{{ $story->button_link ?? route('website.menu') }}">
+                                <span class="icon">
+                                    <img src="{{ asset('website/images/eye.png') }}" alt="menu" class="img-fluid w-100">
+                                </span>
+                                {{ $story->button_text }}
+                            </a>
+                            @else
                             <a class="common_btn" href="{{ route('website.menu') }}">
                                 <span class="icon">
                                     <img src="{{ asset('website/images/eye.png') }}" alt="menu" class="img-fluid w-100">
                                 </span>
                                 View All Menu
                             </a>
+                            @endif
                         </div>
                     </div>
                     <div class="col-xl-6">
@@ -81,7 +96,9 @@
                 </div>
             </div>
         </section>
+        @endif
 
+        @if(!$showcase || $showcase->section_status)
         <section class="about_showsase pt_95 xs_pt_65">
             <div class="row">
                 <div class="col-lg-4 col-sm-6 wow fadeInLeft">
@@ -104,7 +121,9 @@
                 </div>
             </div>
         </section>
+        @endif
 
+        @if(!$reservation || $reservation->section_status)
         <section class="reservation_page pt_120 xs_pt_100">
             <div class="container">
                 <div class="row">
@@ -116,7 +135,7 @@
                     </div>
                     <div class="col-lg-6 wow fadeInRight">
                         <div class="reservation_form">
-                            <h2>{{ __('ONLINE RESERVATION') }}</h2>
+                            <h2>{{ $reservation?->title ?? __('ONLINE RESERVATION') }}</h2>
                             <div id="aboutFormAlerts"></div>
                             <form id="aboutReservationForm" action="{{ route('website.reservation.store') }}" method="POST">
                                 @csrf
@@ -202,8 +221,10 @@
                 </div>
             </div>
         </section>
+        @endif
 
-        <section class="testimonial mt_120 xs_mt_100" style="background: url({{ asset('website/images/testimonial_bg.jpg') }});">
+        @if(!$testimonialSection || $testimonialSection->section_status)
+        <section class="testimonial mt_120 xs_mt_100" style="background: url({{ $testimonialSection?->background_image ? asset($testimonialSection->background_image) : asset('website/images/testimonial_bg.jpg') }});">
             <div class="testimonial_overlay pt_250 xs_pt_100">
                 <div class="container mt_20">
                     <div class="row wow fadeInUp">
@@ -264,7 +285,7 @@
                         <div class="col-md-3">
                             <div class="testimonial_video">
                                 <a class="venobox play_btn" data-autoplay="true" data-vbtype="video"
-                                    href="https://youtu.be/nqye02H_H6I?si=ougeOsfL0tat6YbT">
+                                    href="{{ $testimonialSection?->video ?? 'https://youtu.be/nqye02H_H6I?si=ougeOsfL0tat6YbT' }}">
                                     <i class="fas fa-play"></i>
                                 </a>
                             </div>
@@ -273,7 +294,9 @@
                 </div>
             </div>
         </section>
+        @endif
 
+        @if(!$countersSection || $countersSection->section_status)
         <section class="counter_area">
             <div class="counter_bg pt_30 pb_35">
                 <div class="container">
@@ -306,13 +329,15 @@
                 </div>
             </div>
         </section>
+        @endif
 
+        @if(!$chefsSection || $chefsSection->section_status)
         <section class="shefs pt_110 xs_pt_90">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-8 m-auto wow fadeInUp">
                         <div class="section_heading mb_25">
-                            <h2>Meet Our Special Chefs</h2>
+                            <h2>{{ $chefsSection?->title ?? 'Meet Our Special Chefs' }}</h2>
                         </div>
                     </div>
                 </div>
@@ -350,23 +375,25 @@
                     </div>
                     @endforelse
                     <div class="col-12 about_2_shefs text-center mt_60 wow fadeInUp">
-                        <a class="common_btn" href="{{ route('website.chefs') }}">
+                        <a class="common_btn" href="{{ $chefsSection?->button_link ?? route('website.chefs') }}">
                             <span class="icon">
                                 <img src="{{ asset('website/images/eye.png') }}" alt="view" class="img-fluid w-100">
                             </span>
-                            View All Chefs
+                            {{ $chefsSection?->button_text ?? 'View All Chefs' }}
                         </a>
                     </div>
                 </div>
             </div>
         </section>
+        @endif
 
+        @if(!$blogsSection || $blogsSection->section_status)
         <section class="blog pt_100 xs_pt_80">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-8 m-auto wow fadeInUp">
                         <div class="section_heading mb_25">
-                            <h2>Our Latest News & Article</h2>
+                            <h2>{{ $blogsSection?->title ?? 'Our Latest News & Article' }}</h2>
                         </div>
                     </div>
                 </div>
@@ -407,6 +434,7 @@
                 </div>
             </div>
         </section>
+        @endif
         <!--==========ABOUT US PAGE END===========-->
 @endsection
 

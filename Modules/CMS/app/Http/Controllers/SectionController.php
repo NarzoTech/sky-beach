@@ -136,9 +136,66 @@ class SectionController extends Controller
             ->get()
             ->keyBy('section_name');
 
-        $activeSection = $request->get('section', 'contact_info');
+        $activeSection = $request->get('section', 'contact_breadcrumb');
         $langCode = $request->get('lang', 'en');
 
         return view('cms::admin.sections.contact', compact('sections', 'sectionData', 'activeSection', 'langCode'));
+    }
+
+    /**
+     * Menu page sections
+     */
+    public function menuPage(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('cms.settings.view');
+
+        $sections = SectionService::getPageSections('menu');
+        $sectionData = SiteSection::with('translation')
+            ->where('page_name', 'menu')
+            ->get()
+            ->keyBy('section_name');
+
+        $activeSection = $request->get('section', 'menu_breadcrumb');
+        $langCode = $request->get('lang', 'en');
+
+        return view('cms::admin.sections.menu', compact('sections', 'sectionData', 'activeSection', 'langCode'));
+    }
+
+    /**
+     * Reservation page sections
+     */
+    public function reservationPage(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('cms.settings.view');
+
+        $sections = SectionService::getPageSections('reservation');
+        $sectionData = SiteSection::with('translation')
+            ->where('page_name', 'reservation')
+            ->get()
+            ->keyBy('section_name');
+
+        $activeSection = $request->get('section', 'reservation_breadcrumb');
+        $langCode = $request->get('lang', 'en');
+
+        return view('cms::admin.sections.reservation', compact('sections', 'sectionData', 'activeSection', 'langCode'));
+    }
+
+    /**
+     * Service page sections
+     */
+    public function servicePage(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('cms.settings.view');
+
+        $sections = SectionService::getPageSections('service');
+        $sectionData = SiteSection::with('translation')
+            ->where('page_name', 'service')
+            ->get()
+            ->keyBy('section_name');
+
+        $activeSection = $request->get('section', 'service_breadcrumb');
+        $langCode = $request->get('lang', 'en');
+
+        return view('cms::admin.sections.service', compact('sections', 'sectionData', 'activeSection', 'langCode'));
     }
 }

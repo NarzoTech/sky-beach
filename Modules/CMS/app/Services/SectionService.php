@@ -123,27 +123,186 @@ class SectionService
                 'quantity' => 'nullable|integer|min:1|max:12',
             ],
         ],
-        // About page sections
-        'about_hero' => [
-            'label' => 'About Hero',
-            'fields' => ['title', 'subtitle', 'description', 'image', 'background_image'],
+
+        // ============ ABOUT PAGE SECTIONS ============
+        'about_breadcrumb' => [
+            'label' => 'About Breadcrumb',
+            'fields' => ['title', 'background_image'],
             'validation' => [
                 'title' => 'required|string|max:255',
-                'subtitle' => 'nullable|string|max:255',
-                'description' => 'nullable|string|max:2000',
-                'image' => 'nullable|image|max:2048',
                 'background_image' => 'nullable|image|max:2048',
             ],
         ],
-        // Contact page sections
-        'contact_info' => [
-            'label' => 'Contact Information',
-            'fields' => ['title', 'subtitle', 'description', 'image'],
+        'about_story' => [
+            'label' => 'About Story',
+            'fields' => ['title', 'description', 'button_text', 'button_link'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string|max:3000',
+                'button_text' => 'nullable|string|max:50',
+                'button_link' => 'nullable|string|max:255',
+            ],
+        ],
+        'about_gallery' => [
+            'label' => 'About Gallery',
+            'fields' => ['title', 'quantity'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:12',
+            ],
+        ],
+        'about_showcase' => [
+            'label' => 'About Showcase',
+            'fields' => ['title', 'quantity'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:12',
+            ],
+        ],
+        'about_reservation' => [
+            'label' => 'About Reservation',
+            'fields' => ['title', 'subtitle', 'image'],
             'validation' => [
                 'title' => 'required|string|max:255',
                 'subtitle' => 'nullable|string|max:255',
-                'description' => 'nullable|string|max:1000',
                 'image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'about_testimonials' => [
+            'label' => 'About Testimonials',
+            'fields' => ['title', 'background_image', 'video'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'background_image' => 'nullable|image|max:2048',
+                'video' => 'nullable|string|max:500',
+            ],
+        ],
+        'about_counters' => [
+            'label' => 'About Counters',
+            'fields' => ['title'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+            ],
+        ],
+        'about_chefs' => [
+            'label' => 'About Chefs',
+            'fields' => ['title', 'subtitle', 'quantity', 'button_text', 'button_link'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:12',
+                'button_text' => 'nullable|string|max:50',
+                'button_link' => 'nullable|string|max:255',
+            ],
+        ],
+        'about_blogs' => [
+            'label' => 'About Blogs',
+            'fields' => ['title', 'subtitle', 'quantity'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:6',
+            ],
+        ],
+
+        // ============ CONTACT PAGE SECTIONS ============
+        'contact_breadcrumb' => [
+            'label' => 'Contact Breadcrumb',
+            'fields' => ['title', 'background_image'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'background_image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'contact_form' => [
+            'label' => 'Contact Form',
+            'fields' => ['title', 'subtitle', 'image'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'contact_info' => [
+            'label' => 'Contact Information',
+            'fields' => ['title', 'description'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:1000',
+            ],
+        ],
+        'contact_map' => [
+            'label' => 'Contact Map',
+            'fields' => ['title', 'video'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'video' => 'nullable|string|max:1000',
+            ],
+        ],
+
+        // ============ MENU PAGE SECTIONS ============
+        'menu_breadcrumb' => [
+            'label' => 'Menu Breadcrumb',
+            'fields' => ['title', 'background_image'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'background_image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'menu_filters' => [
+            'label' => 'Menu Filters',
+            'fields' => ['title', 'subtitle'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+            ],
+        ],
+
+        // ============ RESERVATION PAGE SECTIONS ============
+        'reservation_breadcrumb' => [
+            'label' => 'Reservation Breadcrumb',
+            'fields' => ['title', 'background_image'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'background_image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'reservation_form' => [
+            'label' => 'Reservation Form',
+            'fields' => ['title', 'subtitle', 'image', 'description'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'image' => 'nullable|image|max:2048',
+                'description' => 'nullable|string|max:1000',
+            ],
+        ],
+        'reservation_info' => [
+            'label' => 'Reservation Info Cards',
+            'fields' => ['title', 'subtitle', 'description'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'description' => 'nullable|string|max:1000',
+            ],
+        ],
+
+        // ============ SERVICE PAGE SECTIONS ============
+        'service_breadcrumb' => [
+            'label' => 'Service Breadcrumb',
+            'fields' => ['title', 'background_image'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'background_image' => 'nullable|image|max:2048',
+            ],
+        ],
+        'service_list' => [
+            'label' => 'Service List',
+            'fields' => ['title', 'subtitle', 'quantity'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:20',
             ],
         ],
     ];
@@ -175,8 +334,36 @@ class SectionService
                 'counters',
                 'latest_blogs',
             ],
-            'about' => ['about_hero'],
-            'contact' => ['contact_info'],
+            'about' => [
+                'about_breadcrumb',
+                'about_story',
+                'about_gallery',
+                'about_showcase',
+                'about_reservation',
+                'about_testimonials',
+                'about_counters',
+                'about_chefs',
+                'about_blogs',
+            ],
+            'contact' => [
+                'contact_breadcrumb',
+                'contact_form',
+                'contact_info',
+                'contact_map',
+            ],
+            'menu' => [
+                'menu_breadcrumb',
+                'menu_filters',
+            ],
+            'reservation' => [
+                'reservation_breadcrumb',
+                'reservation_form',
+                'reservation_info',
+            ],
+            'service' => [
+                'service_breadcrumb',
+                'service_list',
+            ],
         ];
 
         return $sections[$pageName] ?? [];

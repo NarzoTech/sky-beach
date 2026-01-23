@@ -2,27 +2,36 @@
 
 @section('title', 'Our Services - CTAKE')
 
+@php
+    $sections = site_sections('service');
+    $breadcrumb = $sections['service_breadcrumb'] ?? null;
+    $listSection = $sections['service_list'] ?? null;
+@endphp
+
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
-        <section class="breadcrumb_area" style="background: url({{ asset('website/images/breadcrumb_bg.jpg') }});">
+        @if(!$breadcrumb || $breadcrumb->section_status)
+        <section class="breadcrumb_area" style="background: url({{ $breadcrumb?->background_image ? asset($breadcrumb->background_image) : asset('website/images/breadcrumb_bg.jpg') }});">
             <div class="container">
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>Our Services</h1>
+                            <h1>{{ $breadcrumb?->title ?? 'Our Services' }}</h1>
                             <ul>
                                 <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.service') }}">Our Services</a></li>
+                                <li><a href="{{ route('website.service') }}">{{ $breadcrumb?->title ?? 'Our Services' }}</a></li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        @endif
         <!--==========BREADCRUMB AREA END===========-->
 
 
         <!--==========SERVICE START===========-->
+        @if(!$listSection || $listSection->section_status)
         <section class="service_area pt_95 xs_pt_75">
             <div class="container">
                 <div class="row">
@@ -72,5 +81,6 @@
                 @endif
             </div>
         </section>
+        @endif
         <!--==========SERVICE END===========-->
 @endsection

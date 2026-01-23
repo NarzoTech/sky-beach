@@ -15,7 +15,7 @@ class SiteSectionSeeder extends Seeder
         $this->command->info('Seeding Site Sections...');
 
         $sections = [
-            // Homepage Sections
+            // ============ HOMEPAGE SECTIONS ============
             [
                 'section_name' => 'hero_banner',
                 'page_name' => 'home',
@@ -88,8 +88,8 @@ class SiteSectionSeeder extends Seeder
             [
                 'section_name' => 'app_download',
                 'page_name' => 'home',
-                'button_link' => '#', // Apple Store
-                'button_link_2' => '#', // Play Store
+                'button_link' => '#',
+                'button_link_2' => '#',
                 'section_status' => true,
                 'sort_order' => 7,
                 'translation' => [
@@ -136,6 +136,218 @@ class SiteSectionSeeder extends Seeder
                 'translation' => [
                     'title' => 'Our Latest News & Article',
                     'subtitle' => 'Stay updated with our latest stories',
+                ],
+            ],
+
+            // ============ ABOUT PAGE SECTIONS ============
+            [
+                'section_name' => 'about_breadcrumb',
+                'page_name' => 'about',
+                'section_status' => true,
+                'sort_order' => 1,
+                'translation' => [
+                    'title' => 'About Us',
+                ],
+            ],
+            [
+                'section_name' => 'about_story',
+                'page_name' => 'about',
+                'button_text' => 'View All Menu',
+                'button_link' => '/menu',
+                'section_status' => true,
+                'sort_order' => 2,
+                'translation' => [
+                    'title' => 'We invite you to visit our restaurant',
+                    'description' => 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.',
+                ],
+            ],
+            [
+                'section_name' => 'about_gallery',
+                'page_name' => 'about',
+                'quantity' => 4,
+                'section_status' => true,
+                'sort_order' => 3,
+                'translation' => [
+                    'title' => 'Our Gallery',
+                ],
+            ],
+            [
+                'section_name' => 'about_showcase',
+                'page_name' => 'about',
+                'quantity' => 4,
+                'section_status' => true,
+                'sort_order' => 4,
+                'translation' => [
+                    'title' => 'Showcase',
+                ],
+            ],
+            [
+                'section_name' => 'about_reservation',
+                'page_name' => 'about',
+                'section_status' => true,
+                'sort_order' => 5,
+                'translation' => [
+                    'title' => 'ONLINE RESERVATION',
+                    'subtitle' => 'Book your table now',
+                ],
+            ],
+            [
+                'section_name' => 'about_testimonials',
+                'page_name' => 'about',
+                'video' => 'https://youtu.be/nqye02H_H6I?si=ougeOsfL0tat6YbT',
+                'section_status' => true,
+                'sort_order' => 6,
+                'translation' => [
+                    'title' => 'What Our Customers Say',
+                ],
+            ],
+            [
+                'section_name' => 'about_counters',
+                'page_name' => 'about',
+                'section_status' => true,
+                'sort_order' => 7,
+                'translation' => [
+                    'title' => 'Our Achievements',
+                ],
+            ],
+            [
+                'section_name' => 'about_chefs',
+                'page_name' => 'about',
+                'quantity' => 4,
+                'button_text' => 'View All Chefs',
+                'button_link' => '/chefs',
+                'section_status' => true,
+                'sort_order' => 8,
+                'translation' => [
+                    'title' => 'Meet Our Special Chefs',
+                    'subtitle' => 'The culinary experts behind our delicious dishes',
+                ],
+            ],
+            [
+                'section_name' => 'about_blogs',
+                'page_name' => 'about',
+                'quantity' => 3,
+                'section_status' => true,
+                'sort_order' => 9,
+                'translation' => [
+                    'title' => 'Our Latest News & Article',
+                    'subtitle' => 'Stay updated with our latest stories',
+                ],
+            ],
+
+            // ============ CONTACT PAGE SECTIONS ============
+            [
+                'section_name' => 'contact_breadcrumb',
+                'page_name' => 'contact',
+                'section_status' => true,
+                'sort_order' => 1,
+                'translation' => [
+                    'title' => 'Contact Us',
+                ],
+            ],
+            [
+                'section_name' => 'contact_form',
+                'page_name' => 'contact',
+                'section_status' => true,
+                'sort_order' => 2,
+                'translation' => [
+                    'title' => 'Get In Touch',
+                    'subtitle' => 'We would love to hear from you',
+                ],
+            ],
+            [
+                'section_name' => 'contact_info',
+                'page_name' => 'contact',
+                'section_status' => true,
+                'sort_order' => 3,
+                'translation' => [
+                    'title' => 'Contact Information',
+                    'description' => 'Feel free to reach out to us through any of the following channels.',
+                ],
+            ],
+            [
+                'section_name' => 'contact_map',
+                'page_name' => 'contact',
+                'video' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3104.8776746534986!2d-77.027541687759!3d38.903912546200644!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89b7b7931d95b707%3A0x16e85cf5a8a5fdce!2sMarriott%20Marquis%20Washington%2C%20DC!5e0!3m2!1sen!2sbd!4v1700767199965!5m2!1sen!2sbd',
+                'section_status' => true,
+                'sort_order' => 4,
+                'translation' => [
+                    'title' => 'Find Us On Map',
+                ],
+            ],
+
+            // ============ MENU PAGE SECTIONS ============
+            [
+                'section_name' => 'menu_breadcrumb',
+                'page_name' => 'menu',
+                'section_status' => true,
+                'sort_order' => 1,
+                'translation' => [
+                    'title' => 'Our Menu',
+                ],
+            ],
+            [
+                'section_name' => 'menu_filters',
+                'page_name' => 'menu',
+                'section_status' => true,
+                'sort_order' => 2,
+                'translation' => [
+                    'title' => 'Filter Menu',
+                    'subtitle' => 'Find your favorite dishes',
+                ],
+            ],
+
+            // ============ RESERVATION PAGE SECTIONS ============
+            [
+                'section_name' => 'reservation_breadcrumb',
+                'page_name' => 'reservation',
+                'section_status' => true,
+                'sort_order' => 1,
+                'translation' => [
+                    'title' => 'Reservations',
+                ],
+            ],
+            [
+                'section_name' => 'reservation_form',
+                'page_name' => 'reservation',
+                'section_status' => true,
+                'sort_order' => 2,
+                'translation' => [
+                    'title' => 'ONLINE RESERVATION',
+                    'subtitle' => 'Book your table',
+                    'description' => 'Reserve your table and enjoy a memorable dining experience with us.',
+                ],
+            ],
+            [
+                'section_name' => 'reservation_info',
+                'page_name' => 'reservation',
+                'section_status' => true,
+                'sort_order' => 3,
+                'translation' => [
+                    'title' => 'Reservation Information',
+                    'subtitle' => 'Important details about your booking',
+                ],
+            ],
+
+            // ============ SERVICE PAGE SECTIONS ============
+            [
+                'section_name' => 'service_breadcrumb',
+                'page_name' => 'service',
+                'section_status' => true,
+                'sort_order' => 1,
+                'translation' => [
+                    'title' => 'Our Services',
+                ],
+            ],
+            [
+                'section_name' => 'service_list',
+                'page_name' => 'service',
+                'quantity' => 9,
+                'section_status' => true,
+                'sort_order' => 2,
+                'translation' => [
+                    'title' => 'What We Offer',
+                    'subtitle' => 'Explore our wide range of services',
                 ],
             ],
         ];
