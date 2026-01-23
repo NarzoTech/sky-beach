@@ -23,17 +23,17 @@ class PageSectionController extends Controller
     {
         checkAdminHasPermissionAndThrowException('cms.page-sections.view');
 
-        $page = $request->get('page');
+        $pageFilter = $request->get('page_filter');
         $pages = PageSection::select('page')->distinct()->pluck('page');
 
         $query = PageSection::orderBy('page')->orderBy('sort_order');
-        if ($page) {
-            $query->where('page', $page);
+        if ($pageFilter) {
+            $query->where('page', $pageFilter);
         }
 
         $sections = $query->paginate(20);
 
-        return view('cms::admin.page-sections.index', compact('sections', 'pages', 'page'));
+        return view('cms::admin.page-sections.index', compact('sections', 'pages', 'pageFilter'));
     }
 
     /**

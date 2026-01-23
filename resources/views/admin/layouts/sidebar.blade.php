@@ -153,43 +153,38 @@
         @if (Module::isEnabled('CMS'))
             <li class="menu-item {{ request()->is('admin/cms/*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class='menu-icon tf-icons bx bx-cog'></i>
+                    <i class='menu-icon tf-icons bx bx-layout'></i>
                     <div class="text-truncate" data-i18n="{{ __('CMS') }}">{{ __('CMS') }}</div>
                 </a>
                 <ul class="menu-sub">
-                    <li class="menu-item {{ request()->is('admin/cms/site-settings*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.site-settings.index') }}">
-                            {{ __('Site Settings') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/page-sections*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.page-sections.index') }}">
-                            {{ __('Page Sections') }}
+                    <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || request()->is('admin/cms/sections/hero*') || request()->is('admin/cms/sections/popular*') || request()->is('admin/cms/sections/advertisement*') || request()->is('admin/cms/sections/featured*') || request()->is('admin/cms/sections/special*') || request()->is('admin/cms/sections/app*') || request()->is('admin/cms/sections/our*') || request()->is('admin/cms/sections/testimonials*') || request()->is('admin/cms/sections/counters*') || request()->is('admin/cms/sections/latest*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.homepage') }}">
+                            <i class='bx bx-home-alt me-2'></i>{{ __('Homepage Sections') }}
                         </a>
                     </li>
                     <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
-                            {{ __('Testimonials') }}
+                            <i class='bx bx-message-square-dots me-2'></i>{{ __('Testimonials') }}
                         </a>
                     </li>
                     <li class="menu-item {{ request()->is('admin/cms/counters*') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.counters.index') }}">
-                            {{ __('Counters') }}
+                            <i class='bx bx-bar-chart me-2'></i>{{ __('Counters') }}
                         </a>
                     </li>
                     <li class="menu-item {{ request()->is('admin/cms/gallery*') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.gallery.index') }}">
-                            {{ __('Gallery') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/banners*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.banners.index') }}">
-                            {{ __('Banners') }}
+                            <i class='bx bx-images me-2'></i>{{ __('Gallery') }}
                         </a>
                     </li>
                     <li class="menu-item {{ request()->is('admin/cms/legal-pages*') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.legal-pages.index') }}">
-                            {{ __('Legal Pages') }}
+                            <i class='bx bx-file me-2'></i>{{ __('Legal Pages') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/site-settings*') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.site-settings.index') }}">
+                            <i class='bx bx-cog me-2'></i>{{ __('Site Settings') }}
                         </a>
                     </li>
                 </ul>

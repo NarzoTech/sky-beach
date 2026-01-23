@@ -557,6 +557,52 @@ trait PermissionsTrait
         ],
     ];
 
+    public static array $cmsPermissions = [
+        'group_name'  => 'CMS',
+        'permissions' => [
+            'cms.settings.view',
+            'cms.settings.create',
+            'cms.settings.edit',
+            'cms.settings.delete',
+            'cms.testimonials.view',
+            'cms.testimonials.create',
+            'cms.testimonials.edit',
+            'cms.testimonials.delete',
+            'cms.counters.view',
+            'cms.counters.create',
+            'cms.counters.edit',
+            'cms.counters.delete',
+            'cms.page-sections.view',
+            'cms.page-sections.create',
+            'cms.page-sections.edit',
+            'cms.page-sections.delete',
+            'cms.banners.view',
+            'cms.banners.create',
+            'cms.banners.edit',
+            'cms.banners.delete',
+            'cms.legal-pages.view',
+            'cms.legal-pages.create',
+            'cms.legal-pages.edit',
+            'cms.legal-pages.delete',
+            'cms.gallery.view',
+            'cms.gallery.create',
+            'cms.gallery.edit',
+            'cms.gallery.delete',
+            'cms.info-cards.view',
+            'cms.info-cards.create',
+            'cms.info-cards.edit',
+            'cms.info-cards.delete',
+            'cms.event-types.view',
+            'cms.event-types.create',
+            'cms.event-types.edit',
+            'cms.event-types.delete',
+            'cms.features.view',
+            'cms.features.create',
+            'cms.features.edit',
+            'cms.features.delete',
+        ],
+    ];
+
     // return super admin permission aka 'all permissions'
     private static function getSuperAdminPermissions(): array
     {

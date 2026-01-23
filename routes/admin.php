@@ -116,6 +116,14 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
 
     // CMS Management Routes
     Route::prefix('cms')->name('cms.')->group(function () {
+        // Section Management (New)
+        Route::get('sections/homepage', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'homepage'])->name('sections.homepage');
+        Route::get('sections/about', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'aboutPage'])->name('sections.about');
+        Route::get('sections/contact', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'contactPage'])->name('sections.contact');
+        Route::get('sections/{section}/edit', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'editSection'])->name('sections.edit');
+        Route::put('sections/{section}', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'updateSection'])->name('sections.update');
+        Route::post('sections/{section}/toggle-status', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
+
         // Site Settings
         Route::get('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'index'])->name('site-settings.index');
         Route::get('site-settings/create', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'create'])->name('site-settings.create');

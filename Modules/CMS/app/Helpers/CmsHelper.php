@@ -1,6 +1,7 @@
 <?php
 
 use Modules\CMS\app\Models\SiteSetting;
+use Modules\CMS\app\Models\SiteSection;
 use Modules\CMS\app\Models\PageSection;
 use Modules\CMS\app\Models\Testimonial;
 use Modules\CMS\app\Models\Counter;
@@ -11,6 +12,37 @@ use Modules\CMS\app\Models\InfoCard;
 use Modules\CMS\app\Models\EventType;
 use Modules\CMS\app\Models\Feature;
 use Illuminate\Support\Facades\Cache;
+
+/**
+ * Get a site section (new section-based system)
+ */
+if (!function_exists('site_section')) {
+    function site_section(string $sectionName, string $pageName = 'home'): ?SiteSection
+    {
+        return SiteSection::getSection($sectionName, $pageName);
+    }
+}
+
+/**
+ * Get all site sections for a page (new section-based system)
+ */
+if (!function_exists('site_sections')) {
+    function site_sections(string $pageName = 'home'): \Illuminate\Database\Eloquent\Collection
+    {
+        return SiteSection::getPageSections($pageName);
+    }
+}
+
+/**
+ * Check if a site section is active
+ */
+if (!function_exists('site_section_active')) {
+    function site_section_active(string $sectionName, string $pageName = 'home'): bool
+    {
+        $section = site_section($sectionName, $pageName);
+        return $section ? $section->section_status : false;
+    }
+}
 
 /**
  * Get a site setting value
