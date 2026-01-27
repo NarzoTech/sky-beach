@@ -13,6 +13,7 @@ class QuotationDetails extends Model
     protected $fillable = [
         'quotation_id',
         'ingredient_id',
+        'description',
         'quantity',
         'price',
         'sub_total',

@@ -141,20 +141,20 @@
                                     </td>
                                     <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                                         class="text-left">
-                                        {{ $details->product->name }}
+                                        {{ $details->description ?? ($details->ingredient->name ?? '') }}
                                     </td>
 
                                     <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                                         class="text-center qty">
-                                        {{ $details->quantity }} {{ $details->product?->unit->name ?? '' }}
+                                        {{ $details->quantity }}
                                     </td>
                                     <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                                         class="text-right pr-2">
-                                        TK {{ $details->price }}
+                                        {{ currency_icon() }} {{ $details->price }}
                                     </td>
                                     <td style="border-left: none !important; border-right: none !important; border-top: none !important"
                                         class="text-right pr-2">
-                                        TK {{ $details->sub_total }}
+                                        {{ currency_icon() }} {{ $details->sub_total }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -179,7 +179,7 @@
                                         </td>
                                         <td class="text-right pr-2"
                                             style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                            TK
+                                            {{ currency_icon() }}
                                             {{ $quotation->subtotal }}
                                         </td>
                                     </tr>
@@ -191,7 +191,6 @@
                                             Discount:</td>
                                         <td class="text-right pr-2"
                                             style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                            TK
                                             {{ $quotation->discount }}
                                         </td>
                                     </tr>
@@ -202,7 +201,6 @@
                                             VAT:</td>
                                         <td class="text-right pr-2"
                                             style="border:none !important; border-bottom: 1px solid #fff !important;">
-                                            TK
                                             {{ $quotation->vat }}
                                         </td>
                                     </tr>
@@ -224,8 +222,7 @@
                                         </td>
                                         <td class="text-right pr-2"
                                             style="border:none !important; border-bottom: 1px solid #fff !important;">
-
-                                            TK
+                                            {{ currency_icon() }}
                                             {{ $quotation->total }}
                                         </td>
                                     </tr>
@@ -239,11 +236,19 @@
                                 <span style="font-weight: bold; letter-spacing: 0.1px; font-size: 13px;">
                                     In Words:
                                 </span>
-                                {{ numberToWord($quotation->total) }} TK
+                                {{ numberToWord($quotation->total) }} {{ currency_icon() }}
                                 Only
                             </b>
                         </span>
                     </div>
+                    @if($quotation->note)
+                    <div class="mt-3">
+                        <span class="block bold" style="font-size: 12px">
+                            <b>Notes:</b>
+                        </span>
+                        <p style="font-size: 11px; margin-top: 5px;">{{ $quotation->note }}</p>
+                    </div>
+                    @endif
                     <div class="d-flex justify-content-between" style="margin-top: 80px">
                         <div>
                             <p class="signature">

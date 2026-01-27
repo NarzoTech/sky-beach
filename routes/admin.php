@@ -45,6 +45,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
 
         Route::put('/stock/reset/', [StockController::class, 'resetAll'])->name('stock.reset.all');
         Route::resource('quotation', QuotationController::class);
+        Route::post('user/quick-store', [QuotationController::class, 'quickStoreCustomer'])->name('user.quick-store');
         Route::resource('asset-category', AssetTypeController::class);
         Route::resource('assets', AssetController::class);
         Route::controller(AdminProfileController::class)->group(function () {

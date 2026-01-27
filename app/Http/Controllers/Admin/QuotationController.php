@@ -96,6 +96,46 @@ class QuotationController extends Controller
     }
 
     /**
+     * Quick store a new customer via AJAX
+     */
+    public function quickStoreCustomer(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $customer = User::create([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'address' => $request->address,
+                'status' => 1,
+                'date' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'customer' => [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                    'email' => $customer->email,
+                ],
+                'message' => __('Customer created successfully'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(QuotationRequest $request)
@@ -104,12 +144,12 @@ class QuotationController extends Controller
         $request->validate([
             'customer_id' => 'required',
             'date' => 'required',
-            'ingredient_id' => 'required|array',
-            'ingredient_id.*' => 'required',
+            'description' => 'required|array',
+            'description.*' => 'required|string',
             'unit_price' => 'required|array',
-            'unit_price.*' => 'required',
+            'unit_price.*' => 'required|numeric|min:0',
             'quantity' => 'required|array',
-            'quantity.*' => 'required',
+            'quantity.*' => 'required|numeric|min:1',
         ]);
         DB::beginTransaction();
 
@@ -133,15 +173,13 @@ class QuotationController extends Controller
                 'total' => $request->total_amount ?? 0,
                 'created_by' => auth('admin')->user()->id,
                 'quotation_no' => $quotation_no,
-                // 'warehouse_id' => $request->warehouse_id,
             ]);
 
 
-            // create quotation details
-            foreach ($request->ingredient_id as $key => $ingredient_id) {
-
+            // create quotation details with description
+            foreach ($request->description as $key => $description) {
                 $quotation->details()->create([
-                    'ingredient_id' => $ingredient_id,
+                    'description' => $description,
                     'quantity' => $request->quantity[$key],
                     'price' => $request->unit_price[$key],
                     'sub_total' => $request->total[$key],
@@ -198,12 +236,12 @@ class QuotationController extends Controller
         $request->validate([
             'customer_id' => 'required',
             'date' => 'required',
-            'ingredient_id' => 'required|array',
-            'ingredient_id.*' => 'required',
+            'description' => 'required|array',
+            'description.*' => 'required|string',
             'unit_price' => 'required|array',
-            'unit_price.*' => 'required',
+            'unit_price.*' => 'required|numeric|min:0',
             'quantity' => 'required|array',
-            'quantity.*' => 'required',
+            'quantity.*' => 'required|numeric|min:1',
         ]);
 
         DB::beginTransaction();
@@ -220,19 +258,17 @@ class QuotationController extends Controller
                 'vat' => $request->vat ?? 0,
                 'total' => $request->total_amount ?? 0,
                 'updated_by' => auth('admin')->user()->id,
-            ]); // update quotation
+            ]);
 
             $quotation->details()->delete();
-            foreach ($request->ingredient_id as $key => $ingredient_id) {
+            foreach ($request->description as $key => $description) {
                 $quotation->details()->create([
-                    'ingredient_id' => $ingredient_id,
+                    'description' => $description,
                     'quantity' => $request->quantity[$key],
                     'price' => $request->unit_price[$key],
                     'sub_total' => $request->total[$key],
                 ]);
             }
-
-
 
             DB::commit();
             return redirect()->route('admin.quotation.index')->with([
