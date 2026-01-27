@@ -32,7 +32,15 @@ class CateringController extends Controller
 
         $packages = $query->ordered()->paginate(15)->withQueryString();
 
-        return view('website::admin.catering.packages.index', compact('packages'));
+        // Statistics
+        $stats = [
+            'total' => CateringPackage::count(),
+            'active' => CateringPackage::where('is_active', true)->count(),
+            'featured' => CateringPackage::where('is_featured', true)->count(),
+            'total_inquiries' => CateringInquiry::count(),
+        ];
+
+        return view('website::admin.catering.packages.index', compact('packages', 'stats'));
     }
 
     /**
@@ -80,7 +88,7 @@ class CateringController extends Controller
 
         CateringPackage::create($validated);
 
-        return redirect()->route('admin.catering.packages.index')
+        return redirect()->route('admin.restaurant.catering.packages.index')
             ->with('success', __('Catering package created successfully.'));
     }
 
@@ -129,7 +137,7 @@ class CateringController extends Controller
 
         $package->update($validated);
 
-        return redirect()->route('admin.catering.packages.index')
+        return redirect()->route('admin.restaurant.catering.packages.index')
             ->with('success', __('Catering package updated successfully.'));
     }
 
@@ -140,7 +148,7 @@ class CateringController extends Controller
     {
         $package->delete();
 
-        return redirect()->route('admin.catering.packages.index')
+        return redirect()->route('admin.restaurant.catering.packages.index')
             ->with('success', __('Catering package deleted successfully.'));
     }
 
@@ -259,7 +267,7 @@ class CateringController extends Controller
     {
         $inquiry->delete();
 
-        return redirect()->route('admin.catering.inquiries.index')
+        return redirect()->route('admin.restaurant.catering.inquiries.index')
             ->with('success', __('Inquiry deleted successfully.'));
     }
 

@@ -132,6 +132,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::put('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesUpdate'])->name('packages.update');
             Route::delete('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesDestroy'])->name('packages.destroy');
             Route::get('/inquiries', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesIndex'])->name('inquiries.index');
+            Route::get('/inquiries/export', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesExport'])->name('inquiries.export');
             Route::get('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesShow'])->name('inquiries.show');
             Route::patch('/inquiries/{inquiry}/status', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
             Route::delete('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
