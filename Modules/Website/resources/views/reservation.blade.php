@@ -195,7 +195,7 @@
                                 <i class="fas fa-phone-alt"></i>
                             </div>
                             <h4>{{ __('Call Us') }}</h4>
-                            <p>{{ __('For immediate assistance') }}<br>{{ cms_contact('phone') ?? '+1 234 567 8900' }}</p>
+                            <p>{{ __('For immediate assistance') }}<br>{{ cms_contact('phone') ?? cms_setting('contact_phone', __('Phone not set')) }}</p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp">
@@ -204,7 +204,7 @@
                                 <i class="fas fa-info-circle"></i>
                             </div>
                             <h4>{{ __('Cancellation Policy') }}</h4>
-                            <p>{{ __('Free cancellation up to 2 hours before your reservation') }}</p>
+                            <p>{{ cms_setting('reservation_cancellation_policy', __('Free cancellation up to 2 hours before your reservation')) }}</p>
                         </div>
                     </div>
                 </div>

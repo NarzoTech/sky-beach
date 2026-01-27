@@ -1,3 +1,7 @@
+@php
+    $footerSection = site_section('footer', 'global');
+    $socialLinks = cms_social();
+@endphp
 <!--==========FOOTER START===========-->
 <footer class="pt_100 mt_120 xs_mt_100">
     <div class="container">
@@ -5,19 +9,41 @@
             <div class="col-lg-3 col-md-4">
                 <div class="footer_info">
                     <a class="footer_logo" href="{{ route('website.index') }}">
-                        <img src="{{ asset('website/images/footer_logo.png') }}" alt="CTAKE" class="img-fluid w-100">
+                        @if($footerSection && $footerSection->image)
+                            <img src="{{ asset('storage/' . $footerSection->image) }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
+                        @else
+                            <img src="{{ asset('website/images/footer_logo.png') }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
+                        @endif
                     </a>
-                    <p>Cras incident lobotids feudist makes viramas sagittas eu valuta.</p>
+                    <p>{{ $footerSection->description ?? cms_setting('footer_description', __('Delicious food delivered to your doorstep.')) }}</p>
                     <ul>
-                        <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                        <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                        <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                        @if($socialLinks)
+                            @if(!empty($socialLinks['social.facebook'] ?? $socialLinks['facebook'] ?? null))
+                                <li><a class="facebook" href="{{ $socialLinks['social.facebook'] ?? $socialLinks['facebook'] }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                            @endif
+                            @if(!empty($socialLinks['social.twitter'] ?? $socialLinks['twitter'] ?? null))
+                                <li><a class="twitter" href="{{ $socialLinks['social.twitter'] ?? $socialLinks['twitter'] }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
+                            @endif
+                            @if(!empty($socialLinks['social.instagram'] ?? $socialLinks['instagram'] ?? null))
+                                <li><a class="instagram" href="{{ $socialLinks['social.instagram'] ?? $socialLinks['instagram'] }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
+                            @endif
+                            @if(!empty($socialLinks['social.linkedin'] ?? $socialLinks['linkedin'] ?? null))
+                                <li><a class="linkedin" href="{{ $socialLinks['social.linkedin'] ?? $socialLinks['linkedin'] }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
+                            @endif
+                            @if(!empty($socialLinks['social.youtube'] ?? $socialLinks['youtube'] ?? null))
+                                <li><a class="youtube" href="{{ $socialLinks['social.youtube'] ?? $socialLinks['youtube'] }}" target="_blank"><i class="fab fa-youtube"></i></a></li>
+                            @endif
+                        @else
+                            <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
+                            <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
+                            <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                        @endif
                     </ul>
                 </div>
             </div>
             <div class="col-lg-2 col-sm-6 col-md-4">
                 <div class="footer_link">
-                    <h3>Quick Links</h3>
+                    <h3>{{ __('Quick Links') }}</h3>
                     <ul>
                         <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
                         <li><a href="{{ route('website.menu') }}">{{ __('Menu') }}</a></li>
@@ -29,7 +55,7 @@
             </div>
             <div class="col-lg-2 col-sm-6 col-md-4">
                 <div class="footer_link">
-                    <h3>Pages</h3>
+                    <h3>{{ __('Pages') }}</h3>
                     <ul>
                         <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
                         <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
@@ -41,7 +67,7 @@
             </div>
             <div class="col-lg-2 col-sm-6 col-md-4">
                 <div class="footer_link">
-                    <h3>Legal</h3>
+                    <h3>{{ __('Legal') }}</h3>
                     <ul>
                         <li><a href="{{ route('website.privacy-policy') }}">{{ __('Privacy Policy') }}</a></li>
                         <li><a href="{{ route('website.terms-condition') }}">{{ __('Terms & Conditions') }}</a></li>
@@ -50,19 +76,21 @@
             </div>
             <div class="col-lg-3 col-md-8">
                 <div class="footer_contact">
-                    <h3>Contact Us</h3>
+                    <h3>{{ __('Contact Us') }}</h3>
                     <ul>
                         <li>
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>16/A, Romadan House City Tower New York, United States</span>
+                            <span>{{ cms_contact('address') ?? cms_setting('contact_address', __('Address not set')) }}</span>
                         </li>
                         <li>
                             <i class="fas fa-phone-alt"></i>
-                            <a href="tel:+990123456789">+990 123 456 789</a>
+                            @php $phone = cms_contact('phone') ?? cms_setting('contact_phone'); @endphp
+                            <a href="tel:{{ preg_replace('/[\s\-]/', '', $phone ?? '') }}">{{ $phone ?? __('Phone not set') }}</a>
                         </li>
                         <li>
                             <i class="fas fa-envelope"></i>
-                            <a href="mailto:info@ctake.com">info@ctake.com</a>
+                            @php $email = cms_contact('email') ?? cms_setting('contact_email'); @endphp
+                            <a href="mailto:{{ $email ?? '' }}">{{ $email ?? __('Email not set') }}</a>
                         </li>
                     </ul>
                 </div>
@@ -74,7 +102,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="footer_copyright">
-                        <p>Copyright © CTAKE {{ date('Y') }}. All Rights Reserved</p>
+                        <p>{{ __('Copyright') }} © {{ config('app.name') }} {{ date('Y') }}. {{ __('All Rights Reserved') }}</p>
                     </div>
                 </div>
             </div>

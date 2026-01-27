@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', 'About Us - CTAKE')
+@section('title', __('About Us') . ' - ' . config('app.name'))
 
 @php
     $sections = site_sections('about');
@@ -13,6 +13,8 @@
     $countersSection = $sections['about_counters'] ?? null;
     $chefsSection = $sections['about_chefs'] ?? null;
     $blogsSection = $sections['about_blogs'] ?? null;
+    $testimonials = cms_testimonials();
+    $counters = cms_counters();
 @endphp
 
 @section('content')
@@ -23,10 +25,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>{{ $breadcrumb?->title ?? 'About Us' }}</h1>
+                            <h1>{{ $breadcrumb?->title ?? __('About Us') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.about') }}">{{ $breadcrumb?->title ?? 'About Us' }}</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.about') }}">{{ $breadcrumb?->title ?? __('About Us') }}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -44,21 +46,21 @@
                 <div class="row justify-content-between">
                     <div class="col-xl-5 wow fadeInLeft">
                         <div class="about_us_story_text">
-                            <h2>{{ $story?->title ?? 'We invite you to visit our restaurant' }}</h2>
-                            {!! nl2br(e($story?->description ?? 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.')) !!}
+                            <h2>{{ $story?->title ?? __('We invite you to visit our restaurant') }}</h2>
+                            {!! nl2br(e($story?->description ?? __('Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'))) !!}
                             @if($story?->button_text)
                             <a class="common_btn" href="{{ $story->button_link ?? route('website.menu') }}">
                                 <span class="icon">
-                                    <img src="{{ asset('website/images/eye.png') }}" alt="menu" class="img-fluid w-100">
+                                    <img src="{{ asset('website/images/eye.png') }}" alt="{{ __('menu') }}" class="img-fluid w-100">
                                 </span>
                                 {{ $story->button_text }}
                             </a>
                             @else
                             <a class="common_btn" href="{{ route('website.menu') }}">
                                 <span class="icon">
-                                    <img src="{{ asset('website/images/eye.png') }}" alt="menu" class="img-fluid w-100">
+                                    <img src="{{ asset('website/images/eye.png') }}" alt="{{ __('menu') }}" class="img-fluid w-100">
                                 </span>
-                                View All Menu
+                                {{ __('View All Menu') }}
                             </a>
                             @endif
                         </div>
@@ -231,6 +233,28 @@
                         <div class="col-md-9">
                             <div class="testimonial_content">
                                 <div class="row testi_slider">
+                                    @forelse($testimonials as $testimonial)
+                                    <div class="col-12">
+                                        <div class="single_testimonial">
+                                            <p class="rating">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star{{ $i <= ($testimonial->rating ?? 5) ? '' : '-half-alt' }}"></i>
+                                                @endfor
+                                            </p>
+                                            <p class="description">"{{ $testimonial->content ?? $testimonial->testimonial ?? '' }}"</p>
+                                            <div class="single_testimonial_footer">
+                                                <div class="img">
+                                                    @if($testimonial->image)
+                                                        <img src="{{ asset($testimonial->image) }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
+                                                    @else
+                                                        <img src="{{ asset('website/images/client_img_1.png') }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
+                                                    @endif
+                                                </div>
+                                                <h3>{{ $testimonial->name }} <span>{{ $testimonial->designation ?? $testimonial->position ?? '' }}</span></h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @empty
                                     <div class="col-12">
                                         <div class="single_testimonial">
                                             <p class="rating">
@@ -240,45 +264,16 @@
                                                 <i class="fas fa-star"></i>
                                                 <i class="fas fa-star"></i>
                                             </p>
-                                            <p class="description">"I love that solvency lets us manage everything
-                                                in one
-                                                place. It's super helpful to be able to listen to voice samples,
-                                                upload our
-                                                own lists, and find quality salespeople that can grow with our
-                                                team."</p>
+                                            <p class="description">"{{ __('Amazing food and excellent service! The atmosphere is wonderful and the staff is very friendly. Highly recommended!') }}"</p>
                                             <div class="single_testimonial_footer">
                                                 <div class="img">
-                                                    <img src="{{ asset('website/images/client_img_1.png') }}" alt="client"
-                                                        class="img-fluid w-100">
+                                                    <img src="{{ asset('website/images/client_img_1.png') }}" alt="{{ __('client') }}" class="img-fluid w-100">
                                                 </div>
-                                                <h3>Indigo Violet <span>Co - Founder</span></h3>
+                                                <h3>{{ __('Happy Customer') }} <span>{{ __('Regular Guest') }}</span></h3>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12">
-                                        <div class="single_testimonial">
-                                            <p class="rating">
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                                <i class="fas fa-star"></i>
-                                            </p>
-                                            <p class="description">"I love that solvency lets us manage everything
-                                                in one
-                                                place. It's super helpful to be able to listen to voice samples,
-                                                upload our
-                                                own lists, and find quality salespeople that can grow with our
-                                                team."</p>
-                                            <div class="single_testimonial_footer">
-                                                <div class="img">
-                                                    <img src="{{ asset('website/images/client_img_2.png') }}" alt="client"
-                                                        class="img-fluid w-100">
-                                                </div>
-                                                <h3>Jihan Ahmed <span>Co - Founder</span></h3>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>
@@ -301,30 +296,41 @@
             <div class="counter_bg pt_30 pb_35">
                 <div class="container">
                     <div class="row">
+                        @if($counters && count($counters) > 0)
+                            @foreach($counters as $counter)
+                            <div class="col-lg-3 col-sm-6 wow fadeInUp">
+                                <div class="single_counter">
+                                    <h2 class="counter">{{ $counter->value ?? $counter->count ?? 0 }}</h2>
+                                    <span>{{ $counter->label ?? $counter->title ?? '' }}</span>
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
                         <div class="col-lg-3 col-sm-6 wow fadeInUp">
                             <div class="single_counter">
-                                <h2 class="counter">45</h2>
-                                <span>Dishes</span>
+                                <h2 class="counter">{{ cms_setting('counter_dishes', 45) }}</h2>
+                                <span>{{ __('Dishes') }}</span>
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 wow fadeInUp">
                             <div class="single_counter">
-                                <h2 class="counter">68</h2>
-                                <span>Location</span>
+                                <h2 class="counter">{{ cms_setting('counter_locations', 68) }}</h2>
+                                <span>{{ __('Locations') }}</span>
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 wow fadeInUp">
                             <div class="single_counter">
-                                <h2 class="counter">32</h2>
-                                <span>Chefs</span>
+                                <h2 class="counter">{{ cms_setting('counter_chefs', 32) }}</h2>
+                                <span>{{ __('Chefs') }}</span>
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 wow fadeInUp">
                             <div class="single_counter">
-                                <h2 class="counter">120</h2>
-                                <span>Cities</span>
+                                <h2 class="counter">{{ cms_setting('counter_cities', 120) }}</h2>
+                                <span>{{ __('Cities') }}</span>
                             </div>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -337,7 +343,7 @@
                 <div class="row">
                     <div class="col-xl-8 m-auto wow fadeInUp">
                         <div class="section_heading mb_25">
-                            <h2>{{ $chefsSection?->title ?? 'Meet Our Special Chefs' }}</h2>
+                            <h2>{{ $chefsSection?->title ?? __('Meet Our Special Chefs') }}</h2>
                         </div>
                     </div>
                 </div>
@@ -371,15 +377,15 @@
                     </div>
                     @empty
                     <div class="col-12 text-center">
-                        <p>No chefs available at the moment.</p>
+                        <p>{{ __('No chefs available at the moment.') }}</p>
                     </div>
                     @endforelse
                     <div class="col-12 about_2_shefs text-center mt_60 wow fadeInUp">
                         <a class="common_btn" href="{{ $chefsSection?->button_link ?? route('website.chefs') }}">
                             <span class="icon">
-                                <img src="{{ asset('website/images/eye.png') }}" alt="view" class="img-fluid w-100">
+                                <img src="{{ asset('website/images/eye.png') }}" alt="{{ __('view') }}" class="img-fluid w-100">
                             </span>
-                            {{ $chefsSection?->button_text ?? 'View All Chefs' }}
+                            {{ $chefsSection?->button_text ?? __('View All Chefs') }}
                         </a>
                     </div>
                 </div>
@@ -393,7 +399,7 @@
                 <div class="row">
                     <div class="col-xl-8 m-auto wow fadeInUp">
                         <div class="section_heading mb_25">
-                            <h2>{{ $blogsSection?->title ?? 'Our Latest News & Article' }}</h2>
+                            <h2>{{ $blogsSection?->title ?? __('Our Latest News & Article') }}</h2>
                         </div>
                     </div>
                 </div>
@@ -410,7 +416,7 @@
                                 @if($blog->tags)
                                     <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
                                 @else
-                                    <a class="category" href="#">Blog</a>
+                                    <a class="category" href="#">{{ __('Blog') }}</a>
                                 @endif
                             </div>
                             <div class="single_blog_text">
@@ -419,7 +425,7 @@
                                         <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar" class="img-fluid"></span>
                                         {{ $blog->published_at ? $blog->published_at->format('F d, Y') : $blog->created_at->format('F d, Y') }}
                                     </li>
-                                    <li>BY {{ $blog->author ?? 'Admin' }}</li>
+                                    <li>{{ __('BY') }} {{ $blog->author ?? __('Admin') }}</li>
                                 </ul>
                                 <a class="title" href="{{ route('website.blog-details', $blog->slug) }}">{{ Str::upper($blog->title) }}</a>
                                 <a class="read_btn" href="{{ route('website.blog-details', $blog->slug) }}">Read More <i class="far fa-arrow-right"></i></a>
@@ -428,7 +434,7 @@
                     </div>
                     @empty
                     <div class="col-12 text-center">
-                        <p>No blogs available at the moment.</p>
+                        <p>{{ __('No blogs available at the moment.') }}</p>
                     </div>
                     @endforelse
                 </div>

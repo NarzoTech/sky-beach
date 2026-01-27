@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', 'Our Chefs - CTAKE')
+@section('title', __('Our Chefs') . ' - ' . config('app.name'))
 
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
@@ -9,10 +9,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>Our Chefs</h1>
+                            <h1>{{ __('Our Chefs') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.chefs') }}">Our Chefs</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.chefs') }}">{{ __('Our Chefs') }}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -45,8 +45,8 @@
                     @empty
                     <div class="col-12 text-center">
                         <div class="alert alert-info">
-                            <h4>No chefs available</h4>
-                            <p>Please check back later to meet our team.</p>
+                            <h4>{{ __('No chefs available') }}</h4>
+                            <p>{{ __('Please check back later to meet our team.') }}</p>
                         </div>
                     </div>
                     @endforelse

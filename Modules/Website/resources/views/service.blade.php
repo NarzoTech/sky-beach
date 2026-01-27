@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', 'Our Services - CTAKE')
+@section('title', __('Our Services') . ' - ' . config('app.name'))
 
 @php
     $sections = site_sections('service');
@@ -16,10 +16,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>{{ $breadcrumb?->title ?? 'Our Services' }}</h1>
+                            <h1>{{ $breadcrumb?->title ?? __('Our Services') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.service') }}">{{ $breadcrumb?->title ?? 'Our Services' }}</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.service') }}">{{ $breadcrumb?->title ?? __('Our Services') }}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -55,9 +55,9 @@
                                 <p>{{ Str::limit($service->short_description, 120) }}</p>
                                 <a class="common_btn" href="{{ route('website.service-details', $service->slug) }}">
                                     <span class="icon">
-                                        <img src="{{ asset('website/images/eye.png') }}" alt="view" class="img-fluid w-100">
+                                        <img src="{{ asset('website/images/eye.png') }}" alt="{{ __('view') }}" class="img-fluid w-100">
                                     </span>
-                                    View All Details
+                                    {{ __('View All Details') }}
                                 </a>
                             </div>
                         </div>
@@ -65,8 +65,8 @@
                     @empty
                     <div class="col-12 text-center">
                         <div class="alert alert-info">
-                            <h4>No services available</h4>
-                            <p>Please check back later for our services.</p>
+                            <h4>{{ __('No services available') }}</h4>
+                            <p>{{ __('Please check back later for our services.') }}</p>
                         </div>
                     </div>
                     @endforelse

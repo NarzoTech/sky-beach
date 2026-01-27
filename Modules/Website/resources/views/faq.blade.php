@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', 'FAQ - CTAKE')
+@section('title', __('FAQ') . ' - ' . config('app.name'))
 
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
@@ -9,10 +9,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>FAQ</h1>
+                            <h1>{{ __('FAQ') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.faq') }}">FAQ</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.faq') }}">{{ __('FAQ') }}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -50,8 +50,8 @@
                             </div>
                             @empty
                             <div class="alert alert-info">
-                                <h4>No FAQs available</h4>
-                                <p>Please check back later for frequently asked questions.</p>
+                                <h4>{{ __('No FAQs available') }}</h4>
+                                <p>{{ __('Please check back later for frequently asked questions.') }}</p>
                             </div>
                             @endforelse
                         </div>
@@ -74,25 +74,25 @@
                         </div>
                         <div class="col-xl-6 col-lg-6 wow fadeInRight">
                             <div class="faq_contact_form contact_form">
-                                <h2>Have Any Question?</h2>
+                                <h2>{{ __('Have Any Question?') }}</h2>
                                 <form action="{{ route('website.contact.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <input type="text" name="name" placeholder="Your Name" required>
+                                            <input type="text" name="name" placeholder="{{ __('Your Name') }}" required>
                                         </div>
                                         <div class="col-md-6">
-                                            <input type="email" name="email" placeholder="Your Email" required>
+                                            <input type="email" name="email" placeholder="{{ __('Your Email') }}" required>
                                         </div>
                                         <div class="col-md-6">
-                                            <input type="text" name="phone" placeholder="Phone Number">
+                                            <input type="text" name="phone" placeholder="{{ __('Phone Number') }}">
                                         </div>
                                         <div class="col-md-6">
-                                            <input type="text" name="subject" placeholder="Subject" required>
+                                            <input type="text" name="subject" placeholder="{{ __('Subject') }}" required>
                                         </div>
                                         <div class="col-md-12">
-                                            <textarea rows="7" name="message" placeholder="Write Message..." required></textarea>
-                                            <button type="submit" class="common_btn">Submit Now</button>
+                                            <textarea rows="7" name="message" placeholder="{{ __('Write Message...') }}" required></textarea>
+                                            <button type="submit" class="common_btn">{{ __('Submit Now') }}</button>
                                         </div>
                                     </div>
                                 </form>

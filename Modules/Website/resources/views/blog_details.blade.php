@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', $blog->title . ' - CTAKE')
+@section('title', $blog->title . ' - ' . config('app.name'))
 
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
@@ -9,10 +9,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>Blog Details</h1>
+                            <h1>{{ __('Blog Details') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.blogs') }}">Blogs</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
                                 <li><a href="#">{{ Str::limit($blog->title, 30) }}</a></li>
                             </ul>
                         </div>
@@ -40,7 +40,7 @@
                                 @if($blog->tags)
                                     <li><span>{{ trim(explode(',', $blog->tags)[0]) }}</span></li>
                                 @endif
-                                <li><i class="far fa-user-circle"></i> {{ $blog->author ?? 'Admin' }}</li>
+                                <li><i class="far fa-user-circle"></i> {{ $blog->author ?? __('Admin') }}</li>
                                 <li><i class="far fa-calendar-alt"></i> {{ $blog->published_at ? $blog->published_at->format('F d, Y') : $blog->created_at->format('F d, Y') }}</li>
                             </ul>
                             <ul class="right_info">
@@ -55,7 +55,7 @@
                         @if($blog->tags)
                         <div class="details_tags_share">
                             <ul>
-                                <li><span>Tags:</span></li>
+                                <li><span>{{ __('Tags') }}:</span></li>
                                 @foreach(explode(',', $blog->tags) as $tag)
                                     <li><a href="#">{{ trim($tag) }}</a></li>
                                 @endforeach
@@ -64,44 +64,44 @@
                         @endif
 
                         <div class="input_comment_area review_input_area mt_80">
-                            <h2>Leave A Comment</h2>
-                            <span>Share your thoughts about this article.</span>
+                            <h2>{{ __('Leave A Comment') }}</h2>
+                            <span>{{ __('Share your thoughts about this article.') }}</span>
                             <form action="#" method="POST">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="review_input_box">
-                                            <input type="text" name="name" placeholder="Name" required>
+                                            <input type="text" name="name" placeholder="{{ __('Name') }}" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="review_input_box">
-                                            <input type="email" name="email" placeholder="Your Email" required>
+                                            <input type="email" name="email" placeholder="{{ __('Your Email') }}" required>
                                         </div>
                                     </div>
                                     <div class="col-xl-12">
                                         <div class="review_input_box">
-                                            <textarea rows="5" name="comment" placeholder="Type your comment" required></textarea>
+                                            <textarea rows="5" name="comment" placeholder="{{ __('Type your comment') }}" required></textarea>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="common_btn">Submit Comment</button>
+                                <button type="submit" class="common_btn">{{ __('Submit Comment') }}</button>
                             </form>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-8 wow fadeInRight">
                         <div class="blog_sidebar">
                             <div class="sidebar_wizard sidebar_search">
-                                <h2>Search</h2>
+                                <h2>{{ __('Search') }}</h2>
                                 <form action="{{ route('website.blogs') }}" method="GET">
-                                    <input type="text" name="search" placeholder="Search blogs..." value="{{ request('search') }}">
+                                    <input type="text" name="search" placeholder="{{ __('Search blogs...') }}" value="{{ request('search') }}">
                                     <button type="submit"><i class="far fa-search"></i></button>
                                 </form>
                             </div>
 
                             @if($relatedBlogs->count() > 0)
                             <div class="sidebar_wizard sidebar_post mt_25">
-                                <h2>Related Posts</h2>
+                                <h2>{{ __('Related Posts') }}</h2>
                                 <ul>
                                     @foreach($relatedBlogs as $relatedBlog)
                                     <li>
@@ -124,7 +124,7 @@
 
                             @if($blog->tags)
                             <div class="sidebar_wizard sidebar_tags mt_25">
-                                <h2>Tags</h2>
+                                <h2>{{ __('Tags') }}</h2>
                                 <ul>
                                     @foreach(explode(',', $blog->tags) as $tag)
                                         <li><a href="#">{{ trim($tag) }}</a></li>
@@ -134,13 +134,13 @@
                             @endif
 
                             <div class="sidebar_banner menu_details_banner mt_25">
-                                <img src="{{ asset('website/images/details_banner_img.png') }}" alt="offer" class="img-fluid w-100">
+                                <img src="{{ asset('website/images/details_banner_img.png') }}" alt="{{ __('offer') }}" class="img-fluid w-100">
                                 <div class="text">
-                                    <h5>Get Up to 50% Off</h5>
-                                    <h3>Special Combo Pack</h3>
+                                    <h5>{{ __('Get Up to 50% Off') }}</h5>
+                                    <h3>{{ __('Special Combo Pack') }}</h3>
                                     <a href="{{ route('website.menu') }}">
-                                        <span><img src="{{ asset('website/images/cart_icon_2.png') }}" alt="cart" class="img-fluid w-100"></span>
-                                        shop now
+                                        <span><img src="{{ asset('website/images/cart_icon_2.png') }}" alt="{{ __('cart') }}" class="img-fluid w-100"></span>
+                                        {{ __('Shop Now') }}
                                         <i class="far fa-arrow-right"></i>
                                     </a>
                                 </div>

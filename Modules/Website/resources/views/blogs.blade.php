@@ -1,6 +1,6 @@
 @extends('website::layouts.master')
 
-@section('title', 'Blogs - CTAKE')
+@section('title', __('Blogs') . ' - ' . config('app.name'))
 
 @section('content')
         <!--==========BREADCRUMB AREA START===========-->
@@ -9,10 +9,10 @@
                 <div class="row wow fadeInUp">
                     <div class="col-12">
                         <div class="breadcrumb_text">
-                            <h1>Our Blogs</h1>
+                            <h1>{{ __('Our Blogs') }}</h1>
                             <ul>
-                                <li><a href="{{ route('website.index') }}">Home</a></li>
-                                <li><a href="{{ route('website.blogs') }}">Blogs</a></li>
+                                <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                <li><a href="{{ route('website.blogs') }}">{{ __('Blogs') }}</a></li>
                             </ul>
                         </div>
                     </div>
@@ -38,7 +38,7 @@
                                 @if($blog->tags)
                                     <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
                                 @else
-                                    <a class="category" href="#">Blog</a>
+                                    <a class="category" href="#">{{ __('Blog') }}</a>
                                 @endif
                             </div>
                             <div class="single_blog_text">
@@ -47,18 +47,18 @@
                                         <span><img src="{{ asset('website/images/calendar.svg') }}" alt="calendar" class="img-fluid"></span>
                                         {{ $blog->published_at ? $blog->published_at->format('F d, Y') : $blog->created_at->format('F d, Y') }}
                                     </li>
-                                    <li>BY {{ $blog->author ?? 'Admin' }}</li>
+                                    <li>{{ __('BY') }} {{ $blog->author ?? __('Admin') }}</li>
                                 </ul>
                                 <a class="title" href="{{ route('website.blog-details', $blog->slug) }}">{{ Str::upper(Str::limit($blog->title, 50)) }}</a>
-                                <a class="read_btn" href="{{ route('website.blog-details', $blog->slug) }}">Read More <i class="far fa-arrow-right"></i></a>
+                                <a class="read_btn" href="{{ route('website.blog-details', $blog->slug) }}">{{ __('Read More') }} <i class="far fa-arrow-right"></i></a>
                             </div>
                         </div>
                     </div>
                     @empty
                     <div class="col-12 text-center">
                         <div class="alert alert-info">
-                            <h4>No blogs available</h4>
-                            <p>Please check back later for our latest articles.</p>
+                            <h4>{{ __('No blogs available') }}</h4>
+                            <p>{{ __('Please check back later for our latest articles.') }}</p>
                         </div>
                     </div>
                     @endforelse

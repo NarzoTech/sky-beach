@@ -1,6 +1,6 @@
 ﻿@extends('website::layouts.master')
 
-@section('title', 'menu - CTAKE')
+@section('title', __('Menu') . ' - ' . config('app.name'))
 
 @php
     $sections = site_sections('menu');
@@ -16,10 +16,10 @@
                     <div class="row wow fadeInUp">
                         <div class="col-12">
                             <div class="breadcrumb_text">
-                                <h1>{{ $breadcrumb?->title ?? 'Our Menu' }}</h1>
+                                <h1>{{ $breadcrumb?->title ?? __('Our Menu') }}</h1>
                                 <ul>
-                                    <li><a href="{{ route('website.index') }}">Home</a></li>
-                                    <li><a href="{{ route('website.menu') }}">{{ $breadcrumb?->title ?? 'Menu' }}</a></li>
+                                    <li><a href="{{ route('website.index') }}">{{ __('Home') }}</a></li>
+                                    <li><a href="{{ route('website.menu') }}">{{ $breadcrumb?->title ?? __('Menu') }}</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -37,9 +37,9 @@
                         <div class="col-xl-3 col-lg-4 col-md-6 order-2 wow fadeInLeft">
                             <div class="menu_sidebar ">
                                 <div class="sidebar_wizard sidebar_search">
-                                    <h2>Search</h2>
+                                    <h2>{{ __('Search') }}</h2>
                                     <form method="GET" action="{{ route('website.menu') }}" id="menu-search-form">
-                                        <input type="text" name="search" placeholder="Search here..." value="{{ $search ?? '' }}">
+                                        <input type="text" name="search" placeholder="{{ __('Search here...') }}" value="{{ $search ?? '' }}">
                                         <input type="hidden" name="category" value="{{ $categorySlug ?? '' }}">
                                         <input type="hidden" name="min_price" id="hidden_min_price" value="{{ $minPrice ?? 0 }}">
                                         <input type="hidden" name="max_price" id="hidden_max_price" value="{{ $maxPrice ?? 100 }}">
@@ -47,7 +47,7 @@
                                     </form>
                                 </div>
                                 <div class="sidebar_wizard sidebar_price_ranger mt_25">
-                                    <h2>Pricing Filter</h2>
+                                    <h2>{{ __('Pricing Filter') }}</h2>
                                     <div class="price_ranger">
                                         <input type="hidden" id="slider_range" class="flat-slider" 
                                                data-slider-min="{{ $priceRange->min_price ?? 0 }}" 
@@ -56,16 +56,16 @@
                                                data-slider-value="[{{ $minPrice ?? 0 }},{{ $maxPrice ?? 100 }}]" />
                                     </div>
                                     <div class="price-display mt-3 text-center">
-                                        <span style="color: #333;">Price: {{ currency_icon() }}<span id="min-price">{{ $minPrice ?? 0 }}</span> - {{ currency_icon() }}<span id="max-price">{{ $maxPrice ?? 100 }}</span></span>
-                                        <button type="button" class="btn btn-sm btn-primary mt-2 w-100" onclick="applyPriceFilter()">Apply Filter</button>
+                                        <span style="color: #333;">{{ __('Price') }}: {{ currency_icon() }}<span id="min-price">{{ $minPrice ?? 0 }}</span> - {{ currency_icon() }}<span id="max-price">{{ $maxPrice ?? 100 }}</span></span>
+                                        <button type="button" class="btn btn-sm btn-primary mt-2 w-100" onclick="applyPriceFilter()">{{ __('Apply Filter') }}</button>
                                     </div>
                                 </div>
                                 <div class="sidebar_wizard sidebar_category mt_25">
-                                    <h2>Categories</h2>
+                                    <h2>{{ __('Categories') }}</h2>
                                     <ul>
                                         <li>
                                             <a href="{{ route('website.menu') }}" class="{{ !$categorySlug ? 'active' : '' }}" style="{{ !$categorySlug ? 'color: #B99D6B; font-weight: 600;' : '' }}">
-                                                All Items <span>({{ $menuItems->total() }})</span>
+                                                {{ __('All Items') }} <span>({{ $menuItems->total() }})</span>
                                             </a>
                                         </li>
                                         @foreach($categories as $category)
@@ -85,18 +85,18 @@
                             <!-- Sorting and Results Count -->
                             <div class="row mb-4">
                                 <div class="col-md-6">
-                                    <p class="text-muted">Showing {{ $menuItems->firstItem() ?? 0 }} - {{ $menuItems->lastItem() ?? 0 }} of {{ $menuItems->total() }} results</p>
+                                    <p class="text-muted">{{ __('Showing') }} {{ $menuItems->firstItem() ?? 0 }} - {{ $menuItems->lastItem() ?? 0 }} {{ __('of') }} {{ $menuItems->total() }} {{ __('results') }}</p>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="d-flex justify-content-end align-items-center">
-                                        <label for="sort-select" class="me-2 mb-0" style="white-space: nowrap;">Sort By:</label>
+                                        <label for="sort-select" class="me-2 mb-0" style="white-space: nowrap;">{{ __('Sort By') }}:</label>
                                         <select id="sort-select" class="form-select form-select-sm" style="width: auto;" onchange="applySorting(this.value)">
-                                            <option value="default" {{ $sortBy == 'default' ? 'selected' : '' }}>Default</option>
-                                            <option value="popular" {{ $sortBy == 'popular' ? 'selected' : '' }}>Most Popular</option>
-                                            <option value="price_low" {{ $sortBy == 'price_low' ? 'selected' : '' }}>Price: Low to High</option>
-                                            <option value="price_high" {{ $sortBy == 'price_high' ? 'selected' : '' }}>Price: High to Low</option>
-                                            <option value="name_asc" {{ $sortBy == 'name_asc' ? 'selected' : '' }}>Name: A to Z</option>
-                                            <option value="name_desc" {{ $sortBy == 'name_desc' ? 'selected' : '' }}>Name: Z to A</option>
+                                            <option value="default" {{ $sortBy == 'default' ? 'selected' : '' }}>{{ __('Default') }}</option>
+                                            <option value="popular" {{ $sortBy == 'popular' ? 'selected' : '' }}>{{ __('Most Popular') }}</option>
+                                            <option value="price_low" {{ $sortBy == 'price_low' ? 'selected' : '' }}>{{ __('Price: Low to High') }}</option>
+                                            <option value="price_high" {{ $sortBy == 'price_high' ? 'selected' : '' }}>{{ __('Price: High to Low') }}</option>
+                                            <option value="name_asc" {{ $sortBy == 'name_asc' ? 'selected' : '' }}>{{ __('Name: A to Z') }}</option>
+                                            <option value="name_desc" {{ $sortBy == 'name_desc' ? 'selected' : '' }}>{{ __('Name: Z to A') }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -124,7 +124,7 @@
                                             <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
                                             <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>
                                             <div class="d-flex flex-wrap align-items-center">
-                                                <a class="add_to_cart" href="#" onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">Add to Cart</a>
+                                                <a class="add_to_cart" href="#" onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">{{ __('Add to Cart') }}</a>
                                                 <h3>{{ currency($item->base_price) }}</h3>
                                             </div>
                                         </div>
@@ -133,8 +133,8 @@
                                 @empty
                                 <div class="col-12">
                                     <div class="alert alert-info text-center">
-                                        <h4>No menu items found</h4>
-                                        <p>Try adjusting your filters or search terms.</p>
+                                        <h4>{{ __('No menu items found') }}</h4>
+                                        <p>{{ __('Try adjusting your filters or search terms.') }}</p>
                                     </div>
                                 </div>
                                 @endforelse

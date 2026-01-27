@@ -361,12 +361,12 @@
                                             <i class="fas fa-star"></i>
                                             <i class="fas fa-star"></i>
                                         </p>
-                                        <p class="description">"Great food and excellent service! Highly recommended."</p>
+                                        <p class="description">"{{ __('Great food and excellent service! Highly recommended.') }}"</p>
                                         <div class="single_testimonial_footer">
                                             <div class="img">
-                                                <img src="{{ asset('website/images/client_img_1.png') }}" alt="client" class="img-fluid w-100">
+                                                <img src="{{ asset('website/images/client_img_1.png') }}" alt="{{ __('Customer') }}" class="img-fluid w-100">
                                             </div>
-                                            <h3>Happy Customer <span>Guest</span></h3>
+                                            <h3>{{ __('Happy Customer') }} <span>{{ __('Guest') }}</span></h3>
                                         </div>
                                     </div>
                                 </div>
