@@ -26,7 +26,8 @@
       "Bash(tree:*)",
       "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\database\\\\migrations\\\\2026_01_17_160001_add_item_status_to_product_sales_table.php\")",
       "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\check_sales.php\")",
-      "Bash(ls -la \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\"\" | grep -E \"^d \")"
+      "Bash(ls -la \"E:\\\\Others\\\\work\\\\sky-beach\\\\Modules\"\" | grep -E \"^d \")",
+      "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\IMPLEMENTATION_PLAN.md\")"
     ]
   }
 }

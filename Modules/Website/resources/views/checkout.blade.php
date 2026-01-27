@@ -188,9 +188,26 @@
                                 <div class="cart_summery">
                                     <h6>{{ __('Order Summary') }}</h6>
                                     <p>{{ __('Subtotal') }}: <span>{{ currency($cartTotal) }}</span></p>
-                                    <p id="delivery-fee-row">{{ __('Delivery Fee') }}: <span id="delivery-fee">{{ currency(0) }}</span></p>
-                                    <p>{{ __('Tax') }}: <span>{{ currency(0) }}</span></p>
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal) }}</span></p>
+                                    <p id="delivery-fee-row" style="{{ $deliveryFeeEnabled ? '' : 'display:none;' }}">
+                                        {{ __('Delivery Fee') }}:
+                                        <span id="delivery-fee">
+                                            @if($freeDeliveryThreshold > 0 && $cartTotal >= $freeDeliveryThreshold)
+                                                <span class="text-success">{{ __('FREE') }}</span>
+                                            @else
+                                                {{ currency($calculatedDeliveryFee) }}
+                                            @endif
+                                        </span>
+                                    </p>
+                                    @if($taxEnabled)
+                                    <p>{{ __('Tax') }} ({{ $taxRate }}%): <span id="tax-amount">{{ currency($calculatedTax) }}</span></p>
+                                    @endif
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal + $calculatedDeliveryFee + $calculatedTax) }}</span></p>
+                                    @if($freeDeliveryThreshold > 0 && $cartTotal < $freeDeliveryThreshold)
+                                    <p class="text-info small" id="free-delivery-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        {{ __('Add') }} {{ currency($freeDeliveryThreshold - $cartTotal) }} {{ __('more for free delivery!') }}
+                                    </p>
+                                    @endif
 
                                     <button type="submit" class="common_btn w-100" id="place-order-btn">
                                         <i class="fas fa-check-circle me-2"></i>{{ __('Place Order') }}
@@ -389,19 +406,41 @@
         const addressInput = document.getElementById('address');
         const cityInput = document.getElementById('city');
 
+        // Pricing variables from server
+        const subtotal = {{ $cartTotal }};
+        const deliveryFeeAmount = {{ $calculatedDeliveryFee }};
+        const taxAmount = {{ $calculatedTax }};
+        const deliveryFeeEnabled = {{ $deliveryFeeEnabled ? 'true' : 'false' }};
+        const freeDeliveryThreshold = {{ $freeDeliveryThreshold }};
+        const isFreeDelivery = freeDeliveryThreshold > 0 && subtotal >= freeDeliveryThreshold;
+
+        // Function to update totals
+        function updateTotals(isDelivery) {
+            let currentDeliveryFee = 0;
+            if (isDelivery && deliveryFeeEnabled && !isFreeDelivery) {
+                currentDeliveryFee = deliveryFeeAmount;
+            }
+            const total = subtotal + currentDeliveryFee + taxAmount;
+            document.getElementById('order-total').textContent = '{{ currency_icon() }}' + total.toFixed(2);
+        }
+
         // Toggle delivery address section based on order type
         orderTypeRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.value === 'delivery') {
                     deliverySection.style.display = 'block';
-                    deliveryFeeRow.style.display = 'block';
+                    if (deliveryFeeEnabled) {
+                        deliveryFeeRow.style.display = 'block';
+                    }
                     addressInput.setAttribute('required', '');
                     cityInput.setAttribute('required', '');
+                    updateTotals(true);
                 } else {
                     deliverySection.style.display = 'none';
                     deliveryFeeRow.style.display = 'none';
                     addressInput.removeAttribute('required');
                     cityInput.removeAttribute('required');
+                    updateTotals(false);
                 }
             });
         });

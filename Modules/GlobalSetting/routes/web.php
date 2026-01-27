@@ -20,6 +20,10 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth:admi
 
         Route::get('cache-clear', 'cache_clear')->name('cache.clear');
         Route::post('cache-clear', 'cache_clear_confirm')->name('cache-clear-confirm');
+
+        // Website Checkout Settings
+        Route::get('website-checkout-settings', 'website_checkout_settings')->name('website-checkout-settings');
+        Route::put('website-checkout-settings', 'update_website_checkout_settings')->name('update-website-checkout-settings');
     });
 
     Route::controller(EmailSettingController::class)->group(function () {

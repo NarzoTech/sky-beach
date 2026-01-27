@@ -171,4 +171,51 @@ class GlobalSettingController extends Controller
 
         Cache::put('setting', $setting);
     }
+
+    /**
+     * Display website checkout settings page
+     */
+    public function website_checkout_settings()
+    {
+        checkAdminHasPermissionAndThrowException('setting.view');
+
+        return view('globalsetting::settings.website_checkout');
+    }
+
+    /**
+     * Update website checkout settings (Tax, Delivery Fee, Loyalty)
+     */
+    public function update_website_checkout_settings(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('setting.update');
+
+        $request->validate([
+            'website_tax_rate' => 'required|numeric|min:0|max:100',
+            'website_delivery_fee' => 'required|numeric|min:0',
+            'website_free_delivery_threshold' => 'nullable|numeric|min:0',
+        ]);
+
+        $settings = [
+            'website_tax_enabled' => $request->has('website_tax_enabled') ? '1' : '0',
+            'website_tax_rate' => $request->website_tax_rate,
+            'website_delivery_fee_enabled' => $request->has('website_delivery_fee_enabled') ? '1' : '0',
+            'website_delivery_fee' => $request->website_delivery_fee,
+            'website_free_delivery_threshold' => $request->website_free_delivery_threshold ?? '0',
+            'website_loyalty_enabled' => $request->has('website_loyalty_enabled') ? '1' : '0',
+        ];
+
+        foreach ($settings as $key => $value) {
+            Setting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+
+        $this->put_setting_cache();
+
+        $notification = __('Website checkout settings updated successfully');
+        $notification = ['messege' => $notification, 'alert-type' => 'success'];
+
+        return redirect()->back()->with($notification);
+    }
 }

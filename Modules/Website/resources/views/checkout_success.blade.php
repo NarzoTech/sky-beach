@@ -193,6 +193,17 @@
                                 </div>
                             </div>
 
+                            @if($order->points_earned > 0)
+                            <div class="points_earned_box mt-4">
+                                <div class="points_icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h5>{{ __('Loyalty Points Earned!') }}</h5>
+                                <p class="points_amount">+{{ number_format($order->points_earned) }} {{ __('points') }}</p>
+                                <small class="text-muted">{{ __('Points have been added to your account linked to your phone number') }}</small>
+                            </div>
+                            @endif
+
                             <div class="action_buttons mt-5">
                                 <a href="{{ route('website.menu') }}" class="common_btn me-3">
                                     <i class="fas fa-utensils me-2"></i>{{ __('Continue Shopping') }}
@@ -380,6 +391,42 @@
     .common_btn.btn_outline:hover {
         background: var(--colorPrimary, #AB162C);
         color: #fff;
+    }
+
+    .points_earned_box {
+        background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+        border: 2px solid var(--colorYellow, #F2A22A);
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .points_earned_box .points_icon {
+        width: 60px;
+        height: 60px;
+        background: var(--colorYellow, #F2A22A);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+    }
+
+    .points_earned_box .points_icon i {
+        font-size: 28px;
+        color: #fff;
+    }
+
+    .points_earned_box h5 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .points_earned_box .points_amount {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--colorYellow, #F2A22A);
+        margin-bottom: 5px;
     }
 
     @media (max-width: 768px) {

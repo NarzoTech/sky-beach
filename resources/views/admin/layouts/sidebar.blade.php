@@ -324,6 +324,11 @@
                                 {{ __('Business Settings') }}
                             </a>
                         </li>
+                        <li class="{{ isRoute('admin.website-checkout-settings', 'active') }} menu-item ">
+                            <a class="menu-link" href="{{ route('admin.website-checkout-settings') }}">
+                                {{ __('Website Checkout') }}
+                            </a>
+                        </li>
                     @endadminCan
                     @adminCan('admin.view')
                         <li class="{{ isRoute('admin.admin*', 'active') }} menu-item ">

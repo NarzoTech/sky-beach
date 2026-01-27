@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Modules\Website\app\Models\WebsiteCart;
 use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\ProductSale;
+use Modules\Membership\app\Models\LoyaltyCustomer;
+use Modules\Membership\app\Models\LoyaltyProgram;
 
 class BkashController extends Controller
 {
@@ -49,7 +52,7 @@ class BkashController extends Controller
 
         // Calculate totals
         $subtotal = $cartItems->sum('subtotal');
-        $deliveryFee = $request->order_type === 'delivery' ? $this->calculateDeliveryFee() : 0;
+        $deliveryFee = $request->order_type === 'delivery' ? $this->calculateDeliveryFee($subtotal) : 0;
         $tax = $this->calculateTax($subtotal);
         $grandTotal = $subtotal + $deliveryFee + $tax;
 
@@ -236,6 +239,9 @@ class BkashController extends Controller
 
             DB::commit();
 
+            // Handle loyalty points
+            $this->handleLoyaltyPoints($sale, $checkoutData['phone'], $checkoutData['first_name'] . ' ' . $checkoutData['last_name']);
+
             return $sale;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -273,19 +279,42 @@ class BkashController extends Controller
     }
 
     /**
-     * Calculate delivery fee
+     * Calculate delivery fee based on settings
      */
-    private function calculateDeliveryFee()
+    private function calculateDeliveryFee($subtotal = 0)
     {
-        return 0;
+        $setting = Cache::get('setting');
+
+        // Check if delivery fee is enabled
+        if (($setting->website_delivery_fee_enabled ?? '1') != '1') {
+            return 0;
+        }
+
+        // Check free delivery threshold
+        $threshold = $setting->website_free_delivery_threshold ?? 0;
+        if ($threshold > 0 && $subtotal >= $threshold) {
+            return 0;
+        }
+
+        return floatval($setting->website_delivery_fee ?? 50);
     }
 
     /**
-     * Calculate tax
+     * Calculate tax based on settings
      */
     private function calculateTax($subtotal)
     {
-        return 0;
+        $setting = Cache::get('setting');
+
+        // Check if tax is enabled
+        if (($setting->website_tax_enabled ?? '1') != '1') {
+            return 0;
+        }
+
+        // Get tax rate (default 15%)
+        $taxRate = floatval($setting->website_tax_rate ?? 15);
+
+        return round($subtotal * ($taxRate / 100), 2);
     }
 
     /**
@@ -294,5 +323,99 @@ class BkashController extends Controller
     private function getDefaultWarehouse()
     {
         return \App\Models\Warehouse::first()->id ?? 1;
+    }
+
+    /**
+     * Handle loyalty points for the order
+     */
+    private function handleLoyaltyPoints($sale, $phone, $customerName)
+    {
+        try {
+            $setting = Cache::get('setting');
+
+            // Check if loyalty is enabled
+            if (($setting->website_loyalty_enabled ?? '1') != '1') {
+                return;
+            }
+
+            // Normalize phone number
+            $phone = preg_replace('/[\s\-]/', '', $phone);
+
+            // Find or create loyalty customer
+            $loyaltyCustomer = LoyaltyCustomer::where('phone', $phone)->first();
+
+            if (!$loyaltyCustomer) {
+                $loyaltyCustomer = LoyaltyCustomer::create([
+                    'phone' => $phone,
+                    'name' => $customerName,
+                    'status' => 'active',
+                    'total_points' => 0,
+                    'lifetime_points' => 0,
+                    'redeemed_points' => 0,
+                    'joined_at' => now(),
+                ]);
+            }
+
+            if (!$loyaltyCustomer || $loyaltyCustomer->status !== 'active') {
+                return;
+            }
+
+            // Get warehouse
+            $warehouseId = $sale->warehouse_id ?? $this->getDefaultWarehouse();
+
+            // Get active loyalty program
+            $program = LoyaltyProgram::where('warehouse_id', $warehouseId)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$program) {
+                $program = LoyaltyProgram::where('is_active', true)->first();
+            }
+
+            if (!$program) {
+                return;
+            }
+
+            // Calculate points
+            $pointsEarned = 0;
+            $amount = $sale->grand_total;
+
+            if ($program->earning_type === 'per_amount') {
+                $pointsEarned = floor($amount / max(1, $program->earning_rate));
+            } else {
+                $pointsEarned = $program->earning_rate;
+            }
+
+            if ($program->min_transaction_amount && $amount < $program->min_transaction_amount) {
+                $pointsEarned = 0;
+            }
+
+            if ($pointsEarned > 0) {
+                $loyaltyCustomer->increment('total_points', $pointsEarned);
+                $loyaltyCustomer->increment('lifetime_points', $pointsEarned);
+                $loyaltyCustomer->update(['last_purchase_at' => now()]);
+
+                $sale->update([
+                    'loyalty_customer_id' => $loyaltyCustomer->id,
+                    'points_earned' => $pointsEarned,
+                ]);
+
+                if (class_exists(\Modules\Membership\app\Models\LoyaltyTransaction::class)) {
+                    \Modules\Membership\app\Models\LoyaltyTransaction::create([
+                        'loyalty_customer_id' => $loyaltyCustomer->id,
+                        'warehouse_id' => $warehouseId,
+                        'transaction_type' => 'earn',
+                        'points_amount' => $pointsEarned,
+                        'points_balance_before' => $loyaltyCustomer->total_points - $pointsEarned,
+                        'points_balance_after' => $loyaltyCustomer->total_points,
+                        'source_type' => 'sale',
+                        'source_id' => $sale->id,
+                        'description' => 'Points earned from website order #' . $sale->invoice,
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Loyalty points error (bKash): ' . $e->getMessage());
+        }
     }
 }
