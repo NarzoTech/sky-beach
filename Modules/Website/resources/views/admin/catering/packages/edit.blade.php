@@ -9,17 +9,17 @@
             <h4 class="fw-bold mb-0">{{ __('Edit Catering Package') }}</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.catering.packages.index') }}">{{ __('Packages') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.restaurant.catering.packages.index') }}">{{ __('Packages') }}</a></li>
                     <li class="breadcrumb-item active">{{ $package->name }}</li>
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('admin.catering.packages.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.restaurant.catering.packages.index') }}" class="btn btn-outline-secondary">
             <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
         </a>
     </div>
 
-    <form action="{{ route('admin.catering.packages.update', $package) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.restaurant.catering.packages.update', $package) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 

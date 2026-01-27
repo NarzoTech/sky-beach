@@ -9,17 +9,17 @@
             <h4 class="fw-bold mb-0">{{ __('Add Catering Package') }}</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.catering.packages.index') }}">{{ __('Packages') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.restaurant.catering.packages.index') }}">{{ __('Packages') }}</a></li>
                     <li class="breadcrumb-item active">{{ __('Add New') }}</li>
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('admin.catering.packages.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.restaurant.catering.packages.index') }}" class="btn btn-outline-secondary">
             <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
         </a>
     </div>
 
-    <form action="{{ route('admin.catering.packages.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.restaurant.catering.packages.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <div class="row">

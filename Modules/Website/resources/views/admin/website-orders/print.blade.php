@@ -302,7 +302,7 @@
                             @endif
                         </td>
                         <td class="text-center">{{ $item->quantity }}</td>
-                        <td class="text-right">${{ number_format($item->sub_total, 2) }}</td>
+                        <td class="text-right">{{ currency($item->sub_total) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -313,29 +313,29 @@
         <table>
             <tr>
                 <td>{{ __('Subtotal') }}:</td>
-                <td class="text-right">${{ number_format($order->total_price, 2) }}</td>
+                <td class="text-right">{{ currency($order->total_price) }}</td>
             </tr>
             @if($order->shipping_cost > 0)
                 <tr>
                     <td>{{ __('Delivery Fee') }}:</td>
-                    <td class="text-right">${{ number_format($order->shipping_cost, 2) }}</td>
+                    <td class="text-right">{{ currency($order->shipping_cost) }}</td>
                 </tr>
             @endif
             @if($order->total_tax > 0)
                 <tr>
                     <td>{{ __('Tax') }}:</td>
-                    <td class="text-right">${{ number_format($order->total_tax, 2) }}</td>
+                    <td class="text-right">{{ currency($order->total_tax) }}</td>
                 </tr>
             @endif
             @if($order->discount_amount > 0)
                 <tr>
                     <td>{{ __('Discount') }}:</td>
-                    <td class="text-right">-${{ number_format($order->discount_amount, 2) }}</td>
+                    <td class="text-right">-{{ currency($order->discount_amount) }}</td>
                 </tr>
             @endif
             <tr class="total-row">
                 <td>{{ __('TOTAL') }}:</td>
-                <td class="text-right">${{ number_format($order->grand_total, 2) }}</td>
+                <td class="text-right">{{ currency($order->grand_total) }}</td>
             </tr>
         </table>
     </div>

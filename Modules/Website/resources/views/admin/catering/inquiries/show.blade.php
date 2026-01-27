@@ -9,12 +9,12 @@
             <h4 class="fw-bold mb-0">{{ __('Inquiry Details') }}</h4>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.catering.inquiries.index') }}">{{ __('Inquiries') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.restaurant.catering.inquiries.index') }}">{{ __('Inquiries') }}</a></li>
                     <li class="breadcrumb-item active">{{ $inquiry->inquiry_number }}</li>
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('admin.catering.inquiries.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('admin.restaurant.catering.inquiries.index') }}" class="btn btn-outline-secondary">
             <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
         </a>
     </div>
@@ -89,14 +89,14 @@
                             <div class="col-md-4 mb-3">
                                 <label class="text-muted small">{{ __('Selected Package') }}</label>
                                 <div>
-                                    <a href="{{ route('admin.catering.packages.edit', $inquiry->package) }}" class="fw-semibold">
+                                    <a href="{{ route('admin.restaurant.catering.packages.edit', $inquiry->package) }}" class="fw-semibold">
                                         {{ $inquiry->package->name }}
                                     </a>
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="text-muted small">{{ __('Estimated Price') }}</label>
-                                <div class="fw-semibold text-primary">${{ number_format($inquiry->estimated_price, 2) }}</div>
+                                <div class="fw-semibold text-primary">{{ currency($inquiry->estimated_price) }}</div>
                             </div>
                         @endif
                         @if($inquiry->venue_address)
@@ -143,7 +143,7 @@
                     <h5 class="mb-0">{{ __('Update Status') }}</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.catering.inquiries.update-status', $inquiry) }}" method="POST">
+                    <form action="{{ route('admin.restaurant.catering.inquiries.update-status', $inquiry) }}" method="POST">
                         @csrf
                         @method('PATCH')
 
@@ -220,7 +220,7 @@
                                     </div>
                                     <div class="small">{{ $inquiry->quoted_at->format('M d, Y g:i A') }}</div>
                                     @if($inquiry->quoted_amount)
-                                        <div class="fw-semibold text-success">${{ number_format($inquiry->quoted_amount, 2) }}</div>
+                                        <div class="fw-semibold text-success">{{ currency($inquiry->quoted_amount) }}</div>
                                     @endif
                                 </div>
                             </li>
@@ -254,7 +254,7 @@
                     <a href="tel:{{ $inquiry->phone }}" class="btn btn-outline-success w-100 mb-2">
                         <i class="bx bx-phone me-1"></i>{{ __('Call Customer') }}
                     </a>
-                    <form action="{{ route('admin.catering.inquiries.destroy', $inquiry) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this inquiry?') }}')">
+                    <form action="{{ route('admin.restaurant.catering.inquiries.destroy', $inquiry) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this inquiry?') }}')">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger w-100">

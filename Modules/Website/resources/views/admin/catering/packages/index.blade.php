@@ -6,7 +6,7 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0">{{ __('Catering Packages') }}</h4>
-        <a href="{{ route('admin.catering.packages.create') }}" class="btn btn-primary">
+        <a href="{{ route('admin.restaurant.catering.packages.create') }}" class="btn btn-primary">
             <i class="bx bx-plus me-1"></i>{{ __('Add Package') }}
         </a>
     </div>
@@ -20,7 +20,7 @@
 
     <div class="card">
         <div class="card-header border-bottom">
-            <form action="{{ route('admin.catering.packages.index') }}" method="GET" class="row g-3">
+            <form action="{{ route('admin.restaurant.catering.packages.index') }}" method="GET" class="row g-3">
                 <div class="col-md-4">
                     <input type="text" name="search" class="form-control" placeholder="{{ __('Search packages...') }}" value="{{ request('search') }}">
                 </div>
@@ -38,7 +38,7 @@
                 </div>
                 @if(request()->hasAny(['search', 'is_active']))
                     <div class="col-md-2">
-                        <a href="{{ route('admin.catering.packages.index') }}" class="btn btn-outline-secondary w-100">
+                        <a href="{{ route('admin.restaurant.catering.packages.index') }}" class="btn btn-outline-secondary w-100">
                             <i class="bx bx-x me-1"></i>{{ __('Clear') }}
                         </a>
                     </div>
@@ -71,10 +71,10 @@
                                     <span class="badge bg-warning text-dark"><i class="bx bx-star me-1"></i>{{ __('Featured') }}</span>
                                 @endif
                             </td>
-                            <td>${{ number_format($package->price_per_person, 2) }}</td>
+                            <td>{{ currency($package->price_per_person) }}</td>
                             <td>{{ $package->min_guests }} - {{ $package->max_guests }}</td>
                             <td>
-                                <a href="{{ route('admin.catering.inquiries.index', ['package_id' => $package->id]) }}" class="text-primary">
+                                <a href="{{ route('admin.restaurant.catering.inquiries.index', ['package_id' => $package->id]) }}" class="text-primary">
                                     {{ $package->inquiries_count }}
                                 </a>
                             </td>
@@ -94,11 +94,11 @@
                                         <a class="dropdown-item" href="{{ route('website.catering.show', $package->slug) }}" target="_blank">
                                             <i class="bx bx-show me-1"></i>{{ __('View') }}
                                         </a>
-                                        <a class="dropdown-item" href="{{ route('admin.catering.packages.edit', $package) }}">
+                                        <a class="dropdown-item" href="{{ route('admin.restaurant.catering.packages.edit', $package) }}">
                                             <i class="bx bx-edit me-1"></i>{{ __('Edit') }}
                                         </a>
                                         <div class="dropdown-divider"></div>
-                                        <form action="{{ route('admin.catering.packages.destroy', $package) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this package?') }}')">
+                                        <form action="{{ route('admin.restaurant.catering.packages.destroy', $package) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this package?') }}')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="dropdown-item text-danger">

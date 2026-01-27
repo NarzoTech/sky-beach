@@ -6,7 +6,7 @@
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0">{{ __('Catering Inquiries') }}</h4>
-        <a href="{{ route('admin.catering.inquiries.export', request()->query()) }}" class="btn btn-outline-primary">
+        <a href="{{ route('admin.restaurant.catering.inquiries.export', request()->query()) }}" class="btn btn-outline-primary">
             <i class="bx bx-download me-1"></i>{{ __('Export CSV') }}
         </a>
     </div>
@@ -92,7 +92,7 @@
 
     <div class="card">
         <div class="card-header border-bottom">
-            <form action="{{ route('admin.catering.inquiries.index') }}" method="GET" class="row g-3">
+            <form action="{{ route('admin.restaurant.catering.inquiries.index') }}" method="GET" class="row g-3">
                 <div class="col-md-3">
                     <input type="text" name="search" class="form-control" placeholder="{{ __('Search name, email, phone...') }}" value="{{ request('search') }}">
                 </div>
@@ -146,7 +146,7 @@
                     @forelse($inquiries as $inquiry)
                         <tr>
                             <td>
-                                <a href="{{ route('admin.catering.inquiries.show', $inquiry) }}" class="fw-semibold">
+                                <a href="{{ route('admin.restaurant.catering.inquiries.show', $inquiry) }}" class="fw-semibold">
                                     {{ $inquiry->inquiry_number }}
                                 </a>
                                 <div class="small text-muted">{{ $inquiry->created_at->format('M d, Y') }}</div>
@@ -168,7 +168,7 @@
                             </td>
                             <td>
                                 @if($inquiry->quoted_amount)
-                                    <span class="fw-semibold text-success">${{ number_format($inquiry->quoted_amount, 2) }}</span>
+                                    <span class="fw-semibold text-success">{{ currency($inquiry->quoted_amount) }}</span>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -179,11 +179,11 @@
                                         <i class="bx bx-dots-vertical-rounded"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end">
-                                        <a class="dropdown-item" href="{{ route('admin.catering.inquiries.show', $inquiry) }}">
+                                        <a class="dropdown-item" href="{{ route('admin.restaurant.catering.inquiries.show', $inquiry) }}">
                                             <i class="bx bx-show me-1"></i>{{ __('View Details') }}
                                         </a>
                                         <div class="dropdown-divider"></div>
-                                        <form action="{{ route('admin.catering.inquiries.destroy', $inquiry) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this inquiry?') }}')">
+                                        <form action="{{ route('admin.restaurant.catering.inquiries.destroy', $inquiry) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this inquiry?') }}')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="dropdown-item text-danger">

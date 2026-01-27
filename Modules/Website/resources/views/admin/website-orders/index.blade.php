@@ -1,7 +1,7 @@
 @extends('admin.layouts.master')
 
 @section('title')
-    {{ __('Website Orders') }}
+    <title>{{ __('Website Orders') }}</title>
 @endsection
 
 @section('content')
@@ -9,7 +9,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold">{{ __('Website Orders') }}</h4>
             <div class="d-flex gap-2">
-                <a href="{{ route('admin.website-orders.export', request()->query()) }}" class="btn btn-outline-primary">
+                <a href="{{ route('admin.restaurant.website-orders.export', request()->query()) }}" class="btn btn-outline-primary">
                     <i class="bx bx-export me-1"></i> {{ __('Export CSV') }}
                 </a>
             </div>
@@ -118,7 +118,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bx bx-search me-1"></i> {{ __('Filter') }}
                         </button>
-                        <a href="{{ route('admin.website-orders.index') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('admin.restaurant.website-orders.index') }}" class="btn btn-outline-secondary">
                             <i class="bx bx-reset"></i>
                         </a>
                     </div>
@@ -158,7 +158,7 @@
                                 @endphp
                                 <tr>
                                     <td>
-                                        <a href="{{ route('admin.website-orders.show', $order->id) }}" class="fw-bold text-primary">
+                                        <a href="{{ route('admin.restaurant.website-orders.show', $order->id) }}" class="fw-bold text-primary">
                                             {{ $order->invoice }}
                                         </a>
                                     </td>
@@ -178,9 +178,9 @@
                                         @endif
                                     </td>
                                     <td>{{ $order->details->sum('quantity') }} {{ __('items') }}</td>
-                                    <td><strong>${{ number_format($order->grand_total, 2) }}</strong></td>
+                                    <td><strong>{{ currency($order->grand_total) }}</strong></td>
                                     <td>
-                                        <select class="form-select form-select-sm status-select" data-order-id="{{ $order->id }}" style="width: 130px;">
+                                        <select class="form-control form-control-sm status-select select2" data-order-id="{{ $order->id }}" style="width: 130px;">
                                             @foreach(\Modules\Sales\app\Models\Sale::ORDER_STATUSES as $key => $label)
                                                 <option value="{{ $key }}" {{ $order->status == $key ? 'selected' : '' }}>
                                                     {{ __($label) }}
@@ -204,12 +204,12 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('admin.website-orders.show', $order->id) }}">
+                                                    <a class="dropdown-item" href="{{ route('admin.restaurant.website-orders.show', $order->id) }}">
                                                         <i class="bx bx-show me-2"></i> {{ __('View Details') }}
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('admin.website-orders.print', $order->id) }}" target="_blank">
+                                                    <a class="dropdown-item" href="{{ route('admin.restaurant.website-orders.print', $order->id) }}" target="_blank">
                                                         <i class="bx bx-printer me-2"></i> {{ __('Print Order') }}
                                                     </a>
                                                 </li>
@@ -243,7 +243,7 @@
             const status = this.value;
             const originalValue = this.getAttribute('data-original') || this.value;
 
-            fetch(`{{ url('admin/website-orders') }}/${orderId}/status`, {
+            fetch(`{{ url('admin/restaurant/website-orders') }}/${orderId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

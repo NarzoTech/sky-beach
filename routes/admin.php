@@ -79,7 +79,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
     Route::resource('warehouse', WarehouseController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // Restaurant/Website Management Routes
-    Route::prefix('restaurant')->name('restaurant.')->group(function () {
+    Route::prefix('restaurant')->name('restaurant.')->middleware(['auth:admin'])->group(function () {
         // Blogs Management
         Route::resource('blogs', \Modules\Website\app\Http\Controllers\Admin\BlogController::class)->except('show');
         
@@ -112,6 +112,30 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         // Contact Messages Management
         Route::resource('contact-messages', \Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class)->only(['index', 'show', 'destroy']);
         Route::put('contact-messages/{contactMessage}/status', [\Modules\Website\app\Http\Controllers\Admin\ContactMessageController::class, 'updateStatus'])->name('contact-messages.update-status');
+
+        // Website Orders Management
+        Route::prefix('website-orders')->name('website-orders.')->group(function () {
+            Route::get('/', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'index'])->name('index');
+            Route::get('/export', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'export'])->name('export');
+            Route::get('/{id}', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'show'])->name('show');
+            Route::get('/{id}/print', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'printOrder'])->name('print');
+            Route::put('/{id}/status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'updateStatus'])->name('status');
+            Route::post('/bulk-status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
+        });
+
+        // Catering Management
+        Route::prefix('catering')->name('catering.')->group(function () {
+            Route::get('/packages', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesIndex'])->name('packages.index');
+            Route::get('/packages/create', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesCreate'])->name('packages.create');
+            Route::post('/packages', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesStore'])->name('packages.store');
+            Route::get('/packages/{package}/edit', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesEdit'])->name('packages.edit');
+            Route::put('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesUpdate'])->name('packages.update');
+            Route::delete('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesDestroy'])->name('packages.destroy');
+            Route::get('/inquiries', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesIndex'])->name('inquiries.index');
+            Route::get('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesShow'])->name('inquiries.show');
+            Route::patch('/inquiries/{inquiry}/status', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
+            Route::delete('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
+        });
     });
 
     // CMS Management Routes

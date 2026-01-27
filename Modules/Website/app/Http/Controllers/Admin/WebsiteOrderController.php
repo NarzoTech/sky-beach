@@ -4,10 +4,18 @@ namespace Modules\Website\app\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Modules\Sales\app\Models\Sale;
+use Modules\Menu\app\Services\MenuStockService;
 
 class WebsiteOrderController extends Controller
 {
+    protected $menuStockService;
+
+    public function __construct(MenuStockService $menuStockService)
+    {
+        $this->menuStockService = $menuStockService;
+    }
     /**
      * Display list of website orders
      */
@@ -85,7 +93,8 @@ class WebsiteOrderController extends Controller
             'staff_note' => 'nullable|string|max:500',
         ]);
 
-        $order = Sale::websiteOrders()->findOrFail($id);
+        $order = Sale::with('details.menuItem')->websiteOrders()->findOrFail($id);
+        $previousStatus = $order->status;
 
         $updateData = [
             'status' => $request->status,
@@ -102,6 +111,16 @@ class WebsiteOrderController extends Controller
 
         $order->update($updateData);
 
+        // Deduct stock when status changes to "preparing" (only if not already preparing)
+        if ($request->status === 'preparing' && $previousStatus !== 'preparing') {
+            $this->deductStockForOrder($order);
+        }
+
+        // Reverse stock deduction if order is cancelled (and was in preparing or later stage)
+        if ($request->status === 'cancelled' && in_array($previousStatus, ['preparing', 'ready', 'out_for_delivery'])) {
+            $this->reverseStockForOrder($order);
+        }
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -113,6 +132,72 @@ class WebsiteOrderController extends Controller
         }
 
         return redirect()->back()->with('success', __('Order status updated successfully.'));
+    }
+
+    /**
+     * Deduct stock for all menu items in the order
+     */
+    protected function deductStockForOrder(Sale $order)
+    {
+        $warehouseId = $order->warehouse_id ?? 1;
+
+        foreach ($order->details as $detail) {
+            if ($detail->menu_item_id) {
+                try {
+                    $this->menuStockService->deductStockForSale(
+                        $detail->menu_item_id,
+                        $detail->quantity,
+                        $warehouseId,
+                        $order->invoice
+                    );
+                    Log::info('Stock deducted for order', [
+                        'order_id' => $order->id,
+                        'invoice' => $order->invoice,
+                        'menu_item_id' => $detail->menu_item_id,
+                        'quantity' => $detail->quantity,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to deduct stock for order', [
+                        'order_id' => $order->id,
+                        'menu_item_id' => $detail->menu_item_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reverse stock deduction for cancelled order
+     */
+    protected function reverseStockForOrder(Sale $order)
+    {
+        $warehouseId = $order->warehouse_id ?? 1;
+
+        foreach ($order->details as $detail) {
+            if ($detail->menu_item_id) {
+                try {
+                    $this->menuStockService->reverseStockDeduction(
+                        $detail->menu_item_id,
+                        $detail->quantity,
+                        $warehouseId,
+                        $order->invoice . '-CANCELLED'
+                    );
+                    Log::info('Stock reversed for cancelled order', [
+                        'order_id' => $order->id,
+                        'invoice' => $order->invoice,
+                        'menu_item_id' => $detail->menu_item_id,
+                        'quantity' => $detail->quantity,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to reverse stock for order', [
+                        'order_id' => $order->id,
+                        'menu_item_id' => $detail->menu_item_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
     }
 
     /**
@@ -138,9 +223,28 @@ class WebsiteOrderController extends Controller
             'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,completed,cancelled',
         ]);
 
-        $count = Sale::websiteOrders()
+        $newStatus = $request->status;
+        $orders = Sale::with('details.menuItem')
+            ->websiteOrders()
             ->whereIn('id', $request->order_ids)
-            ->update(['status' => $request->status]);
+            ->get();
+
+        $count = 0;
+        foreach ($orders as $order) {
+            $previousStatus = $order->status;
+            $order->update(['status' => $newStatus]);
+            $count++;
+
+            // Deduct stock when status changes to "preparing"
+            if ($newStatus === 'preparing' && $previousStatus !== 'preparing') {
+                $this->deductStockForOrder($order);
+            }
+
+            // Reverse stock deduction if order is cancelled
+            if ($newStatus === 'cancelled' && in_array($previousStatus, ['preparing', 'ready', 'out_for_delivery'])) {
+                $this->reverseStockForOrder($order);
+            }
+        }
 
         if ($request->ajax()) {
             return response()->json([

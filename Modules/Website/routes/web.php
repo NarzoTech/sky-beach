@@ -135,33 +135,33 @@ Route::middleware('auth')->group(function() {
     Route::delete('/reservation/{id}', [ReservationController::class, 'cancel'])->name('website.reservation.cancel');
 });
 
-// Admin Website Orders Routes
-Route::prefix('admin/website-orders')->middleware(['auth:admin'])->name('admin.website-orders.')->group(function() {
-    Route::get('/', [WebsiteOrderController::class, 'index'])->name('index');
-    Route::get('/export', [WebsiteOrderController::class, 'export'])->name('export');
-    Route::get('/{id}', [WebsiteOrderController::class, 'show'])->name('show');
-    Route::get('/{id}/print', [WebsiteOrderController::class, 'printOrder'])->name('print');
-    Route::put('/{id}/status', [WebsiteOrderController::class, 'updateStatus'])->name('status');
-    Route::post('/bulk-status', [WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
-});
+// Admin Website Orders Routes - Moved to routes/admin.php under Restaurant section
+// Route::prefix('admin/website-orders')->middleware(['auth:admin'])->name('admin.website-orders.')->group(function() {
+//     Route::get('/', [WebsiteOrderController::class, 'index'])->name('index');
+//     Route::get('/export', [WebsiteOrderController::class, 'export'])->name('export');
+//     Route::get('/{id}', [WebsiteOrderController::class, 'show'])->name('show');
+//     Route::get('/{id}/print', [WebsiteOrderController::class, 'printOrder'])->name('print');
+//     Route::put('/{id}/status', [WebsiteOrderController::class, 'updateStatus'])->name('status');
+//     Route::post('/bulk-status', [WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
+// });
 
-// Admin Catering Routes
-Route::prefix('admin/catering')->middleware(['auth:admin'])->name('admin.catering.')->group(function() {
-    // Packages Management
-    Route::get('/packages', [AdminCateringController::class, 'packagesIndex'])->name('packages.index');
-    Route::get('/packages/create', [AdminCateringController::class, 'packagesCreate'])->name('packages.create');
-    Route::post('/packages', [AdminCateringController::class, 'packagesStore'])->name('packages.store');
-    Route::get('/packages/{package}/edit', [AdminCateringController::class, 'packagesEdit'])->name('packages.edit');
-    Route::put('/packages/{package}', [AdminCateringController::class, 'packagesUpdate'])->name('packages.update');
-    Route::delete('/packages/{package}', [AdminCateringController::class, 'packagesDestroy'])->name('packages.destroy');
-
-    // Inquiries Management
-    Route::get('/inquiries', [AdminCateringController::class, 'inquiriesIndex'])->name('inquiries.index');
-    Route::get('/inquiries/export', [AdminCateringController::class, 'inquiriesExport'])->name('inquiries.export');
-    Route::get('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesShow'])->name('inquiries.show');
-    Route::patch('/inquiries/{inquiry}/status', [AdminCateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
-    Route::delete('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
-});
+// Admin Catering Routes - Moved to routes/admin.php under Restaurant section
+// Route::prefix('admin/catering')->middleware(['auth:admin'])->name('admin.catering.')->group(function() {
+//     // Packages Management
+//     Route::get('/packages', [AdminCateringController::class, 'packagesIndex'])->name('packages.index');
+//     Route::get('/packages/create', [AdminCateringController::class, 'packagesCreate'])->name('packages.create');
+//     Route::post('/packages', [AdminCateringController::class, 'packagesStore'])->name('packages.store');
+//     Route::get('/packages/{package}/edit', [AdminCateringController::class, 'packagesEdit'])->name('packages.edit');
+//     Route::put('/packages/{package}', [AdminCateringController::class, 'packagesUpdate'])->name('packages.update');
+//     Route::delete('/packages/{package}', [AdminCateringController::class, 'packagesDestroy'])->name('packages.destroy');
+//
+//     // Inquiries Management
+//     Route::get('/inquiries', [AdminCateringController::class, 'inquiriesIndex'])->name('inquiries.index');
+//     Route::get('/inquiries/export', [AdminCateringController::class, 'inquiriesExport'])->name('inquiries.export');
+//     Route::get('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesShow'])->name('inquiries.show');
+//     Route::patch('/inquiries/{inquiry}/status', [AdminCateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
+//     Route::delete('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
+// });
 
 // Admin Coupons Routes
 Route::prefix('admin/coupons')->middleware(['auth:admin'])->name('admin.coupons.')->group(function() {

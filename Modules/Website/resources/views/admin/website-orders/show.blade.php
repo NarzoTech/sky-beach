@@ -1,7 +1,7 @@
 @extends('admin.layouts.master')
 
 @section('title')
-    {{ __('Order') }} #{{ $order->invoice }}
+    <title>{{ __('Order') }} #{{ $order->invoice }}</title>
 @endsection
 
 @section('content')
@@ -12,10 +12,10 @@
                 <small class="text-muted">{{ $order->created_at->format('F d, Y \a\t h:i A') }}</small>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('admin.website-orders.print', $order->id) }}" class="btn btn-outline-secondary" target="_blank">
+                <a href="{{ route('admin.restaurant.website-orders.print', $order->id) }}" class="btn btn-outline-secondary" target="_blank">
                     <i class="bx bx-printer me-1"></i> {{ __('Print') }}
                 </a>
-                <a href="{{ route('admin.website-orders.index') }}" class="btn btn-outline-primary">
+                <a href="{{ route('admin.restaurant.website-orders.index') }}" class="btn btn-outline-primary">
                     <i class="bx bx-arrow-back me-1"></i> {{ __('Back to Orders') }}
                 </a>
             </div>
@@ -37,14 +37,14 @@
                         <span class="badge {{ $order->status_badge_class }} fs-6">{{ $order->status_label }}</span>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('admin.website-orders.status', $order->id) }}" method="POST" class="row g-3">
+                        <form action="{{ route('admin.restaurant.website-orders.status', $order->id) }}" method="POST" class="row g-3">
                             @csrf
                             @method('PUT')
                             <div class="col-md-6">
                                 <label class="form-label">{{ __('Update Status') }}</label>
-                                <select name="status" class="form-select">
+                                <select name="status" class="form-control select2" style="height: 38px;">
                                     @foreach(\Modules\Sales\app\Models\Sale::ORDER_STATUSES as $key => $label)
-                                        <option value="{{ $key }}" {{ $order->status == $key ? 'selected' : '' }}>
+                                        <option value="{{ $key }}" {{ (string)$order->status === (string)$key ? 'selected' : '' }}>
                                             {{ __($label) }}
                                         </option>
                                     @endforeach
@@ -65,31 +65,37 @@
                         <div class="mt-4 pt-4 border-top">
                             <h6 class="mb-3">{{ __('Order Progress') }}</h6>
                             @php
+                                $orderStatus = (string)$order->status;
                                 $allStatuses = ['pending', 'confirmed', 'preparing', 'ready'];
                                 if ($order->order_type === 'delivery') {
                                     $allStatuses = array_merge($allStatuses, ['out_for_delivery', 'delivered']);
                                 } else {
                                     $allStatuses[] = 'completed';
                                 }
-                                $currentIndex = array_search($order->status, $allStatuses);
-                                if ($order->status === 'cancelled') $currentIndex = -1;
+                                $currentIndex = array_search($orderStatus, $allStatuses, true);
+                                // Handle case where status is not in array (e.g., cancelled)
+                                if ($currentIndex === false) {
+                                    $currentIndex = -1;
+                                }
                             @endphp
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach($allStatuses as $index => $status)
                                     @php
-                                        $isActive = $currentIndex !== false && $index <= $currentIndex;
-                                        $isCurrent = $order->status === $status;
+                                        $isCompleted = $currentIndex >= 0 && $index < $currentIndex;
+                                        $isCurrent = $orderStatus === $status;
+                                        $isActive = $isCompleted || $isCurrent;
                                     @endphp
-                                    <span class="badge {{ $isActive ? ($isCurrent ? 'bg-primary' : 'bg-success') : 'bg-light text-muted' }} py-2 px-3">
-                                        @if($isActive)<i class="bx bx-check me-1"></i>@endif
+                                    <span class="badge {{ $isCurrent ? 'bg-primary' : ($isCompleted ? 'bg-success' : 'bg-secondary text-white') }} py-2 px-3" style="{{ !$isActive ? 'opacity: 0.5;' : '' }}">
+                                        @if($isCompleted)<i class="bx bx-check me-1"></i>@endif
+                                        @if($isCurrent)<i class="bx bx-loader-alt bx-spin me-1"></i>@endif
                                         {{ __(ucfirst(str_replace('_', ' ', $status))) }}
                                     </span>
                                     @if(!$loop->last)
-                                        <i class="bx bx-chevron-right text-muted align-self-center"></i>
+                                        <i class="bx bx-chevron-right {{ $isCompleted ? 'text-success' : 'text-muted' }} align-self-center"></i>
                                     @endif
                                 @endforeach
                             </div>
-                            @if($order->status === 'cancelled')
+                            @if($orderStatus === 'cancelled')
                                 <div class="alert alert-danger mt-3 mb-0">
                                     <i class="bx bx-x-circle me-1"></i> {{ __('This order has been cancelled.') }}
                                 </div>
@@ -138,37 +144,37 @@
                                                 </div>
                                             </td>
                                             <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">${{ number_format($item->price + ($item->addons_price ?? 0), 2) }}</td>
-                                            <td class="text-end"><strong>${{ number_format($item->sub_total, 2) }}</strong></td>
+                                            <td class="text-end">{{ currency($item->price + ($item->addons_price ?? 0)) }}</td>
+                                            <td class="text-end"><strong>{{ currency($item->sub_total) }}</strong></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                                 <tfoot class="table-light">
                                     <tr>
                                         <td colspan="3" class="text-end">{{ __('Subtotal') }}:</td>
-                                        <td class="text-end">${{ number_format($order->total_price, 2) }}</td>
+                                        <td class="text-end">{{ currency($order->total_price) }}</td>
                                     </tr>
                                     @if($order->shipping_cost > 0)
                                         <tr>
                                             <td colspan="3" class="text-end">{{ __('Delivery Fee') }}:</td>
-                                            <td class="text-end">${{ number_format($order->shipping_cost, 2) }}</td>
+                                            <td class="text-end">{{ currency($order->shipping_cost) }}</td>
                                         </tr>
                                     @endif
                                     @if($order->total_tax > 0)
                                         <tr>
                                             <td colspan="3" class="text-end">{{ __('Tax') }}:</td>
-                                            <td class="text-end">${{ number_format($order->total_tax, 2) }}</td>
+                                            <td class="text-end">{{ currency($order->total_tax) }}</td>
                                         </tr>
                                     @endif
                                     @if($order->discount_amount > 0)
                                         <tr class="text-success">
                                             <td colspan="3" class="text-end">{{ __('Discount') }}:</td>
-                                            <td class="text-end">-${{ number_format($order->discount_amount, 2) }}</td>
+                                            <td class="text-end">-{{ currency($order->discount_amount) }}</td>
                                         </tr>
                                     @endif
                                     <tr>
                                         <td colspan="3" class="text-end"><strong class="fs-5">{{ __('Grand Total') }}:</strong></td>
-                                        <td class="text-end"><strong class="fs-5 text-primary">${{ number_format($order->grand_total, 2) }}</strong></td>
+                                        <td class="text-end"><strong class="fs-5 text-primary">{{ currency($order->grand_total) }}</strong></td>
                                     </tr>
                                 </tfoot>
                             </table>
