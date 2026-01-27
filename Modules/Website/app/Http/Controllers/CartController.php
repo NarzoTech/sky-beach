@@ -93,11 +93,27 @@ class CartController extends Controller
                 $request->special_instructions
             );
 
+            // Load the menu item relationship for cart item data
+            $cartItem->load('menuItem');
+
+            // Prepare cart item data for mini cart update
+            $cartItemData = [
+                'id' => $cartItem->id,
+                'name' => $cartItem->menuItem->name ?? 'Item',
+                'image' => $cartItem->menuItem && $cartItem->menuItem->image
+                    ? asset('storage/' . $cartItem->menuItem->image)
+                    : null,
+                'unit_price' => $cartItem->unit_price,
+                'quantity' => $cartItem->quantity,
+                'variant_name' => $cartItem->variant_name,
+            ];
+
             return response()->json([
                 'success' => true,
-                'message' => __('Item added to cart successfully.'),
+                'message' => __('Item added to cart'),
                 'cart_count' => WebsiteCart::getCartCount(),
                 'cart_total' => WebsiteCart::getCartTotal(),
+                'cart_item' => $cartItemData,
             ]);
         } catch (\Exception $e) {
             return response()->json([

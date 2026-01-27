@@ -137,9 +137,18 @@
                                 <!-- Payment Method -->
                                 <h2>{{ __('Payment Method') }}</h2>
                                 <div class="row mb-4">
-                                    <div class="col-md-12">
-                                        <div class="payment-method-card" style="border-color: #e2136e; background-color: rgba(226, 19, 110, 0.05);">
-                                            <input type="radio" name="payment_method" value="bkash" id="pay_bkash" checked>
+                                    <div class="col-md-6">
+                                        <div class="payment-method-card" data-payment="cash">
+                                            <input type="radio" name="payment_method" value="cash" id="pay_cash" checked>
+                                            <label for="pay_cash">
+                                                <i class="fas fa-money-bill-wave fa-lg me-2 cod-icon"></i>
+                                                <span class="cod-text">{{ __('Cash on Delivery') }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="payment-method-card" data-payment="bkash">
+                                            <input type="radio" name="payment_method" value="bkash" id="pay_bkash">
                                             <label for="pay_bkash">
                                                 <img src="{{ asset('website/images/bkash-logo.png') }}" alt="bKash" style="height: 30px; margin-right: 10px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                                                 <i class="fas fa-mobile-alt fa-lg me-2" style="display: none; color: #e2136e;"></i>
@@ -183,8 +192,8 @@
                                     <p>{{ __('Tax') }}: <span>{{ currency(0) }}</span></p>
                                     <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal) }}</span></p>
 
-                                    <button type="submit" class="common_btn w-100" id="place-order-btn" style="background: linear-gradient(135deg, #e2136e 0%, #d1105d 100%);">
-                                        <i class="fas fa-mobile-alt me-2"></i>{{ __('Pay with bKash') }}
+                                    <button type="submit" class="common_btn w-100" id="place-order-btn">
+                                        <i class="fas fa-check-circle me-2"></i>{{ __('Place Order') }}
                                     </button>
 
                                     <a href="{{ route('website.cart.index') }}" class="text-center d-block mt-3">
@@ -215,7 +224,7 @@
 
     .order-type-card:hover,
     .payment-method-card:hover {
-        border-color: #e2136e;
+        border-color: var(--colorPrimary, #AB162C);
     }
 
     .payment-method-card:has(input[value="bkash"]:checked) {
@@ -227,6 +236,29 @@
         color: #e2136e !important;
     }
 
+    .payment-method-card:has(input[value="cash"]:checked) {
+        border-color: var(--colorGreen, #0F9043) !important;
+        background-color: rgba(15, 144, 67, 0.05) !important;
+    }
+
+    .payment-method-card:has(input[value="cash"]:checked) label span,
+    .payment-method-card:has(input[value="cash"]:checked) .cod-text {
+        color: var(--colorGreen, #0F9043) !important;
+    }
+
+    .payment-method-card:has(input[value="cash"]:checked) .cod-icon {
+        color: var(--colorGreen, #0F9043) !important;
+    }
+
+    .cod-icon {
+        color: var(--colorGreen, #0F9043);
+    }
+
+    .cod-text {
+        color: var(--colorGreen, #0F9043);
+        font-weight: 600;
+    }
+
     .order-type-card input,
     .payment-method-card input {
         display: none;
@@ -234,13 +266,12 @@
 
     .order-type-card input:checked + label,
     .payment-method-card input:checked + label {
-        color: #ff6b35;
+        color: var(--colorPrimary, #AB162C);
     }
 
-    .order-type-card:has(input:checked),
-    .payment-method-card:has(input:checked) {
-        border-color: #ff6b35;
-        background-color: rgba(255, 107, 53, 0.05);
+    .order-type-card:has(input:checked) {
+        border-color: var(--colorPrimary, #AB162C);
+        background-color: rgba(171, 22, 44, 0.05);
     }
 
     .order-type-card label,
@@ -285,7 +316,7 @@
     }
 
     .order_item .quantity {
-        color: #ff6b35;
+        color: var(--colorPrimary, #AB162C);
         margin-left: 5px;
         font-size: 14px;
     }
@@ -305,7 +336,7 @@
 
     .checkout_area input:focus,
     .checkout_area textarea:focus {
-        border-color: #ff6b35;
+        border-color: var(--colorPrimary, #AB162C);
         outline: none;
     }
 
@@ -389,78 +420,140 @@
             card.addEventListener('click', function() {
                 const radio = this.querySelector('input[type="radio"]');
                 radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
             });
         });
 
-        // Form submission - bKash Payment
-        const form = document.getElementById('checkout-form');
+        // Update button based on payment method
+        const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
         const submitBtn = document.getElementById('place-order-btn');
+
+        function updateSubmitButton(paymentMethod) {
+            if (paymentMethod === 'bkash') {
+                submitBtn.style.background = '#e2136e';
+                submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
+            } else {
+                submitBtn.style.background = '';
+                submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>{{ __("Place Order") }}';
+            }
+        }
+
+        paymentRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateSubmitButton(this.value);
+            });
+        });
+
+        // Form submission
+        const form = document.getElementById('checkout-form');
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
             // Disable button to prevent double submission
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Connecting to bKash...") }}';
 
-            const formData = new FormData(form);
+            if (paymentMethod === 'bkash') {
+                // bKash payment flow
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Connecting to bKash...") }}';
 
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.bkashURL) {
-                    // Redirect to bKash payment page
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'info',
-                            title: '{{ __("Redirecting to bKash") }}',
-                            text: '{{ __("Please complete your payment on bKash...") }}',
-                            showConfirmButton: false,
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+                const formData = new FormData(form);
+
+                fetch('{{ route("website.bkash.create") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
-                    // Redirect to bKash
-                    window.location.href = data.bkashURL;
-                } else {
-                    // Show error
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: '{{ __("Payment Error") }}',
-                            text: data.message || '{{ __("Failed to initiate payment. Please try again.") }}'
-                        });
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.bkashURL) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'info',
+                                title: '{{ __("Redirecting to bKash") }}',
+                                text: '{{ __("Please complete your payment on bKash...") }}',
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                        }
+                        window.location.href = data.bkashURL;
                     } else {
-                        alert(data.message || '{{ __("Failed to initiate payment. Please try again.") }}');
+                        showError(data.message || '{{ __("Failed to initiate payment. Please try again.") }}');
+                        resetButton('bkash');
                     }
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '{{ __("Error") }}',
-                        text: '{{ __("Something went wrong. Please try again.") }}'
-                    });
-                } else {
-                    alert('{{ __("Something went wrong. Please try again.") }}');
-                }
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('{{ __("Something went wrong. Please try again.") }}');
+                    resetButton('bkash');
+                });
+            } else {
+                // Cash on Delivery flow
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Placing Order...") }}';
+
+                const formData = new FormData(form);
+
+                fetch('{{ route("website.checkout.process") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("Order Placed!") }}',
+                                text: '{{ __("Your order has been placed successfully.") }}',
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(() => {
+                                window.location.href = data.redirect_url;
+                            });
+                        } else {
+                            window.location.href = data.redirect_url;
+                        }
+                    } else {
+                        showError(data.message || '{{ __("Failed to place order. Please try again.") }}');
+                        resetButton('cash');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('{{ __("Something went wrong. Please try again.") }}');
+                    resetButton('cash');
+                });
+            }
         });
+
+        function showError(message) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ __("Error") }}',
+                    text: message
+                });
+            } else {
+                alert(message);
+            }
+        }
+
+        function resetButton(paymentMethod) {
+            submitBtn.disabled = false;
+            updateSubmitButton(paymentMethod);
+        }
     });
 </script>
 @endpush

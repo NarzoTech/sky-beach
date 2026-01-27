@@ -431,11 +431,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update cart badge in header
                 updateCartBadge(data.cart_count);
 
+                // Update mini cart
+                updateMiniCart(data.cart_count, data.cart_total, data.cart_item);
+
                 if (buyNow) {
                     window.location.href = '{{ route("website.checkout.index") }}';
                 } else {
                     // Show success toast
-                    showToast(data.message || '{{ __("Item added to cart!") }}', 'success');
+                    showToast('{{ $menuItem->name }} {{ __("added to cart!") }}', 'success');
                 }
             } else {
                 showToast(data.message || '{{ __("Failed to add item to cart.") }}', 'error');
@@ -453,6 +456,76 @@ document.addEventListener('DOMContentLoaded', function() {
         if (badge) {
             badge.textContent = count;
             badge.style.display = count > 0 ? 'inline-block' : 'none';
+            // Add pulse animation
+            badge.classList.add('pulse');
+            setTimeout(() => badge.classList.remove('pulse'), 300);
+        }
+    }
+
+    // Update mini cart sidebar
+    function updateMiniCart(count, total, newItem) {
+        // Update mini cart count
+        const miniCartCount = document.getElementById('mini-cart-count');
+        if (miniCartCount) {
+            miniCartCount.textContent = '(' + count + ')';
+        }
+
+        // Update mini cart total
+        const miniCartTotal = document.getElementById('mini-cart-total');
+        if (miniCartTotal) {
+            miniCartTotal.textContent = '{{ currency_icon() }}' + parseFloat(total).toFixed(2);
+        }
+
+        // Show mini cart footer if it was hidden
+        const miniCartFooter = document.getElementById('mini-cart-footer');
+        if (miniCartFooter && count > 0) {
+            miniCartFooter.style.display = '';
+        }
+
+        // Remove empty cart message if exists
+        const emptyMessage = document.querySelector('#mini-cart-items .empty-cart-message');
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        // Add or update item in mini cart
+        if (newItem) {
+            const existingItem = document.querySelector(`#mini-cart-items li[data-cart-item-id="${newItem.id}"]`);
+
+            if (existingItem) {
+                // Update quantity of existing item
+                const qtySpan = existingItem.querySelector('.text p span');
+                if (qtySpan) {
+                    qtySpan.textContent = '{{ __("Qty") }}: ' + newItem.quantity;
+                }
+                // Add highlight effect
+                existingItem.style.backgroundColor = 'rgba(185, 157, 107, 0.1)';
+                setTimeout(() => existingItem.style.backgroundColor = '', 500);
+            } else {
+                // Add new item to mini cart
+                const miniCartItems = document.getElementById('mini-cart-items');
+                if (miniCartItems) {
+                    const itemHtml = `
+                        <li data-cart-item-id="${newItem.id}" style="animation: fadeInSlide 0.4s ease;">
+                            <div class="img">
+                                <img src="${newItem.image || '{{ asset("website/images/placeholder-food.png") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                            </div>
+                            <div class="text">
+                                <h5>${newItem.name}</h5>
+                                <p>
+                                    {{ currency_icon() }}${parseFloat(newItem.unit_price).toFixed(2)}
+                                    <span>{{ __("Qty") }}: ${newItem.quantity}</span>
+                                </p>
+                                ${newItem.variant_name ? `<small class="text-muted">${newItem.variant_name}</small>` : ''}
+                            </div>
+                            <span class="close_cart" onclick="removeMiniCartItem(${newItem.id})">
+                                <i class="far fa-times"></i>
+                            </span>
+                        </li>
+                    `;
+                    miniCartItems.insertAdjacentHTML('afterbegin', itemHtml);
+                }
+            }
         }
     }
 
@@ -482,19 +555,32 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         toast.textContent = message;
 
-        // Add animation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
+        // Add animation styles if not already added
+        if (!document.getElementById('toast-animation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'toast-animation-styles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+                @keyframes fadeInSlide {
+                    from { opacity: 0; transform: translateY(-10px); background-color: rgba(185, 157, 107, 0.1); }
+                    to { opacity: 1; transform: translateY(0); background-color: transparent; }
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.2); }
+                    100% { transform: scale(1); }
+                }
+                .pulse { animation: pulse 0.3s ease-in-out; }
+            `;
+            document.head.appendChild(style);
+        }
 
         document.body.appendChild(toast);
 

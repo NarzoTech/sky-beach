@@ -49,7 +49,7 @@ class CheckoutController extends Controller
             'order_type' => 'required|in:delivery,take_away',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required_if:order_type,delivery|nullable|string|max:500',
             'city' => 'required_if:order_type,delivery|nullable|string|max:100',

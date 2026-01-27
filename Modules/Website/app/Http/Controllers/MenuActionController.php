@@ -4,7 +4,7 @@ namespace Modules\Website\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\MenuFavorite;
-use App\Models\Cart;
+use Modules\Website\app\Models\WebsiteCart;
 use Modules\Menu\app\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,68 +68,44 @@ class MenuActionController extends Controller
             'quantity' => 'required|integer|min:1',
             'variant_id' => 'nullable|exists:menu_variants,id',
             'addons' => 'nullable|array',
-            'addons.*' => 'exists:menu_addons,id'
+            'addons.*' => 'exists:menu_addons,id',
+            'special_instructions' => 'nullable|string|max:500'
         ]);
 
-        $menuItem = MenuItem::findOrFail($request->menu_item_id);
-        
-        // Calculate price
-        $price = $menuItem->base_price;
-        
-        // Add variant price if selected
-        if ($request->variant_id) {
-            $variant = $menuItem->variants()->find($request->variant_id);
-            if ($variant) {
-                $price += $variant->price_adjustment;
-            }
-        }
-        
-        // Add addons price if selected
-        if ($request->addons) {
-            $addons = $menuItem->addons()->whereIn('menu_addons.id', $request->addons)->get();
-            foreach ($addons as $addon) {
-                $price += $addon->price;
-            }
-        }
+        // Add item to cart using WebsiteCart model
+        $cartItem = WebsiteCart::addItem(
+            $request->menu_item_id,
+            $request->quantity,
+            $request->variant_id,
+            $request->addons ?? [],
+            $request->special_instructions
+        );
 
-        // Check if item already in cart
-        $cartItem = Cart::where('product_id', $request->menu_item_id)
-            ->where('user_id', Auth::id())
-            ->where('session_id', Session::getId())
-            ->first();
+        // Load the menu item relationship
+        $cartItem->load('menuItem');
 
-        if ($cartItem) {
-            // Update quantity
-            $cartItem->quantity += $request->quantity;
-            $cartItem->total_price = $cartItem->quantity * $price;
-            $cartItem->save();
-        } else {
-            // Create new cart item
-            Cart::create([
-                'user_id' => Auth::id(),
-                'session_id' => Session::getId(),
-                'product_id' => $request->menu_item_id,
-                'quantity' => $request->quantity,
-                'unit_price' => $price,
-                'total_price' => $price * $request->quantity,
-                'variant_id' => $request->variant_id,
-                'addons' => $request->addons ? json_encode($request->addons) : null,
-            ]);
-        }
+        // Get updated cart count and total
+        $cartCount = WebsiteCart::getCartCount();
+        $cartTotal = WebsiteCart::getCartTotal();
 
-        // Get updated cart count
-        $cartCount = Cart::where(function($query) {
-            if (Auth::check()) {
-                $query->where('user_id', Auth::id());
-            } else {
-                $query->where('session_id', Session::getId());
-            }
-        })->sum('quantity');
+        // Prepare cart item data for mini cart update
+        $cartItemData = [
+            'id' => $cartItem->id,
+            'name' => $cartItem->menuItem->name ?? 'Item',
+            'image' => $cartItem->menuItem && $cartItem->menuItem->image
+                ? asset('storage/' . $cartItem->menuItem->image)
+                : null,
+            'unit_price' => $cartItem->unit_price,
+            'quantity' => $cartItem->quantity,
+            'variant_name' => $cartItem->variant_name,
+        ];
 
         return response()->json([
             'success' => true,
-            'message' => 'Item added to cart successfully',
-            'cart_count' => $cartCount
+            'message' => 'Item added to cart',
+            'cart_count' => $cartCount,
+            'cart_total' => $cartTotal,
+            'cart_item' => $cartItemData
         ]);
     }
 

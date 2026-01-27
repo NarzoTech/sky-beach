@@ -239,11 +239,12 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast('success', data.message);
-                // Update cart count if you have a cart counter
-                updateCartCount(data.cart_count);
+                showToast('success', itemName + ' added to cart');
+                // Update cart badge and mini cart
+                updateCartBadge(data.cart_count);
+                updateMiniCart(data.cart_count, data.cart_total, data.cart_item);
             } else {
-                showToast('error', 'Failed to add item to cart');
+                showToast('error', data.message || 'Failed to add item to cart');
             }
         })
         .catch(error => {
@@ -259,26 +260,130 @@
         showToast('info', 'Quick view coming soon!');
     }
     
-    // Update cart count display
-    function updateCartCount(count) {
-        const cartCounters = document.querySelectorAll('.cart-count');
-        cartCounters.forEach(counter => {
-            counter.textContent = count;
-            // Add animation
-            counter.classList.add('pulse');
-            setTimeout(() => counter.classList.remove('pulse'), 300);
-        });
+    // Update mini cart sidebar
+    function updateMiniCart(count, total, newItem) {
+        // Update mini cart count
+        const miniCartCount = document.getElementById('mini-cart-count');
+        if (miniCartCount) {
+            miniCartCount.textContent = '(' + count + ')';
+        }
+
+        // Update mini cart total
+        const miniCartTotal = document.getElementById('mini-cart-total');
+        if (miniCartTotal) {
+            miniCartTotal.textContent = '{{ currency_icon() }}' + parseFloat(total).toFixed(2);
+        }
+
+        // Show mini cart footer if it was hidden
+        const miniCartFooter = document.getElementById('mini-cart-footer');
+        if (miniCartFooter && count > 0) {
+            miniCartFooter.style.display = '';
+        }
+
+        // Remove empty cart message if exists
+        const emptyMessage = document.querySelector('#mini-cart-items .empty-cart-message');
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        // Add or update item in mini cart
+        if (newItem) {
+            const existingItem = document.querySelector(`#mini-cart-items li[data-cart-item-id="${newItem.id}"]`);
+
+            if (existingItem) {
+                // Update quantity of existing item
+                const qtySpan = existingItem.querySelector('.text p span');
+                if (qtySpan) {
+                    qtySpan.textContent = '{{ __("Qty") }}: ' + newItem.quantity;
+                }
+            } else {
+                // Add new item to mini cart
+                const miniCartItems = document.getElementById('mini-cart-items');
+                if (miniCartItems) {
+                    const itemHtml = `
+                        <li data-cart-item-id="${newItem.id}" class="mini-cart-item-new">
+                            <div class="img">
+                                <img src="${newItem.image || '{{ asset("website/images/placeholder-food.png") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                            </div>
+                            <div class="text">
+                                <h5>${newItem.name}</h5>
+                                <p>
+                                    {{ currency_icon() }}${parseFloat(newItem.unit_price).toFixed(2)}
+                                    <span>{{ __("Qty") }}: ${newItem.quantity}</span>
+                                </p>
+                                ${newItem.variant_name ? `<small class="text-muted">${newItem.variant_name}</small>` : ''}
+                            </div>
+                            <span class="close_cart" onclick="removeMiniCartItem(${newItem.id})">
+                                <i class="far fa-times"></i>
+                            </span>
+                        </li>
+                    `;
+                    miniCartItems.insertAdjacentHTML('afterbegin', itemHtml);
+
+                    // Remove animation class after animation completes
+                    setTimeout(() => {
+                        const newElement = miniCartItems.querySelector('.mini-cart-item-new');
+                        if (newElement) newElement.classList.remove('mini-cart-item-new');
+                    }, 500);
+                }
+            }
+        }
     }
-    
-    // Toast notification function
+
+    // Toast notification function - custom implementation
     function showToast(type, message) {
         // Check if toastr is available
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
-        } else {
-            // Fallback to alert
-            alert(message);
+            return;
         }
+
+        // Check if Swal (SweetAlert) is available
+        if (typeof Swal !== 'undefined') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+            Toast.fire({
+                icon: type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'),
+                title: message
+            });
+            return;
+        }
+
+        // Custom toast fallback
+        let toastContainer = document.getElementById('custom-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'custom-toast-container';
+            toastContainer.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(toastContainer);
+        }
+
+        const colors = {
+            success: { bg: '#28a745', icon: 'fa-check-circle' },
+            error: { bg: '#dc3545', icon: 'fa-times-circle' },
+            info: { bg: '#17a2b8', icon: 'fa-info-circle' },
+            warning: { bg: '#ffc107', icon: 'fa-exclamation-circle' }
+        };
+
+        const config = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.style.cssText = `background:${config.bg};color:#fff;padding:12px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease;min-width:250px;`;
+        toast.innerHTML = `<i class="fas ${config.icon}"></i><span>${message}</span>`;
+
+        toastContainer.appendChild(toast);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
     
     // Load user favorites on page load
@@ -328,18 +433,47 @@
         50% { transform: scale(1.2); }
         100% { transform: scale(1); }
     }
-    
+
     .pulse {
         animation: pulse 0.3s ease-in-out;
     }
-    
+
     .favorite-btn .fas {
         color: #B99D6B;
     }
-    
+
     .favorite-btn:hover i {
         transform: scale(1.2);
         transition: transform 0.2s;
+    }
+
+    /* Custom toast animations */
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Mini cart new item animation */
+    .mini-cart-item-new {
+        animation: fadeInSlide 0.4s ease;
+    }
+
+    @keyframes fadeInSlide {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+            background-color: rgba(185, 157, 107, 0.1);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            background-color: transparent;
+        }
     }
 </style>
 @endpush

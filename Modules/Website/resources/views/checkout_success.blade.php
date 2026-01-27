@@ -230,7 +230,7 @@
     .success_icon {
         width: 100px;
         height: 100px;
-        background: linear-gradient(135deg, #71dd37, #5cb82b);
+        background: var(--colorGreen, #0F9043);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -272,14 +272,14 @@
     }
 
     .delivery_info {
-        background: #fff3e0;
+        background: rgba(171, 22, 44, 0.05);
         padding: 20px;
         border-radius: 10px;
-        border-left: 4px solid #ff6b35;
+        border-left: 4px solid var(--colorPrimary, #AB162C);
     }
 
     .delivery_info h5 {
-        color: #ff6b35;
+        color: var(--colorPrimary, #AB162C);
         margin-bottom: 10px;
     }
 
@@ -342,7 +342,7 @@
     }
 
     .timeline_item.active:not(:last-child)::after {
-        background: #71dd37;
+        background: var(--colorGreen, #0F9043);
     }
 
     .timeline_icon {
@@ -357,7 +357,7 @@
     }
 
     .timeline_item.active .timeline_icon {
-        background: #71dd37;
+        background: var(--colorGreen, #0F9043);
         color: #fff;
     }
 
@@ -373,12 +373,12 @@
 
     .common_btn.btn_outline {
         background: transparent;
-        border: 2px solid #ff6b35;
-        color: #ff6b35;
+        border: 2px solid var(--colorPrimary, #AB162C);
+        color: var(--colorPrimary, #AB162C);
     }
 
     .common_btn.btn_outline:hover {
-        background: #ff6b35;
+        background: var(--colorPrimary, #AB162C);
         color: #fff;
     }
 
