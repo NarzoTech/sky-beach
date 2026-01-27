@@ -60,7 +60,12 @@
                                             @foreach($cartItems as $item)
                                             <tr data-cart-item-id="{{ $item->id }}">
                                                 <td class="pro_img">
-                                                    @if($item->menuItem && $item->menuItem->image)
+                                                    @if($item->is_combo)
+                                                        <div class="position-relative">
+                                                            <img src="{{ $item->combo->image_url ?? asset('website/images/placeholder-food.png') }}" alt="{{ $item->combo->name ?? 'Combo' }}" class="img-fluid w-100">
+                                                            <span class="badge bg-warning text-dark position-absolute" style="top: 5px; left: 5px; font-size: 10px;">{{ __('COMBO') }}</span>
+                                                        </div>
+                                                    @elseif($item->menuItem && $item->menuItem->image)
                                                         <img src="{{ asset($item->menuItem->image) }}" alt="{{ $item->menuItem->name }}" class="img-fluid w-100">
                                                     @else
                                                         <img src="{{ asset('website/images/placeholder-food.png') }}" alt="{{ $item->menuItem->name ?? 'Item' }}" class="img-fluid w-100">
@@ -68,14 +73,32 @@
                                                 </td>
 
                                                 <td class="pro_name">
-                                                    <a href="{{ route('website.menu-details', $item->menuItem->slug ?? $item->menu_item_id) }}">
-                                                        {{ $item->menuItem->name ?? __('Unknown Item') }}
-                                                    </a>
-                                                    @if($item->variant_name)
-                                                        <span>{{ $item->variant_name }}</span>
-                                                    @endif
-                                                    @if(!empty($item->addon_names))
-                                                        <p>{{ implode(', ', $item->addon_names) }}</p>
+                                                    @if($item->is_combo)
+                                                        <a href="{{ route('website.menu') }}">
+                                                            {{ $item->combo->name ?? __('Unknown Combo') }}
+                                                        </a>
+                                                        <span class="badge bg-warning text-dark">{{ __('Combo Package') }}</span>
+                                                        @if($item->combo && $item->combo->comboItems)
+                                                        <small class="text-muted d-block mt-1">
+                                                            {{ __('Includes') }}:
+                                                            @foreach($item->combo->comboItems->take(3) as $comboItem)
+                                                                {{ $comboItem->quantity }}x {{ $comboItem->menuItem->name ?? 'Item' }}{{ !$loop->last ? ',' : '' }}
+                                                            @endforeach
+                                                            @if($item->combo->comboItems->count() > 3)
+                                                                {{ __('+ :count more', ['count' => $item->combo->comboItems->count() - 3]) }}
+                                                            @endif
+                                                        </small>
+                                                        @endif
+                                                    @else
+                                                        <a href="{{ route('website.menu-details', $item->menuItem->slug ?? $item->menu_item_id) }}">
+                                                            {{ $item->menuItem->name ?? __('Unknown Item') }}
+                                                        </a>
+                                                        @if($item->variant_name)
+                                                            <span>{{ $item->variant_name }}</span>
+                                                        @endif
+                                                        @if(!empty($item->addon_names))
+                                                            <p>{{ implode(', ', $item->addon_names) }}</p>
+                                                        @endif
                                                     @endif
                                                     @if($item->special_instructions)
                                                         <small class="text-muted d-block mt-1">

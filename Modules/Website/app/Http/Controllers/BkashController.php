@@ -14,6 +14,7 @@ use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Membership\app\Models\LoyaltyCustomer;
 use Modules\Membership\app\Models\LoyaltyProgram;
+use Illuminate\Support\Str;
 
 class BkashController extends Controller
 {
@@ -137,8 +138,11 @@ class BkashController extends Controller
                 $order = $this->createOrder($checkoutData, $result);
 
                 if ($order) {
+                    // Save checkout data to cookies for returning customers
+                    $this->saveCheckoutDataToCookie($checkoutData);
+
                     $this->clearBkashSession();
-                    return redirect()->route('website.checkout.success', $order->id)
+                    return redirect()->route('website.checkout.success', $order->uid)
                         ->with('success', __('Payment successful! Your order has been placed.'));
                 }
 
@@ -171,11 +175,13 @@ class BkashController extends Controller
         DB::beginTransaction();
 
         try {
-            // Generate final invoice number
+            // Generate final invoice number and UID
             $invoice = $this->generateInvoiceNumber();
+            $uid = $this->generateUniqueUid();
 
             // Create sale/order
             $sale = Sale::create([
+                'uid' => $uid,
                 'user_id' => 1, // System user for website orders
                 'customer_id' => Auth::id(),
                 'warehouse_id' => $this->getDefaultWarehouse(),
@@ -220,18 +226,38 @@ class BkashController extends Controller
                     $addonsPrice = collect($cartItem->addons)->sum('price');
                 }
 
-                ProductSale::create([
-                    'sale_id' => $sale->id,
-                    'menu_item_id' => $cartItem->menu_item_id,
-                    'variant_id' => $cartItem->variant_id,
-                    'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->unit_price - $addonsPrice,
-                    'addons' => $cartItem->addons,
-                    'addons_price' => $addonsPrice,
-                    'sub_total' => $cartItem->subtotal,
-                    'note' => $cartItem->special_instructions,
-                    'source' => 'website',
-                ]);
+                // Check if this is a combo item
+                if ($cartItem->combo_id) {
+                    // Create line item for combo
+                    ProductSale::create([
+                        'sale_id' => $sale->id,
+                        'combo_id' => $cartItem->combo_id,
+                        'combo_name' => $cartItem->combo->name ?? 'Combo',
+                        'menu_item_id' => null,
+                        'variant_id' => null,
+                        'quantity' => $cartItem->quantity,
+                        'price' => $cartItem->unit_price,
+                        'addons' => [],
+                        'addons_price' => 0,
+                        'sub_total' => $cartItem->subtotal,
+                        'note' => $cartItem->special_instructions,
+                        'source' => 'website',
+                    ]);
+                } else {
+                    // Regular menu item
+                    ProductSale::create([
+                        'sale_id' => $sale->id,
+                        'menu_item_id' => $cartItem->menu_item_id,
+                        'variant_id' => $cartItem->variant_id,
+                        'quantity' => $cartItem->quantity,
+                        'price' => $cartItem->unit_price - $addonsPrice,
+                        'addons' => $cartItem->addons,
+                        'addons_price' => $addonsPrice,
+                        'sub_total' => $cartItem->subtotal,
+                        'note' => $cartItem->special_instructions,
+                        'source' => 'website',
+                    ]);
+                }
             }
 
             // Clear the cart
@@ -259,6 +285,28 @@ class BkashController extends Controller
     }
 
     /**
+     * Save checkout data to cookies for returning customers
+     */
+    protected function saveCheckoutDataToCookie($checkoutData)
+    {
+        $cookieData = [
+            'first_name' => $checkoutData['first_name'],
+            'last_name' => $checkoutData['last_name'],
+            'email' => $checkoutData['email'],
+            'phone' => $checkoutData['phone'],
+            'address' => $checkoutData['address'],
+            'city' => $checkoutData['city'],
+            'postal_code' => $checkoutData['postal_code'],
+        ];
+
+        // Cookie expires in 30 days (43200 minutes)
+        $cookie = cookie('checkout_data', json_encode($cookieData), 43200);
+
+        // Queue the cookie to be sent with the response
+        cookie()->queue($cookie);
+    }
+
+    /**
      * Generate unique invoice number
      */
     private function generateInvoiceNumber()
@@ -276,6 +324,18 @@ class BkashController extends Controller
         }
 
         return $prefix . $date . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate unique UID for order
+     */
+    private function generateUniqueUid()
+    {
+        do {
+            $uid = Str::uuid()->toString();
+        } while (Sale::where('uid', $uid)->exists());
+
+        return $uid;
     }
 
     /**

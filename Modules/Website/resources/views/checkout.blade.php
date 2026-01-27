@@ -61,7 +61,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <input type="text" name="first_name" placeholder="{{ __('First Name') }} *"
-                                                value="{{ $user->first_name ?? old('first_name') }}" required>
+                                                value="{{ old('first_name', $user->first_name ?? $savedCheckoutData['first_name'] ?? '') }}" required>
                                             @error('first_name')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
@@ -70,7 +70,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <input type="text" name="last_name" placeholder="{{ __('Last Name') }} *"
-                                                value="{{ $user->last_name ?? old('last_name') }}" required>
+                                                value="{{ old('last_name', $user->last_name ?? $savedCheckoutData['last_name'] ?? '') }}" required>
                                             @error('last_name')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
@@ -79,7 +79,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <input type="tel" name="phone" id="phone" placeholder="01XXX-XXXXXX *"
-                                                value="{{ $user->phone ?? old('phone') }}" required
+                                                value="{{ old('phone', $user->phone ?? $savedCheckoutData['phone'] ?? '') }}" required
                                                 maxlength="12" pattern="01[3-9][0-9]{2}-?[0-9]{6}"
                                                 title="{{ __('Enter a valid Bangladesh mobile number (e.g., 01712-345678)') }}">
                                             @error('phone')
@@ -90,7 +90,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <input type="email" name="email" placeholder="{{ __('Email (Optional)') }}"
-                                                value="{{ $user->email ?? old('email') }}">
+                                                value="{{ old('email', $user->email ?? $savedCheckoutData['email'] ?? '') }}">
                                             @error('email')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
@@ -105,7 +105,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <input type="text" name="address" id="address" placeholder="{{ __('Street Address') }} *"
-                                                    value="{{ old('address') }}">
+                                                    value="{{ old('address', $savedCheckoutData['address'] ?? '') }}">
                                                 @error('address')
                                                     <span class="text-danger small">{{ $message }}</span>
                                                 @enderror
@@ -114,7 +114,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <input type="text" name="city" id="city" placeholder="{{ __('City') }} *"
-                                                    value="{{ old('city') }}">
+                                                    value="{{ old('city', $savedCheckoutData['city'] ?? '') }}">
                                                 @error('city')
                                                     <span class="text-danger small">{{ $message }}</span>
                                                 @enderror
@@ -123,7 +123,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <input type="text" name="postal_code" placeholder="{{ __('Postal Code') }}"
-                                                    value="{{ old('postal_code') }}">
+                                                    value="{{ old('postal_code', $savedCheckoutData['postal_code'] ?? '') }}">
                                             </div>
                                         </div>
                                         <div class="col-md-12">

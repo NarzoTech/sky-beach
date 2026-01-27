@@ -82,6 +82,67 @@
                             </div>
                         </div>
                         <div class="col-xl-9 col-lg-8 order-lg-2">
+                            <!-- Combo Packages Section -->
+                            @if(isset($combos) && $combos->count() > 0)
+                            <div class="combo-packages-section mb-5">
+                                <div class="section-title mb-4">
+                                    <h3 style="color: #B99D6B; font-weight: 600; border-bottom: 2px solid #B99D6B; padding-bottom: 10px; display: inline-block;">
+                                        <i class="fas fa-gift me-2"></i>{{ __('Combo Packages') }}
+                                    </h3>
+                                    <p class="text-muted">{{ __('Save more with our special combo deals!') }}</p>
+                                </div>
+                                <div class="row">
+                                    @foreach($combos as $combo)
+                                    <div class="col-xl-4 col-sm-6 wow fadeInUp mb-4">
+                                        <div class="single_menu combo-card" style="border: 2px solid #B99D6B; border-radius: 10px; overflow: hidden;">
+                                            <div class="single_menu_img position-relative">
+                                                <img src="{{ $combo->image_url ?? asset('website/images/combo_default.jpg') }}" alt="{{ $combo->name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover;">
+                                                @if($combo->savings > 0)
+                                                <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px; font-size: 14px; padding: 8px 12px;">
+                                                    {{ __('Save') }} {{ currency($combo->savings) }}
+                                                </span>
+                                                @endif
+                                                <span class="badge bg-warning text-dark position-absolute" style="top: 10px; left: 10px; font-size: 12px;">
+                                                    <i class="fas fa-box me-1"></i>{{ __('COMBO') }}
+                                                </span>
+                                            </div>
+                                            <div class="single_menu_text" style="padding: 15px;">
+                                                <h4 class="title mb-2" style="color: #333; font-size: 18px;">{{ $combo->name }}</h4>
+                                                @if($combo->description)
+                                                <p class="descrption text-muted mb-2" style="font-size: 13px;">{{ Str::limit($combo->description, 60) }}</p>
+                                                @endif
+                                                <!-- Combo Items List -->
+                                                <div class="combo-items mb-3" style="font-size: 12px; color: #666;">
+                                                    <strong>{{ __('Includes') }}:</strong>
+                                                    <ul class="mb-0 ps-3" style="list-style: disc;">
+                                                        @foreach($combo->comboItems->take(3) as $comboItem)
+                                                        <li>{{ $comboItem->quantity }}x {{ $comboItem->menuItem->name ?? 'Item' }}</li>
+                                                        @endforeach
+                                                        @if($combo->comboItems->count() > 3)
+                                                        <li>{{ __('+ :count more items', ['count' => $combo->comboItems->count() - 3]) }}</li>
+                                                        @endif
+                                                    </ul>
+                                                </div>
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                                    <div>
+                                                        @if($combo->original_price > $combo->combo_price)
+                                                        <span style="text-decoration: line-through; color: #999; font-size: 14px;">{{ currency($combo->original_price) }}</span>
+                                                        @endif
+                                                        <h3 class="mb-0" style="color: #B99D6B; font-size: 22px;">{{ currency($combo->combo_price) }}</h3>
+                                                    </div>
+                                                    <a class="add_to_cart" href="#" onclick="addComboToCart({{ $combo->id }}, '{{ $combo->name }}'); return false;" style="padding: 8px 15px;">
+                                                        <i class="fas fa-cart-plus me-1"></i>{{ __('Add') }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <hr class="mb-4" style="border-color: #ddd;">
+                            @endif
+
                             <!-- Sorting and Results Count -->
                             <div class="row mb-4">
                                 <div class="col-md-6">
@@ -101,7 +162,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="row">
                                 @forelse($menuItems as $item)
                                 <div class="col-xl-4 col-sm-6 wow fadeInUp">
@@ -252,7 +313,38 @@
             showToast('error', 'An error occurred. Please try again.');
         });
     }
-    
+
+    // Add combo to cart
+    function addComboToCart(comboId, comboName) {
+        fetch('{{ route('website.cart.add') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                combo_id: comboId,
+                quantity: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', comboName + ' {{ __("combo added to cart") }}');
+                // Update cart badge and mini cart
+                updateCartBadge(data.cart_count);
+                updateMiniCart(data.cart_count, data.cart_total, data.cart_item);
+            } else {
+                showToast('error', data.message || '{{ __("Failed to add combo to cart") }}');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('error', '{{ __("An error occurred. Please try again.") }}');
+        });
+    }
+
     // Show quick view modal (placeholder - implement based on your modal)
     function showQuickView(itemId) {
         // Implement quick view modal functionality

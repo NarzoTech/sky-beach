@@ -140,8 +140,23 @@ class WebsiteController extends Controller
             ->where('is_available', 1)
             ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
             ->first();
-        
-        return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categorySlug', 'search', 'minPrice', 'maxPrice', 'sortBy'));
+
+        // Get active combo packages
+        $combos = \Modules\Menu\app\Models\Combo::with(['comboItems.menuItem'])
+            ->where('is_active', 1)
+            ->where('status', 1)
+            ->where(function($q) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', now());
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categorySlug', 'search', 'minPrice', 'maxPrice', 'sortBy', 'combos'));
     }
 
     /**

@@ -23,6 +23,7 @@ class Sale extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'uid',
         'user_id',
         'customer_id',
         'warehouse_id',

@@ -66,6 +66,11 @@ class CartController extends Controller
      */
     public function addItem(Request $request)
     {
+        // Check if this is a combo or regular menu item
+        if ($request->has('combo_id')) {
+            return $this->addComboToCart($request);
+        }
+
         $request->validate([
             'menu_item_id' => 'required|exists:menu_items,id',
             'quantity' => 'required|integer|min:1|max:99',
@@ -119,6 +124,52 @@ class CartController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => __('Failed to add item to cart.'),
+            ], 500);
+        }
+    }
+
+    /**
+     * Add combo to cart (AJAX)
+     */
+    protected function addComboToCart(Request $request)
+    {
+        $request->validate([
+            'combo_id' => 'required|exists:combos,id',
+            'quantity' => 'required|integer|min:1|max:99',
+            'special_instructions' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $cartItem = WebsiteCart::addCombo(
+                $request->combo_id,
+                $request->quantity,
+                $request->special_instructions
+            );
+
+            // Load the combo relationship
+            $cartItem->load('combo');
+
+            // Prepare cart item data for mini cart update
+            $cartItemData = [
+                'id' => $cartItem->id,
+                'name' => $cartItem->combo->name ?? 'Combo',
+                'image' => $cartItem->combo ? $cartItem->combo->image_url : null,
+                'unit_price' => $cartItem->unit_price,
+                'quantity' => $cartItem->quantity,
+                'is_combo' => true,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Combo added to cart'),
+                'cart_count' => WebsiteCart::getCartCount(),
+                'cart_total' => WebsiteCart::getCartTotal(),
+                'cart_item' => $cartItemData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: __('Failed to add combo to cart.'),
             ], 500);
         }
     }

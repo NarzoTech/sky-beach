@@ -64,7 +64,7 @@ Route::group([], function () {
     Route::prefix('checkout')->name('website.checkout.')->group(function() {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/process', [CheckoutController::class, 'processOrder'])->name('process');
-        Route::get('/success/{id}', [CheckoutController::class, 'orderSuccess'])->name('success');
+        Route::get('/success/{uid}', [CheckoutController::class, 'orderSuccess'])->name('success');
     });
 
     // bKash Payment Routes

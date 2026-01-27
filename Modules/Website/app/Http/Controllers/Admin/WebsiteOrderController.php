@@ -76,7 +76,7 @@ class WebsiteOrderController extends Controller
      */
     public function show($id)
     {
-        $order = Sale::with(['customer', 'details.menuItem', 'createdBy'])
+        $order = Sale::with(['customer', 'details.menuItem', 'details.combo.comboItems.menuItem', 'createdBy'])
             ->websiteOrders()
             ->findOrFail($id);
 

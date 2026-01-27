@@ -125,7 +125,11 @@
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    @if($item->menuItem && $item->menuItem->image)
+                                                    @if($item->combo_id)
+                                                        <div class="bg-warning bg-opacity-25 rounded me-3 d-flex align-items-center justify-content-center position-relative" style="width: 50px; height: 50px;">
+                                                            <i class="bx bx-package text-warning fs-4"></i>
+                                                        </div>
+                                                    @elseif($item->menuItem && $item->menuItem->image)
                                                         <img src="{{ asset($item->menuItem->image) }}" alt="" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                                     @else
                                                         <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
@@ -133,9 +137,25 @@
                                                         </div>
                                                     @endif
                                                     <div>
-                                                        <strong>{{ $item->menuItem->name ?? 'Item' }}</strong>
-                                                        @if($item->addons && count($item->addons) > 0)
-                                                            <br><small class="text-muted">+ {{ collect($item->addons)->pluck('name')->implode(', ') }}</small>
+                                                        @if($item->combo_id)
+                                                            <strong>{{ $item->combo_name ?? ($item->combo->name ?? 'Combo') }}</strong>
+                                                            <span class="badge bg-warning text-dark ms-1">{{ __('COMBO') }}</span>
+                                                            @if($item->combo && $item->combo->comboItems)
+                                                                <br><small class="text-muted">
+                                                                    {{ __('Includes') }}:
+                                                                    @foreach($item->combo->comboItems->take(3) as $comboItem)
+                                                                        {{ $comboItem->quantity }}x {{ $comboItem->menuItem->name ?? 'Item' }}{{ !$loop->last ? ',' : '' }}
+                                                                    @endforeach
+                                                                    @if($item->combo->comboItems->count() > 3)
+                                                                        {{ __('+ :count more', ['count' => $item->combo->comboItems->count() - 3]) }}
+                                                                    @endif
+                                                                </small>
+                                                            @endif
+                                                        @else
+                                                            <strong>{{ $item->menuItem->name ?? 'Item' }}</strong>
+                                                            @if($item->addons && count($item->addons) > 0)
+                                                                <br><small class="text-muted">+ {{ collect($item->addons)->pluck('name')->implode(', ') }}</small>
+                                                            @endif
                                                         @endif
                                                         @if($item->note)
                                                             <br><small class="text-info"><i class="bx bx-note me-1"></i>{{ $item->note }}</small>

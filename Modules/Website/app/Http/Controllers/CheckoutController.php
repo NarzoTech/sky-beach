@@ -14,6 +14,7 @@ use Modules\Sales\app\Models\ProductSale;
 use Modules\Membership\app\Models\LoyaltyCustomer;
 use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\Membership\app\Services\LoyaltyService;
+use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
@@ -35,6 +36,9 @@ class CheckoutController extends Controller
         // Get user's saved addresses if logged in
         $savedAddresses = [];
         $user = Auth::user();
+
+        // Get saved checkout data from cookies
+        $savedCheckoutData = $this->getSavedCheckoutData();
 
         // Get settings for tax and delivery
         $setting = Cache::get('setting');
@@ -59,6 +63,7 @@ class CheckoutController extends Controller
             'cartCount',
             'savedAddresses',
             'user',
+            'savedCheckoutData',
             'taxEnabled',
             'taxRate',
             'calculatedTax',
@@ -104,11 +109,13 @@ class CheckoutController extends Controller
             $tax = $this->calculateTax($subtotal);
             $grandTotal = $subtotal + $deliveryFee + $tax;
 
-            // Generate invoice number
+            // Generate invoice number and UID
             $invoice = $this->generateInvoiceNumber();
+            $uid = $this->generateUniqueUid();
 
             // Create sale/order
             $sale = Sale::create([
+                'uid' => $uid,
                 'user_id' => 1, // System user for website orders
                 'customer_id' => Auth::id(),
                 'warehouse_id' => $this->getDefaultWarehouse(),
@@ -144,24 +151,47 @@ class CheckoutController extends Controller
                     $addonsPrice = collect($cartItem->addons)->sum('price');
                 }
 
-                ProductSale::create([
-                    'sale_id' => $sale->id,
-                    'menu_item_id' => $cartItem->menu_item_id,
-                    'variant_id' => $cartItem->variant_id,
-                    'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->unit_price - $addonsPrice, // Base price without addons
-                    'addons' => $cartItem->addons,
-                    'addons_price' => $addonsPrice,
-                    'sub_total' => $cartItem->subtotal,
-                    'note' => $cartItem->special_instructions,
-                    'source' => 'website',
-                ]);
+                // Check if this is a combo item
+                if ($cartItem->combo_id) {
+                    // Create line item for combo
+                    ProductSale::create([
+                        'sale_id' => $sale->id,
+                        'combo_id' => $cartItem->combo_id,
+                        'combo_name' => $cartItem->combo->name ?? 'Combo',
+                        'menu_item_id' => null,
+                        'variant_id' => null,
+                        'quantity' => $cartItem->quantity,
+                        'price' => $cartItem->unit_price,
+                        'addons' => [],
+                        'addons_price' => 0,
+                        'sub_total' => $cartItem->subtotal,
+                        'note' => $cartItem->special_instructions,
+                        'source' => 'website',
+                    ]);
+                } else {
+                    // Regular menu item
+                    ProductSale::create([
+                        'sale_id' => $sale->id,
+                        'menu_item_id' => $cartItem->menu_item_id,
+                        'variant_id' => $cartItem->variant_id,
+                        'quantity' => $cartItem->quantity,
+                        'price' => $cartItem->unit_price - $addonsPrice, // Base price without addons
+                        'addons' => $cartItem->addons,
+                        'addons_price' => $addonsPrice,
+                        'sub_total' => $cartItem->subtotal,
+                        'note' => $cartItem->special_instructions,
+                        'source' => 'website',
+                    ]);
+                }
             }
 
             // Clear the cart
             WebsiteCart::clearCart();
 
             DB::commit();
+
+            // Save checkout data to cookies for returning customers
+            $this->saveCheckoutDataToCookie($request);
 
             // Handle loyalty points (after successful order)
             $this->handleLoyaltyPoints($sale, $request->phone, $request->first_name . ' ' . $request->last_name);
@@ -173,11 +203,11 @@ class CheckoutController extends Controller
                     'message' => __('Order placed successfully!'),
                     'order_id' => $sale->id,
                     'invoice' => $sale->invoice,
-                    'redirect_url' => route('website.checkout.success', $sale->id),
+                    'redirect_url' => route('website.checkout.success', $sale->uid),
                 ]);
             }
 
-            return redirect()->route('website.checkout.success', $sale->id)
+            return redirect()->route('website.checkout.success', $sale->uid)
                 ->with('success', __('Order placed successfully!'));
 
         } catch (\Exception $e) {
@@ -198,12 +228,12 @@ class CheckoutController extends Controller
     /**
      * Display order success page
      */
-    public function orderSuccess($id)
+    public function orderSuccess($uid)
     {
-        $order = Sale::with(['details.menuItem'])->findOrFail($id);
+        $order = Sale::with(['details.menuItem'])->where('uid', $uid)->firstOrFail();
 
         // Verify this is the customer's order or allow guest to view their recent order
-        if (Auth::check() && $order->customer_id !== Auth::id()) {
+        if (Auth::check() && $order->customer_id && $order->customer_id !== Auth::id()) {
             abort(403);
         }
 
@@ -228,6 +258,18 @@ class CheckoutController extends Controller
         }
 
         return $prefix . $date . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate unique UID for order
+     */
+    private function generateUniqueUid()
+    {
+        do {
+            $uid = Str::uuid()->toString();
+        } while (Sale::where('uid', $uid)->exists());
+
+        return $uid;
     }
 
     /**
@@ -276,6 +318,44 @@ class CheckoutController extends Controller
     {
         // Return the first warehouse or default to 1
         return \App\Models\Warehouse::first()->id ?? 1;
+    }
+
+    /**
+     * Get saved checkout data from cookies
+     */
+    private function getSavedCheckoutData()
+    {
+        $cookieData = request()->cookie('checkout_data');
+        if ($cookieData) {
+            try {
+                return json_decode($cookieData, true) ?? [];
+            } catch (\Exception $e) {
+                return [];
+            }
+        }
+        return [];
+    }
+
+    /**
+     * Save checkout data to cookies
+     */
+    private function saveCheckoutDataToCookie($request)
+    {
+        $checkoutData = [
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'city' => $request->city,
+            'postal_code' => $request->postal_code,
+        ];
+
+        // Cookie expires in 30 days (43200 minutes)
+        $cookie = cookie('checkout_data', json_encode($checkoutData), 43200);
+
+        // Queue the cookie to be sent with the response
+        cookie()->queue($cookie);
     }
 
     /**

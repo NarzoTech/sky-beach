@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuVariant;
 use Modules\Menu\app\Models\MenuAddon;
+use Modules\Menu\app\Models\Combo;
 
 class WebsiteCart extends Model
 {
@@ -20,6 +21,7 @@ class WebsiteCart extends Model
         'user_id',
         'session_id',
         'menu_item_id',
+        'combo_id',
         'variant_id',
         'quantity',
         'unit_price',
@@ -32,7 +34,7 @@ class WebsiteCart extends Model
         'unit_price' => 'decimal:2',
     ];
 
-    protected $appends = ['subtotal', 'addon_names', 'variant_name'];
+    protected $appends = ['subtotal', 'addon_names', 'variant_name', 'item_name', 'item_image', 'is_combo'];
 
     /**
      * Get the menu item
@@ -43,11 +45,49 @@ class WebsiteCart extends Model
     }
 
     /**
+     * Get the combo
+     */
+    public function combo()
+    {
+        return $this->belongsTo(Combo::class, 'combo_id');
+    }
+
+    /**
      * Get the variant
      */
     public function variant()
     {
         return $this->belongsTo(MenuVariant::class, 'variant_id');
+    }
+
+    /**
+     * Check if this is a combo item
+     */
+    public function getIsComboAttribute()
+    {
+        return !empty($this->combo_id);
+    }
+
+    /**
+     * Get item name (works for both menu items and combos)
+     */
+    public function getItemNameAttribute()
+    {
+        if ($this->combo_id && $this->combo) {
+            return $this->combo->name;
+        }
+        return $this->menuItem ? $this->menuItem->name : 'Unknown Item';
+    }
+
+    /**
+     * Get item image (works for both menu items and combos)
+     */
+    public function getItemImageAttribute()
+    {
+        if ($this->combo_id && $this->combo) {
+            return $this->combo->image_url;
+        }
+        return $this->menuItem ? $this->menuItem->image : null;
     }
 
     /**
@@ -96,7 +136,7 @@ class WebsiteCart extends Model
     public static function getCart()
     {
         return self::forCurrentUser()
-            ->with(['menuItem', 'variant'])
+            ->with(['menuItem', 'variant', 'combo.comboItems.menuItem'])
             ->get();
     }
 
@@ -186,6 +226,45 @@ class WebsiteCart extends Model
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
             'addons' => $addonData,
+            'special_instructions' => $specialInstructions,
+        ]);
+    }
+
+    /**
+     * Add combo to cart
+     */
+    public static function addCombo($comboId, $quantity = 1, $specialInstructions = null)
+    {
+        $combo = Combo::with('comboItems.menuItem')->findOrFail($comboId);
+
+        // Check if combo is available
+        if (!$combo->is_currently_available) {
+            throw new \Exception(__('This combo is not currently available.'));
+        }
+
+        // Check if same combo exists in cart
+        $existingItem = self::forCurrentUser()
+            ->where('combo_id', $comboId)
+            ->first();
+
+        if ($existingItem) {
+            // Update quantity
+            $existingItem->quantity += $quantity;
+            $existingItem->special_instructions = $specialInstructions ?: $existingItem->special_instructions;
+            $existingItem->save();
+            return $existingItem;
+        }
+
+        // Create new cart item for combo
+        return self::create([
+            'user_id' => Auth::id(),
+            'session_id' => Auth::check() ? null : Session::getId(),
+            'combo_id' => $comboId,
+            'menu_item_id' => null,
+            'variant_id' => null,
+            'quantity' => $quantity,
+            'unit_price' => $combo->combo_price,
+            'addons' => [],
             'special_instructions' => $specialInstructions,
         ]);
     }

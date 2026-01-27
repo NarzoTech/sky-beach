@@ -1,6 +1,8 @@
-@extends('admin.layout')
+@extends('admin.layouts.master')
 
-@section('title', __('Catering Inquiries'))
+@section('title')
+    <title>{{ __('Catering Inquiries') }}</title>
+@endsection
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
