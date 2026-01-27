@@ -16,62 +16,70 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-sm-6 col-lg-3 mb-3">
-                <div class="card h-100">
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 bg-label-primary rounded">
-                                <i class="bx bx-package fs-4"></i>
+                        <div class="d-flex justify-content-between">
+                            <div class="me-2">
+                                <p class="text-muted mb-1">{{ __('Total Orders') }}</p>
+                                <h3 class="mb-0">{{ $stats['total'] }}</h3>
                             </div>
-                            <div>
-                                <h6 class="mb-0">{{ $stats['total'] }}</h6>
-                                <small class="text-muted">{{ __('Total Orders') }}</small>
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-primary">
+                                    <i class="bx bx-cart-alt bx-sm"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-3 mb-3">
-                <div class="card h-100">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 bg-label-warning rounded">
-                                <i class="bx bx-time-five fs-4"></i>
+                        <div class="d-flex justify-content-between">
+                            <div class="me-2">
+                                <p class="text-muted mb-1">{{ __('Pending') }}</p>
+                                <h3 class="mb-0 text-warning">{{ $stats['pending'] }}</h3>
                             </div>
-                            <div>
-                                <h6 class="mb-0">{{ $stats['pending'] }}</h6>
-                                <small class="text-muted">{{ __('Pending') }}</small>
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-warning">
+                                    <i class="bx bx-time-five bx-sm"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-3 mb-3">
-                <div class="card h-100">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 bg-label-info rounded">
-                                <i class="bx bx-loader-alt fs-4"></i>
+                        <div class="d-flex justify-content-between">
+                            <div class="me-2">
+                                <p class="text-muted mb-1">{{ __('Preparing') }}</p>
+                                <h3 class="mb-0 text-info">{{ $stats['preparing'] }}</h3>
                             </div>
-                            <div>
-                                <h6 class="mb-0">{{ $stats['preparing'] }}</h6>
-                                <small class="text-muted">{{ __('Preparing') }}</small>
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-info">
+                                    <i class="bx bx-loader-circle bx-sm"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-3 mb-3">
-                <div class="card h-100">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-md me-3 bg-label-success rounded">
-                                <i class="bx bx-check-circle fs-4"></i>
+                        <div class="d-flex justify-content-between">
+                            <div class="me-2">
+                                <p class="text-muted mb-1">{{ __('Completed') }}</p>
+                                <h3 class="mb-0 text-success">{{ $stats['completed'] }}</h3>
                             </div>
-                            <div>
-                                <h6 class="mb-0">{{ $stats['completed'] }}</h6>
-                                <small class="text-muted">{{ __('Completed') }}</small>
+                            <div class="avatar flex-shrink-0">
+                                <span class="avatar-initial rounded bg-label-success">
+                                    <i class="bx bx-check-circle bx-sm"></i>
+                                </span>
                             </div>
                         </div>
                     </div>
