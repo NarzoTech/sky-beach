@@ -219,7 +219,6 @@ class CateringController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,contacted,quoted,confirmed,cancelled',
-            'quoted_amount' => 'nullable|required_if:status,quoted|numeric|min:0',
             'admin_notes' => 'nullable|string|max:1000',
         ]);
 
@@ -233,12 +232,6 @@ class CateringController extends Controller
             case 'contacted':
                 if (!$inquiry->contacted_at) {
                     $updateData['contacted_at'] = now();
-                }
-                break;
-            case 'quoted':
-                $updateData['quoted_amount'] = $validated['quoted_amount'];
-                if (!$inquiry->quoted_at) {
-                    $updateData['quoted_at'] = now();
                 }
                 break;
             case 'confirmed':
@@ -258,6 +251,80 @@ class CateringController extends Controller
         }
 
         return redirect()->back()->with('success', __('Inquiry status updated successfully.'));
+    }
+
+    /**
+     * Save quotation for inquiry
+     */
+    public function inquiriesSaveQuotation(Request $request, CateringInquiry $inquiry)
+    {
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'discount_type' => 'required|in:fixed,percentage',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'quotation_notes' => 'nullable|string|max:1000',
+            'valid_until' => 'nullable|date|after:today',
+        ]);
+
+        // Calculate totals
+        $items = collect($validated['items'])->map(function ($item) {
+            $item['total'] = $item['quantity'] * $item['unit_price'];
+            return $item;
+        })->toArray();
+
+        $subtotal = collect($items)->sum('total');
+
+        // Calculate discount
+        $discountAmount = 0;
+        if (!empty($validated['discount'])) {
+            if ($validated['discount_type'] === 'percentage') {
+                $discountAmount = $subtotal * ($validated['discount'] / 100);
+            } else {
+                $discountAmount = $validated['discount'];
+            }
+        }
+
+        $afterDiscount = $subtotal - $discountAmount;
+
+        // Calculate tax
+        $taxRate = $validated['tax_rate'] ?? 0;
+        $taxAmount = $afterDiscount * ($taxRate / 100);
+
+        // Delivery fee
+        $deliveryFee = $validated['delivery_fee'] ?? 0;
+
+        // Grand total
+        $grandTotal = $afterDiscount + $taxAmount + $deliveryFee;
+
+        $inquiry->update([
+            'status' => 'quoted',
+            'quoted_amount' => $grandTotal,
+            'quotation_items' => $items,
+            'quotation_subtotal' => $subtotal,
+            'quotation_discount' => $validated['discount'] ?? 0,
+            'quotation_discount_type' => $validated['discount_type'],
+            'quotation_tax_rate' => $taxRate,
+            'quotation_tax_amount' => $taxAmount,
+            'quotation_delivery_fee' => $deliveryFee,
+            'quotation_notes' => $validated['quotation_notes'] ?? null,
+            'quotation_valid_until' => $validated['valid_until'] ?? null,
+            'quoted_at' => $inquiry->quoted_at ?? now(),
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('Quotation saved successfully.'),
+                'quoted_amount' => $grandTotal,
+            ]);
+        }
+
+        return redirect()->back()->with('success', __('Quotation saved successfully.'));
     }
 
     /**

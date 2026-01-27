@@ -135,6 +135,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/inquiries/export', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesExport'])->name('inquiries.export');
             Route::get('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesShow'])->name('inquiries.show');
             Route::patch('/inquiries/{inquiry}/status', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
+            Route::post('/inquiries/{inquiry}/quotation', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesSaveQuotation'])->name('inquiries.save-quotation');
             Route::delete('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
         });
     });

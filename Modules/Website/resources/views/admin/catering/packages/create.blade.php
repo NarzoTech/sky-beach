@@ -76,7 +76,7 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">{{ __('Price Per Person') }} *</label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ currency_icon() }}</span>
                                     <input type="number" name="price_per_person" class="form-control @error('price_per_person') is-invalid @enderror" value="{{ old('price_per_person') }}" step="0.01" min="0" required>
                                 </div>
                                 @error('price_per_person')

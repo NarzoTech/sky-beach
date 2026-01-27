@@ -16,9 +16,14 @@
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('admin.restaurant.catering.inquiries.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quotationModal">
+                <i class="bx bx-calculator me-1"></i>{{ $inquiry->quoted_amount ? __('Edit Quotation') : __('Create Quotation') }}
+            </button>
+            <a href="{{ route('admin.restaurant.catering.inquiries.index') }}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
+            </a>
+        </div>
     </div>
 
     @if(session('success'))
@@ -97,8 +102,8 @@
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="text-muted small">{{ __('Estimated Price') }}</label>
-                                <div class="fw-semibold text-primary">{{ currency($inquiry->estimated_price) }}</div>
+                                <label class="text-muted small">{{ __('Package Price/Person') }}</label>
+                                <div class="fw-semibold text-primary">{{ currency($inquiry->package->price_per_person) }}</div>
                             </div>
                         @endif
                         @if($inquiry->venue_address)
@@ -110,6 +115,100 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Quotation Details (if exists) -->
+            @if($inquiry->quoted_amount)
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bx bx-receipt me-2"></i>{{ __('Quotation') }}</h5>
+                        @if($inquiry->quotation_valid_until)
+                            <small class="text-muted">
+                                {{ __('Valid until') }}: {{ $inquiry->quotation_valid_until->format('M d, Y') }}
+                                @if($inquiry->quotation_valid_until->isPast())
+                                    <span class="badge bg-danger ms-1">{{ __('Expired') }}</span>
+                                @endif
+                            </small>
+                        @endif
+                    </div>
+                    <div class="card-body p-0">
+                        @if($inquiry->quotation_items && count($inquiry->quotation_items) > 0)
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{{ __('Description') }}</th>
+                                            <th class="text-center" style="width: 100px;">{{ __('Qty') }}</th>
+                                            <th class="text-end" style="width: 120px;">{{ __('Unit Price') }}</th>
+                                            <th class="text-end" style="width: 120px;">{{ __('Total') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($inquiry->quotation_items as $item)
+                                            <tr>
+                                                <td>{{ $item['description'] }}</td>
+                                                <td class="text-center">{{ $item['quantity'] }}</td>
+                                                <td class="text-end">{{ currency($item['unit_price']) }}</td>
+                                                <td class="text-end">{{ currency($item['total']) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>{{ __('Subtotal') }}</strong></td>
+                                            <td class="text-end">{{ currency($inquiry->quotation_subtotal) }}</td>
+                                        </tr>
+                                        @if($inquiry->quotation_discount > 0)
+                                            <tr class="text-success">
+                                                <td colspan="3" class="text-end">
+                                                    <strong>{{ __('Discount') }}</strong>
+                                                    @if($inquiry->quotation_discount_type === 'percentage')
+                                                        ({{ $inquiry->quotation_discount }}%)
+                                                    @endif
+                                                </td>
+                                                <td class="text-end">
+                                                    -{{ currency($inquiry->quotation_discount_type === 'percentage' ? ($inquiry->quotation_subtotal * $inquiry->quotation_discount / 100) : $inquiry->quotation_discount) }}
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        @if($inquiry->quotation_tax_rate > 0)
+                                            <tr>
+                                                <td colspan="3" class="text-end">
+                                                    <strong>{{ __('Tax') }}</strong> ({{ $inquiry->quotation_tax_rate }}%)
+                                                </td>
+                                                <td class="text-end">{{ currency($inquiry->quotation_tax_amount) }}</td>
+                                            </tr>
+                                        @endif
+                                        @if($inquiry->quotation_delivery_fee > 0)
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>{{ __('Delivery Fee') }}</strong></td>
+                                                <td class="text-end">{{ currency($inquiry->quotation_delivery_fee) }}</td>
+                                            </tr>
+                                        @endif
+                                        <tr class="table-primary">
+                                            <td colspan="3" class="text-end"><strong class="fs-5">{{ __('Grand Total') }}</strong></td>
+                                            <td class="text-end"><strong class="fs-5">{{ currency($inquiry->quoted_amount) }}</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        @else
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ __('Quoted Amount') }}</span>
+                                    <strong class="fs-4 text-primary">{{ currency($inquiry->quoted_amount) }}</strong>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($inquiry->quotation_notes)
+                            <div class="card-body border-top">
+                                <label class="text-muted small d-block mb-1">{{ __('Quotation Notes') }}</label>
+                                <p class="mb-0">{{ $inquiry->quotation_notes }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
             <!-- Special Requirements -->
             @if($inquiry->special_requirements)
@@ -151,21 +250,13 @@
 
                         <div class="mb-3">
                             <label class="form-label">{{ __('Status') }}</label>
-                            <select name="status" class="form-select" id="statusSelect">
+                            <select name="status" class="form-select">
                                 <option value="pending" {{ $inquiry->status === 'pending' ? 'selected' : '' }}>{{ __('Pending') }}</option>
                                 <option value="contacted" {{ $inquiry->status === 'contacted' ? 'selected' : '' }}>{{ __('Contacted') }}</option>
                                 <option value="quoted" {{ $inquiry->status === 'quoted' ? 'selected' : '' }}>{{ __('Quoted') }}</option>
                                 <option value="confirmed" {{ $inquiry->status === 'confirmed' ? 'selected' : '' }}>{{ __('Confirmed') }}</option>
                                 <option value="cancelled" {{ $inquiry->status === 'cancelled' ? 'selected' : '' }}>{{ __('Cancelled') }}</option>
                             </select>
-                        </div>
-
-                        <div class="mb-3" id="quotedAmountField" style="{{ $inquiry->status === 'quoted' ? '' : 'display: none;' }}">
-                            <label class="form-label">{{ __('Quoted Amount') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" name="quoted_amount" class="form-control" step="0.01" min="0" value="{{ $inquiry->quoted_amount }}">
-                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -268,6 +359,173 @@
         </div>
     </div>
 </div>
+
+<!-- Quotation Modal -->
+<div class="modal fade" id="quotationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bx bx-calculator me-2"></i>{{ __('Create Quotation') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.restaurant.catering.inquiries.save-quotation', $inquiry) }}" method="POST" id="quotationForm">
+                @csrf
+                <div class="modal-body">
+                    <!-- Quick Info -->
+                    <div class="alert alert-info mb-4">
+                        <div class="row">
+                            <div class="col-4">
+                                <small class="text-muted">{{ __('Customer') }}</small>
+                                <div class="fw-semibold">{{ $inquiry->name }}</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">{{ __('Event') }}</small>
+                                <div class="fw-semibold">{{ $inquiry->event_type_label }}</div>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted">{{ __('Guests') }}</small>
+                                <div class="fw-semibold">{{ $inquiry->guest_count }} {{ __('persons') }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <h6 class="mb-3">{{ __('Quotation Items') }}</h6>
+                    <div id="quotation-items">
+                        @if($inquiry->quotation_items && count($inquiry->quotation_items) > 0)
+                            @foreach($inquiry->quotation_items as $index => $item)
+                                <div class="quotation-item row g-2 mb-2">
+                                    <div class="col-md-5">
+                                        <input type="text" name="items[{{ $index }}][description]" class="form-control" placeholder="{{ __('Description') }}" value="{{ $item['description'] }}" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" name="items[{{ $index }}][quantity]" class="form-control item-qty" placeholder="{{ __('Qty') }}" value="{{ $item['quantity'] }}" min="1" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" name="items[{{ $index }}][unit_price]" class="form-control item-price" placeholder="{{ __('Unit Price') }}" value="{{ $item['unit_price'] }}" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger w-100 remove-item">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            @if($inquiry->package)
+                                <div class="quotation-item row g-2 mb-2">
+                                    <div class="col-md-5">
+                                        <input type="text" name="items[0][description]" class="form-control" placeholder="{{ __('Description') }}" value="{{ $inquiry->package->name }} ({{ $inquiry->guest_count }} guests)" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" name="items[0][quantity]" class="form-control item-qty" placeholder="{{ __('Qty') }}" value="{{ $inquiry->guest_count }}" min="1" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" name="items[0][unit_price]" class="form-control item-price" placeholder="{{ __('Unit Price') }}" value="{{ $inquiry->package->price_per_person }}" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger w-100 remove-item">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="quotation-item row g-2 mb-2">
+                                    <div class="col-md-5">
+                                        <input type="text" name="items[0][description]" class="form-control" placeholder="{{ __('Description') }}" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" name="items[0][quantity]" class="form-control item-qty" placeholder="{{ __('Qty') }}" value="1" min="1" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" name="items[0][unit_price]" class="form-control item-price" placeholder="{{ __('Unit Price') }}" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-danger w-100 remove-item">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="add-item">
+                        <i class="bx bx-plus me-1"></i>{{ __('Add Item') }}
+                    </button>
+
+                    <hr>
+
+                    <!-- Discount, Tax, Delivery -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Discount') }}</label>
+                            <div class="input-group">
+                                <input type="number" name="discount" class="form-control" id="discount" step="0.01" min="0" value="{{ $inquiry->quotation_discount ?? 0 }}">
+                                <select name="discount_type" class="form-select" id="discount_type" style="max-width: 100px;">
+                                    <option value="fixed" {{ ($inquiry->quotation_discount_type ?? 'fixed') === 'fixed' ? 'selected' : '' }}>{{ currency_icon() }}</option>
+                                    <option value="percentage" {{ ($inquiry->quotation_discount_type ?? '') === 'percentage' ? 'selected' : '' }}>%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Tax Rate') }} (%)</label>
+                            <input type="number" name="tax_rate" class="form-control" id="tax_rate" step="0.01" min="0" max="100" value="{{ $inquiry->quotation_tax_rate ?? 0 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Delivery Fee') }}</label>
+                            <input type="number" name="delivery_fee" class="form-control" id="delivery_fee" step="0.01" min="0" value="{{ $inquiry->quotation_delivery_fee ?? 0 }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('Valid Until') }}</label>
+                            <input type="date" name="valid_until" class="form-control" value="{{ $inquiry->quotation_valid_until ? $inquiry->quotation_valid_until->format('Y-m-d') : '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Quotation Notes') }}</label>
+                        <textarea name="quotation_notes" class="form-control" rows="2" placeholder="{{ __('Additional notes for the customer...') }}">{{ $inquiry->quotation_notes }}</textarea>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ __('Subtotal') }}:</span>
+                                <span id="summary-subtotal">{{ currency_icon() }}0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-success" id="summary-discount-row" style="display: none !important;">
+                                <span>{{ __('Discount') }}:</span>
+                                <span id="summary-discount">-{{ currency_icon() }}0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" id="summary-tax-row" style="display: none !important;">
+                                <span>{{ __('Tax') }}:</span>
+                                <span id="summary-tax">{{ currency_icon() }}0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" id="summary-delivery-row" style="display: none !important;">
+                                <span>{{ __('Delivery Fee') }}:</span>
+                                <span id="summary-delivery">{{ currency_icon() }}0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong class="fs-5">{{ __('Grand Total') }}:</strong>
+                                <strong class="fs-5 text-primary" id="summary-total">{{ currency_icon() }}0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-save me-1"></i>{{ __('Save Quotation') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -318,16 +576,106 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const statusSelect = document.getElementById('statusSelect');
-    const quotedAmountField = document.getElementById('quotedAmountField');
+    const currencySymbol = '{{ currency_icon() }}';
+    let itemIndex = {{ $inquiry->quotation_items ? count($inquiry->quotation_items) : 1 }};
 
-    statusSelect.addEventListener('change', function() {
-        if (this.value === 'quoted') {
-            quotedAmountField.style.display = 'block';
-        } else {
-            quotedAmountField.style.display = 'none';
-        }
+    // Add new item row
+    document.getElementById('add-item').addEventListener('click', function() {
+        const container = document.getElementById('quotation-items');
+        const newRow = document.createElement('div');
+        newRow.className = 'quotation-item row g-2 mb-2';
+        newRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" name="items[${itemIndex}][description]" class="form-control" placeholder="{{ __('Description') }}" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="items[${itemIndex}][quantity]" class="form-control item-qty" placeholder="{{ __('Qty') }}" value="1" min="1" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="items[${itemIndex}][unit_price]" class="form-control item-price" placeholder="{{ __('Unit Price') }}" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger w-100 remove-item">
+                    <i class="bx bx-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(newRow);
+        itemIndex++;
+        attachRemoveHandlers();
+        attachCalculateHandlers();
     });
+
+    // Remove item row
+    function attachRemoveHandlers() {
+        document.querySelectorAll('.remove-item').forEach(btn => {
+            btn.onclick = function() {
+                const items = document.querySelectorAll('.quotation-item');
+                if (items.length > 1) {
+                    this.closest('.quotation-item').remove();
+                    calculateTotals();
+                }
+            };
+        });
+    }
+
+    // Calculate totals on input change
+    function attachCalculateHandlers() {
+        document.querySelectorAll('.item-qty, .item-price').forEach(input => {
+            input.oninput = calculateTotals;
+        });
+    }
+
+    function calculateTotals() {
+        let subtotal = 0;
+
+        document.querySelectorAll('.quotation-item').forEach(row => {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            subtotal += qty * price;
+        });
+
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const discountType = document.getElementById('discount_type').value;
+        const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
+        const deliveryFee = parseFloat(document.getElementById('delivery_fee').value) || 0;
+
+        let discountAmount = 0;
+        if (discountType === 'percentage') {
+            discountAmount = subtotal * (discount / 100);
+        } else {
+            discountAmount = discount;
+        }
+
+        const afterDiscount = subtotal - discountAmount;
+        const taxAmount = afterDiscount * (taxRate / 100);
+        const grandTotal = afterDiscount + taxAmount + deliveryFee;
+
+        // Update summary
+        document.getElementById('summary-subtotal').textContent = currencySymbol + subtotal.toFixed(2);
+        document.getElementById('summary-discount').textContent = '-' + currencySymbol + discountAmount.toFixed(2);
+        document.getElementById('summary-tax').textContent = currencySymbol + taxAmount.toFixed(2);
+        document.getElementById('summary-delivery').textContent = currencySymbol + deliveryFee.toFixed(2);
+        document.getElementById('summary-total').textContent = currencySymbol + grandTotal.toFixed(2);
+
+        // Show/hide rows
+        document.getElementById('summary-discount-row').style.display = discountAmount > 0 ? 'flex' : 'none';
+        document.getElementById('summary-tax-row').style.display = taxAmount > 0 ? 'flex' : 'none';
+        document.getElementById('summary-delivery-row').style.display = deliveryFee > 0 ? 'flex' : 'none';
+    }
+
+    // Initial setup
+    attachRemoveHandlers();
+    attachCalculateHandlers();
+
+    // Calculate on discount/tax/delivery change
+    document.getElementById('discount').addEventListener('input', calculateTotals);
+    document.getElementById('discount_type').addEventListener('change', calculateTotals);
+    document.getElementById('tax_rate').addEventListener('input', calculateTotals);
+    document.getElementById('delivery_fee').addEventListener('input', calculateTotals);
+
+    // Initial calculation
+    calculateTotals();
 });
 </script>
 @endpush
