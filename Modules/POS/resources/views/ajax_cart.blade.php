@@ -39,17 +39,47 @@
                             $menuItem = \Modules\Menu\app\Models\MenuItem::find($cart_content['id']);
                             $hasAddons = $menuItem && $menuItem->activeAddons()->count() > 0;
                         }
+                        // Load combo items if this is a combo
+                        $comboItems = [];
+                        if (($cart_content['type'] ?? '') === 'combo') {
+                            $combo = \Modules\Menu\app\Models\Combo::with('items.menuItem', 'items.variant')->find($cart_content['id']);
+                            if ($combo) {
+                                $comboItems = $combo->items;
+                            }
+                        }
                     @endphp
                     <tr data-rowid="{{ $cart_content['rowid'] }}">
                         <td>
                             <p>{{ $i++ }}</p>
                         </td>
                         <td>
-                            <p class="mb-0">{{ $cart_content['name'] }}</p>
+                            <p class="mb-0">
+                                {{ $cart_content['name'] }}
+                                @if(($cart_content['type'] ?? '') === 'combo')
+                                    <span class="badge bg-info ms-1" style="font-size: 9px;">{{ __('Combo') }}</span>
+                                @endif
+                            </p>
                             @if (isset($cart_content['variant']))
                                 <small class="text-muted">
                                     {{ $cart_content['variant']['attribute'] }}
                                 </small>
+                            @endif
+                            {{-- Show combo items --}}
+                            @if(count($comboItems) > 0)
+                                <div class="combo-items mt-1 ps-2" style="border-left: 2px solid #17a2b8;">
+                                    @foreach($comboItems as $comboItem)
+                                        <div class="combo-item text-muted" style="font-size: 11px;">
+                                            <i class="fas fa-check text-success me-1"></i>
+                                            {{ $comboItem->menuItem->name ?? 'Item' }}
+                                            @if($comboItem->quantity > 1)
+                                                <span class="text-primary">x{{ $comboItem->quantity }}</span>
+                                            @endif
+                                            @if($comboItem->variant)
+                                                <small class="text-info">({{ $comboItem->variant->name }})</small>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
                             @endif
                             @if (!empty($cart_content['addons']))
                                 <div class="addon-items mt-1">

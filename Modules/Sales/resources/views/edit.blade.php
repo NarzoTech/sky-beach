@@ -116,6 +116,14 @@
                             <div class="card-body product_body"></div>
                         </div>
 
+                        <!-- Combo Packages -->
+                        <div class="card mt-3" id="combos">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-box me-2"></i>{{ __('Combo Packages') }}</h6>
+                            </div>
+                            <div class="card-body combo_body" style="max-height: 300px; overflow-y: auto;"></div>
+                        </div>
+
                     </div>
 
                     <!-- Right Column: Cart & Summary -->
@@ -779,7 +787,7 @@
                 data: data,
                 success: function(response) {
                     $(".product_body").html(response.productView);
-                    $(".service_body").html(response.serviceView);
+                    $(".combo_body").html(response.comboView);
                     $('.preloader_area').addClass('d-none');
                 },
                 error: function(response) {
@@ -796,7 +804,7 @@
                 url: url,
                 success: function(response) {
                     $(".product_body").html(response.productView);
-                    $(".service_body").html(response.serviceView);
+                    $(".combo_body").html(response.comboView);
                     $('.preloader_area').addClass('d-none');
                 },
                 error: function(response) {

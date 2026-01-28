@@ -27,6 +27,7 @@ use Modules\POS\app\Models\CartHold;
 use Modules\POS\app\Models\PosSettings;
 use Modules\Menu\app\Models\MenuCategory;
 use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\Combo;
 use Modules\Menu\app\Services\MenuItemService;
 use Modules\Sales\app\Services\SaleService;
 use Modules\Service\app\Services\ServicesService;
@@ -272,7 +273,27 @@ class POSController extends Controller
             'menuItems' => $featuredItems,
         ])->render();
 
-        return response()->json(['productView' => $menuItemView, 'serviceView' => $serviceView, 'favProductView' => $featuredMenuItemView, 'favoriteServiceView' => $favoriteServiceView]);
+        // Load combos
+        $combos = Combo::currentlyAvailable()->ordered();
+
+        if ($request->name) {
+            $combos = $combos->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+
+        $combos = $combos->paginate(15);
+        $combos->appends(request()->query());
+
+        $comboView = view('pos::ajax_combos')->with([
+            'combos' => $combos,
+        ])->render();
+
+        return response()->json([
+            'productView' => $menuItemView,
+            'serviceView' => $serviceView,
+            'favProductView' => $featuredMenuItemView,
+            'favoriteServiceView' => $favoriteServiceView,
+            'comboView' => $comboView
+        ]);
     }
 
     public function featuredMenuItems($menuItems)
@@ -534,8 +555,10 @@ class POSController extends Controller
             $cartName = 'UPDATE_CART';
         }
         $type = $request->serviceType ?? 'menu_item';
-        if ($type == 'service') {
-            //
+
+        // Handle combo type separately
+        if ($type == 'combo') {
+            return $this->addComboToCartHandler($request, $cartName);
         }
 
         // Get POS settings for merge behavior
@@ -643,6 +666,73 @@ class POSController extends Controller
             }
 
             session()->put($cartName, [...$cart_contents, $data["rowid"] => $data]);
+        }
+
+        $cart_contents = session($cartName);
+
+        return view('pos::ajax_cart')->with([
+            'cart_contents' => $cart_contents,
+        ]);
+    }
+
+    /**
+     * Handle adding combo to cart
+     */
+    private function addComboToCartHandler(Request $request, string $cartName)
+    {
+        $combo = Combo::with('items.menuItem')->find($request->combo_id);
+
+        if (!$combo || !$combo->is_currently_available) {
+            return response()->json(['message' => __('Combo not available')], 403);
+        }
+
+        $cart_contents = session()->get($cartName, []);
+
+        // Get POS settings for merge behavior
+        $posSettings = PosSettings::first();
+        $mergeCartItems = $posSettings ? $posSettings->merge_cart_items : true;
+
+        // Check if combo already exists in cart
+        $existing_rowid = null;
+        if ($mergeCartItems && count($cart_contents) > 0) {
+            foreach ($cart_contents as $rowid => $cart_content) {
+                if (($cart_content['type'] ?? '') === 'combo' && $cart_content['id'] == $combo->id) {
+                    $existing_rowid = $rowid;
+                    break;
+                }
+            }
+        }
+
+        // If combo exists and merge is enabled, update quantity
+        if ($existing_rowid !== null) {
+            $addQty = $request->qty ? $request->qty : 1;
+            $cart_contents[$existing_rowid]['qty'] += $addQty;
+            $cart_contents[$existing_rowid]['sub_total'] = (float)$cart_contents[$existing_rowid]['price'] * $cart_contents[$existing_rowid]['qty'];
+            session()->put($cartName, $cart_contents);
+        } else {
+            // Add as new item
+            $data = [
+                'rowid' => uniqid(),
+                'id' => $combo->id,
+                'name' => $combo->name,
+                'type' => 'combo',
+                'image' => $combo->image_url,
+                'qty' => $request->qty ? $request->qty : 1,
+                'price' => (float) $combo->combo_price,
+                'base_price' => (float) $combo->combo_price,
+                'sub_total' => (float) $combo->combo_price * ($request->qty ?: 1),
+                'sku' => '',
+                'unit' => '-',
+                'source' => 1,
+                'purchase_price' => 0,
+                'selling_price' => (float) $combo->combo_price,
+                'variant_id' => null,
+                'addons' => [],
+                'addons_price' => 0,
+            ];
+
+            $cart_contents[$data['rowid']] = $data;
+            session()->put($cartName, $cart_contents);
         }
 
         $cart_contents = session($cartName);

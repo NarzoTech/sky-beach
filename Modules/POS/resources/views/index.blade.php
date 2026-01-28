@@ -337,6 +337,15 @@
 
                                     </div>
                                 </div>
+
+                                <!-- Combo Packages -->
+                                <div class="card mt-3" id="combos">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-box me-2"></i>{{ __('Combo Packages') }}</h6>
+                                    </div>
+                                    <div class="card-body combo_body" style="max-height: 300px; overflow-y: auto;">
+                                    </div>
+                                </div>
                     </div>
 
                     <div class="col-lg-7">
@@ -2368,6 +2377,7 @@
                     $("#favoriteProducts .product_body").html(response.favProductView)
                     $(".service_body").html(response.serviceView)
                     $(".favorite_service_body").html(response.favoriteServiceView)
+                    $(".combo_body").html(response.comboView)
                     $('.preloader_area').addClass('d-none');
                 },
                 error: function(response) {
@@ -2387,6 +2397,7 @@
                     $("#products .product_body").html(response.productView)
                     $("#favoriteProducts .product_body").html(response.favProductView)
                     $(".service_body").html(response.serviceView)
+                    $(".combo_body").html(response.comboView)
                     $('.preloader_area').addClass('d-none');
                 },
                 error: function(response) {
@@ -2542,6 +2553,38 @@
 
                     $('[name="source"]').niceSelect();
                     toastr.success("{{ __('Item added successfully') }}")
+                    totalSummery();
+                    $('.preloader_area').addClass('d-none');
+                    scrollToCurrent();
+                },
+                error: function(response) {
+                    if (response.status == 500) {
+                        toastr.error("{{ __('Server error occurred') }}")
+                    }
+
+                    if (response.status == 403) {
+                        toastr.error(response.responseJSON.message)
+                    }
+                    $('.preloader_area').addClass('d-none');
+                }
+            });
+        }
+
+        function addComboToCart(id) {
+            $('.preloader_area').removeClass('d-none');
+            $.ajax({
+                type: 'get',
+                data: {
+                    combo_id: id,
+                    type: 'single',
+                    serviceType: 'combo'
+                },
+                url: "{{ url('/admin/pos/add-to-cart') }}",
+                success: function(response) {
+                    $(".product-table-container").html(response)
+
+                    $('[name="source"]').niceSelect();
+                    toastr.success("{{ __('Combo added successfully') }}")
                     totalSummery();
                     $('.preloader_area').addClass('d-none');
                     scrollToCurrent();

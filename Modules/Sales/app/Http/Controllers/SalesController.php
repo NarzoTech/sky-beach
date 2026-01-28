@@ -388,7 +388,7 @@ class SalesController extends Controller
 
             // Update status if fully paid
             if ($newDueAmount <= 0) {
-                $sale->status = 1; // Completed
+                $sale->status = 'completed'; // Completed
             }
 
             $sale->save();

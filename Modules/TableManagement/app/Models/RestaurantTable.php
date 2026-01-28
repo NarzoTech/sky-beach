@@ -234,7 +234,7 @@ class RestaurantTable extends Model
     public function activeOrders()
     {
         return $this->sales()
-            ->whereIn('status', ['pending', 'processing'])
+            ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
             ->where('order_type', 'dine_in');
     }
 

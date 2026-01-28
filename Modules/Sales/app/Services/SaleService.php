@@ -85,9 +85,9 @@ class SaleService
         $isDineIn = $sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->table_id;
         $deferPayment = $request->defer_payment ?? $isDineIn;
 
-        // Status column is integer: 0 = processing/pending, 1 = completed, 2 = cancelled
+        // Status uses string values: 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'
         if ($deferPayment) {
-            $sale->status = 0; // 0 = processing/pending
+            $sale->status = 'pending'; // Pending order (waiting for payment)
             $sale->payment_status = 0; // Unpaid
             $sale->payment_method = null;
             $sale->paid_amount = 0;
@@ -95,7 +95,7 @@ class SaleService
             $sale->return_amount = 0;
             $sale->due_amount = $request->total_amount;
         } else {
-            $sale->status = 1; // 1 = completed
+            $sale->status = 'completed'; // Completed and paid
             $sale->payment_status = 1; // Paid
 
             // Ensure payment_type is an array
@@ -506,7 +506,7 @@ class SaleService
         $sale->special_instructions = $saleData['special_instructions'] ?? null;
 
         // Waiter orders are always deferred payment (unpaid)
-        $sale->status = 0; // Processing
+        $sale->status = 'pending'; // Processing/Pending
         $sale->payment_status = 0; // Unpaid
         $sale->payment_method = null;
         $sale->paid_amount = 0;
@@ -701,7 +701,7 @@ class SaleService
             $sale->warehouse_id = 1;
             $sale->total_price = $request->sub_total;
             $sale->order_date = $this->parseDate($request->sale_date);
-            $sale->status = 1;
+            $sale->status = 'completed';
             $sale->payment_status = 1;
 
             // Ensure payment arrays are properly formatted
