@@ -25,15 +25,15 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body p-0">
+            <div class="modal-body p-0" id="ropModalBody" style="min-height: 300px;">
                 {{-- Loading State --}}
-                <div class="payment-loading" id="ropLoading">
+                <div class="payment-loading" id="ropLoading" style="display: flex !important; min-height: 300px;">
                     <div class="payment-loading-spinner"></div>
                     <div class="payment-loading-text">{{ __('Loading order...') }}</div>
                 </div>
 
                 {{-- Success State --}}
-                <div class="payment-success d-none" id="ropSuccess">
+                <div class="payment-success" id="ropSuccess" style="display: none !important;">
                     <div class="payment-success-icon">
                         <i class="bx bx-check"></i>
                     </div>
@@ -50,7 +50,7 @@
                 </div>
 
                 {{-- Main Content --}}
-                <div class="d-none" id="ropContent">
+                <div id="ropContent" style="display: none !important;">
                     <div class="row g-0">
                         {{-- Left Column: Order Details --}}
                         <div class="col-lg-5 border-end">
@@ -137,7 +137,7 @@
                                                 <input type="number"
                                                        class="form-control"
                                                        id="ropTaxRate"
-                                                       value="{{ $posSettings->pos_tax_rate ?? $setting->website_tax_rate ?? 0 }}"
+                                                       value="{{ optional($posSettings)->pos_tax_rate ?? $setting->website_tax_rate ?? 0 }}"
                                                        min="0"
                                                        max="100"
                                                        step="0.5"
@@ -784,21 +784,80 @@ function openRunningOrderPayment(orderId) {
     ropIsSplitMode = false;
 
     // Show loading, hide content
-    document.getElementById('ropLoading').classList.remove('d-none');
-    document.getElementById('ropContent').classList.add('d-none');
-    document.getElementById('ropSuccess').classList.add('d-none');
-    document.getElementById('ropFooter').classList.remove('d-none');
+    showRopLoading();
 
     // Store order ID
     document.getElementById('ropOrderId').value = orderId;
 
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('runningOrderPaymentModal'));
+    const modalEl = document.getElementById('runningOrderPaymentModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
     modal.show();
 
     // Load order data
     loadRunningOrderData(orderId);
 }
+
+// Helper functions for showing/hiding states
+function showRopLoading(message) {
+    const loadingEl = document.getElementById('ropLoading');
+    const contentEl = document.getElementById('ropContent');
+    const successEl = document.getElementById('ropSuccess');
+    const footerEl = document.getElementById('ropFooter');
+
+    if (message) {
+        document.querySelector('#ropLoading .payment-loading-text').textContent = message;
+    } else {
+        document.querySelector('#ropLoading .payment-loading-text').textContent = '{{ __("Loading order...") }}';
+    }
+
+    loadingEl.style.setProperty('display', 'flex', 'important');
+    contentEl.style.setProperty('display', 'none', 'important');
+    successEl.style.setProperty('display', 'none', 'important');
+    footerEl.style.setProperty('display', 'none', 'important');
+}
+
+function showRopContent() {
+    const loadingEl = document.getElementById('ropLoading');
+    const contentEl = document.getElementById('ropContent');
+    const successEl = document.getElementById('ropSuccess');
+    const footerEl = document.getElementById('ropFooter');
+
+    loadingEl.style.setProperty('display', 'none', 'important');
+    contentEl.style.setProperty('display', 'block', 'important');
+    successEl.style.setProperty('display', 'none', 'important');
+    footerEl.style.setProperty('display', 'flex', 'important');
+}
+
+function showRopSuccess(message) {
+    const loadingEl = document.getElementById('ropLoading');
+    const contentEl = document.getElementById('ropContent');
+    const successEl = document.getElementById('ropSuccess');
+    const footerEl = document.getElementById('ropFooter');
+
+    if (message) {
+        document.getElementById('ropSuccessMessage').textContent = message;
+    }
+
+    loadingEl.style.setProperty('display', 'none', 'important');
+    contentEl.style.setProperty('display', 'none', 'important');
+    successEl.style.setProperty('display', 'flex', 'important');
+    footerEl.style.setProperty('display', 'none', 'important');
+}
+
+// Reset modal state when hidden
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEl = document.getElementById('runningOrderPaymentModal');
+    if (modalEl) {
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            // Reset to loading state for next open
+            showRopLoading();
+        });
+    }
+});
 
 // Load order data via AJAX
 function loadRunningOrderData(orderId) {
@@ -815,24 +874,23 @@ function loadRunningOrderData(orderId) {
                 ropCurrentOrder = data.order;
                 populateRunningOrderModal(data.order);
             } else {
-                document.getElementById('ropLoading').classList.add('d-none');
                 toastr.error(data.message || '{{ __("Failed to load order") }}');
-                bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal'));
+                if (modalInstance) modalInstance.hide();
             }
         })
         .catch(error => {
             console.error('Error loading order:', error);
-            document.getElementById('ropLoading').classList.add('d-none');
             toastr.error('{{ __("Failed to load order details") }}: ' + error.message);
-            bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal'));
+            if (modalInstance) modalInstance.hide();
         });
 }
 
 // Populate modal with order data
 function populateRunningOrderModal(order) {
     // Hide loading, show content
-    document.getElementById('ropLoading').classList.add('d-none');
-    document.getElementById('ropContent').classList.remove('d-none');
+    showRopContent();
 
     // Order info - invoice field name is 'invoice' not 'invoice_no'
     document.getElementById('ropOrderNumber').textContent = '#' + (order.invoice || order.invoice_no || order.id);
@@ -1324,11 +1382,16 @@ function editRunningOrder() {
     const orderId = document.getElementById('ropOrderId').value;
     if (orderId && ropCurrentOrder) {
         // Close payment modal
-        bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal'));
+        if (modalInstance) modalInstance.hide();
 
-        // Load order to cart for editing
+        // Check if we're in POS context (loadOrderToCart exists)
         if (typeof loadOrderToCart === 'function') {
+            // POS edit flow
             loadOrderToCart(orderId);
+        } else {
+            // Sales page - redirect to edit page
+            window.location.href = '{{ url("admin/sales") }}/' + orderId + '/edit';
         }
     }
 }
@@ -1379,10 +1442,7 @@ function completeRunningOrderPayment() {
     }
 
     // Show loading
-    document.getElementById('ropContent').classList.add('d-none');
-    document.getElementById('ropFooter').classList.add('d-none');
-    document.getElementById('ropLoading').classList.remove('d-none');
-    document.querySelector('#ropLoading .payment-loading-text').textContent = '{{ __("Processing payment...") }}';
+    showRopLoading('{{ __("Processing payment...") }}');
 
     // Submit payment
     const completeUrl = '{{ route("admin.pos.running-orders.complete", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
@@ -1392,12 +1452,9 @@ function completeRunningOrderPayment() {
     })
     .then(response => response.json())
     .then(result => {
-        document.getElementById('ropLoading').classList.add('d-none');
-
         if (result.success) {
             // Show success
-            document.getElementById('ropSuccess').classList.remove('d-none');
-            document.getElementById('ropSuccessMessage').textContent = result.message || '{{ __("Payment completed successfully") }}';
+            showRopSuccess(result.message || '{{ __("Payment completed successfully") }}');
 
             // Store for receipt
             window.lastCompletedOrderId = orderId;
@@ -1411,16 +1468,13 @@ function completeRunningOrderPayment() {
             }
         } else {
             // Show form again
-            document.getElementById('ropContent').classList.remove('d-none');
-            document.getElementById('ropFooter').classList.remove('d-none');
+            showRopContent();
             toastr.error(result.message || '{{ __("Payment failed") }}');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        document.getElementById('ropLoading').classList.add('d-none');
-        document.getElementById('ropContent').classList.remove('d-none');
-        document.getElementById('ropFooter').classList.remove('d-none');
+        showRopContent();
         toastr.error('{{ __("An error occurred") }}');
     });
 }
