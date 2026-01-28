@@ -5,7 +5,7 @@
     @include('pos::components.total-display', [
         'total' => 2340,
         'label' => 'Total Due',
-        'subtitle' => 'Dine-In • Table 5 • 3 items',
+        'subtitle' => 'Dine-In - Table 5 - 3 items',
         'variant' => 'dark', // dark, primary, success, warning
         'size' => 'large' // small, medium, large
     ])
@@ -17,6 +17,7 @@
     $subtitle = $subtitle ?? null;
     $variant = $variant ?? 'dark';
     $size = $size ?? 'large';
+    $id = $id ?? 'totalDisplay';
     $currency = currency_icon();
 
     $variantClasses = [
@@ -34,10 +35,10 @@
     ];
 @endphp
 
-<div class="total-display {{ $variantClasses[$variant] ?? 'total-display-dark' }} {{ $sizeClasses[$size] ?? 'total-display-lg' }}">
+<div class="total-display {{ $variantClasses[$variant] ?? 'total-display-dark' }} {{ $sizeClasses[$size] ?? 'total-display-lg' }}" id="{{ $id }}">
     <div class="total-amount-wrapper">
         <span class="total-currency">{{ $currency }}</span>
-        <span class="total-amount" id="displayTotalAmount">{{ number_format($total, 2) }}</span>
+        <span class="total-amount" id="{{ $id }}Amount">{{ number_format($total, 2) }}</span>
     </div>
     <div class="total-label">{{ $label }}</div>
     @if($subtitle)
@@ -49,29 +50,29 @@
 .total-display {
     text-align: center;
     padding: 30px 20px;
-    border-radius: 16px;
+    border-radius: 12px;
     color: white;
 }
 
-/* Variants */
+/* Variants - Flat colors */
 .total-display-dark {
-    background: linear-gradient(135deg, #232333, #1a1a2e);
+    background: #2c3e50;
 }
 
 .total-display-primary {
-    background: linear-gradient(135deg, #696cff, #5f61e6);
+    background: #5f61e6;
 }
 
 .total-display-success {
-    background: linear-gradient(135deg, #71dd37, #5cb82f);
+    background: #28a745;
 }
 
 .total-display-warning {
-    background: linear-gradient(135deg, #ffab00, #e69a00);
+    background: #f39c12;
 }
 
 .total-display-danger {
-    background: linear-gradient(135deg, #ff3e1d, #e63617);
+    background: #dc3545;
 }
 
 /* Sizes */
@@ -87,17 +88,17 @@
 }
 
 .total-display-lg .total-amount {
-    font-size: 52px;
-    font-weight: 800;
+    font-size: 48px;
+    font-weight: 700;
     line-height: 1.1;
     letter-spacing: -1px;
 }
 
 .total-display-lg .total-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     opacity: 0.9;
     margin-bottom: 8px;
 }
@@ -113,14 +114,14 @@
 }
 
 .total-display-md .total-currency {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     vertical-align: top;
     margin-right: 2px;
 }
 
 .total-display-md .total-amount {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 700;
     line-height: 1.2;
 }
@@ -143,7 +144,7 @@
 /* Small size */
 .total-display-sm {
     padding: 16px 12px;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 .total-display-sm .total-currency {
@@ -188,11 +189,11 @@
 /* Responsive */
 @media (max-width: 576px) {
     .total-display-lg .total-amount {
-        font-size: 40px;
+        font-size: 36px;
     }
 
     .total-display-lg .total-currency {
-        font-size: 22px;
+        font-size: 20px;
     }
 }
 </style>

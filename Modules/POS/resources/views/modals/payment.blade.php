@@ -19,9 +19,8 @@
 <div class="modal fade payment-modal" id="unifiedPaymentModal" tabindex="-1" aria-labelledby="unifiedPaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header header-dark" id="paymentModalHeader">
+            <div class="modal-header bg-dark text-white" id="paymentModalHeader">
                 <h5 class="modal-title" id="unifiedPaymentModalLabel">
-                    <i class="bx bx-credit-card"></i>
                     {{ __('Payment') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -37,16 +36,16 @@
                 {{-- Success State --}}
                 <div class="payment-success d-none" id="paymentSuccess">
                     <div class="payment-success-icon">
-                        <i class="bx bx-check"></i>
+                        <span class="checkmark">&#10003;</span>
                     </div>
                     <div class="payment-success-title">{{ __('Payment Complete!') }}</div>
                     <div class="payment-success-subtitle" id="paymentSuccessMessage">{{ __('Order placed successfully') }}</div>
                     <div class="mt-4">
                         <button type="button" class="btn btn-primary me-2" onclick="printReceipt()">
-                            <i class="bx bx-printer me-2"></i>{{ __('Print Receipt') }}
+                            {{ __('Print Receipt') }}
                         </button>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            <i class="bx bx-check me-2"></i>{{ __('Done') }}
+                            {{ __('Done') }}
                         </button>
                     </div>
                 </div>
@@ -60,7 +59,6 @@
                             <div class="payment-total-label">{{ __('TOTAL DUE') }}</div>
                             <div class="payment-order-context" id="paymentOrderContext">
                                 <span class="order-type-badge badge-dine-in" id="paymentOrderTypeBadge">
-                                    <i class="bx bx-restaurant"></i>
                                     {{ __('Dine-In') }}
                                 </span>
                                 <span class="context-separator">|</span>
@@ -164,8 +162,7 @@
             </div>
 
             <div class="modal-footer" id="paymentModalFooter">
-                <button type="button" class="btn btn-complete-payment w-100" id="completePaymentBtn" onclick="completePayment()">
-                    <i class="bx bx-check-circle me-2"></i>
+                <button type="button" class="btn btn-success btn-lg w-100" id="completePaymentBtn" onclick="completePayment()">
                     {{ __('Complete Payment') }}
                 </button>
             </div>
@@ -175,10 +172,10 @@
 
 <style>
 .payment-total-card {
-    background: linear-gradient(135deg, #232333, #1a1a2e);
+    background: #2c3e50;
     color: white;
     padding: 30px;
-    border-radius: var(--pm-radius-lg);
+    border-radius: 12px;
     text-align: center;
 }
 
@@ -351,6 +348,8 @@ function initPaymentModal(options) {
     currentOrderType = options.orderType || 'dine_in';
     const itemCount = options.itemCount || 0;
 
+    console.log('initPaymentModal called with orderType:', currentOrderType, 'total:', currentTotal);
+
     // Update total display
     document.getElementById('paymentTotalAmount').textContent = currencyIcon + ' ' + currentTotal.toFixed(2);
     document.getElementById('paymentTotalHidden').value = currentTotal;
@@ -378,7 +377,18 @@ function initPaymentModal(options) {
     const amountInput = document.getElementById('paymentReceiveAmount');
     if (amountInput) {
         amountInput.value = currentTotal.toFixed(2);
-        updateQuickAmounts(currentTotal);
+    }
+
+    // Update amount input wrapper data-total for change calculation
+    const amountWrapper = document.getElementById('paymentReceiveAmountWrapper');
+    if (amountWrapper) {
+        amountWrapper.dataset.total = currentTotal;
+    }
+
+    // Update exact amount button
+    const exactBtn = document.getElementById('paymentReceiveAmountExactBtn');
+    if (exactBtn) {
+        exactBtn.dataset.amount = currentTotal;
     }
 
     // Update change display
@@ -408,21 +418,25 @@ function initPaymentModal(options) {
 // Update order type badge appearance
 function updateOrderTypeBadge(orderType) {
     const badge = document.getElementById('paymentOrderTypeBadge');
+    if (!badge) return;
+
     badge.className = 'order-type-badge';
 
     switch(orderType) {
         case 'dine_in':
             badge.classList.add('badge-dine-in');
-            badge.innerHTML = '<i class="bx bx-restaurant"></i> {{ __("Dine-In") }}';
+            badge.textContent = '{{ __("Dine-In") }}';
             break;
         case 'take_away':
             badge.classList.add('badge-takeaway');
-            badge.innerHTML = '<i class="bx bx-shopping-bag"></i> {{ __("Take-Away") }}';
+            badge.textContent = '{{ __("Take-Away") }}';
             break;
         case 'delivery':
             badge.classList.add('badge-delivery');
-            badge.innerHTML = '<i class="bx bx-cycling"></i> {{ __("Delivery") }}';
+            badge.textContent = '{{ __("Delivery") }}';
             break;
+        default:
+            badge.textContent = orderType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 }
 

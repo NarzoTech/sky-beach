@@ -67,6 +67,7 @@ class PosSettingsController extends Controller
                 'show_note' => $request->has('show_note') ? 1 : 0,
                 'is_printable' => $request->has('is_printable') ? 1 : 0,
                 'merge_cart_items' => $request->has('merge_cart_items') ? 1 : 0,
+                'pos_tax_rate' => $request->input('pos_tax_rate', 0),
             ];
 
             $pos_settings = PosSettings::first();

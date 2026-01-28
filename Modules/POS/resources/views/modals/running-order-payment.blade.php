@@ -137,7 +137,7 @@
                                                 <input type="number"
                                                        class="form-control"
                                                        id="ropTaxRate"
-                                                       value="{{ $setting->pos_tax_rate ?? $setting->website_tax_rate ?? 0 }}"
+                                                       value="{{ $posSettings->pos_tax_rate ?? $setting->website_tax_rate ?? 0 }}"
                                                        min="0"
                                                        max="100"
                                                        step="0.5"

@@ -17,56 +17,49 @@
 <div class="modal fade payment-modal" id="takeawaySetupModal" tabindex="-1" aria-labelledby="takeawaySetupModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header header-takeaway">
-                <h5 class="modal-title" id="takeawaySetupModalLabel">
-                    <i class="bx bx-shopping-bag"></i>
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark" id="takeawaySetupModalLabel">
                     {{ __('Take-Away Order') }}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <form id="takeawaySetupForm">
                     {{-- Customer Info Section --}}
-                    <div class="pm-section-title">
-                        <i class="bx bx-user me-2"></i>{{ __('Customer Info') }}
+                    <div class="section-title">
+                        {{ __('Customer Info') }}
                         <span class="text-muted fw-normal ms-2">({{ __('Optional') }})</span>
                     </div>
 
-                    <div class="row g-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-12">
                             <label class="form-label">{{ __('Customer Name') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bx bx-user"></i></span>
-                                <input type="text"
-                                       name="customer_name"
-                                       class="form-control pm-input"
-                                       placeholder="{{ __('Name for the order...') }}"
-                                       autocomplete="off">
-                            </div>
+                            <input type="text"
+                                   name="customer_name"
+                                   class="form-control"
+                                   placeholder="{{ __('Name for the order...') }}"
+                                   autocomplete="off">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label">{{ __('Phone') }} <small class="text-muted">({{ __('for pickup notification') }})</small></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bx bx-phone"></i></span>
-                                <input type="tel"
-                                       name="customer_phone"
-                                       class="form-control pm-input"
-                                       placeholder="{{ __('Phone number...') }}"
-                                       autocomplete="off">
-                            </div>
+                            <input type="tel"
+                                   name="customer_phone"
+                                   class="form-control"
+                                   placeholder="{{ __('Phone number...') }}"
+                                   autocomplete="off">
                         </div>
                     </div>
 
-                    <div class="pm-divider"></div>
+                    <hr>
 
                     {{-- Estimated Pickup Time --}}
-                    <div class="pm-section-title">
-                        <i class="bx bx-time me-2"></i>{{ __('Estimated Pickup Time') }}
+                    <div class="section-title">
+                        {{ __('Estimated Pickup Time') }}
                     </div>
 
-                    <div class="pickup-time-selector">
+                    <div class="pickup-time-selector mb-4">
                         <div class="pickup-time-options">
                             <label class="pickup-time-option active">
                                 <input type="radio" name="pickup_time" value="10" checked>
@@ -105,41 +98,51 @@
                             </label>
                         </div>
                         <div class="estimated-pickup-display mt-3">
-                            <i class="bx bx-check-circle text-success me-2"></i>
                             {{ __('Ready by') }}: <strong id="estimatedPickupTime">--:--</strong>
                         </div>
                     </div>
 
-                    <div class="pm-divider"></div>
+                    <hr>
 
                     {{-- Special Instructions --}}
-                    <div class="pm-section-title">
-                        <i class="bx bx-note me-2"></i>{{ __('Special Instructions') }}
+                    <div class="section-title">
+                        {{ __('Special Instructions') }}
                         <span class="text-muted fw-normal ms-2">({{ __('Optional') }})</span>
                     </div>
 
                     <textarea name="special_instructions"
-                              class="form-control pm-textarea"
+                              class="form-control mb-4"
                               rows="2"
                               placeholder="{{ __('Any special requests or packaging instructions...') }}"></textarea>
 
-                    <div class="pm-divider-dashed"></div>
-
-                    {{-- Order Total Display --}}
-                    @include('pos::components.total-display', [
-                        'total' => 0,
-                        'label' => __('Order Total'),
-                        'variant' => 'success',
-                        'size' => 'medium',
-                        'id' => 'takeawayTotalDisplay'
-                    ])
+                    {{-- Order Summary --}}
+                    <div class="takeaway-summary">
+                        <div class="summary-row">
+                            <span class="text-muted">{{ __('Subtotal') }}</span>
+                            <span id="takeawaySubtotal">{{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="summary-row text-danger" id="takeawayDiscountRow" style="display: none;">
+                            <span>{{ __('Discount') }}</span>
+                            <span id="takeawayDiscountAmount">- {{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="summary-row" id="takeawayTaxRow">
+                            <span>{{ __('Tax') }} (<span id="takeawayTaxRate">0</span>%)</span>
+                            <span id="takeawayTaxAmount">{{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>{{ __('Total') }}</span>
+                            <span id="takeawayTotalAmount">{{ currency_icon() }} 0.00</span>
+                        </div>
+                    </div>
                 </form>
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-complete-payment w-100" onclick="proceedToPayment('take_away')">
-                    <i class="bx bx-credit-card me-2"></i>
-                    {{ __('Proceed to Payment') }}
+            <div class="modal-footer d-flex gap-2">
+                <button type="button" class="btn btn-secondary flex-fill" onclick="placeTakeawayOrder(false)">
+                    {{ __('Place Order') }}
+                </button>
+                <button type="button" class="btn btn-success flex-fill" onclick="placeTakeawayOrder(true)">
+                    {{ __('Pay Now') }}
                 </button>
             </div>
         </div>
@@ -147,6 +150,13 @@
 </div>
 
 <style>
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+}
+
 .pickup-time-options {
     display: flex;
     gap: 10px;
@@ -157,7 +167,7 @@
     cursor: pointer;
     margin: 0;
     flex: 1;
-    min-width: 70px;
+    min-width: 60px;
 }
 
 .pickup-time-option input {
@@ -169,21 +179,20 @@
     flex-direction: column;
     align-items: center;
     padding: 12px 8px;
-    border: 2px solid var(--pm-border);
-    border-radius: 10px;
-    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #fff;
     transition: all 0.2s ease;
 }
 
 .pickup-time-box:hover {
-    border-color: var(--pm-success);
-    transform: translateY(-2px);
+    border-color: #f39c12;
 }
 
 .pickup-time-option.active .pickup-time-box,
 .pickup-time-option input:checked + .pickup-time-box {
-    border-color: var(--pm-success);
-    background: var(--pm-success);
+    border-color: #f39c12;
+    background: #f39c12;
     color: white;
 }
 
@@ -200,16 +209,41 @@
 }
 
 .estimated-pickup-display {
-    background: var(--pm-success-light);
+    background: #fff8e1;
     padding: 12px 16px;
     border-radius: 8px;
-    color: var(--pm-dark);
+    border: 1px solid #f39c12;
+    color: #333;
     font-size: 14px;
 }
 
 .estimated-pickup-display strong {
-    color: var(--pm-success);
+    color: #e67e00;
     font-size: 16px;
+}
+
+.takeaway-summary {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+}
+
+.takeaway-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.takeaway-summary .summary-row.summary-total {
+    border-top: 2px dashed #dee2e6;
+    margin-top: 8px;
+    padding-top: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
 }
 
 @media (max-width: 576px) {
@@ -222,10 +256,32 @@
 <script>
 // Initialize Takeaway Setup Modal
 function initTakeawaySetupModal(total, itemCount) {
+    // Get subtotal, discount, and tax from POS summary
+    const subtotal = parseFloat(document.getElementById('subtotal')?.value) || parseFloat(total);
+    const discount = parseFloat(document.getElementById('discount_total_amount')?.value) || 0;
+    const taxRate = parseFloat(document.getElementById('taxRate')?.value) || 0;
+    const taxAmount = parseFloat(document.getElementById('taxAmount')?.value) || 0;
+
+    // Update subtotal display
+    document.getElementById('takeawaySubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
+
+    // Show/hide discount row
+    const discountRow = document.getElementById('takeawayDiscountRow');
+    if (discount > 0) {
+        discountRow.style.display = 'flex';
+        document.getElementById('takeawayDiscountAmount').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
+    } else {
+        discountRow.style.display = 'none';
+    }
+
+    // Always show and update tax row
+    document.getElementById('takeawayTaxRate').textContent = taxRate;
+    document.getElementById('takeawayTaxAmount').textContent = currencyIcon + ' ' + taxAmount.toFixed(2);
+
     // Update total display
-    const totalDisplay = document.querySelector('#takeawayTotalDisplay .total-amount');
-    if (totalDisplay) {
-        totalDisplay.textContent = currencyIcon + ' ' + parseFloat(total).toFixed(2);
+    const totalAmount = document.getElementById('takeawayTotalAmount');
+    if (totalAmount) {
+        totalAmount.textContent = currencyIcon + ' ' + parseFloat(total).toFixed(2);
     }
 
     // Reset form
@@ -235,10 +291,10 @@ function initTakeawaySetupModal(total, itemCount) {
     }
 
     // Reset pickup time selection
-    document.querySelectorAll('.pickup-time-option').forEach(opt => {
+    document.querySelectorAll('#takeawaySetupModal .pickup-time-option').forEach(opt => {
         opt.classList.remove('active');
     });
-    const defaultPickup = document.querySelector('.pickup-time-option input[value="10"]');
+    const defaultPickup = document.querySelector('#takeawaySetupModal .pickup-time-option input[value="10"]');
     if (defaultPickup) {
         defaultPickup.checked = true;
         defaultPickup.closest('.pickup-time-option').classList.add('active');
@@ -269,10 +325,10 @@ function updateEstimatedPickupTime(minutes) {
 
 // Handle pickup time selection
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.pickup-time-option input').forEach(function(radio) {
+    document.querySelectorAll('#takeawaySetupModal .pickup-time-option input').forEach(function(radio) {
         radio.addEventListener('change', function() {
             // Update active state
-            document.querySelectorAll('.pickup-time-option').forEach(opt => opt.classList.remove('active'));
+            document.querySelectorAll('#takeawaySetupModal .pickup-time-option').forEach(opt => opt.classList.remove('active'));
             this.closest('.pickup-time-option').classList.add('active');
 
             // Update estimated time
@@ -289,5 +345,98 @@ function getTakeawayFormData() {
         pickup_time: document.querySelector('#takeawaySetupForm input[name="pickup_time"]:checked')?.value || '15',
         special_instructions: document.querySelector('#takeawaySetupForm textarea[name="special_instructions"]')?.value || ''
     };
+}
+
+// Place takeaway order (with or without payment)
+function placeTakeawayOrder(withPayment) {
+    if (withPayment) {
+        // Close this modal and proceed to payment
+        const takeawayModal = bootstrap.Modal.getInstance(document.getElementById('takeawaySetupModal'));
+        if (takeawayModal) {
+            takeawayModal.hide();
+        }
+        // Proceed to payment modal
+        proceedToPayment('take_away');
+    } else {
+        // Place order without payment (deferred)
+        submitTakeawayOrderWithoutPayment();
+    }
+}
+
+// Submit takeaway order without payment
+function submitTakeawayOrderWithoutPayment() {
+    const formData = getTakeawayFormData();
+    const total = parseFloat(document.getElementById('takeawayTotalAmount')?.textContent) || 0;
+
+    // Build form data for submission
+    const submitData = new FormData();
+    submitData.append('_token', '{{ csrf_token() }}');
+    submitData.append('order_type', 'take_away');
+    submitData.append('defer_payment', '1');
+    submitData.append('total_amount', total);
+    submitData.append('sale_date', new Date().toLocaleDateString('en-GB').replace(/\//g, '-'));
+    submitData.append('customer_name', formData.customer_name);
+    submitData.append('customer_phone', formData.customer_phone);
+    submitData.append('estimated_prep_minutes', formData.pickup_time);
+    submitData.append('special_instructions', formData.special_instructions);
+
+    // Add tax data
+    submitData.append('tax_rate', document.getElementById('taxRate')?.value || 0);
+    submitData.append('total_tax', document.getElementById('taxAmount')?.value || 0);
+    submitData.append('discount_amount', document.getElementById('discount_total_amount')?.value || 0);
+    submitData.append('sub_total', document.getElementById('subtotal')?.value || document.getElementById('total')?.value || 0);
+
+    // Show loading state
+    const placeOrderBtn = document.querySelector('#takeawaySetupModal .btn-secondary');
+    const originalText = placeOrderBtn.innerHTML;
+    placeOrderBtn.innerHTML = '{{ __("Processing...") }}';
+    placeOrderBtn.disabled = true;
+
+    fetch('{{ route("admin.pos.checkout") }}', {
+        method: 'POST',
+        body: submitData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success || result.order) {
+            // Close modal
+            const takeawayModal = bootstrap.Modal.getInstance(document.getElementById('takeawaySetupModal'));
+            if (takeawayModal) {
+                takeawayModal.hide();
+            }
+
+            // Show success message
+            if (typeof toastr !== 'undefined') {
+                toastr.success(result.message || '{{ __("Take-away order placed successfully") }}');
+            }
+
+            // Reset cart
+            if (typeof getCart === 'function') {
+                getCart();
+            }
+
+            // Update running orders count
+            if (typeof updateRunningOrdersCount === 'function') {
+                updateRunningOrdersCount();
+            }
+        } else {
+            if (typeof toastr !== 'undefined') {
+                toastr.error(result.message || '{{ __("Failed to place order") }}');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (typeof toastr !== 'undefined') {
+            toastr.error('{{ __("An error occurred while placing the order") }}');
+        }
+    })
+    .finally(() => {
+        placeOrderBtn.innerHTML = originalText;
+        placeOrderBtn.disabled = false;
+    });
 }
 </script>

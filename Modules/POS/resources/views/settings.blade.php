@@ -102,6 +102,28 @@
                                     </div>
 
                                     <hr class="my-4">
+                                    <h5 class="mb-3">{{ __('Tax Settings') }}</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="p-3 border rounded">
+                                                <label class="form-label fw-medium" for="pos_tax_rate">{{ __('POS Tax Rate (%)') }}</label>
+                                                <input type="number"
+                                                       name="pos_tax_rate"
+                                                       id="pos_tax_rate"
+                                                       class="form-control"
+                                                       value="{{ $pos_settings->pos_tax_rate ?? 0 }}"
+                                                       min="0"
+                                                       max="100"
+                                                       step="0.01"
+                                                       placeholder="0.00">
+                                                <small class="text-muted">
+                                                    {{ __('Tax percentage applied to POS orders (e.g., 5 for 5%)') }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-4">
                                     <h5 class="mb-3">{{ __('Cart Behavior') }}</h5>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">

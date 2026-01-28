@@ -26,5 +26,6 @@ class PosSettings extends Model
         'show_address',
         'is_printable',
         'merge_cart_items',
+        'pos_tax_rate',
     ];
 }

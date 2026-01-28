@@ -214,6 +214,71 @@
             border-color: #28a745;
             color: #28a745;
         }
+
+        /* Product Search Dropdown Styles */
+        #itemList, #favoriteItemList {
+            width: 100% !important;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #e0e0e0;
+        }
+
+        .product_list_item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+        }
+
+        .product_list_item:last-child {
+            border-bottom: none;
+        }
+
+        .product_list_item:hover {
+            background: #f8f9fa;
+        }
+
+        .product_list_img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .product_list_img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product_list_info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product_list_info h6 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product_list_info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .product_list_info .text-primary {
+            font-weight: 600;
+            color: #696cff !important;
+        }
     </style>
 @endpush
 @section('content')
@@ -404,8 +469,8 @@
                                                 <td>{{ __('Discount') }}</td>
                                                 <td class="text-end text-success" id="discountDisplay">- {{ currency_icon() }}0.00</td>
                                             </tr>
-                                            <tr id="taxRow" style="display: none;">
-                                                <td>{{ __('Tax') }} (<span id="taxRateDisplay">0</span>%)</td>
+                                            <tr id="taxRow">
+                                                <td>{{ __('Tax') }} (<span id="taxRateDisplay">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%)</td>
                                                 <td class="text-end" id="taxDisplay">{{ currency_icon() }}0.00</td>
                                             </tr>
                                             <tr class="pay-row">
@@ -421,7 +486,7 @@
                                     <input type="hidden" id="tds" value="0">
                                     <input type="hidden" id="gtotal" value="{{ $cumalitive_sub_total }}">
                                     <input type="hidden" id="totalVat" value="0">
-                                    <input type="hidden" id="taxRate" value="{{ $setting->pos_tax_rate ?? 0 }}">
+                                    <input type="hidden" id="taxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
                                     <input type="hidden" id="taxAmount" value="0">
                                     <input type="hidden" id="business_vat" value="0">
                                     <input type="hidden" id="discount_total_amount" value="0">
@@ -480,15 +545,11 @@
     <!-- Product Modal -->
     <div class="modal fade" id="cartModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
         aria-hidden="true">
-        <div class="modal-dialog mw-100 w-75" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid load_product_modal_response">
-
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 900px;">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none;">
+                <div class="modal-body p-0">
+                    <div class="load_product_modal_response">
+                        {{-- Content loaded via AJAX --}}
                     </div>
                 </div>
             </div>
@@ -2967,14 +3028,9 @@
                 $('#discountRow').hide();
             }
 
-            // Show/hide and update tax row
-            if (taxAmount > 0) {
-                $('#taxRow').show();
-                $('#taxRateDisplay').text(taxRate);
-                $('#taxDisplay').text(`{{ currency_icon() }}${taxAmount.toFixed(2)}`);
-            } else {
-                $('#taxRow').hide();
-            }
+            // Always show tax row and update values
+            $('#taxRateDisplay').text(taxRate);
+            $('#taxDisplay').text(`{{ currency_icon() }}${taxAmount.toFixed(2)}`);
 
             calculateExtra()
 

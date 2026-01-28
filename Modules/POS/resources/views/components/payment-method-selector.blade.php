@@ -191,8 +191,9 @@ function initPaymentMethodSelector() {
                     accountSelection.style.display = 'none';
                 }
 
-                // Trigger custom event
+                // Trigger custom event (bubbles up to document)
                 selector.dispatchEvent(new CustomEvent('paymentMethodChanged', {
+                    bubbles: true,
                     detail: { type: selectedType, index: selector.dataset.index }
                 }));
             });
@@ -202,6 +203,16 @@ function initPaymentMethodSelector() {
         const checkedRadio = selector.querySelector('.payment-type-radio:checked');
         if (checkedRadio) {
             checkedRadio.dispatchEvent(new Event('change'));
+        }
+
+        // Split payment button
+        const splitBtn = selector.querySelector('.add-split-payment-btn');
+        if (splitBtn) {
+            splitBtn.addEventListener('click', function() {
+                if (typeof enableSplitPayment === 'function') {
+                    enableSplitPayment();
+                }
+            });
         }
     });
 }

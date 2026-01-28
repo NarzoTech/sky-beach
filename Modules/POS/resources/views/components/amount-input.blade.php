@@ -8,6 +8,7 @@
         'id' => 'receiveAmount',
         'label' => 'Amount Received',
         'showQuickAmounts' => true,
+        'fixedQuickAmounts' => [100, 200, 500, 1000, 2000],
         'readonly' => false
     ])
 --}}
@@ -21,35 +22,12 @@
     $readonly = $readonly ?? false;
     $currency = currency_icon();
 
-    // Generate smart quick amounts
-    $quickAmounts = [];
-    if ($showQuickAmounts && $total > 0) {
-        $roundedTotal = ceil($total);
-
-        // Nearest 100
-        $nearest100 = ceil($roundedTotal / 100) * 100;
-        if ($nearest100 >= $roundedTotal) $quickAmounts[] = $nearest100;
-
-        // Nearest 500
-        $nearest500 = ceil($roundedTotal / 500) * 500;
-        if ($nearest500 > $nearest100) $quickAmounts[] = $nearest500;
-
-        // Nearest 1000
-        $nearest1000 = ceil($roundedTotal / 1000) * 1000;
-        if ($nearest1000 > $nearest500) $quickAmounts[] = $nearest1000;
-
-        // Add some higher amounts
-        if ($nearest1000 + 500 > $nearest1000) $quickAmounts[] = $nearest1000 + 500;
-        if ($nearest1000 + 1000 > $nearest1000 + 500) $quickAmounts[] = $nearest1000 + 1000;
-
-        // Remove duplicates and sort
-        $quickAmounts = array_unique($quickAmounts);
-        sort($quickAmounts);
-        $quickAmounts = array_slice($quickAmounts, 0, 5);
-    }
+    // Use fixed quick amounts or generate dynamic ones
+    $fixedQuickAmounts = $fixedQuickAmounts ?? [100, 200, 500, 1000, 2000];
+    $quickAmounts = $fixedQuickAmounts;
 @endphp
 
-<div class="amount-input-wrapper" data-total="{{ $total }}">
+<div class="amount-input-wrapper" data-total="{{ $total }}" id="{{ $id }}Wrapper">
     @if($label)
     <label class="form-label fw-semibold text-center d-block mb-2">{{ $label }}</label>
     @endif
@@ -67,9 +45,9 @@
                autocomplete="off">
     </div>
 
-    @if($showQuickAmounts && count($quickAmounts) > 0)
+    @if($showQuickAmounts)
     <div class="quick-amounts-container mt-3">
-        <div class="quick-amounts-grid">
+        <div class="quick-amounts-grid" id="{{ $id }}QuickAmounts">
             @foreach($quickAmounts as $amount)
             <button type="button"
                     class="btn btn-outline-secondary quick-amount-btn"
@@ -80,18 +58,19 @@
         </div>
         <div class="quick-amounts-actions mt-2">
             <button type="button"
-                    class="btn btn-primary exact-amount-btn w-100"
-                    data-amount="{{ $total }}">
-                <i class="bx bx-check me-1"></i>{{ __('EXACT AMOUNT') }}
+                    class="btn btn-success exact-amount-btn w-100"
+                    data-amount="{{ $total }}"
+                    id="{{ $id }}ExactBtn">
+                {{ __('Exact Amount') }}
             </button>
         </div>
     </div>
     @endif
 
-    <div class="change-display mt-3" style="display: none;">
-        <div class="change-card">
+    <div class="change-display mt-3" id="{{ $id }}ChangeDisplay" style="display: none;">
+        <div class="change-card" id="{{ $id }}ChangeCard">
             <span class="change-label">{{ __('Change Due') }}</span>
-            <span class="change-amount">{{ $currency }} <span class="change-value">0.00</span></span>
+            <span class="change-amount">{{ $currency }} <span class="change-value" id="{{ $id }}ChangeValue">0.00</span></span>
         </div>
     </div>
 </div>
@@ -148,6 +127,8 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
+    max-width: 350px;
+    margin: 0 auto;
 }
 
 @media (max-width: 576px) {
@@ -167,8 +148,8 @@
 }
 
 .quick-amount-btn {
-    padding: 12px 8px;
-    font-size: 15px;
+    padding: 10px 8px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
     transition: all 0.2s ease;
@@ -178,13 +159,17 @@
     background: #696cff;
     border-color: #696cff;
     color: white;
-    transform: translateY(-2px);
+}
+
+.quick-amounts-actions {
+    max-width: 350px;
+    margin: 0 auto;
 }
 
 .exact-amount-btn {
-    padding: 14px 20px;
-    font-size: 16px;
-    font-weight: 700;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
     border-radius: 8px;
     letter-spacing: 0.5px;
 }
@@ -194,7 +179,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #71dd37, #5cb82f);
+    background: #28a745;
     border-radius: 12px;
     color: white;
     max-width: 350px;
@@ -202,7 +187,7 @@
 }
 
 .change-card.has-due {
-    background: linear-gradient(135deg, #ff3e1d, #e63617);
+    background: #dc3545;
 }
 
 .change-label {
@@ -226,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initAmountInputs() {
     document.querySelectorAll('.amount-input-wrapper').forEach(function(wrapper) {
         const input = wrapper.querySelector('.amount-input');
-        const total = parseFloat(wrapper.dataset.total) || 0;
+        let total = parseFloat(wrapper.dataset.total) || 0;
         const changeDisplay = wrapper.querySelector('.change-display');
         const changeValue = wrapper.querySelector('.change-value');
         const changeCard = wrapper.querySelector('.change-card');
@@ -244,8 +229,9 @@ function initAmountInputs() {
         const exactBtn = wrapper.querySelector('.exact-amount-btn');
         if (exactBtn) {
             exactBtn.addEventListener('click', function() {
-                const amount = parseFloat(this.dataset.amount);
-                input.value = amount.toFixed(2);
+                // Get current total from wrapper data attribute (may have been updated)
+                const currentTotal = parseFloat(wrapper.dataset.total) || 0;
+                input.value = currentTotal.toFixed(2);
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             });
         }
@@ -254,9 +240,11 @@ function initAmountInputs() {
         if (input && changeDisplay) {
             input.addEventListener('input', function() {
                 const received = parseFloat(this.value) || 0;
-                const change = received - total;
+                // Get current total from data attribute (may have been updated dynamically)
+                const currentTotal = parseFloat(wrapper.dataset.total) || 0;
+                const change = received - currentTotal;
 
-                if (received > 0) {
+                if (received > 0 && currentTotal > 0) {
                     changeDisplay.style.display = 'block';
                     changeValue.textContent = Math.abs(change).toFixed(2);
 
@@ -273,7 +261,7 @@ function initAmountInputs() {
 
                 // Trigger custom event
                 wrapper.dispatchEvent(new CustomEvent('amountChanged', {
-                    detail: { received: received, change: change, total: total }
+                    detail: { received: received, change: change, total: currentTotal }
                 }));
             });
         }
@@ -281,18 +269,13 @@ function initAmountInputs() {
 }
 
 // Global function to update amount input total
-function updateAmountInputTotal(wrapperId, newTotal) {
-    const wrapper = document.getElementById(wrapperId) || document.querySelector(`[data-total="${wrapperId}"]`);
+function updateAmountInputTotal(inputId, newTotal) {
+    const wrapper = document.getElementById(inputId + 'Wrapper');
     if (wrapper) {
         wrapper.dataset.total = newTotal;
         const exactBtn = wrapper.querySelector('.exact-amount-btn');
         if (exactBtn) {
             exactBtn.dataset.amount = newTotal;
-        }
-        // Trigger recalculation
-        const input = wrapper.querySelector('.amount-input');
-        if (input) {
-            input.dispatchEvent(new Event('input', { bubbles: true }));
         }
     }
 }
