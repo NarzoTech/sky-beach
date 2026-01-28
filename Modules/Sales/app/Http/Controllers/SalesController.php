@@ -180,6 +180,7 @@ class SalesController extends Controller
         $serviceCategories = $this->services->getCategories();
 
         $cart_holds = CartHold::where('status', 'hold')->orderBy('id', 'desc')->get();
+        $posSettings = \Modules\POS\app\Models\PosSettings::first();
         return view('sales::edit')->with([
             'products' => $products,
             'categories' => $categories,
@@ -192,7 +193,8 @@ class SalesController extends Controller
             'services' => $services,
             'cart_holds' => $cart_holds,
             'serviceCategories' => $serviceCategories,
-            'sale' => $sale
+            'sale' => $sale,
+            'posSettings' => $posSettings
         ]);
     }
 

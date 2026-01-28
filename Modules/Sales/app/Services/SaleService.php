@@ -1053,13 +1053,51 @@ class SaleService
     {
         $sale = $this->getSales()->find($id);
 
+        // Initialize cart contents as empty array
+        $cart_contents = [];
+
+        // Track processed combo IDs to avoid duplicates
+        $processedCombos = [];
+
         foreach ($sale->details as $key => $detail) {
             $data = array();
             $data["rowid"] = uniqid();
 
-            // Handle menu item
-            if ($detail->menu_item_id) {
+            // Handle combo items first (they have combo_id set)
+            // Group all items from same combo into one cart entry
+            if ($detail->combo_id) {
+                // Skip if we already processed this combo
+                if (in_array($detail->combo_id, $processedCombos)) {
+                    continue;
+                }
+
+                $combo = Combo::find($detail->combo_id);
+                if (!$combo) continue;
+
+                // Calculate total qty and sub_total for this combo from all its items
+                $comboDetails = $sale->details->where('combo_id', $detail->combo_id);
+                $comboQty = $comboDetails->first()->quantity ?? 1;
+                $comboSubTotal = $comboDetails->sum('sub_total');
+                $comboPrice = $comboSubTotal / max(1, $comboQty);
+
+                $data['id'] = $combo->id;
+                $data['name'] = $detail->combo_name ?? $combo->name;
+                $data['type'] = 'combo';
+                $data['image'] = $combo->image ?? '';
+                $data['qty'] = $comboQty;
+                $data['price'] = $comboPrice;
+                $data['sub_total'] = $comboSubTotal;
+                $data['sku'] = '';
+                $data['source'] = 1;
+                $data['purchase_price'] = 0;
+                $data['selling_price'] = $comboPrice;
+
+                $processedCombos[] = $detail->combo_id;
+            }
+            // Handle menu item (without combo_id)
+            elseif ($detail->menu_item_id) {
                 $menuItem = MenuItem::find($detail->menu_item_id);
+                if (!$menuItem) continue;
                 $data['id'] = $menuItem->id;
                 $data['name'] = $menuItem->name;
                 $data['type'] = 'menu_item';
@@ -1082,6 +1120,7 @@ class SaleService
             // Handle legacy ingredient (product)
             elseif ($detail->ingredient_id) {
                 $product = Ingredient::find($detail->ingredient_id);
+                if (!$product) continue;
                 $data['id'] = $product->id;
                 $data['name'] = $product->name;
                 $data['type'] = 'product';
@@ -1101,6 +1140,7 @@ class SaleService
             // Handle service
             elseif ($detail->service_id) {
                 $service = Service::find($detail->service_id);
+                if (!$service) continue;
                 $data['id'] = $service->id;
                 $data['name'] = $service->name;
                 $data['type'] = 'service';
@@ -1117,11 +1157,12 @@ class SaleService
                 continue; // Skip invalid entries
             }
 
-            $cart_contents = session()->get('UPDATE_CART');
-            $cart_contents = $cart_contents ? $cart_contents : [];
-            session()->put('UPDATE_CART', [...$cart_contents, $data["rowid"] => $data]);
+            $cart_contents[$data["rowid"]] = $data;
         }
-        $cart_contents = session()->get('UPDATE_CART');
+
+        // Store cart in session
+        session()->put('UPDATE_CART', $cart_contents);
+
         return [$cart_contents, $sale];
     }
 

@@ -1,3 +1,22 @@
+@php
+    // Parse notes JSON if it contains customer info (from website orders)
+    $notesData = null;
+    $remarkText = $sale->notes;
+    if ($sale->notes && is_string($sale->notes)) {
+        $decoded = json_decode($sale->notes, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $notesData = $decoded;
+            // Don't show raw JSON as remark
+            $remarkText = $decoded['remark'] ?? null;
+        }
+    }
+
+    // Get customer info - prefer notes data for website orders
+    $customerName = $notesData['customer_name'] ?? $sale->customer->name ?? 'Guest';
+    $customerPhone = $notesData['customer_phone'] ?? $sale->customer->phone ?? '';
+    $customerEmail = $notesData['customer_email'] ?? $sale->customer->email ?? '';
+    $orderSource = $notesData['source'] ?? null;
+@endphp
 <section class="page">
     <div class="row justify-content-between">
         <div class="col-5">
@@ -21,21 +40,23 @@
                         <span class="key">Email:</span>
                         <span class="value">{{ $setting->email ?? '' }}</span>
                     </div>
-
-
-
-
                 </div>
                 <div class="property">
                     <span class="key">Sold By:</span>
                     <span class="value">{{ $sale->createdBy->name ?? 'Staff' }}</span>
                 </div>
+                @if($orderSource)
                 <div class="property">
-                    <span class="value">
-                        <span class="key">Remark:</span>
-                        {{ $sale->notes }}
-                    </span>
+                    <span class="key">Order Source:</span>
+                    <span class="value" style="text-transform: capitalize;">{{ $orderSource }}</span>
                 </div>
+                @endif
+                @if($remarkText)
+                <div class="property">
+                    <span class="key">Remark:</span>
+                    <span class="value">{{ $remarkText }}</span>
+                </div>
+                @endif
             </div>
         </div>
         <div class="col-5">
@@ -72,19 +93,31 @@
                         Name:
                     </span>
                     <span class="value">
-                        {{ $sale->customer->name ?? 'Guest' }}
+                        {{ $customerName }}
                     </span>
                 </div>
 
-
+                @if($customerPhone)
                 <div class="property">
                     <span class="key">
                         Mobile:
                     </span>
                     <span class="value">
-                        {{ $sale->customer->phone ?? '' }}
+                        {{ $customerPhone }}
                     </span>
                 </div>
+                @endif
+
+                @if($customerEmail)
+                <div class="property">
+                    <span class="key">
+                        Email:
+                    </span>
+                    <span class="value">
+                        {{ $customerEmail }}
+                    </span>
+                </div>
+                @endif
             </div>
         </div>
     </div>
