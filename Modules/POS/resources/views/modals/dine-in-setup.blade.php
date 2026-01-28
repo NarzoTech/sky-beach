@@ -77,11 +77,23 @@
                     {{-- Order Summary --}}
                     <div class="dine-in-order-summary">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted">{{ __('Items in Cart') }}</span>
+                            <span class="text-muted">{{ __('Items') }}</span>
                             <span class="fw-semibold" id="dineInItemCount">0</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fs-5 fw-semibold">{{ __('Order Total') }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">{{ __('Subtotal') }}</span>
+                            <span id="dineInSubtotal">{{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 text-danger" id="dineInDiscountRow" style="display: none;">
+                            <span>{{ __('Discount') }}</span>
+                            <span id="dineInDiscountAmount">- {{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2" id="dineInTaxRow">
+                            <span>{{ __('Tax') }} (<span id="dineInTaxRate">0</span>%)</span>
+                            <span id="dineInTaxAmount">{{ currency_icon() }} 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 2px dashed #dee2e6;">
+                            <span class="fs-5 fw-semibold">{{ __('Total') }}</span>
                             <span class="fs-4 fw-bold text-primary" id="dineInOrderTotal">{{ currency_icon() }} 0.00</span>
                         </div>
                     </div>
@@ -142,7 +154,28 @@
 <script>
 // Initialize Dine-In Setup Modal
 function initDineInSetupModal(total, itemCount) {
+    // Get subtotal, discount, and tax from POS summary
+    const subtotal = parseFloat(document.getElementById('subtotal')?.value) || parseFloat(total);
+    const discount = parseFloat(document.getElementById('discount_total_amount')?.value) || 0;
+    const taxRate = parseFloat(document.getElementById('taxRate')?.value) || 0;
+    const taxAmount = parseFloat(document.getElementById('taxAmount')?.value) || 0;
+
     document.getElementById('dineInItemCount').textContent = itemCount;
+    document.getElementById('dineInSubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
+
+    // Show/hide discount row
+    const discountRow = document.getElementById('dineInDiscountRow');
+    if (discount > 0) {
+        discountRow.style.display = 'flex';
+        document.getElementById('dineInDiscountAmount').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
+    } else {
+        discountRow.style.display = 'none';
+    }
+
+    // Always show and update tax row
+    document.getElementById('dineInTaxRate').textContent = taxRate;
+    document.getElementById('dineInTaxAmount').textContent = currencyIcon + ' ' + taxAmount.toFixed(2);
+
     document.getElementById('dineInOrderTotal').textContent = currencyIcon + ' ' + parseFloat(total).toFixed(2);
     document.getElementById('dineInPayNowAmount').textContent = currencyIcon + ' ' + parseFloat(total).toFixed(2);
 

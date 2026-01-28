@@ -409,9 +409,21 @@
                         </div>
                     </div>
                     <div class="card-footer" id="cart-footer" style="display: none;">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>{{ __('Subtotal') }}:</span>
-                            <strong class="text-primary" id="cart-subtotal">{{ $posSettings->currency ?? '$' }}0.00</strong>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">{{ __('Subtotal') }}:</span>
+                            <span id="cart-subtotal">{{ currency_icon() }}0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1" id="cart-discount-row" style="display: none;">
+                            <span class="text-danger">{{ __('Discount') }}:</span>
+                            <span class="text-danger" id="cart-discount">- {{ currency_icon() }}0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%):</span>
+                            <span id="cart-tax">{{ currency_icon() }}0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
+                            <span class="fw-bold">{{ __('Total') }}:</span>
+                            <strong class="text-primary" id="cart-total">{{ currency_icon() }}0.00</strong>
                         </div>
                         <div class="mb-3">
                             <textarea class="form-control form-control-sm" id="special-instructions" rows="2" placeholder="{{ __('Special instructions (optional)...') }}"></textarea>
@@ -419,6 +431,7 @@
                         <button class="btn btn-success w-100" onclick="placeOrder()" id="place-order-btn">
                             <i class="fas fa-paper-plane me-2"></i>{{ __('Send to Kitchen') }}
                         </button>
+                        <input type="hidden" id="posTaxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
                     </div>
                 </div>
             </div>
@@ -1083,7 +1096,16 @@
         });
 
         cartItemsDiv.innerHTML = html;
+
+        // Calculate tax and total
+        const taxRate = parseFloat(document.getElementById('posTaxRate')?.value) || 0;
+        const taxAmount = subtotal * taxRate / 100;
+        const total = subtotal + taxAmount;
+
         document.getElementById('cart-subtotal').textContent = currency + subtotal.toFixed(2);
+        document.getElementById('cart-tax').textContent = currency + taxAmount.toFixed(2);
+        document.getElementById('cart-total').textContent = currency + total.toFixed(2);
+
         updateMenuItemBadges();
         updateComboBadges();
     }

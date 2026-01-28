@@ -327,9 +327,9 @@
             <span>{{ number_format($payment->paying_amount ?? $payment->amount ?? 0, 2) }}</span>
         </div>
         @endforeach
-        @if(($sale->paid_amount ?? 0) > 0)
-        <div class="info-row">
-            <span>Paid:</span>
+        @if($sale->payment->count() > 1 && ($sale->paid_amount ?? 0) > 0)
+        <div class="info-row" style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;">
+            <span>Total Paid:</span>
             <span>{{ number_format($sale->paid_amount, 2) }}</span>
         </div>
         @endif
@@ -340,22 +340,20 @@
         </div>
         @endif
     </div>
-    @else
-        @if(($sale->paid_amount ?? 0) > 0)
-        <div class="payment-section">
-            <div class="payment-title">PAYMENT</div>
-            <div class="info-row">
-                <span>Paid:</span>
-                <span>{{ number_format($sale->paid_amount, 2) }}</span>
-            </div>
-            @if(($sale->return_amount ?? 0) > 0)
-            <div class="info-row">
-                <span>Change:</span>
-                <span>{{ number_format($sale->return_amount, 2) }}</span>
-            </div>
-            @endif
+    @elseif(($sale->paid_amount ?? 0) > 0)
+    <div class="payment-section">
+        <div class="payment-title">PAYMENT</div>
+        <div class="info-row">
+            <span>Paid:</span>
+            <span>{{ number_format($sale->paid_amount, 2) }}</span>
+        </div>
+        @if(($sale->return_amount ?? 0) > 0)
+        <div class="info-row">
+            <span>Change:</span>
+            <span>{{ number_format($sale->return_amount, 2) }}</span>
         </div>
         @endif
+    </div>
     @endif
 
     <!-- Footer -->

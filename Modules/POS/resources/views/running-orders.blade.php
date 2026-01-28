@@ -8,6 +8,20 @@
             'delivery' => ['icon' => 'fa-motorcycle', 'color' => 'info', 'label' => __('Delivery')],
             default => ['icon' => 'fa-receipt', 'color' => 'secondary', 'label' => __('Order')]
         };
+
+        // Calculate grand_total if it's 0 or null
+        $orderGrandTotal = $order->grand_total;
+        if (empty($orderGrandTotal) || $orderGrandTotal == 0) {
+            $subtotal = $order->details->sum('sub_total');
+            $discount = $order->order_discount ?? 0;
+            $tax = $order->total_tax ?? 0;
+            $orderGrandTotal = $subtotal - $discount + $tax;
+
+            // Fallback to total_price if still 0
+            if ($orderGrandTotal == 0 && $order->total_price > 0) {
+                $orderGrandTotal = $order->total_price - $discount + $tax;
+            }
+        }
     @endphp
     <div class="col-md-4 col-sm-6 mb-3">
         <div class="card h-100 running-order-card" style="cursor: pointer;" onclick="viewOrderDetails({{ $order->id }})">
@@ -84,7 +98,7 @@
                         {{ $order->customer->name ?? 'Guest' }}
                     </span>
                     <span class="fw-bold text-primary">
-                        {{ currency($order->grand_total) }}
+                        {{ currency($orderGrandTotal) }}
                     </span>
                 </div>
                 @if($order->waiter)

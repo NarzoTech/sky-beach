@@ -121,7 +121,16 @@ class SaleService
         $sale->order_discount = $request->discount_amount;
         $sale->total_tax = $request->total_tax ?? $request->tax_amount ?? 0;
         $sale->tax_rate = $request->tax_rate ?? 0;
-        $sale->grand_total = $request->total_amount;
+
+        // Calculate grand_total - use provided value or calculate from sub_total, discount, and tax
+        $grandTotal = $request->total_amount;
+        if (empty($grandTotal) || $grandTotal == 0) {
+            $subTotal = $request->sub_total ?? 0;
+            $discount = $sale->order_discount ?? 0;
+            $tax = $sale->total_tax ?? 0;
+            $grandTotal = $subTotal - $discount + $tax;
+        }
+        $sale->grand_total = $grandTotal;
         $sale->invoice = $this->genInvoiceNumber();
         $sale->due_date = $request->due_date ? $this->parseDate($request->due_date) : null;
         $sale->sale_note = $request->remark;
@@ -507,7 +516,16 @@ class SaleService
 
         $sale->order_discount = $saleData['discount'] ?? 0;
         $sale->total_tax = $saleData['tax'] ?? 0;
-        $sale->grand_total = $saleData['total'] ?? $saleData['subtotal'] ?? 0;
+
+        // Calculate grand_total - use provided value or calculate from subtotal, discount, and tax
+        $grandTotal = $saleData['total'] ?? 0;
+        if (empty($grandTotal) || $grandTotal == 0) {
+            $subTotal = $saleData['subtotal'] ?? 0;
+            $discount = $sale->order_discount ?? 0;
+            $tax = $sale->total_tax ?? 0;
+            $grandTotal = $subTotal - $discount + $tax;
+        }
+        $sale->grand_total = $grandTotal;
         $sale->invoice = $this->genInvoiceNumber();
         $sale->sale_note = $saleData['note'] ?? null;
         $sale->created_by = auth('admin')->id();
@@ -699,7 +717,16 @@ class SaleService
             $sale->payment_method = json_encode($paymentTypes);
             $sale->order_discount = $request->discount_amount;
             $sale->total_tax = $request->total_tax ?? 0;
-            $sale->grand_total = $request->total_amount;
+
+            // Calculate grand_total - use provided value or calculate from sub_total, discount, and tax
+            $grandTotal = $request->total_amount;
+            if (empty($grandTotal) || $grandTotal == 0) {
+                $subTotal = $request->sub_total ?? 0;
+                $discount = $sale->order_discount ?? 0;
+                $tax = $sale->total_tax ?? 0;
+                $grandTotal = $subTotal - $discount + $tax;
+            }
+            $sale->grand_total = $grandTotal;
             $sale->paid_amount = array_sum($payingAmounts);
 
 

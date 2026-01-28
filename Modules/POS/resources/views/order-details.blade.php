@@ -5,6 +5,20 @@
         'delivery' => ['icon' => 'fa-motorcycle', 'color' => 'info', 'label' => __('Delivery')],
         default => ['icon' => 'fa-receipt', 'color' => 'secondary', 'label' => __('Order')]
     };
+
+    // Calculate grand_total if it's 0 or null (recalculate from items)
+    $calculatedGrandTotal = $order->grand_total;
+    if (empty($calculatedGrandTotal) || $calculatedGrandTotal == 0) {
+        $subtotal = $order->details->sum('sub_total');
+        $discount = $order->order_discount ?? 0;
+        $tax = $order->total_tax ?? 0;
+        $calculatedGrandTotal = $subtotal - $discount + $tax;
+
+        // Also use total_price if it's set and grand_total is not
+        if ($calculatedGrandTotal == 0 && $order->total_price > 0) {
+            $calculatedGrandTotal = $order->total_price - $discount + $tax;
+        }
+    }
 @endphp
 <div class="order-details-content" data-order-id="{{ $order->id }}" data-created-at="{{ $order->created_at->timestamp }}">
     <!-- Order Header -->
@@ -268,15 +282,13 @@
                             <td class="text-end">-{{ currency($order->order_discount) }}</td>
                         </tr>
                         @endif
-                        @if($order->total_tax > 0)
                         <tr>
-                            <td colspan="4" class="text-end">{{ __('Tax') }}:</td>
-                            <td class="text-end">{{ currency($order->total_tax) }}</td>
+                            <td colspan="4" class="text-end">{{ __('Tax') }} @if(($order->tax_rate ?? 0) > 0)({{ $order->tax_rate }}%)@endif:</td>
+                            <td class="text-end">{{ currency($order->total_tax ?? 0) }}</td>
                         </tr>
-                        @endif
                         <tr>
                             <td colspan="4" class="text-end"><strong class="fs-5">{{ __('Grand Total') }}:</strong></td>
-                            <td class="text-end"><strong class="fs-5" id="orderGrandTotal">{{ currency($order->grand_total) }}</strong></td>
+                            <td class="text-end"><strong class="fs-5" id="orderGrandTotal">{{ currency($calculatedGrandTotal) }}</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -315,7 +327,7 @@
             <button type="button" class="btn btn-warning" onclick="addItemsToOrder({{ $order->id }})">
                 <i class="fas fa-plus me-1"></i>{{ __('Add More Items') }}
             </button>
-            <button type="button" class="btn btn-success" onclick="showPaymentModal({{ $order->id }}, {{ $order->grand_total }}, '{{ $order->invoice }}', '{{ $order->table->name ?? '' }}')">
+            <button type="button" class="btn btn-success" onclick="showPaymentModal({{ $order->id }}, {{ $calculatedGrandTotal }}, '{{ $order->invoice }}', '{{ $order->table->name ?? '' }}')">
                 <i class="fas fa-cash-register me-1"></i>{{ __('Complete & Pay') }}
             </button>
         </div>
@@ -324,7 +336,7 @@
 
 <!-- Hidden data for JavaScript -->
 <input type="hidden" id="current-order-id" value="{{ $order->id }}">
-<input type="hidden" id="current-order-total" value="{{ $order->grand_total }}">
+<input type="hidden" id="current-order-total" value="{{ $calculatedGrandTotal }}">
 <input type="hidden" id="order-created-timestamp" value="{{ $order->created_at->timestamp }}">
 
 <style>

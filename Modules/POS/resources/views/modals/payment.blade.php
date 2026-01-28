@@ -53,6 +53,22 @@
                 {{-- Payment Form --}}
                 <div id="paymentFormContainer">
                     <form id="unifiedPaymentForm">
+                        {{-- Order Summary --}}
+                        <div class="payment-summary-card mb-3">
+                            <div class="summary-row">
+                                <span class="text-muted">{{ __('Subtotal') }}</span>
+                                <span id="paymentSubtotal">{{ currency_icon() }} 0.00</span>
+                            </div>
+                            <div class="summary-row text-success" id="paymentDiscountRow" style="display: none;">
+                                <span>{{ __('Discount') }}</span>
+                                <span id="paymentDiscountDisplay">- {{ currency_icon() }} 0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>{{ __('Tax') }} (<span id="paymentTaxRateDisplay">0</span>%)</span>
+                                <span id="paymentTaxDisplay">{{ currency_icon() }} 0.00</span>
+                            </div>
+                        </div>
+
                         {{-- Total Display with Order Context --}}
                         <div class="payment-total-card" id="paymentTotalCard">
                             <div class="payment-total-amount" id="paymentTotalAmount">{{ currency_icon() }} 0.00</div>
@@ -171,6 +187,21 @@
 </div>
 
 <style>
+.payment-summary-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.payment-summary-card .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
 .payment-total-card {
     background: #2c3e50;
     color: white;
@@ -263,6 +294,154 @@
     overflow-y: auto;
 }
 
+.split-payment-row {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.split-payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.split-payment-number {
+    font-weight: 600;
+    font-size: 13px;
+    color: #495057;
+}
+
+.btn-remove-payment {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.btn-remove-payment:hover {
+    background: #fee2e2;
+}
+
+.split-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.split-method-option {
+    cursor: pointer;
+    margin: 0;
+}
+
+.split-method-option input[type="radio"] {
+    display: none;
+}
+
+.split-method-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background: white;
+    transition: all 0.2s ease;
+    min-height: 50px;
+}
+
+.split-method-box i {
+    font-size: 16px;
+    margin-bottom: 2px;
+    color: var(--method-color, #666);
+}
+
+.split-method-box span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+}
+
+.split-method-option:hover .split-method-box {
+    border-color: var(--method-color, #696cff);
+}
+
+.split-method-option.active .split-method-box,
+.split-method-option input:checked + .split-method-box {
+    background: var(--method-color, #696cff);
+    border-color: var(--method-color, #696cff);
+}
+
+.split-method-option.active .split-method-box i,
+.split-method-option.active .split-method-box span,
+.split-method-option input:checked + .split-method-box i,
+.split-method-option input:checked + .split-method-box span {
+    color: white;
+}
+
+.split-account-select select {
+    font-size: 13px;
+}
+
+.split-amount-input .input-group-text {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.split-amount-input input {
+    font-weight: 600;
+    font-size: 16px;
+    text-align: right;
+}
+
+.split-total-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2c3e50;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+.split-total-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+.split-remaining {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.split-remaining.has-remaining {
+    color: #ffc107;
+}
+
+.split-remaining.fully-paid {
+    color: #71dd37;
+}
+
+.split-total-amount {
+    font-size: 20px;
+    font-weight: 700;
+}
+
 /* Responsive */
 @media (max-width: 576px) {
     .payment-total-amount {
@@ -349,6 +528,25 @@ function initPaymentModal(options) {
     const itemCount = options.itemCount || 0;
 
     console.log('initPaymentModal called with orderType:', currentOrderType, 'total:', currentTotal);
+
+    // Get summary values from POS
+    const subtotal = parseFloat(document.getElementById('subtotal')?.value) || currentTotal;
+    const discount = parseFloat(document.getElementById('discount_total_amount')?.value) || 0;
+    const taxRate = parseFloat(document.getElementById('taxRate')?.value) || 0;
+    const taxAmount = parseFloat(document.getElementById('taxAmount')?.value) || 0;
+
+    // Update summary display
+    document.getElementById('paymentSubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
+    document.getElementById('paymentTaxRateDisplay').textContent = taxRate;
+    document.getElementById('paymentTaxDisplay').textContent = currencyIcon + ' ' + taxAmount.toFixed(2);
+
+    // Show/hide discount row
+    if (discount > 0) {
+        document.getElementById('paymentDiscountRow').style.display = 'flex';
+        document.getElementById('paymentDiscountDisplay').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
+    } else {
+        document.getElementById('paymentDiscountRow').style.display = 'none';
+    }
 
     // Update total display
     document.getElementById('paymentTotalAmount').textContent = currencyIcon + ' ' + currentTotal.toFixed(2);

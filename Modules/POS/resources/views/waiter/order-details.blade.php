@@ -162,12 +162,10 @@
                                         <td colspan="3" class="text-end"><strong>{{ __('Subtotal') }}</strong></td>
                                         <td class="text-end">{{ number_format($order->subtotal, 2) }}</td>
                                     </tr>
-                                    @if($order->tax_amount > 0)
                                     <tr>
-                                        <td colspan="3" class="text-end">{{ __('Tax') }}</td>
-                                        <td class="text-end">{{ number_format($order->tax_amount, 2) }}</td>
+                                        <td colspan="3" class="text-end">{{ __('Tax') }} @if(($order->tax_rate ?? 0) > 0)({{ $order->tax_rate }}%)@endif</td>
+                                        <td class="text-end">{{ number_format($order->total_tax ?? $order->tax_amount ?? 0, 2) }}</td>
                                     </tr>
-                                    @endif
                                     @if($order->discount_amount > 0)
                                     <tr>
                                         <td colspan="3" class="text-end">{{ __('Discount') }}</td>

@@ -416,13 +416,22 @@
                         </div>
                     </div>
                     <div class="card-footer" id="cart-footer" style="display: none;">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>{{ __('New Items Total') }}:</span>
-                            <strong class="text-success" id="cart-subtotal">$0.00</strong>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">{{ __('Subtotal') }}:</span>
+                            <span id="cart-subtotal">{{ currency_icon() }}0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%):</span>
+                            <span id="cart-tax">{{ currency_icon() }}0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
+                            <span class="fw-bold">{{ __('New Items Total') }}:</span>
+                            <strong class="text-success" id="cart-total">{{ currency_icon() }}0.00</strong>
                         </div>
                         <button class="btn btn-success w-100" onclick="addItemsToOrder()" id="add-items-btn">
                             <i class="fas fa-paper-plane me-2"></i>{{ __('Send to Kitchen') }}
                         </button>
+                        <input type="hidden" id="posTaxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
                     </div>
                 </div>
             </div>
@@ -1008,7 +1017,17 @@
         });
 
         cartItemsDiv.innerHTML = html;
-        document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
+
+        // Calculate tax and total
+        const currency = '{{ currency_icon() }}';
+        const taxRate = parseFloat(document.getElementById('posTaxRate')?.value) || 0;
+        const taxAmount = subtotal * taxRate / 100;
+        const total = subtotal + taxAmount;
+
+        document.getElementById('cart-subtotal').textContent = currency + subtotal.toFixed(2);
+        document.getElementById('cart-tax').textContent = currency + taxAmount.toFixed(2);
+        document.getElementById('cart-total').textContent = currency + total.toFixed(2);
+
         updateMenuItemBadges();
         updateComboBadges();
     }

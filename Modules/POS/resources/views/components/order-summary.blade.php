@@ -77,12 +77,10 @@
         </div>
         @endif
 
-        @if($tax > 0)
         <div class="summary-row summary-tax">
-            <span>{{ __('Tax') }}</span>
+            <span>{{ __('Tax') }} @if(isset($taxRate) && $taxRate > 0)({{ $taxRate }}%)@endif</span>
             <span id="summaryTax">{{ $currency }} {{ number_format($tax, 2) }}</span>
         </div>
-        @endif
 
         @if($deliveryFee > 0)
         <div class="summary-row summary-delivery">

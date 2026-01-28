@@ -102,10 +102,31 @@ class Sale extends Model
 
     /**
      * Get total attribute (alias for grand_total)
+     * Calculates from items if grand_total is 0 or null
      */
     public function getTotalAttribute()
     {
-        return $this->grand_total ?? $this->total_price ?? 0;
+        // Return grand_total if it's set and not 0
+        if (!empty($this->grand_total) && $this->grand_total > 0) {
+            return $this->grand_total;
+        }
+
+        // Return total_price if it's set and not 0
+        if (!empty($this->total_price) && $this->total_price > 0) {
+            $discount = $this->order_discount ?? 0;
+            $tax = $this->total_tax ?? 0;
+            return $this->total_price - $discount + $tax;
+        }
+
+        // Calculate from items as last resort
+        if ($this->relationLoaded('details') && $this->details->count() > 0) {
+            $subtotal = $this->details->sum('sub_total');
+            $discount = $this->order_discount ?? 0;
+            $tax = $this->total_tax ?? 0;
+            return $subtotal - $discount + $tax;
+        }
+
+        return 0;
     }
 
     public function details()
