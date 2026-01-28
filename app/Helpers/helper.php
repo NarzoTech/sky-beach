@@ -299,6 +299,53 @@ function currency_icon()
     return $currencySetting->currency_icon;
 }
 
+/**
+ * Suggest quick payment amounts based on total
+ *
+ * @param float $total The order total
+ * @return array Suggested quick amounts
+ */
+if (!function_exists('suggestQuickAmounts')) {
+    function suggestQuickAmounts($total)
+    {
+        $total = ceil($total);
+        $suggestions = [];
+
+        // Round up to nearest 100
+        $nearest100 = ceil($total / 100) * 100;
+        if ($nearest100 > $total) {
+            $suggestions[] = $nearest100;
+        }
+
+        // Round up to nearest 500
+        $nearest500 = ceil($total / 500) * 500;
+        if ($nearest500 > $total && !in_array($nearest500, $suggestions)) {
+            $suggestions[] = $nearest500;
+        }
+
+        // Round up to nearest 1000
+        $nearest1000 = ceil($total / 1000) * 1000;
+        if ($nearest1000 > $total && !in_array($nearest1000, $suggestions)) {
+            $suggestions[] = $nearest1000;
+        }
+
+        // Add +500 and +1000 options
+        $plus500 = $nearest100 + 500;
+        $plus1000 = $nearest100 + 1000;
+
+        if (!in_array($plus500, $suggestions)) {
+            $suggestions[] = $plus500;
+        }
+        if (!in_array($plus1000, $suggestions)) {
+            $suggestions[] = $plus1000;
+        }
+
+        // Sort and take top 5
+        sort($suggestions);
+        return array_slice($suggestions, 0, 5);
+    }
+}
+
 // remove currency icon using regular expression
 function remove_icon($price)
 {

@@ -396,6 +396,18 @@
                                                 <td>{{ __('Items') }}</td>
                                                 <td class="text-end"><span id="titems">{{ count($cart_contents) }}</span></td>
                                             </tr>
+                                            <tr>
+                                                <td>{{ __('Subtotal') }}</td>
+                                                <td class="text-end" id="subtotalDisplay">{{ currency($cumalitive_sub_total) }}</td>
+                                            </tr>
+                                            <tr id="discountRow" style="display: none;">
+                                                <td>{{ __('Discount') }}</td>
+                                                <td class="text-end text-success" id="discountDisplay">- {{ currency_icon() }}0.00</td>
+                                            </tr>
+                                            <tr id="taxRow" style="display: none;">
+                                                <td>{{ __('Tax') }} (<span id="taxRateDisplay">0</span>%)</td>
+                                                <td class="text-end" id="taxDisplay">{{ currency_icon() }}0.00</td>
+                                            </tr>
                                             <tr class="pay-row">
                                                 <td>{{ __('Total Payable') }}</td>
                                                 <td class="text-end" id="totalAmountWithVat">{{ currency($cumalitive_sub_total) }}</td>
@@ -404,10 +416,13 @@
                                     </table>
                                     <!-- Hidden fields for calculations -->
                                     <input type="hidden" id="total" value="{{ $cumalitive_sub_total }}">
+                                    <input type="hidden" id="subtotal" value="{{ $cumalitive_sub_total }}">
                                     <input type="hidden" id="extra" value="0">
                                     <input type="hidden" id="tds" value="0">
                                     <input type="hidden" id="gtotal" value="{{ $cumalitive_sub_total }}">
                                     <input type="hidden" id="totalVat" value="0">
+                                    <input type="hidden" id="taxRate" value="{{ $setting->pos_tax_rate ?? 0 }}">
+                                    <input type="hidden" id="taxAmount" value="0">
                                     <input type="hidden" id="business_vat" value="0">
                                     <input type="hidden" id="discount_total_amount" value="0">
                                     <input type="hidden" id="discount_type" value="1">
@@ -1301,12 +1316,21 @@
         </div>
     </div>
 
+    {{-- New Payment System Modals --}}
+    @include('pos::modals.dine-in-setup')
+    @include('pos::modals.takeaway-setup')
+    @include('pos::modals.delivery-setup')
+    @include('pos::modals.payment', ['accounts' => $accounts ?? collect(), 'setting' => $setting ?? null])
+    @include('pos::modals.running-order-payment', ['accounts' => $accounts ?? collect(), 'setting' => $setting ?? null])
 
 @endsection
 
 @push('js')
     <script src="{{ asset('backend/js/jquery-ui.min.js') }}"></script>
     <script>
+        // Currency icon for JS usage
+        var currencyIcon = '{{ currency_icon() }}';
+
         // POS Settings
         var posSettings = {
             show_customer: {{ $posSettings->show_customer ? 'true' : 'false' }},
@@ -2317,18 +2341,47 @@
             const subTotal = $('#total').text().replace(/[^0-9.]/g, '');
             const item = $('#titems').text();
 
+            let grandTotal = parseFloat(finalTotal) || 0;
+            let itemCount = parseInt(item) || 0;
 
+            // Check if cart has items
+            if (itemCount <= 0) {
+                toastr.warning("{{ __('Please add items to cart first') }}");
+                return;
+            }
+
+            // Get selected order type
+            let orderType = $('input[name="order_type_radio"]:checked').val() || 'dine_in';
+
+            // Route to appropriate setup modal based on order type
+            switch(orderType) {
+                case 'dine_in':
+                    initDineInSetupModal(grandTotal, itemCount);
+                    break;
+                case 'take_away':
+                    initTakeawaySetupModal(grandTotal, itemCount);
+                    break;
+                case 'delivery':
+                    let deliveryFee = parseFloat($('#delivery_fee').val()) || 0;
+                    initDeliverySetupModal(grandTotal, itemCount, deliveryFee);
+                    break;
+                default:
+                    // Fallback to direct payment modal for unknown types
+                    openDirectPaymentModal(grandTotal, itemCount, subTotal, discountAmount);
+            }
+        }
+
+        // Direct payment modal (bypasses setup modals)
+        function openDirectPaymentModal(grandTotal, itemCount, subTotal, discountAmount) {
             $('[name="sub_total"]').val(subTotal);
             $('#sub_totalModal').text(subTotal);
 
             $('#discount_amountModal').text(discountAmount);
             $('[name="discount_amount"]').val(discountAmount);
 
-            let grandTotal = parseFloat(finalTotal);
             $('#total_amountModal').text(grandTotal);
             $('#total_amount_modal_input').val(grandTotal);
             $('#total_amountModal2').text(grandTotal);
-
 
             // load customer info
             let customer_id = $('#customer_id').val();
@@ -2346,13 +2399,10 @@
             updateOrderTypeBadge();
 
             // total items
-            $('#itemModal').text(item);
-
-
+            $('#itemModal').text(itemCount);
 
             $('.paying_amount').val(grandTotal);
             $('#paid_amountModal').text(grandTotal);
-
 
             // hide rows
             if (!discountAmount) {
@@ -2888,22 +2938,44 @@
 
             $('#gtotal').text(`{{ currency_icon() }}${total - discountAmount}`)
 
-            // vat
+            // vat/tax - calculate on amount after discount
+            const taxRate = parseFloat($('#taxRate').val()) || parseFloat($('#ttax2').text()) || 0;
+            const taxableAmount = total - discountAmount;
+            let taxAmount = 0;
 
-            const vat = $('#ttax2').text();
-
-            let vatAmount = 0;
-
-            if (vat) {
-                vatAmount = total * parseFloat(vat) / 100
+            if (taxRate > 0) {
+                taxAmount = taxableAmount * taxRate / 100;
             }
 
-            $('#totalVat').text(`{{ currency_icon() }}${vatAmount}`)
+            $('#totalVat').text(`{{ currency_icon() }}${taxAmount}`)
+            $('#taxAmount').val(taxAmount);
 
             // totalAmountWithVat
-            const grandTotal = total - discountAmount + vatAmount
-            $('#totalAmountWithVat').text(`{{ currency_icon() }}${grandTotal}`)
-            $('#finalTotal').text(`{{ currency_icon() }}${grandTotal}`)
+            const grandTotal = total - discountAmount + taxAmount
+            $('#totalAmountWithVat').text(`{{ currency_icon() }}${grandTotal.toFixed(2)}`)
+            $('#finalTotal').text(`{{ currency_icon() }}${grandTotal.toFixed(2)}`)
+
+            // Update summary table displays
+            $('#subtotalDisplay').text(`{{ currency_icon() }}${total.toFixed(2)}`);
+            $('#subtotal').val(total);
+
+            // Show/hide and update discount row
+            if (discountAmount > 0) {
+                $('#discountRow').show();
+                $('#discountDisplay').text(`- {{ currency_icon() }}${discountAmount.toFixed(2)}`);
+            } else {
+                $('#discountRow').hide();
+            }
+
+            // Show/hide and update tax row
+            if (taxAmount > 0) {
+                $('#taxRow').show();
+                $('#taxRateDisplay').text(taxRate);
+                $('#taxDisplay').text(`{{ currency_icon() }}${taxAmount.toFixed(2)}`);
+            } else {
+                $('#taxRow').hide();
+            }
+
             calculateExtra()
 
             // products.length
@@ -3355,33 +3427,40 @@
         var paymentSubtotal = 0; // Store original subtotal before discount
 
         function showPaymentModal(orderId, total, invoice = '', tableName = '') {
-            currentEditingOrderId = orderId;
-            paymentSubtotal = parseFloat(total);
-            paymentOrderTotal = paymentSubtotal;
-            paymentMethodCounter = 0;
-
+            // Close any open modals first
             $('#order-details-modal').modal('hide');
 
-            // Set order info
-            $('#payment-order-id').val(orderId);
-            $('#payment-order-invoice').text('#' + (invoice || orderId));
-            $('#payment-order-table').text(tableName || '--');
-            $('#payment-subtotal-amount').text('{{ currency_icon() }}' + paymentSubtotal.toFixed(2));
-            $('#payment-total-amount').text('{{ currency_icon() }}' + paymentOrderTotal.toFixed(2));
+            // Use the new redesigned running order payment modal
+            if (typeof openRunningOrderPayment === 'function') {
+                openRunningOrderPayment(orderId);
+            } else {
+                // Fallback to old modal if new one not loaded
+                currentEditingOrderId = orderId;
+                paymentSubtotal = parseFloat(total);
+                paymentOrderTotal = paymentSubtotal;
+                paymentMethodCounter = 0;
 
-            // Reset discount fields
-            $('#payment-discount-amount').val(0);
-            $('#payment-discount-percent').val(0);
+                // Set order info
+                $('#payment-order-id').val(orderId);
+                $('#payment-order-invoice').text('#' + (invoice || orderId));
+                $('#payment-order-table').text(tableName || '--');
+                $('#payment-subtotal-amount').text('{{ currency_icon() }}' + paymentSubtotal.toFixed(2));
+                $('#payment-total-amount').text('{{ currency_icon() }}' + paymentOrderTotal.toFixed(2));
 
-            // Clear and add default payment method
-            $('#payment-methods-container').empty();
-            addPaymentMethod(paymentOrderTotal);
+                // Reset discount fields
+                $('#payment-discount-amount').val(0);
+                $('#payment-discount-percent').val(0);
 
-            // Set received amount
-            $('#payment-amount-received').val(paymentOrderTotal);
-            calculateChange();
+                // Clear and add default payment method
+                $('#payment-methods-container').empty();
+                addPaymentMethod(paymentOrderTotal);
 
-            $('#running-order-payment-modal').modal('show');
+                // Set received amount
+                $('#payment-amount-received').val(paymentOrderTotal);
+                calculateChange();
+
+                $('#running-order-payment-modal').modal('show');
+            }
         }
 
         function applyPaymentDiscount() {

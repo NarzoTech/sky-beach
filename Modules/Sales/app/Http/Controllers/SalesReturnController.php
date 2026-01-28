@@ -488,7 +488,12 @@ class SalesReturnController extends Controller
             if ($purchaseInvoice) {
                 // split the invoice number
                 $split_invoice = explode('-', $purchaseInvoice);
-                $invoice_number = (int) $split_invoice[1] + 1;
+                if (isset($split_invoice[1])) {
+                    $invoice_number = (int) $split_invoice[1] + 1;
+                } else {
+                    preg_match('/(\d+)$/', $purchaseInvoice, $matches);
+                    $invoice_number = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
+                }
                 $invoice_number = $prefix . $invoice_number;
             }
         }
@@ -509,7 +514,12 @@ class SalesReturnController extends Controller
             if ($purchaseInvoice) {
                 // split the invoice number
                 $split_invoice = explode($prefix, $purchaseInvoice);
-                $invoice_number = (int) $split_invoice[1] + 1;
+                if (isset($split_invoice[1])) {
+                    $invoice_number = (int) $split_invoice[1] + 1;
+                } else {
+                    preg_match('/(\d+)$/', $purchaseInvoice, $matches);
+                    $invoice_number = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
+                }
                 $invoice_number = $prefix . $invoice_number;
             }
         }

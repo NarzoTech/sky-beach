@@ -65,7 +65,6 @@ class SaleService
     }
     public function createSale(Request $request, $user, $cart): Sale
     {
-
         $sale = new Sale();
         $sale->user_id = $user != null ?  $user->id : null;
 
@@ -98,16 +97,30 @@ class SaleService
         } else {
             $sale->status = 1; // 1 = completed
             $sale->payment_status = 1; // Paid
-            $sale->payment_method = json_encode($request->payment_type);
-            $sale->paid_amount = array_sum($request->paying_amount ?? [0]);
-            $sale->receive_amount = $request->receive_amount;
-            $sale->return_amount = $request->return_amount;
-            $due = $request->total_amount - array_sum($request->paying_amount ?? [0]);
+
+            // Ensure payment_type is an array
+            $paymentTypes = $request->payment_type;
+            if (!is_array($paymentTypes)) {
+                $paymentTypes = $paymentTypes ? [$paymentTypes] : ['cash'];
+            }
+
+            // Ensure paying_amount is an array
+            $payingAmounts = $request->paying_amount;
+            if (!is_array($payingAmounts)) {
+                $payingAmounts = $payingAmounts ? [$payingAmounts] : [$request->receive_amount ?? 0];
+            }
+
+            $sale->payment_method = json_encode($paymentTypes);
+            $sale->paid_amount = array_sum($payingAmounts);
+            $sale->receive_amount = $request->receive_amount ?? array_sum($payingAmounts);
+            $sale->return_amount = $request->return_amount ?? 0;
+            $due = $request->total_amount - array_sum($payingAmounts);
             $sale->due_amount = $due < 0 ? 0 : $due;
         }
 
         $sale->order_discount = $request->discount_amount;
-        $sale->total_tax = $request->total_tax ?? 0;
+        $sale->total_tax = $request->total_tax ?? $request->tax_amount ?? 0;
+        $sale->tax_rate = $request->tax_rate ?? 0;
         $sale->grand_total = $request->total_amount;
         $sale->invoice = $this->genInvoiceNumber();
         $sale->due_date = $request->due_date ? $this->parseDate($request->due_date) : null;
@@ -375,7 +388,21 @@ class SaleService
 
         // create payments (skip for deferred payment orders)
         $paymentTypes = $request->payment_type ?? [];
-        if (!empty($paymentTypes) && is_array($paymentTypes)) {
+        if (!is_array($paymentTypes)) {
+            $paymentTypes = $paymentTypes ? [$paymentTypes] : [];
+        }
+
+        $payingAmounts = $request->paying_amount ?? [];
+        if (!is_array($payingAmounts)) {
+            $payingAmounts = $payingAmounts ? [$payingAmounts] : [];
+        }
+
+        $accountIds = $request->account_id ?? [];
+        if (!is_array($accountIds)) {
+            $accountIds = $accountIds ? [$accountIds] : [];
+        }
+
+        if (!empty($paymentTypes)) {
             foreach ($paymentTypes as $key => $item) {
                 if (empty($item)) continue;
 
@@ -383,19 +410,20 @@ class SaleService
                 if ($item == 'cash') {
                     $account = $account->first();
                 } else {
-                    $account = $account->where('id', $request->account_id[$key] ?? null)->first();
+                    $account = $account->where('id', $accountIds[$key] ?? null)->first();
                 }
 
                 if (!$account) continue;
 
                 $customerId = $request->order_customer_id;
+                $payingAmount = $payingAmounts[$key] ?? 0;
                 $data = [
                     'payment_type' => 'sale',
                     'sale_id' => $sale->id,
                     'is_received' => 1,
                     'customer_id' => $request->order_customer_id,
                     'account_id' => $account->id,
-                    'amount' => $request->paying_amount[$key] ?? 0,
+                    'amount' => $payingAmount,
                     'payment_date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
                     'created_by' => auth('admin')->user()->id,
                 ];
@@ -403,7 +431,7 @@ class SaleService
                     $data['customer_id'] = null;
                     $data['is_guest'] = 1;
                 }
-                if (!empty($request->paying_amount[$key])) {
+                if (!empty($payingAmount)) {
                     CustomerPayment::create($data);
                 }
             }
@@ -426,7 +454,11 @@ class SaleService
 
         if ($user) {
             // $this->updateLedger($request, $sale->id, $user, 'sale');
-            $this->salesLedger($request, $sale, array_sum($request->paying_amount), $request->total_amount, 'sale', 1, $due);
+            $payingAmountsForLedger = $request->paying_amount;
+            if (!is_array($payingAmountsForLedger)) {
+                $payingAmountsForLedger = $payingAmountsForLedger ? [$payingAmountsForLedger] : [0];
+            }
+            $this->salesLedger($request, $sale, array_sum($payingAmountsForLedger), $request->total_amount, 'sale', 1, $sale->due_amount);
         }
 
         // If dine-in order with a table, occupy the table
@@ -654,19 +686,29 @@ class SaleService
             $sale->status = 1;
             $sale->payment_status = 1;
 
-            $sale->payment_method = json_encode($request->payment_type);
+            // Ensure payment arrays are properly formatted
+            $paymentTypes = $request->payment_type;
+            if (!is_array($paymentTypes)) {
+                $paymentTypes = $paymentTypes ? [$paymentTypes] : ['cash'];
+            }
+            $payingAmounts = $request->paying_amount;
+            if (!is_array($payingAmounts)) {
+                $payingAmounts = $payingAmounts ? [$payingAmounts] : [$request->receive_amount ?? 0];
+            }
+
+            $sale->payment_method = json_encode($paymentTypes);
             $sale->order_discount = $request->discount_amount;
             $sale->total_tax = $request->total_tax ?? 0;
             $sale->grand_total = $request->total_amount;
-            $sale->paid_amount = array_sum($request->paying_amount);
+            $sale->paid_amount = array_sum($payingAmounts);
 
 
-            $due = $request->total_amount - array_sum($request->paying_amount);
+            $due = $request->total_amount - array_sum($payingAmounts);
             $sale->due_amount = $due < 0 ? 0 : $due;
             $sale->due_date = $request->due_date ? $this->parseDate($request->due_date) : null;
             $sale->sale_note = $request->remark;
-            $sale->receive_amount = $request->receive_amount;
-            $sale->return_amount = $request->return_amount;
+            $sale->receive_amount = $request->receive_amount ?? array_sum($payingAmounts);
+            $sale->return_amount = $request->return_amount ?? 0;
             $sale->updated_by = auth('admin')->user()->id;
 
             // restore ingredient stock from menu items via recipes
@@ -846,24 +888,41 @@ class SaleService
 
             $ledger = $this->getLedger($request, $id, 1, 'sale');
 
-            $this->salesLedger($request, $sale, array_sum($request->paying_amount), $request->total_amount, 'sale', 1, $due, $ledger);
+            // Ensure payment arrays are properly formatted
+            $paymentTypes = $request->payment_type;
+            if (!is_array($paymentTypes)) {
+                $paymentTypes = $paymentTypes ? [$paymentTypes] : ['cash'];
+            }
+
+            $payingAmounts = $request->paying_amount;
+            if (!is_array($payingAmounts)) {
+                $payingAmounts = $payingAmounts ? [$payingAmounts] : [$request->receive_amount ?? 0];
+            }
+
+            $accountIds = $request->account_id;
+            if (!is_array($accountIds)) {
+                $accountIds = $accountIds ? [$accountIds] : [null];
+            }
+
+            $this->salesLedger($request, $sale, array_sum($payingAmounts), $request->total_amount, 'sale', 1, $due, $ledger);
 
             // create payments
-            foreach ($request->payment_type as $key => $item) {
+            foreach ($paymentTypes as $key => $item) {
                 $account = Account::where('account_type', $item);
                 if ($item == 'cash') {
                     $account = $account->first();
                 } else {
-                    $account = $account->where('id', $request->account_id[$key])->first();
+                    $account = $account->where('id', $accountIds[$key] ?? null)->first();
                 }
                 $customerId = $request->order_customer_id;
+                $payingAmount = $payingAmounts[$key] ?? 0;
                 $data = [
                     'payment_type' => 'sale',
                     'sale_id' => $sale->id,
                     'is_received' => 1,
                     'customer_id' => $request->order_customer_id,
-                    'account_id' => $account->id,
-                    'amount' => $request->paying_amount[$key],
+                    'account_id' => $account->id ?? null,
+                    'amount' => $payingAmount,
                     'payment_date' => $this->parseDate($request->sale_date),
                     'created_by' => auth('admin')->user()->id,
                 ];
@@ -871,7 +930,7 @@ class SaleService
                     $data['customer_id'] = null;
                     $data['is_guest'] = 1;
                 }
-                if ($request->paying_amount[$key]) {
+                if ($payingAmount) {
                     CustomerPayment::create($data);
                 }
             }
@@ -950,7 +1009,14 @@ class SaleService
 
             // split the invoice number
             $split_invoice = explode('-', $saleInvoice);
-            $invoice_number = (int) $split_invoice[1] + 1;
+            // Safely get the numeric part (handle cases where format is different)
+            if (isset($split_invoice[1])) {
+                $invoice_number = (int) $split_invoice[1] + 1;
+            } else {
+                // If no dash in invoice, try to extract number from end
+                preg_match('/(\d+)$/', $saleInvoice, $matches);
+                $invoice_number = isset($matches[1]) ? (int) $matches[1] + 1 : 1;
+            }
             $invoice_number = $prefix . $invoice_number;
         }
 

@@ -41,6 +41,11 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/create-new-address', [POSController::class, 'create_new_address'])->name('create-new-address');
         Route::post('/place-order', [POSController::class, 'place_order'])->name('place-order');
 
+        // New Payment Modal Routes (aliases for unified payment flow)
+        Route::post('/checkout', [POSController::class, 'place_order'])->name('pos.checkout');
+        Route::post('/start-dine-in-order', [POSController::class, 'place_order'])->name('pos.start-dine-in-order');
+        Route::post('/create-delivery-order', [POSController::class, 'place_order'])->name('pos.create-delivery-order');
+
         Route::get('/check-cart-restaurant/{id}', [POSController::class, 'check_cart_restaurant'])->name('check-cart-restaurant');
         Route::get('/modal-cart-clear', [POSController::class, 'modalClearCart'])->name('modal-cart-clear');
 
@@ -58,6 +63,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/running-orders/{id}/update', [POSController::class, 'updateRunningOrder'])->name('pos.running-orders.update');
         Route::post('/running-orders/{id}/complete', [POSController::class, 'completeRunningOrder'])->name('pos.running-orders.complete');
         Route::post('/running-orders/{id}/cancel', [POSController::class, 'cancelRunningOrder'])->name('pos.running-orders.cancel');
+        Route::get('/running-orders/{id}/receipt', [POSController::class, 'printOrderReceipt'])->name('pos.running-orders.receipt');
         Route::post('/running-orders/{id}/update-item-qty', [POSController::class, 'updateOrderItemQty'])->name('pos.running-orders.update-item-qty');
         Route::post('/running-orders/{id}/remove-item', [POSController::class, 'removeOrderItem'])->name('pos.running-orders.remove-item');
         Route::post('/running-orders/{id}/add-item', [POSController::class, 'addOrderItem'])->name('pos.running-orders.add-item');

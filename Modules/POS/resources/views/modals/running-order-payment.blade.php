@@ -1,0 +1,1232 @@
+{{--
+    Running Order Payment Modal (Redesigned)
+
+    Purpose: Payment for orders already started (dine-in deferred payments)
+    Shows order summary with items, discount controls, and payment options
+
+    Data required (passed via JavaScript):
+    - orderId: The order ID
+    - orderData: Order details including items, totals, table info
+--}}
+
+@php
+    $accounts = $accounts ?? collect();
+@endphp
+
+<div class="modal fade payment-modal" id="runningOrderPaymentModal" tabindex="-1" aria-labelledby="runningOrderPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header header-dark">
+                <h5 class="modal-title" id="runningOrderPaymentModalLabel">
+                    <i class="bx bx-receipt"></i>
+                    <span>{{ __('Checkout') }}</span>
+                    <span class="badge bg-light text-dark ms-2" id="ropTableBadge">--</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                {{-- Loading State --}}
+                <div class="payment-loading" id="ropLoading">
+                    <div class="payment-loading-spinner"></div>
+                    <div class="payment-loading-text">{{ __('Loading order...') }}</div>
+                </div>
+
+                {{-- Success State --}}
+                <div class="payment-success d-none" id="ropSuccess">
+                    <div class="payment-success-icon">
+                        <i class="bx bx-check"></i>
+                    </div>
+                    <div class="payment-success-title">{{ __('Payment Complete!') }}</div>
+                    <div class="payment-success-subtitle" id="ropSuccessMessage">{{ __('Table released successfully') }}</div>
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-primary me-2" onclick="printRunningOrderReceipt()">
+                            <i class="bx bx-printer me-2"></i>{{ __('Print Receipt') }}
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeAndRefresh()">
+                            <i class="bx bx-check me-2"></i>{{ __('Done') }}
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Main Content --}}
+                <div class="d-none" id="ropContent">
+                    <div class="row g-0">
+                        {{-- Left Column: Order Details --}}
+                        <div class="col-lg-5 border-end">
+                            <div class="p-3">
+                                {{-- Order Info Header --}}
+                                <div class="rop-order-header mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="text-muted mb-1">{{ __('Order') }}</h6>
+                                            <h4 class="mb-0" id="ropOrderNumber">#000000</h4>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary" id="ropOrderType">{{ __('Dine-In') }}</span>
+                                            <div class="small text-muted mt-1" id="ropOrderTime">--:--</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 mt-2 text-muted small">
+                                        <span><i class="bx bx-user me-1"></i><span id="ropWaiterName">--</span></span>
+                                        <span><i class="bx bx-group me-1"></i><span id="ropGuestCount">0</span> {{ __('guests') }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Order Items --}}
+                                <div class="pm-section-title d-flex justify-content-between align-items-center">
+                                    <span><i class="bx bx-food-menu me-2"></i>{{ __('Order Items') }}</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="editRunningOrder()" id="ropEditBtn">
+                                        <i class="bx bx-edit-alt me-1"></i>{{ __('Edit') }}
+                                    </button>
+                                </div>
+
+                                <div class="rop-items-list" id="ropItemsList">
+                                    {{-- Items will be populated via JavaScript --}}
+                                </div>
+
+                                {{-- Discount Section --}}
+                                <div class="pm-divider"></div>
+                                <div class="pm-section-title">
+                                    <i class="bx bx-purchase-tag me-2"></i>{{ __('Discount') }}
+                                </div>
+
+                                <div class="rop-discount-section">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label small">{{ __('Amount') }}</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">{{ currency_icon() }}</span>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="ropDiscountAmount"
+                                                       value="0"
+                                                       min="0"
+                                                       step="0.01"
+                                                       onchange="applyRopDiscount('amount')">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">{{ __('Percentage') }}</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="ropDiscountPercent"
+                                                       value="0"
+                                                       min="0"
+                                                       max="100"
+                                                       step="0.5"
+                                                       onchange="applyRopDiscount('percent')">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Tax Section --}}
+                                <div class="pm-divider"></div>
+                                <div class="pm-section-title">
+                                    <i class="bx bx-receipt me-2"></i>{{ __('Tax') }}
+                                </div>
+
+                                <div class="rop-tax-section">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label small">{{ __('Tax Rate') }}</label>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="ropTaxRate"
+                                                       value="{{ $setting->pos_tax_rate ?? $setting->website_tax_rate ?? 0 }}"
+                                                       min="0"
+                                                       max="100"
+                                                       step="0.5"
+                                                       onchange="calculateRopTotals()">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">{{ __('Tax Amount') }}</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text">{{ currency_icon() }}</span>
+                                                <input type="number"
+                                                       class="form-control"
+                                                       id="ropTaxAmount"
+                                                       value="0"
+                                                       min="0"
+                                                       step="0.01"
+                                                       readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Order Summary --}}
+                                <div class="pm-divider-dashed"></div>
+                                <div class="rop-summary">
+                                    <div class="summary-row">
+                                        <span>{{ __('Subtotal') }}</span>
+                                        <span id="ropSubtotal">{{ currency_icon() }} 0.00</span>
+                                    </div>
+                                    <div class="summary-row text-success" id="ropDiscountRow" style="display: none;">
+                                        <span>{{ __('Discount') }}</span>
+                                        <span id="ropDiscountDisplay">- {{ currency_icon() }} 0.00</span>
+                                    </div>
+                                    <div class="summary-row" id="ropTaxRow" style="display: none;">
+                                        <span>{{ __('Tax') }}</span>
+                                        <span id="ropTaxDisplay">{{ currency_icon() }} 0.00</span>
+                                    </div>
+                                    <div class="summary-row summary-total">
+                                        <span>{{ __('Total Due') }}</span>
+                                        <span id="ropGrandTotal">{{ currency_icon() }} 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Payment --}}
+                        <div class="col-lg-7">
+                            <div class="p-3">
+                                {{-- Total Display --}}
+                                <div class="rop-total-display mb-4">
+                                    <div class="rop-total-amount" id="ropTotalAmount">{{ currency_icon() }} 0.00</div>
+                                    <div class="rop-total-label">{{ __('TOTAL DUE') }}</div>
+                                </div>
+
+                                {{-- Payment Method Selection --}}
+                                <div class="pm-section-title">{{ __('Payment Method') }}</div>
+
+                                <div id="ropPaymentMethodContainer">
+                                    @include('pos::components.payment-method-selector', [
+                                        'selected' => 'cash',
+                                        'name' => 'rop_payment_type',
+                                        'showSplitOption' => true
+                                    ])
+                                </div>
+
+                                {{-- Account Selection --}}
+                                <div class="rop-account-select mt-3 d-none" id="ropAccountContainer">
+                                    <label class="form-label">{{ __('Select Account') }}</label>
+                                    <select class="form-select pm-input" id="ropAccountSelect">
+                                        <option value="">{{ __('Select Account...') }}</option>
+                                        @foreach($accounts ?? [] as $account)
+                                            @if($account->account_type !== 'cash')
+                                            <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
+                                                @if($account->account_type === 'bank')
+                                                    {{ $account->bank_account_number }} ({{ $account->bank->name ?? 'Bank' }})
+                                                @elseif($account->account_type === 'card')
+                                                    {{ $account->card_number }} ({{ $account->card_type ?? 'Card' }})
+                                                @elseif($account->account_type === 'mobile_banking')
+                                                    {{ $account->mobile_number }} ({{ $account->mobile_bank_name ?? 'Mobile' }})
+                                                @else
+                                                    {{ $account->name ?? $account->account_type }}
+                                                @endif
+                                            </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Split Payment Container --}}
+                                <div class="rop-split-container d-none" id="ropSplitContainer">
+                                    <div class="pm-divider"></div>
+                                    <div class="pm-section-title d-flex justify-content-between align-items-center">
+                                        <span>{{ __('Split Payments') }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRopSplitPayment()">
+                                            <i class="bx bx-plus me-1"></i>{{ __('Add') }}
+                                        </button>
+                                    </div>
+                                    <div class="rop-split-list" id="ropSplitList">
+                                        {{-- Split payment rows --}}
+                                    </div>
+                                    <div class="split-total-bar mt-3">
+                                        <div>
+                                            <div class="split-total-label">{{ __('Total Payments') }}</div>
+                                            <div class="split-remaining" id="ropSplitRemaining"></div>
+                                        </div>
+                                        <div class="split-total-amount">
+                                            {{ currency_icon() }} <span id="ropSplitTotal">0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Single Payment Container --}}
+                                <div class="rop-single-container" id="ropSingleContainer">
+                                    <div class="pm-divider"></div>
+
+                                    {{-- Amount Input --}}
+                                    <div class="pm-section-title">{{ __('Amount Received') }}</div>
+
+                                    <div class="rop-amount-input-wrapper">
+                                        <div class="rop-amount-input-container">
+                                            <span class="currency-prefix">{{ currency_icon() }}</span>
+                                            <input type="number"
+                                                   id="ropAmountReceived"
+                                                   class="rop-amount-input"
+                                                   value="0"
+                                                   step="0.01"
+                                                   min="0"
+                                                   onchange="calculateRopChange()"
+                                                   oninput="calculateRopChange()">
+                                        </div>
+
+                                        {{-- Quick Amounts --}}
+                                        <div class="rop-quick-amounts mt-3" id="ropQuickAmounts">
+                                            {{-- Will be populated via JavaScript --}}
+                                        </div>
+
+                                        {{-- Exact Amount Button --}}
+                                        <div class="mt-2">
+                                            <button type="button" class="btn btn-primary w-100 rop-exact-btn" onclick="setRopExactAmount()">
+                                                <i class="bx bx-check me-1"></i>{{ __('EXACT AMOUNT') }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Change Display --}}
+                                    <div class="rop-change-display mt-3" id="ropChangeDisplay">
+                                        <div class="change-row">
+                                            <span class="change-label">{{ __('Change Due') }}</span>
+                                            <span class="change-amount" id="ropChangeAmount">{{ currency_icon() }} 0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Hidden Fields --}}
+                <input type="hidden" id="ropOrderId" value="">
+                <input type="hidden" id="ropSubtotalValue" value="0">
+                <input type="hidden" id="ropTotalValue" value="0">
+                <input type="hidden" id="ropIsSplit" value="0">
+            </div>
+
+            <div class="modal-footer" id="ropFooter">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    {{ __('Cancel') }}
+                </button>
+                <button type="button" class="btn btn-complete-payment" id="ropCompleteBtn" onclick="completeRunningOrderPayment()">
+                    <i class="bx bx-check-circle me-2"></i>
+                    {{ __('Complete & Release Table') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Running Order Payment Modal Styles */
+.rop-order-header {
+    background: var(--pm-gray-light);
+    padding: 16px;
+    border-radius: var(--pm-radius);
+}
+
+.rop-items-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.rop-items-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.rop-items-list::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.rop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--pm-border);
+}
+
+.rop-item:last-child {
+    border-bottom: none;
+}
+
+.rop-item-info {
+    flex: 1;
+}
+
+.rop-item-name {
+    font-weight: 600;
+    color: var(--pm-dark);
+    font-size: 14px;
+}
+
+.rop-item-qty {
+    font-size: 12px;
+    color: var(--pm-gray);
+}
+
+.rop-item-addons {
+    font-size: 11px;
+    color: var(--pm-info);
+    margin-top: 2px;
+}
+
+.rop-item-price {
+    font-weight: 600;
+    color: var(--pm-dark);
+    white-space: nowrap;
+}
+
+.rop-discount-section {
+    background: var(--pm-gray-light);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.rop-summary {
+    background: var(--pm-gray-light);
+    padding: 12px 16px;
+    border-radius: var(--pm-radius);
+}
+
+.rop-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.rop-summary .summary-row.summary-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--pm-dark);
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 2px dashed var(--pm-border);
+}
+
+/* Total Display */
+.rop-total-display {
+    background: linear-gradient(135deg, #232333, #1a1a2e);
+    color: white;
+    padding: 24px;
+    border-radius: var(--pm-radius-lg);
+    text-align: center;
+}
+
+.rop-total-amount {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.rop-total-label {
+    font-size: 12px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
+
+/* Amount Input */
+.rop-amount-input-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.rop-amount-input-container {
+    position: relative;
+}
+
+.rop-amount-input-container .currency-prefix {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--pm-gray);
+}
+
+.rop-amount-input {
+    width: 100%;
+    padding: 16px 16px 16px 50px;
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid var(--pm-border);
+    border-radius: var(--pm-radius);
+    -moz-appearance: textfield;
+}
+
+.rop-amount-input::-webkit-outer-spin-button,
+.rop-amount-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.rop-amount-input:focus {
+    border-color: var(--pm-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(105, 108, 255, 0.1);
+}
+
+/* Quick Amounts */
+.rop-quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.rop-quick-btn {
+    padding: 10px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid var(--pm-border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rop-quick-btn:hover {
+    border-color: var(--pm-primary);
+    background: var(--pm-primary-light);
+    color: var(--pm-primary);
+}
+
+.rop-exact-btn {
+    padding: 12px 20px;
+    font-weight: 700;
+}
+
+/* Change Display */
+.rop-change-display {
+    background: var(--pm-success-light);
+    padding: 16px;
+    border-radius: var(--pm-radius);
+}
+
+.rop-change-display .change-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rop-change-display .change-label {
+    font-weight: 500;
+    color: var(--pm-dark);
+}
+
+.rop-change-display .change-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pm-success);
+}
+
+.rop-change-display.insufficient {
+    background: var(--pm-danger-light);
+}
+
+.rop-change-display.insufficient .change-amount {
+    color: var(--pm-danger);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .rop-total-amount {
+        font-size: 32px;
+    }
+
+    .rop-amount-input {
+        font-size: 24px;
+    }
+
+    .rop-quick-amounts {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    #runningOrderPaymentModal .modal-body > .row {
+        flex-direction: column;
+    }
+
+    #runningOrderPaymentModal .col-lg-5,
+    #runningOrderPaymentModal .col-lg-7 {
+        border-right: none !important;
+        border-bottom: 1px solid var(--pm-border);
+    }
+}
+</style>
+
+<script>
+// Running Order Payment Modal Variables
+var ropCurrentOrder = null;
+var ropSplitIndex = 0;
+var ropIsSplitMode = false;
+
+// Open Running Order Payment Modal
+function openRunningOrderPayment(orderId) {
+    // Reset state
+    ropCurrentOrder = null;
+    ropSplitIndex = 0;
+    ropIsSplitMode = false;
+
+    // Show loading, hide content
+    document.getElementById('ropLoading').classList.remove('d-none');
+    document.getElementById('ropContent').classList.add('d-none');
+    document.getElementById('ropSuccess').classList.add('d-none');
+    document.getElementById('ropFooter').classList.remove('d-none');
+
+    // Store order ID
+    document.getElementById('ropOrderId').value = orderId;
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('runningOrderPaymentModal'));
+    modal.show();
+
+    // Load order data
+    loadRunningOrderData(orderId);
+}
+
+// Load order data via AJAX
+function loadRunningOrderData(orderId) {
+    const url = '{{ route("admin.pos.running-orders.details", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                ropCurrentOrder = data.order;
+                populateRunningOrderModal(data.order);
+            } else {
+                document.getElementById('ropLoading').classList.add('d-none');
+                toastr.error(data.message || '{{ __("Failed to load order") }}');
+                bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading order:', error);
+            document.getElementById('ropLoading').classList.add('d-none');
+            toastr.error('{{ __("Failed to load order details") }}: ' + error.message);
+            bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+        });
+}
+
+// Populate modal with order data
+function populateRunningOrderModal(order) {
+    // Hide loading, show content
+    document.getElementById('ropLoading').classList.add('d-none');
+    document.getElementById('ropContent').classList.remove('d-none');
+
+    // Order info - invoice field name is 'invoice' not 'invoice_no'
+    document.getElementById('ropOrderNumber').textContent = '#' + (order.invoice || order.invoice_no || order.id);
+    document.getElementById('ropTableBadge').textContent = order.table?.name || '--';
+    document.getElementById('ropWaiterName').textContent = order.waiter?.name || '{{ __("No waiter") }}';
+    document.getElementById('ropGuestCount').textContent = order.guest_count || 1;
+    // Format the order time
+    let orderTime = '--';
+    if (order.created_at) {
+        const date = new Date(order.created_at);
+        orderTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    document.getElementById('ropOrderTime').textContent = orderTime;
+
+    // Order type badge
+    const orderTypeLabels = {
+        'dine_in': '{{ __("Dine-In") }}',
+        'take_away': '{{ __("Take-Away") }}',
+        'delivery': '{{ __("Delivery") }}'
+    };
+    document.getElementById('ropOrderType').textContent = orderTypeLabels[order.order_type] || order.order_type;
+
+    // Populate items list
+    const itemsList = document.getElementById('ropItemsList');
+    let itemsHtml = '';
+
+    if (order.details && order.details.length > 0) {
+        order.details.forEach(item => {
+            const itemName = item.menu_item?.name || item.service?.name || item.ingredient?.name || 'Item';
+            const quantity = item.quantity || item.qty || 1;
+            const unitPrice = parseFloat(item.price || 0);
+            const price = parseFloat(item.sub_total || item.amount || (unitPrice * quantity) || 0);
+            let addons = [];
+            try {
+                addons = item.addons ? (typeof item.addons === 'string' ? JSON.parse(item.addons) : item.addons) : [];
+            } catch(e) { addons = []; }
+
+            let addonsHtml = '';
+            if (addons.length > 0) {
+                addonsHtml = '<div class="rop-item-addons">';
+                addons.forEach(addon => {
+                    addonsHtml += '+ ' + addon.name + ' ';
+                });
+                addonsHtml += '</div>';
+            }
+
+            itemsHtml += `
+                <div class="rop-item">
+                    <div class="rop-item-info">
+                        <div class="rop-item-name">${itemName}</div>
+                        <div class="rop-item-qty">x${quantity}</div>
+                        ${addonsHtml}
+                    </div>
+                    <div class="rop-item-price">${currencyIcon} ${price.toFixed(2)}</div>
+                </div>
+            `;
+        });
+    } else {
+        itemsHtml = '<div class="text-center text-muted py-3">{{ __("No items") }}</div>';
+    }
+    itemsList.innerHTML = itemsHtml;
+
+    // Set amounts - map from Sale model field names
+    const subtotal = parseFloat(order.total_price || order.sub_total || 0);
+    const discount = parseFloat(order.order_discount || order.discount_amount || 0);
+    const tax = parseFloat(order.total_tax || order.vat_amount || 0);
+    const total = parseFloat(order.grand_total || order.total_amount || subtotal - discount + tax || 0);
+
+    document.getElementById('ropSubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
+    document.getElementById('ropSubtotalValue').value = subtotal;
+
+    // Show/hide discount row
+    if (discount > 0) {
+        document.getElementById('ropDiscountRow').style.display = 'flex';
+        document.getElementById('ropDiscountDisplay').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
+        document.getElementById('ropDiscountAmount').value = discount.toFixed(2);
+    } else {
+        document.getElementById('ropDiscountRow').style.display = 'none';
+    }
+
+    // Show/hide tax row
+    if (tax > 0) {
+        document.getElementById('ropTaxRow').style.display = 'flex';
+        document.getElementById('ropTaxDisplay').textContent = currencyIcon + ' ' + tax.toFixed(2);
+    } else {
+        document.getElementById('ropTaxRow').style.display = 'none';
+    }
+
+    // Grand total
+    document.getElementById('ropGrandTotal').textContent = currencyIcon + ' ' + total.toFixed(2);
+    document.getElementById('ropTotalAmount').textContent = currencyIcon + ' ' + total.toFixed(2);
+    document.getElementById('ropTotalValue').value = total;
+
+    // Set amount received to total
+    document.getElementById('ropAmountReceived').value = total.toFixed(2);
+
+    // Generate quick amounts
+    generateRopQuickAmounts(total);
+
+    // Reset payment method to cash
+    resetRopPaymentMethod();
+
+    // Calculate change
+    calculateRopChange();
+}
+
+// Generate quick amount buttons
+function generateRopQuickAmounts(total) {
+    const container = document.getElementById('ropQuickAmounts');
+    const roundedTotal = Math.ceil(total);
+    const suggestions = [];
+
+    // Nearest 100
+    const nearest100 = Math.ceil(roundedTotal / 100) * 100;
+    if (nearest100 >= roundedTotal) suggestions.push(nearest100);
+
+    // Nearest 500
+    const nearest500 = Math.ceil(roundedTotal / 500) * 500;
+    if (nearest500 > nearest100) suggestions.push(nearest500);
+
+    // Nearest 1000
+    const nearest1000 = Math.ceil(roundedTotal / 1000) * 1000;
+    if (nearest1000 > nearest500) suggestions.push(nearest1000);
+
+    // Add higher amounts
+    if (nearest1000 + 500 > nearest1000) suggestions.push(nearest1000 + 500);
+    if (nearest1000 + 1000 > nearest1000 + 500) suggestions.push(nearest1000 + 1000);
+
+    // Remove duplicates and take top 5
+    const uniqueSuggestions = [...new Set(suggestions)].slice(0, 5);
+
+    // Generate buttons
+    let html = '';
+    uniqueSuggestions.forEach(amount => {
+        html += `<button type="button" class="rop-quick-btn" onclick="setRopAmount(${amount})">${amount.toLocaleString()}</button>`;
+    });
+
+    container.innerHTML = html;
+}
+
+// Set amount from quick button
+function setRopAmount(amount) {
+    document.getElementById('ropAmountReceived').value = amount.toFixed(2);
+    calculateRopChange();
+}
+
+// Set exact amount
+function setRopExactAmount() {
+    const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
+    document.getElementById('ropAmountReceived').value = total.toFixed(2);
+    calculateRopChange();
+}
+
+// Calculate change
+function calculateRopChange() {
+    const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
+    const received = parseFloat(document.getElementById('ropAmountReceived').value) || 0;
+    const change = received - total;
+
+    const changeDisplay = document.getElementById('ropChangeDisplay');
+    const changeAmount = document.getElementById('ropChangeAmount');
+
+    if (change >= 0) {
+        changeDisplay.classList.remove('insufficient');
+        changeAmount.textContent = currencyIcon + ' ' + change.toFixed(2);
+        document.querySelector('.rop-change-display .change-label').textContent = '{{ __("Change Due") }}';
+        document.getElementById('ropCompleteBtn').disabled = false;
+    } else {
+        changeDisplay.classList.add('insufficient');
+        changeAmount.textContent = '- ' + currencyIcon + ' ' + Math.abs(change).toFixed(2);
+        document.querySelector('.rop-change-display .change-label').textContent = '{{ __("Amount Due") }}';
+
+        // Allow non-cash payments without full amount
+        const paymentType = document.querySelector('input[name="rop_payment_type"]:checked')?.value;
+        document.getElementById('ropCompleteBtn').disabled = (paymentType === 'cash' && change < 0);
+    }
+}
+
+// Apply discount
+function applyRopDiscount(type) {
+    const subtotal = parseFloat(document.getElementById('ropSubtotalValue').value) || 0;
+    let discountAmount = 0;
+
+    if (type === 'amount') {
+        discountAmount = parseFloat(document.getElementById('ropDiscountAmount').value) || 0;
+        // Update percent field
+        const percent = subtotal > 0 ? (discountAmount / subtotal) * 100 : 0;
+        document.getElementById('ropDiscountPercent').value = percent.toFixed(1);
+    } else {
+        const percent = parseFloat(document.getElementById('ropDiscountPercent').value) || 0;
+        discountAmount = (subtotal * percent) / 100;
+        document.getElementById('ropDiscountAmount').value = discountAmount.toFixed(2);
+    }
+
+    // Recalculate totals with tax
+    calculateRopTotals();
+}
+
+// Calculate totals including tax
+function calculateRopTotals() {
+    const subtotal = parseFloat(document.getElementById('ropSubtotalValue').value) || 0;
+    const discountAmount = parseFloat(document.getElementById('ropDiscountAmount').value) || 0;
+    const taxRate = parseFloat(document.getElementById('ropTaxRate').value) || 0;
+
+    // Calculate tax on discounted amount
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = (taxableAmount * taxRate) / 100;
+    const newTotal = taxableAmount + taxAmount;
+
+    // Update tax amount display
+    document.getElementById('ropTaxAmount').value = taxAmount.toFixed(2);
+
+    // Update discount display
+    if (discountAmount > 0) {
+        document.getElementById('ropDiscountRow').style.display = 'flex';
+        document.getElementById('ropDiscountDisplay').textContent = '- ' + currencyIcon + ' ' + discountAmount.toFixed(2);
+    } else {
+        document.getElementById('ropDiscountRow').style.display = 'none';
+    }
+
+    // Update tax display
+    if (taxAmount > 0) {
+        document.getElementById('ropTaxRow').style.display = 'flex';
+        document.getElementById('ropTaxDisplay').textContent = currencyIcon + ' ' + taxAmount.toFixed(2) + ' (' + taxRate + '%)';
+    } else {
+        document.getElementById('ropTaxRow').style.display = 'none';
+    }
+
+    // Update totals
+    document.getElementById('ropGrandTotal').textContent = currencyIcon + ' ' + newTotal.toFixed(2);
+    document.getElementById('ropTotalAmount').textContent = currencyIcon + ' ' + newTotal.toFixed(2);
+    document.getElementById('ropTotalValue').value = newTotal;
+
+    // Update amount received if it was set to exact
+    document.getElementById('ropAmountReceived').value = newTotal.toFixed(2);
+
+    // Regenerate quick amounts
+    generateRopQuickAmounts(newTotal);
+
+    // Recalculate change
+    calculateRopChange();
+}
+
+// Reset payment method to cash
+function resetRopPaymentMethod() {
+    ropIsSplitMode = false;
+    document.getElementById('ropIsSplit').value = '0';
+    document.getElementById('ropSplitContainer').classList.add('d-none');
+    document.getElementById('ropSingleContainer').classList.remove('d-none');
+    document.getElementById('ropAccountContainer').classList.add('d-none');
+    document.getElementById('ropSplitList').innerHTML = '';
+    ropSplitIndex = 0;
+
+    // Reset to cash
+    document.querySelectorAll('#ropPaymentMethodContainer .payment-method-option').forEach(opt => {
+        opt.classList.remove('active');
+        const radio = opt.querySelector('input');
+        if (radio) radio.checked = false;
+    });
+
+    const cashOption = document.querySelector('#ropPaymentMethodContainer input[value="cash"]');
+    if (cashOption) {
+        cashOption.checked = true;
+        cashOption.closest('.payment-method-option').classList.add('active');
+    }
+}
+
+// Handle payment method change for ROP modal
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for payment method changes in ROP modal
+    document.querySelectorAll('#ropPaymentMethodContainer .payment-method-option input').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const paymentType = this.value;
+
+            // Update active state
+            document.querySelectorAll('#ropPaymentMethodContainer .payment-method-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            this.closest('.payment-method-option').classList.add('active');
+
+            if (paymentType === 'split') {
+                enableRopSplitPayment();
+            } else if (paymentType === 'cash') {
+                document.getElementById('ropAccountContainer').classList.add('d-none');
+                document.getElementById('ropSplitContainer').classList.add('d-none');
+                document.getElementById('ropSingleContainer').classList.remove('d-none');
+                ropIsSplitMode = false;
+            } else {
+                // Card, Bank, Mobile - show account selection
+                document.getElementById('ropAccountContainer').classList.remove('d-none');
+                document.getElementById('ropSplitContainer').classList.add('d-none');
+                document.getElementById('ropSingleContainer').classList.remove('d-none');
+                ropIsSplitMode = false;
+
+                // Filter accounts by type
+                const accountSelect = document.getElementById('ropAccountSelect');
+                accountSelect.querySelectorAll('option').forEach(opt => {
+                    if (opt.value === '') {
+                        opt.style.display = 'block';
+                    } else {
+                        opt.style.display = opt.dataset.type === paymentType ? 'block' : 'none';
+                    }
+                });
+                accountSelect.value = '';
+            }
+
+            calculateRopChange();
+        });
+    });
+
+    // Handle Split Payment button click
+    document.querySelectorAll('.add-split-payment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            enableRopSplitPayment();
+        });
+    });
+});
+
+// Enable split payment mode
+function enableRopSplitPayment() {
+    ropIsSplitMode = true;
+    document.getElementById('ropIsSplit').value = '1';
+    document.getElementById('ropSplitContainer').classList.remove('d-none');
+    document.getElementById('ropSingleContainer').classList.add('d-none');
+    document.getElementById('ropAccountContainer').classList.add('d-none');
+
+    // Clear existing and add initial splits
+    document.getElementById('ropSplitList').innerHTML = '';
+    ropSplitIndex = 0;
+
+    const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
+    addRopSplitPayment(total / 2);
+    addRopSplitPayment(total / 2);
+}
+
+// Add split payment row
+function addRopSplitPayment(amount) {
+    amount = amount || 0;
+    const container = document.getElementById('ropSplitList');
+    const index = ropSplitIndex++;
+
+    const html = `
+        <div class="split-payment-row" data-index="${index}">
+            <div class="split-payment-header">
+                <span class="split-payment-number">{{ __("Payment") }} #${index + 1}</span>
+                <button type="button" class="btn-remove-payment" onclick="removeRopSplit(${index})">
+                    <i class="bx bx-x"></i>
+                </button>
+            </div>
+            <div class="split-payment-content">
+                <div class="split-payment-methods">
+                    <label class="split-method-option active">
+                        <input type="radio" name="rop_split_type_${index}" value="cash" checked onchange="onRopSplitTypeChange(${index}, this.value)">
+                        <div class="split-method-box" style="--method-color: #71dd37">
+                            <i class="bx bx-money"></i>
+                            <span>{{ __("Cash") }}</span>
+                        </div>
+                    </label>
+                    <label class="split-method-option">
+                        <input type="radio" name="rop_split_type_${index}" value="card" onchange="onRopSplitTypeChange(${index}, this.value)">
+                        <div class="split-method-box" style="--method-color: #696cff">
+                            <i class="bx bx-credit-card"></i>
+                            <span>{{ __("Card") }}</span>
+                        </div>
+                    </label>
+                    <label class="split-method-option">
+                        <input type="radio" name="rop_split_type_${index}" value="bank" onchange="onRopSplitTypeChange(${index}, this.value)">
+                        <div class="split-method-box" style="--method-color: #03c3ec">
+                            <i class="bx bx-building"></i>
+                            <span>{{ __("Bank") }}</span>
+                        </div>
+                    </label>
+                    <label class="split-method-option">
+                        <input type="radio" name="rop_split_type_${index}" value="mobile_banking" onchange="onRopSplitTypeChange(${index}, this.value)">
+                        <div class="split-method-box" style="--method-color: #ffab00">
+                            <i class="bx bx-mobile"></i>
+                            <span>{{ __("Mobile") }}</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="split-account-select mt-2" style="display: none;">
+                    <select class="form-select form-select-sm" name="rop_split_account_${index}">
+                        <option value="">{{ __("Select Account...") }}</option>
+                        @foreach($accounts ?? [] as $account)
+                            @if($account->account_type !== 'cash')
+                            <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
+                                {{ $account->bank_account_number ?? $account->card_number ?? $account->mobile_number ?? $account->name }}
+                            </option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+                <div class="split-amount-input mt-2">
+                    <div class="input-group">
+                        <span class="input-group-text">{{ currency_icon() }}</span>
+                        <input type="number" name="rop_split_amount_${index}" class="form-control rop-split-amount" value="${amount.toFixed(2)}" step="0.01" min="0" onchange="calculateRopSplitTotal()" oninput="calculateRopSplitTotal()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    container.appendChild(temp.firstElementChild);
+
+    calculateRopSplitTotal();
+}
+
+// Remove split payment row
+function removeRopSplit(index) {
+    const row = document.querySelector(`#ropSplitList .split-payment-row[data-index="${index}"]`);
+    if (row) {
+        row.remove();
+        calculateRopSplitTotal();
+    }
+}
+
+// Handle split payment type change
+function onRopSplitTypeChange(index, type) {
+    const row = document.querySelector(`#ropSplitList .split-payment-row[data-index="${index}"]`);
+    if (!row) return;
+
+    const accountSelect = row.querySelector('.split-account-select');
+    const selectElement = row.querySelector('select');
+
+    // Update active state
+    row.querySelectorAll('.split-method-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.querySelector('input').value === type) {
+            opt.classList.add('active');
+        }
+    });
+
+    if (type === 'cash') {
+        accountSelect.style.display = 'none';
+    } else {
+        accountSelect.style.display = 'block';
+        // Filter options
+        selectElement.querySelectorAll('option').forEach(opt => {
+            if (opt.value === '') {
+                opt.style.display = 'block';
+            } else {
+                opt.style.display = opt.dataset.type === type ? 'block' : 'none';
+            }
+        });
+        selectElement.value = '';
+    }
+}
+
+// Calculate split total
+function calculateRopSplitTotal() {
+    let total = 0;
+    document.querySelectorAll('#ropSplitList .rop-split-amount').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+
+    const orderTotal = parseFloat(document.getElementById('ropTotalValue').value) || 0;
+    const remaining = orderTotal - total;
+
+    document.getElementById('ropSplitTotal').textContent = total.toFixed(2);
+
+    const remainingEl = document.getElementById('ropSplitRemaining');
+    if (remaining <= 0.01) {
+        remainingEl.innerHTML = '<i class="bx bx-check-circle me-1"></i> {{ __("Fully Covered") }}';
+        remainingEl.classList.remove('has-remaining');
+        remainingEl.classList.add('fully-paid');
+        document.getElementById('ropCompleteBtn').disabled = false;
+    } else {
+        remainingEl.innerHTML = '{{ __("Remaining") }}: ' + currencyIcon + ' ' + remaining.toFixed(2);
+        remainingEl.classList.add('has-remaining');
+        remainingEl.classList.remove('fully-paid');
+        document.getElementById('ropCompleteBtn').disabled = true;
+    }
+}
+
+// Edit running order
+function editRunningOrder() {
+    const orderId = document.getElementById('ropOrderId').value;
+    if (orderId && ropCurrentOrder) {
+        // Close payment modal
+        bootstrap.Modal.getInstance(document.getElementById('runningOrderPaymentModal')).hide();
+
+        // Load order to cart for editing
+        if (typeof loadOrderToCart === 'function') {
+            loadOrderToCart(orderId);
+        }
+    }
+}
+
+// Complete payment
+function completeRunningOrderPayment() {
+    const orderId = document.getElementById('ropOrderId').value;
+    if (!orderId) {
+        toastr.error('{{ __("No order selected") }}');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('discount_amount', document.getElementById('ropDiscountAmount').value || 0);
+    formData.append('tax_rate', document.getElementById('ropTaxRate').value || 0);
+    formData.append('tax_amount', document.getElementById('ropTaxAmount').value || 0);
+    formData.append('receive_amount', document.getElementById('ropAmountReceived').value || 0);
+    formData.append('total_amount', document.getElementById('ropTotalValue').value || 0);
+
+    if (ropIsSplitMode) {
+        // Collect split payments as arrays (backend expects arrays)
+        let index = 0;
+        document.querySelectorAll('#ropSplitList .split-payment-row').forEach(row => {
+            const rowIndex = row.dataset.index;
+            const type = row.querySelector(`input[name="rop_split_type_${rowIndex}"]:checked`)?.value || 'cash';
+            const amount = parseFloat(row.querySelector('.rop-split-amount')?.value) || 0;
+            const accountId = row.querySelector(`select[name="rop_split_account_${rowIndex}"]`)?.value || '';
+
+            if (amount > 0) {
+                formData.append('payment_type[' + index + ']', type);
+                formData.append('paying_amount[' + index + ']', amount);
+                formData.append('account_id[' + index + ']', accountId);
+                index++;
+            }
+        });
+        formData.append('is_split', '1');
+    } else {
+        // Single payment - send as arrays with index 0 (backend expects arrays)
+        const paymentType = document.querySelector('#ropPaymentMethodContainer input[name="rop_payment_type"]:checked')?.value || 'cash';
+        const accountId = document.getElementById('ropAccountSelect')?.value || '';
+        const amountReceived = document.getElementById('ropAmountReceived')?.value || 0;
+
+        formData.append('payment_type[0]', paymentType);
+        formData.append('paying_amount[0]', amountReceived);
+        formData.append('account_id[0]', accountId);
+    }
+
+    // Show loading
+    document.getElementById('ropContent').classList.add('d-none');
+    document.getElementById('ropFooter').classList.add('d-none');
+    document.getElementById('ropLoading').classList.remove('d-none');
+    document.querySelector('#ropLoading .payment-loading-text').textContent = '{{ __("Processing payment...") }}';
+
+    // Submit payment
+    const completeUrl = '{{ route("admin.pos.running-orders.complete", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+    fetch(completeUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(result => {
+        document.getElementById('ropLoading').classList.add('d-none');
+
+        if (result.success) {
+            // Show success
+            document.getElementById('ropSuccess').classList.remove('d-none');
+            document.getElementById('ropSuccessMessage').textContent = result.message || '{{ __("Payment completed successfully") }}';
+
+            // Store for receipt
+            window.lastCompletedOrderId = orderId;
+
+            // Refresh running orders
+            if (typeof loadRunningOrders === 'function') {
+                loadRunningOrders();
+            }
+            if (typeof updateRunningOrdersCount === 'function') {
+                updateRunningOrdersCount();
+            }
+        } else {
+            // Show form again
+            document.getElementById('ropContent').classList.remove('d-none');
+            document.getElementById('ropFooter').classList.remove('d-none');
+            toastr.error(result.message || '{{ __("Payment failed") }}');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('ropLoading').classList.add('d-none');
+        document.getElementById('ropContent').classList.remove('d-none');
+        document.getElementById('ropFooter').classList.remove('d-none');
+        toastr.error('{{ __("An error occurred") }}');
+    });
+}
+
+// Print POS receipt for thermal printer
+function printRunningOrderReceipt() {
+    const orderId = window.lastCompletedOrderId || document.getElementById('ropOrderId').value;
+    if (!orderId) {
+        toastr.warning('{{ __("No order to print") }}');
+        return;
+    }
+
+    // Open POS receipt in print-friendly window (80mm thermal printer format)
+    const printUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId) + '?auto=1';
+    const printWindow = window.open(printUrl, 'pos_receipt', 'width=350,height=600,scrollbars=yes,resizable=yes');
+
+    // Focus on print window
+    if (printWindow) {
+        printWindow.focus();
+    }
+}
+
+// Close and refresh
+function closeAndRefresh() {
+    // Refresh the running orders list
+    if (typeof loadRunningOrders === 'function') {
+        loadRunningOrders();
+    }
+}
+</script>

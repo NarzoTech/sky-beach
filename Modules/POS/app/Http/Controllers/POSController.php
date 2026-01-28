@@ -1174,10 +1174,27 @@ class POSController extends Controller
     public function getOrderDetails($id)
     {
         try {
-            $order = Sale::with(['table', 'details.menuItem', 'details.service', 'customer', 'waiter'])
+            Log::info('getOrderDetails called', ['id' => $id]);
+
+            $order = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'waiter'])
                 ->findOrFail($id);
 
-            $html = view('pos::order-details', compact('order'))->render();
+            Log::info('Order found', [
+                'id' => $order->id,
+                'invoice' => $order->invoice,
+                'total_price' => $order->total_price,
+                'grand_total' => $order->grand_total,
+                'details_count' => $order->details->count()
+            ]);
+
+            // Try to render view, but catch errors separately
+            $html = '';
+            try {
+                $html = view('pos::order-details', compact('order'))->render();
+            } catch (\Exception $viewError) {
+                Log::warning('View render error: ' . $viewError->getMessage());
+                $html = '<div class="alert alert-warning">Could not render order details view</div>';
+            }
 
             return response()->json([
                 'success' => true,
@@ -1185,10 +1202,13 @@ class POSController extends Controller
                 'order' => $order
             ]);
         } catch (\Exception $e) {
-            Log::error('Error fetching order details: ' . $e->getMessage());
+            Log::error('Error fetching order details: ' . $e->getMessage(), [
+                'id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Order not found'
+                'message' => 'Order not found: ' . $e->getMessage()
             ], 404);
         }
     }
@@ -1424,13 +1444,35 @@ class POSController extends Controller
             Log::info('Order found', ['order_id' => $order->id, 'current_status' => $order->status]);
 
             // Handle discount if provided
-            $discount = $request->discount ?? $order->order_discount ?? 0;
-            $grandTotal = $order->total_price - $discount + ($order->total_tax ?? 0);
+            $discount = $request->discount_amount ?? $request->discount ?? $order->order_discount ?? 0;
 
-            // Calculate payment totals
-            $paymentTypes = $request->payment_type ?? ['cash'];
-            $accountIds = $request->account_id ?? [null];
-            $payingAmounts = $request->paying_amount ?? [$grandTotal];
+            // Handle tax if provided
+            $taxRate = $request->tax_rate ?? 0;
+            $taxAmount = $request->tax_amount ?? 0;
+
+            // If tax amount not provided but rate is, calculate it
+            if ($taxRate > 0 && $taxAmount == 0) {
+                $taxableAmount = $order->total_price - $discount;
+                $taxAmount = ($taxableAmount * $taxRate) / 100;
+            }
+
+            $grandTotal = $request->total_amount ?? ($order->total_price - $discount + $taxAmount);
+
+            // Calculate payment totals - ensure all are arrays
+            $paymentTypes = $request->payment_type;
+            if (!is_array($paymentTypes)) {
+                $paymentTypes = $paymentTypes ? [$paymentTypes] : ['cash'];
+            }
+
+            $accountIds = $request->account_id;
+            if (!is_array($accountIds)) {
+                $accountIds = $accountIds ? [$accountIds] : [null];
+            }
+
+            $payingAmounts = $request->paying_amount;
+            if (!is_array($payingAmounts)) {
+                $payingAmounts = $payingAmounts ? [$payingAmounts] : [$grandTotal];
+            }
 
             $totalPaid = array_sum($payingAmounts);
             $dueAmount = max(0, $grandTotal - $totalPaid);
@@ -1442,6 +1484,8 @@ class POSController extends Controller
                 'payment_status' => $dueAmount <= 0 ? 1 : 0, // 1 = paid, 0 = partial/unpaid
                 'payment_method' => json_encode($paymentTypes),
                 'order_discount' => $discount,
+                'total_tax' => $taxAmount,
+                'tax_rate' => $taxRate,
                 'grand_total' => $grandTotal,
                 'paid_amount' => $totalPaid,
                 'due_amount' => $dueAmount,
@@ -1581,6 +1625,35 @@ class POSController extends Controller
                 'success' => false,
                 'message' => 'Error cancelling order'
             ], 500);
+        }
+    }
+
+    /**
+     * Print POS receipt for an order (thermal printer format)
+     */
+    public function printOrderReceipt($id)
+    {
+        try {
+            $sale = Sale::with([
+                'table',
+                'details.menuItem',
+                'details.service',
+                'details.ingredient',
+                'customer',
+                'createdBy',
+                'waiter',
+                'payment.account'
+            ])->findOrFail($id);
+
+            $setting = \Illuminate\Support\Facades\Cache::get('setting');
+
+            return view('pos::print.pos-receipt', [
+                'sale' => $sale,
+                'setting' => $setting,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error generating receipt: ' . $e->getMessage());
+            return response()->view('errors.404', [], 404);
         }
     }
 

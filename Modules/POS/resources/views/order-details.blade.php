@@ -74,22 +74,30 @@
                         </div>
                         <div>
                             @php
-                                $statusClass = match($order->status) {
-                                    'processing' => 'warning',
-                                    'completed' => 'success',
-                                    'cancelled' => 'danger',
+                                // Status can be integer (0=pending, 1=completed, 2=cancelled) or string
+                                $statusValue = $order->status;
+                                $statusClass = match(true) {
+                                    $statusValue === 0 || $statusValue === 'processing' || $statusValue === 'pending' => 'warning',
+                                    $statusValue === 1 || $statusValue === 'completed' => 'success',
+                                    $statusValue === 2 || $statusValue === 'cancelled' => 'danger',
                                     default => 'info'
                                 };
-                                $statusIcon = match($order->status) {
-                                    'processing' => 'fa-hourglass-half',
-                                    'completed' => 'fa-check-circle',
-                                    'cancelled' => 'fa-times-circle',
+                                $statusIcon = match(true) {
+                                    $statusValue === 0 || $statusValue === 'processing' || $statusValue === 'pending' => 'fa-hourglass-half',
+                                    $statusValue === 1 || $statusValue === 'completed' => 'fa-check-circle',
+                                    $statusValue === 2 || $statusValue === 'cancelled' => 'fa-times-circle',
                                     default => 'fa-info-circle'
+                                };
+                                $statusLabel = match(true) {
+                                    $statusValue === 0 || $statusValue === 'processing' || $statusValue === 'pending' => __('Processing'),
+                                    $statusValue === 1 || $statusValue === 'completed' => __('Completed'),
+                                    $statusValue === 2 || $statusValue === 'cancelled' => __('Cancelled'),
+                                    default => __('Pending')
                                 };
                             @endphp
                             <span class="badge bg-{{ $statusClass }} fs-6 px-3 py-2">
                                 <i class="fas {{ $statusIcon }} me-1"></i>
-                                {{ ucfirst($order->status ?? 'pending') }}
+                                {{ $statusLabel }}
                             </span>
                         </div>
                     </div>
@@ -218,11 +226,11 @@
                                 @if($detail->variant_id && $detail->attributes)
                                 <br><small class="text-muted"><i class="fas fa-tag me-1"></i>{{ $detail->attributes }}</small>
                                 @endif
-                                @if(!empty($detail->addons))
+                                @if(!empty($detail->addons) && is_array($detail->addons))
                                 <br><small class="text-muted">
                                     <i class="fas fa-plus-circle me-1"></i>
                                     @foreach($detail->addons as $addon)
-                                        {{ $addon['name'] }}@if(!$loop->last), @endif
+                                        {{ is_array($addon) ? ($addon['name'] ?? '') : $addon }}@if(!$loop->last), @endif
                                     @endforeach
                                 </small>
                                 @endif

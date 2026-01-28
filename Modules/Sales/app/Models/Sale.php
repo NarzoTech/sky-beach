@@ -43,6 +43,7 @@ class Sale extends Model
         'payment_details',
         'order_discount',
         'total_tax',
+        'tax_rate',
         'grand_total',
         'total_cogs',
         'gross_profit',
