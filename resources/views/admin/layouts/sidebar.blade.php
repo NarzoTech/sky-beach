@@ -112,6 +112,31 @@
             @include('report::sidebar')
         @endif
 
+        {{-- Tax Reports --}}
+        <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class='menu-icon tf-icons bx bx-receipt'></i>
+                <div class="text-truncate" data-i18n="{{ __('Tax Reports') }}">{{ __('Tax Reports') }}</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="{{ Route::is('admin.tax-reports.index') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.index') }}">
+                        {{ __('Dashboard') }}
+                    </a>
+                </li>
+                <li class="{{ Route::is('admin.tax-reports.ledger') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.ledger') }}">
+                        {{ __('Tax Ledger') }}
+                    </a>
+                </li>
+                <li class="{{ Route::is('admin.tax-reports.periods') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.periods') }}">
+                        {{ __('Tax Periods') }}
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         @if (Module::isEnabled('Expense'))
             @include('expense::sidebar')
         @endif
@@ -314,6 +339,11 @@
                         <li class="menu-item {{ request()->is('admin/restaurant/catering/inquiries*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.catering.inquiries.index') }}">
                                 <i class='bx bx-message-square-detail me-2'></i>{{ __('Catering Inquiries') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/restaurant/catering/quotations*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.restaurant.catering.quotations.index') }}">
+                                <i class='bx bx-file me-2'></i>{{ __('Catering Quotations') }}
                             </a>
                         </li>
                     </ul>

@@ -67,6 +67,15 @@
                 </li>
             @endadminCan
 
+            {{-- Print Station --}}
+            @adminCan('printer.view')
+                <li class="menu-item {{ Route::is('admin.pos.print-station*') ? 'active' : '' }}">
+                    <a class="menu-link" href="{{ route('admin.pos.print-station.index') }}" target="_blank">
+                        <div class="text-truncate">{{ __('Print Station') }}</div>
+                    </a>
+                </li>
+            @endadminCan
+
             @if (Module::isEnabled('TableManagement'))
                 {{-- Table Management --}}
                 @adminCan('table.view')

@@ -14,6 +14,10 @@ use Modules\Sales\app\Models\ProductSale;
 use Modules\Membership\app\Models\LoyaltyCustomer;
 use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\Membership\app\Services\LoyaltyService;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\Combo;
+use App\Models\Stock;
+use App\Models\TaxLedger;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -182,6 +186,18 @@ class CheckoutController extends Controller
                         'note' => $cartItem->special_instructions,
                         'source' => 'website',
                     ]);
+                }
+            }
+
+            // Deduct stock for all items in the order
+            $this->deductStockForWebsiteOrder($sale, $cartItems);
+
+            // Record tax in tax ledger
+            if ($sale->total_tax > 0) {
+                try {
+                    TaxLedger::recordSaleTax($sale, 0, $sale->total_tax);
+                } catch (\Exception $e) {
+                    Log::error('Failed to record tax in tax ledger for website order #' . $sale->id . ': ' . $e->getMessage());
                 }
             }
 
@@ -457,6 +473,100 @@ class CheckoutController extends Controller
         } catch (\Exception $e) {
             // Log error but don't fail the order
             Log::error('Loyalty points error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deduct stock for website order
+     * This method deducts ingredient stock based on menu item recipes
+     */
+    private function deductStockForWebsiteOrder(Sale $sale, $cartItems)
+    {
+        try {
+            foreach ($cartItems as $cartItem) {
+                if ($cartItem->combo_id) {
+                    // Handle combo - deduct stock for each menu item in the combo
+                    $combo = Combo::with(['comboItems.menuItem.recipes.ingredient'])->find($cartItem->combo_id);
+                    if ($combo) {
+                        foreach ($combo->comboItems as $comboItem) {
+                            if ($comboItem->menuItem) {
+                                // Multiply combo item quantity by cart quantity
+                                $totalQuantity = $comboItem->quantity * $cartItem->quantity;
+                                $this->deductIngredientStockFromRecipe($comboItem->menuItem, $totalQuantity, $sale);
+                            }
+                        }
+                    }
+                } else if ($cartItem->menu_item_id) {
+                    // Handle regular menu item
+                    $menuItem = MenuItem::with(['recipes.ingredient'])->find($cartItem->menu_item_id);
+                    if ($menuItem) {
+                        $this->deductIngredientStockFromRecipe($menuItem, $cartItem->quantity, $sale);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the order - stock can be adjusted manually
+            Log::error('Stock deduction error for order ' . $sale->invoice . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deduct ingredient stock based on menu item recipe
+     * When a menu item is sold, deduct stock from all ingredients in its recipe
+     */
+    private function deductIngredientStockFromRecipe(MenuItem $menuItem, $quantity, Sale $sale)
+    {
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            // Calculate quantity to deduct (recipe quantity * sale quantity)
+            // Recipe quantity is in consumption unit
+            $deductQuantity = $recipe->quantity_required * $quantity;
+
+            // Convert to purchase unit for stock tracking
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+            // Update ingredient stock
+            $ingredient->stock = max(0, $ingredient->stock - $deductInPurchaseUnit);
+
+            // Update stock status
+            if ($ingredient->stock <= 0) {
+                $ingredient->stock_status = 'out_of_stock';
+            } elseif ($ingredient->alert_quantity && $ingredient->stock <= $ingredient->alert_quantity) {
+                $ingredient->stock_status = 'low_stock';
+            } else {
+                $ingredient->stock_status = 'in_stock';
+            }
+
+            $ingredient->save();
+
+            // Create stock record for tracking (only if warehouse exists)
+            $stockData = [
+                'sale_id' => $sale->id,
+                'ingredient_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => now(),
+                'type' => 'Website Sale',
+                'invoice' => $sale->invoice,
+                'out_quantity' => $deductQuantity,
+                'base_out_quantity' => $deductInPurchaseUnit,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'average_cost' => $ingredient->average_cost ?? 0,
+                'sale_price' => 0,
+                'rate' => $ingredient->consumption_unit_cost ?? 0,
+                'profit' => 0,
+                'created_by' => 1, // System user for website orders
+            ];
+
+            // Only add warehouse_id if it exists
+            if ($sale->warehouse_id && \App\Models\Warehouse::find($sale->warehouse_id)) {
+                $stockData['warehouse_id'] = $sale->warehouse_id;
+            }
+
+            Stock::create($stockData);
         }
     }
 }

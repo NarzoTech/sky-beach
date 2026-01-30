@@ -11,6 +11,7 @@ class CateringInquiry extends Model
 
     protected $fillable = [
         'inquiry_number',
+        'quotation_number',
         'package_id',
         'name',
         'email',
@@ -32,6 +33,7 @@ class CateringInquiry extends Model
         'quotation_delivery_fee',
         'quotation_notes',
         'quotation_valid_until',
+        'quotation_terms',
         'admin_notes',
         'contacted_at',
         'quoted_at',
@@ -106,6 +108,38 @@ class CateringInquiry extends Model
         $number = $lastInquiry ? intval(substr($lastInquiry->inquiry_number, -4)) + 1 : 1;
 
         return $prefix . $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Generate unique quotation number
+     */
+    public static function generateQuotationNumber()
+    {
+        $prefix = 'QTN';
+        $date = now()->format('Ymd');
+        $lastQuotation = self::whereNotNull('quotation_number')
+            ->whereDate('quoted_at', now())
+            ->latest('quoted_at')
+            ->first();
+        $number = $lastQuotation ? intval(substr($lastQuotation->quotation_number, -4)) + 1 : 1;
+
+        return $prefix . $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Scope: Has quotation
+     */
+    public function scopeHasQuotation($query)
+    {
+        return $query->whereNotNull('quotation_number')->whereNotNull('quoted_amount');
+    }
+
+    /**
+     * Check if inquiry has a quotation
+     */
+    public function hasQuotation()
+    {
+        return !empty($this->quotation_number) && !empty($this->quoted_amount);
     }
 
     /**

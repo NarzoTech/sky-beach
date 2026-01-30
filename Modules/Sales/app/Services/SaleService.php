@@ -5,6 +5,7 @@ namespace Modules\Sales\app\Services;
 use App\Models\Ledger;
 use App\Models\Payment;
 use App\Models\Stock;
+use App\Models\TaxLedger;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -478,6 +479,15 @@ class SaleService
             }
         }
 
+        // Record tax in tax ledger
+        if ($sale->total_tax > 0) {
+            try {
+                TaxLedger::recordSaleTax($sale, $sale->tax_rate, $sale->total_tax);
+            } catch (\Exception $e) {
+                Log::error('Failed to record tax in tax ledger for sale #' . $sale->id . ': ' . $e->getMessage());
+            }
+        }
+
         return $sale;
     }
 
@@ -646,6 +656,15 @@ class SaleService
 
         // Update COGS totals
         $this->updateSaleCOGSTotals($sale);
+
+        // Record tax in tax ledger
+        if ($sale->total_tax > 0) {
+            try {
+                TaxLedger::recordSaleTax($sale, $sale->tax_rate ?? 0, $sale->total_tax);
+            } catch (\Exception $e) {
+                Log::error('Failed to record tax in tax ledger for waiter order #' . $sale->id . ': ' . $e->getMessage());
+            }
+        }
 
         return $sale;
     }

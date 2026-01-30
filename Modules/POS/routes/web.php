@@ -6,6 +6,7 @@ use Modules\POS\app\Http\Controllers\PosSettingsController;
 use Modules\POS\app\Http\Controllers\WaiterController;
 use Modules\POS\app\Http\Controllers\WaiterDashboardController;
 use Modules\POS\app\Http\Controllers\PrinterController;
+use Modules\POS\app\Http\Controllers\PrintStationController;
 use Modules\POS\app\Http\Controllers\KitchenDisplayController;
 use Modules\POS\app\Http\Controllers\TableTransferController;
 use Modules\POS\app\Http\Controllers\SplitBillController;
@@ -135,6 +136,19 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/job/{id}/mark-printed', [PrinterController::class, 'markAsPrinted'])->name('mark-printed');
         Route::post('/job/{id}/mark-failed', [PrinterController::class, 'markAsFailed'])->name('mark-failed');
         Route::post('/job/{id}/retry', [PrinterController::class, 'retryJob'])->name('retry');
+    });
+
+    // Print Station Routes (Browser-based Auto Print)
+    Route::prefix('pos/print-station')->name('pos.print-station.')->group(function () {
+        Route::get('/', [PrintStationController::class, 'index'])->name('index');
+        Route::get('/pending-jobs', [PrintStationController::class, 'getPendingJobs'])->name('pending-jobs');
+        Route::get('/job/{id}/content', [PrintStationController::class, 'getJobContent'])->name('job-content');
+        Route::post('/job/{id}/printed', [PrintStationController::class, 'markPrinted'])->name('job-printed');
+        Route::post('/job/{id}/failed', [PrintStationController::class, 'markFailed'])->name('job-failed');
+        Route::post('/job/{id}/retry', [PrintStationController::class, 'retryJob'])->name('job-retry');
+        Route::get('/stats', [PrintStationController::class, 'getStats'])->name('stats');
+        Route::get('/failed-jobs', [PrintStationController::class, 'getFailedJobs'])->name('failed-jobs');
+        Route::post('/clear-old', [PrintStationController::class, 'clearOldJobs'])->name('clear-old');
     });
 
     // Kitchen Display Routes

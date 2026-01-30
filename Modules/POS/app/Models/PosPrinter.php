@@ -67,6 +67,22 @@ class PosPrinter extends Model
     }
 
     /**
+     * Scope to get browser printers
+     */
+    public function scopeBrowser($query)
+    {
+        return $query->where('connection_type', self::CONNECTION_BROWSER);
+    }
+
+    /**
+     * Scope to get network printers
+     */
+    public function scopeNetwork($query)
+    {
+        return $query->where('connection_type', self::CONNECTION_NETWORK);
+    }
+
+    /**
      * Check if this is a kitchen printer
      */
     public function isKitchen(): bool

@@ -404,4 +404,328 @@ class CateringController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CATERING QUOTATIONS MANAGEMENT
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Display quotations list
+     */
+    public function quotationsIndex(Request $request)
+    {
+        $query = CateringInquiry::hasQuotation()->with('package');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('quotation_number', 'like', "%{$search}%")
+                  ->orWhere('inquiry_number', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('event_type')) {
+            $query->where('event_type', $request->event_type);
+        }
+
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $query->whereBetween('quoted_at', [$request->from_date, $request->to_date]);
+        }
+
+        $quotations = $query->latest('quoted_at')->paginate(20)->withQueryString();
+
+        // Statistics
+        $stats = [
+            'total' => CateringInquiry::hasQuotation()->count(),
+            'pending' => CateringInquiry::hasQuotation()->pending()->count(),
+            'quoted' => CateringInquiry::hasQuotation()->byStatus('quoted')->count(),
+            'confirmed' => CateringInquiry::hasQuotation()->byStatus('confirmed')->count(),
+            'total_value' => CateringInquiry::hasQuotation()->sum('quoted_amount'),
+        ];
+
+        $eventTypes = CateringInquiry::EVENT_TYPES;
+
+        return view('website::admin.catering.quotations.index', compact('quotations', 'stats', 'eventTypes'));
+    }
+
+    /**
+     * Show create quotation form
+     */
+    public function quotationsCreate()
+    {
+        $packages = CateringPackage::where('is_active', true)->ordered()->get();
+        $eventTypes = CateringInquiry::EVENT_TYPES;
+
+        return view('website::admin.catering.quotations.create', compact('packages', 'eventTypes'));
+    }
+
+    /**
+     * Store new quotation
+     */
+    public function quotationsStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'event_type' => 'required|string',
+            'event_date' => 'required|date',
+            'event_time' => 'nullable',
+            'guest_count' => 'required|integer|min:1',
+            'venue_address' => 'nullable|string|max:500',
+            'package_id' => 'nullable|exists:catering_packages,id',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'discount_type' => 'required|in:fixed,percentage',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'quotation_notes' => 'nullable|string|max:2000',
+            'quotation_terms' => 'nullable|string|max:2000',
+            'valid_until' => 'nullable|date|after:today',
+        ]);
+
+        // Calculate totals
+        $items = collect($validated['items'])->map(function ($item) {
+            $item['total'] = $item['quantity'] * $item['unit_price'];
+            return $item;
+        })->toArray();
+
+        $subtotal = collect($items)->sum('total');
+
+        // Calculate discount
+        $discountAmount = 0;
+        if (!empty($validated['discount'])) {
+            if ($validated['discount_type'] === 'percentage') {
+                $discountAmount = $subtotal * ($validated['discount'] / 100);
+            } else {
+                $discountAmount = $validated['discount'];
+            }
+        }
+
+        $afterDiscount = $subtotal - $discountAmount;
+
+        // Calculate tax
+        $taxRate = $validated['tax_rate'] ?? 0;
+        $taxAmount = $afterDiscount * ($taxRate / 100);
+
+        // Delivery fee
+        $deliveryFee = $validated['delivery_fee'] ?? 0;
+
+        // Grand total
+        $grandTotal = $afterDiscount + $taxAmount + $deliveryFee;
+
+        $inquiry = CateringInquiry::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'event_type' => $validated['event_type'],
+            'event_date' => $validated['event_date'],
+            'event_time' => $validated['event_time'],
+            'guest_count' => $validated['guest_count'],
+            'venue_address' => $validated['venue_address'] ?? null,
+            'package_id' => $validated['package_id'] ?? null,
+            'status' => 'quoted',
+            'quotation_number' => CateringInquiry::generateQuotationNumber(),
+            'quoted_amount' => $grandTotal,
+            'quotation_items' => $items,
+            'quotation_subtotal' => $subtotal,
+            'quotation_discount' => $validated['discount'] ?? 0,
+            'quotation_discount_type' => $validated['discount_type'],
+            'quotation_tax_rate' => $taxRate,
+            'quotation_tax_amount' => $taxAmount,
+            'quotation_delivery_fee' => $deliveryFee,
+            'quotation_notes' => $validated['quotation_notes'] ?? null,
+            'quotation_terms' => $validated['quotation_terms'] ?? null,
+            'quotation_valid_until' => $validated['valid_until'] ?? null,
+            'quoted_at' => now(),
+        ]);
+
+        return redirect()->route('admin.restaurant.catering.quotations.show', $inquiry)
+            ->with('success', __('Quotation created successfully.'));
+    }
+
+    /**
+     * Show quotation details
+     */
+    public function quotationsShow(CateringInquiry $quotation)
+    {
+        $quotation->load('package');
+
+        return view('website::admin.catering.quotations.show', compact('quotation'));
+    }
+
+    /**
+     * Show edit quotation form
+     */
+    public function quotationsEdit(CateringInquiry $quotation)
+    {
+        $quotation->load('package');
+        $packages = CateringPackage::where('is_active', true)->ordered()->get();
+        $eventTypes = CateringInquiry::EVENT_TYPES;
+
+        return view('website::admin.catering.quotations.edit', compact('quotation', 'packages', 'eventTypes'));
+    }
+
+    /**
+     * Update quotation
+     */
+    public function quotationsUpdate(Request $request, CateringInquiry $quotation)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'event_type' => 'required|string',
+            'event_date' => 'required|date',
+            'event_time' => 'nullable',
+            'guest_count' => 'required|integer|min:1',
+            'venue_address' => 'nullable|string|max:500',
+            'package_id' => 'nullable|exists:catering_packages,id',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
+            'discount_type' => 'required|in:fixed,percentage',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'delivery_fee' => 'nullable|numeric|min:0',
+            'quotation_notes' => 'nullable|string|max:2000',
+            'quotation_terms' => 'nullable|string|max:2000',
+            'valid_until' => 'nullable|date',
+        ]);
+
+        // Calculate totals
+        $items = collect($validated['items'])->map(function ($item) {
+            $item['total'] = $item['quantity'] * $item['unit_price'];
+            return $item;
+        })->toArray();
+
+        $subtotal = collect($items)->sum('total');
+
+        // Calculate discount
+        $discountAmount = 0;
+        if (!empty($validated['discount'])) {
+            if ($validated['discount_type'] === 'percentage') {
+                $discountAmount = $subtotal * ($validated['discount'] / 100);
+            } else {
+                $discountAmount = $validated['discount'];
+            }
+        }
+
+        $afterDiscount = $subtotal - $discountAmount;
+
+        // Calculate tax
+        $taxRate = $validated['tax_rate'] ?? 0;
+        $taxAmount = $afterDiscount * ($taxRate / 100);
+
+        // Delivery fee
+        $deliveryFee = $validated['delivery_fee'] ?? 0;
+
+        // Grand total
+        $grandTotal = $afterDiscount + $taxAmount + $deliveryFee;
+
+        $quotation->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'event_type' => $validated['event_type'],
+            'event_date' => $validated['event_date'],
+            'event_time' => $validated['event_time'],
+            'guest_count' => $validated['guest_count'],
+            'venue_address' => $validated['venue_address'] ?? null,
+            'package_id' => $validated['package_id'] ?? null,
+            'quoted_amount' => $grandTotal,
+            'quotation_items' => $items,
+            'quotation_subtotal' => $subtotal,
+            'quotation_discount' => $validated['discount'] ?? 0,
+            'quotation_discount_type' => $validated['discount_type'],
+            'quotation_tax_rate' => $taxRate,
+            'quotation_tax_amount' => $taxAmount,
+            'quotation_delivery_fee' => $deliveryFee,
+            'quotation_notes' => $validated['quotation_notes'] ?? null,
+            'quotation_terms' => $validated['quotation_terms'] ?? null,
+            'quotation_valid_until' => $validated['valid_until'] ?? null,
+        ]);
+
+        return redirect()->route('admin.restaurant.catering.quotations.show', $quotation)
+            ->with('success', __('Quotation updated successfully.'));
+    }
+
+    /**
+     * Delete quotation
+     */
+    public function quotationsDestroy(CateringInquiry $quotation)
+    {
+        $quotation->delete();
+
+        return redirect()->route('admin.restaurant.catering.quotations.index')
+            ->with('success', __('Quotation deleted successfully.'));
+    }
+
+    /**
+     * Print quotation
+     */
+    public function quotationsPrint(CateringInquiry $quotation)
+    {
+        $quotation->load('package');
+        $setting = \Modules\GlobalSetting\app\Models\Setting::first();
+
+        return view('website::admin.catering.quotations.print', compact('quotation', 'setting'));
+    }
+
+    /**
+     * Generate PDF quotation
+     */
+    public function quotationsPdf(CateringInquiry $quotation)
+    {
+        $quotation->load('package');
+        $setting = \Modules\GlobalSetting\app\Models\Setting::first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('website::admin.catering.quotations.pdf', compact('quotation', 'setting'));
+
+        return $pdf->download('quotation-' . $quotation->quotation_number . '.pdf');
+    }
+
+    /**
+     * Calculate guest estimate
+     */
+    public function quotationsGuestEstimate(Request $request)
+    {
+        $validated = $request->validate([
+            'package_id' => 'nullable|exists:catering_packages,id',
+            'guest_count' => 'required|integer|min:1',
+            'price_per_person' => 'nullable|numeric|min:0',
+        ]);
+
+        $pricePerPerson = $validated['price_per_person'] ?? 0;
+
+        if (!empty($validated['package_id']) && empty($validated['price_per_person'])) {
+            $package = CateringPackage::find($validated['package_id']);
+            if ($package) {
+                $pricePerPerson = $package->price_per_person;
+            }
+        }
+
+        $estimate = $pricePerPerson * $validated['guest_count'];
+
+        return response()->json([
+            'success' => true,
+            'price_per_person' => $pricePerPerson,
+            'guest_count' => $validated['guest_count'],
+            'estimate' => $estimate,
+            'formatted_estimate' => currency($estimate),
+        ]);
+    }
 }

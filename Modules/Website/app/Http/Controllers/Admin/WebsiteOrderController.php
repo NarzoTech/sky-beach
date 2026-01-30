@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\Sales\app\Models\Sale;
 use Modules\Menu\app\Services\MenuStockService;
+use App\Models\Stock;
+use App\Models\TaxLedger;
 
 class WebsiteOrderController extends Controller
 {
@@ -121,6 +123,15 @@ class WebsiteOrderController extends Controller
             $this->reverseStockForOrder($order);
         }
 
+        // Void tax ledger entry if order is cancelled
+        if ($request->status === 'cancelled' && $previousStatus !== 'cancelled' && $order->total_tax > 0) {
+            try {
+                TaxLedger::voidSaleTax($order, 'Order cancelled by admin');
+            } catch (\Exception $e) {
+                Log::error('Failed to void tax entry for cancelled order ' . $order->invoice . ': ' . $e->getMessage());
+            }
+        }
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -139,6 +150,20 @@ class WebsiteOrderController extends Controller
      */
     protected function deductStockForOrder(Sale $order)
     {
+        // Check if stock was already deducted for this order (e.g., on order placement)
+        $existingStockDeduction = Stock::where('sale_id', $order->id)
+            ->whereIn('type', ['Website Sale', 'Sale'])
+            ->where('out_quantity', '>', 0)
+            ->exists();
+
+        if ($existingStockDeduction) {
+            Log::info('Stock already deducted for order, skipping', [
+                'order_id' => $order->id,
+                'invoice' => $order->invoice,
+            ]);
+            return;
+        }
+
         $warehouseId = $order->warehouse_id ?? 1;
 
         foreach ($order->details as $detail) {

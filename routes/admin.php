@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\TaxReportController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Artisan;
@@ -59,6 +60,20 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::put('role/assign', [RolesController::class, 'assignRoleUpdate'])->name('role.assign.update');
         Route::resource('/role', RolesController::class);
         Route::resource('/role', RolesController::class);
+
+        // Tax Reports
+        Route::prefix('tax-reports')->name('tax-reports.')->group(function () {
+            Route::get('/', [TaxReportController::class, 'index'])->name('index');
+            Route::get('/ledger', [TaxReportController::class, 'ledger'])->name('ledger');
+            Route::get('/periods', [TaxReportController::class, 'periods'])->name('periods');
+            Route::get('/export', [TaxReportController::class, 'export'])->name('export');
+            Route::post('/generate-period', [TaxReportController::class, 'generatePeriod'])->name('generate-period');
+            Route::post('/close-period/{id}', [TaxReportController::class, 'closePeriod'])->name('close-period');
+            Route::post('/mark-filed/{id}', [TaxReportController::class, 'markFiled'])->name('mark-filed');
+            Route::post('/sync-sales', [TaxReportController::class, 'syncSales'])->name('sync-sales');
+            Route::post('/void/{id}', [TaxReportController::class, 'voidEntry'])->name('void');
+            Route::post('/adjustment', [TaxReportController::class, 'createAdjustment'])->name('adjustment');
+        });
     });
     Route::resource('admin', AdminController::class)->except('show');
     Route::put('admin-status/{id}', [AdminController::class, 'changeStatus'])->name('admin.status');
@@ -138,6 +153,18 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::patch('/inquiries/{inquiry}/status', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
             Route::post('/inquiries/{inquiry}/quotation', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesSaveQuotation'])->name('inquiries.save-quotation');
             Route::delete('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
+
+            // Quotations Management
+            Route::get('/quotations', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsIndex'])->name('quotations.index');
+            Route::get('/quotations/create', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsCreate'])->name('quotations.create');
+            Route::post('/quotations', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsStore'])->name('quotations.store');
+            Route::get('/quotations/guest-estimate', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsGuestEstimate'])->name('quotations.guest-estimate');
+            Route::get('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsShow'])->name('quotations.show');
+            Route::get('/quotations/{quotation}/edit', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsEdit'])->name('quotations.edit');
+            Route::put('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsUpdate'])->name('quotations.update');
+            Route::delete('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsDestroy'])->name('quotations.destroy');
+            Route::get('/quotations/{quotation}/print', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsPrint'])->name('quotations.print');
+            Route::get('/quotations/{quotation}/pdf', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsPdf'])->name('quotations.pdf');
         });
     });
 
