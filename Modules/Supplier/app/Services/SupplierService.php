@@ -37,7 +37,11 @@ class SupplierService
                 }
             }
         }, 'payments' => function ($query) {
-            $query->where('is_paid', 1);
+            // Include paid payments AND advance refunds (which have is_paid = 0)
+            $query->where(function($q) {
+                $q->where('is_paid', 1)
+                  ->orWhere('payment_type', 'advance_refund');
+            });
 
             [$from_date, $to_date] = $this->getDateRangeFromRequest();
 
@@ -354,7 +358,7 @@ class SupplierService
         $ledger->note = $request->note;
 
         if ($request->refund_amount != null) {
-            $ledger->due_amount += $request->refund_amount;
+            $ledger->due_amount = $request->refund_amount;
             $ledger->amount = -$request->refund_amount;
         } else {
             $ledger->due_amount = -$request->paying_amount;

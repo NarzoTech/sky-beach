@@ -96,6 +96,26 @@ class Supplier extends Model
         return $totalPurchase - $totalPaid - $totalReturn;
     }
 
+    /**
+     * Get total due amount that has been dismissed/written off
+     * This tracks any due amounts that were forgiven or adjusted
+     */
+    public function getTotalDueDismissAttribute()
+    {
+        // Sum of any dismissed/written-off due amounts from payments
+        return $this->payments
+            ->where('payment_type', 'due_dismiss')
+            ->sum('amount');
+    }
+
+    /**
+     * Get total return amount
+     */
+    public function getTotalReturnAttribute()
+    {
+        return $this->purchaseReturn->sum('return_amount');
+    }
+
     public function duePurchase()
     {
         return $this->hasMany(Purchase::class, 'supplier_id')->where('payment_status', 'due');

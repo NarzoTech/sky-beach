@@ -66,7 +66,7 @@ class SupplierController extends Controller
                 'received_amount',
             );
 
-            $data['total_due'] += $supplier->total_due - $totalReturn;
+            $data['total_due'] += $supplier->total_due;
             $data['total_advance'] += $supplier->advance;
             $data['total_due_dismiss'] += $supplier->total_due_dismiss;
         }

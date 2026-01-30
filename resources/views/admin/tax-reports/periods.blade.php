@@ -1,6 +1,8 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.master')
 
-@section('title', __('Tax Periods'))
+@section('title')
+    <title>{{ __('Tax Periods') }}</title>
+@endsection
 
 @section('content')
 <div class="container-fluid">

@@ -1,6 +1,8 @@
-@extends('admin.layouts.app')
+@extends('admin.layouts.master')
 
-@section('title', __('Tax Ledger'))
+@section('title')
+    <title>{{ __('Tax Ledger') }}</title>
+@endsection
 
 @section('content')
 <div class="container-fluid">
