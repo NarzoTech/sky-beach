@@ -35,6 +35,7 @@ class User extends Model
         'address',
         'status',
         'wallet_balance',
+        'initial_advance',
         'plate_number',
         'guest',
     ];
@@ -148,9 +149,31 @@ class User extends Model
 
     public function advances()
     {
+        $initialAdvance = $this->initial_advance ?? 0;
         $advance = $this->payment->where('payment_type', 'advance_receive')->sum('amount');
         $advanceRefund = $this->payment->where('payment_type', 'advance_refund')->sum('amount');
-        return $advance - $advanceRefund;
+        return $initialAdvance + $advance - $advanceRefund;
+    }
+
+    /**
+     * Get total due amount that has been dismissed/written off
+     * This tracks any due amounts that were forgiven or adjusted
+     */
+    public function getTotalDueDismissAttribute()
+    {
+        return $this->payment
+            ->where('payment_type', 'due_dismiss')
+            ->sum('amount');
+    }
+
+    /**
+     * Get total sales return amount
+     */
+    public function getTotalReturnAttribute()
+    {
+        return $this->sales->sum(function ($sale) {
+            return $sale->saleReturns->sum('return_amount');
+        });
     }
 
     public function orderReviews()

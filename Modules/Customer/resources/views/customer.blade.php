@@ -345,6 +345,20 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        <label for="due">{{ __('Initial Due') }}</label>
+                                        <input type="number" step="0.01" class="form-control" id="due" name="due"
+                                            value="{{ $user->wallet_balance }}" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="initial_advance">{{ __('Initial Advance') }}</label>
+                                        <input type="number" step="0.01" class="form-control" id="initial_advance" name="initial_advance"
+                                            value="{{ $user->initial_advance }}" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label for="status">{{ __('Status') }}</label>
                                         <select name="status" id="status" class="form-control">
                                             <option value="1" {{ $user->status == 1 ? 'selected' : '' }}>

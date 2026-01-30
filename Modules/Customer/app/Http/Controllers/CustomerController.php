@@ -124,13 +124,13 @@ class CustomerController extends Controller
             $totalReturn = $customer->saleReturn->sum('return_amount');
             $data['total_return'] += $totalReturn;
 
-            $data['total_due'] += $customer->total_due - $totalReturn;
+            $data['total_due'] += $customer->total_due;
             $data['total_return_pay'] += $totalReturn - $customer->saleReturn->sum('return_due');
             $data['total_return_due'] += $customer->saleReturn->sum('return_due');
 
 
             $data['total_advance'] += $customer->advances();
-            // $data['total_due_dismiss'] += $customer->total_due_dismiss;
+            $data['total_due_dismiss'] += $customer->total_due_dismiss;
         }
 
 
@@ -254,6 +254,7 @@ class CustomerController extends Controller
         $user->guest = $request->guest ? 1 : 0;
         $user->address = $request->address;
         $user->wallet_balance = $request->due;
+        $user->initial_advance = $request->initial_advance;
         $user->save();
 
         return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.customers.index', [], ['messege' => 'Customer updated successfully.', 'alert-type' => 'success']);
@@ -291,6 +292,7 @@ class CustomerController extends Controller
         $user->membership = $request->membership;
         $user->plate_number = $request->plate_number;
         $user->wallet_balance = $request->due;
+        $user->initial_advance = $request->initial_advance;
         $user->date = Carbon::createFromFormat('d-m-Y', $request->date);
         $user->status = $request->status;
         $user->guest = $request->guest ? 1 : 0;
@@ -631,7 +633,7 @@ class CustomerController extends Controller
 
 
         if ($request->refund_amount != null) {
-            $ledger->due_amount += $request->refund_amount;
+            $ledger->due_amount = $request->refund_amount;
             $ledger->amount = -$request->refund_amount;
         } else {
             $ledger->due_amount = -$request->paying_amount;
@@ -639,6 +641,9 @@ class CustomerController extends Controller
         }
         $ledger->date = Carbon::createFromFormat('d-m-Y', $request->date);
         $ledger->created_by = auth('admin')->user()->id;
+        $ledger->save();
+
+        $ledger->invoice_url = route('admin.customers.ledger-details', $ledger->id);
         $ledger->save();
     }
 

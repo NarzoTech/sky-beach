@@ -34,8 +34,15 @@
 
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="due">{{ __('Due') }}</label>
-                                <input type="text" class="form-control" id="due" name="due">
+                                <label for="due">{{ __('Initial Due') }}</label>
+                                <input type="number" step="0.01" class="form-control" id="due" name="due" placeholder="0.00">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="initial_advance">{{ __('Initial Advance') }}</label>
+                                <input type="number" step="0.01" class="form-control" id="initial_advance" name="initial_advance" placeholder="0.00">
                             </div>
                         </div>
 
