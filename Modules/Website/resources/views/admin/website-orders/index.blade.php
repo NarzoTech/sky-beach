@@ -197,9 +197,11 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-warning' }}">
-                                            {{ ucfirst($order->payment_status) }}
-                                        </span>
+                                        <select class="form-control form-control-sm payment-status-select" data-order-id="{{ $order->id }}" style="width: 100px;">
+                                            <option value="unpaid" {{ $order->payment_status == 'unpaid' ? 'selected' : '' }}>{{ __('Unpaid') }}</option>
+                                            <option value="paid" {{ $order->payment_status == 'paid' ? 'selected' : '' }}>{{ __('Paid') }}</option>
+                                            <option value="refunded" {{ $order->payment_status == 'refunded' ? 'selected' : '' }}>{{ __('Refunded') }}</option>
+                                        </select>
                                     </td>
                                     <td>
                                         {{ $order->created_at->format('M d, Y') }}<br>
@@ -244,38 +246,76 @@
 
 @push('scripts')
 <script>
-    // Quick status update
-    document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', function() {
-            const orderId = this.dataset.orderId;
-            const status = this.value;
-            const originalValue = this.getAttribute('data-original') || this.value;
+$(document).ready(function() {
+    // Initialize Select2 for status dropdowns
+    $('.status-select').select2({
+        minimumResultsForSearch: Infinity,
+        width: '130px'
+    });
 
-            fetch(`{{ url('admin/restaurant/website-orders') }}/${orderId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ status: status })
-            })
-            .then(response => response.json())
-            .then(data => {
+    // Quick status update using Select2 change event
+    $('.status-select').on('select2:select', function(e) {
+        const select = $(this);
+        const orderId = select.data('order-id');
+        const status = select.val();
+        const originalValue = select.data('original') || status;
+
+        $.ajax({
+            url: `{{ url('admin/restaurant/website-orders') }}/${orderId}/status`,
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ status: status }),
+            success: function(data) {
                 if (data.success) {
-                    // Show success toast or notification
-                    this.setAttribute('data-original', status);
-                    // Optionally show a toast notification
+                    select.data('original', status);
+                    toastr.success(data.message || '{{ __("Status updated successfully") }}');
                 } else {
-                    alert(data.message || 'Failed to update status');
-                    this.value = originalValue;
+                    toastr.error(data.message || '{{ __("Failed to update status") }}');
+                    select.val(originalValue).trigger('change.select2');
                 }
-            })
-            .catch(error => {
-                alert('An error occurred');
-                this.value = originalValue;
-            });
+            },
+            error: function(xhr) {
+                toastr.error('{{ __("An error occurred") }}');
+                select.val(originalValue).trigger('change.select2');
+            }
         });
     });
+
+    // Payment status update
+    $('.payment-status-select').on('change', function() {
+        const select = $(this);
+        const orderId = select.data('order-id');
+        const paymentStatus = select.val();
+        const originalValue = select.data('original') || paymentStatus;
+
+        $.ajax({
+            url: `{{ url('admin/restaurant/website-orders') }}/${orderId}/payment-status`,
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ payment_status: paymentStatus }),
+            success: function(data) {
+                if (data.success) {
+                    select.data('original', paymentStatus);
+                    toastr.success(data.message || '{{ __("Payment status updated successfully") }}');
+                } else {
+                    toastr.error(data.message || '{{ __("Failed to update payment status") }}');
+                    select.val(originalValue);
+                }
+            },
+            error: function(xhr) {
+                toastr.error('{{ __("An error occurred") }}');
+                select.val(originalValue);
+            }
+        });
+    });
+});
 </script>
 @endpush

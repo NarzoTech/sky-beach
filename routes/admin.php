@@ -136,6 +136,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('/{id}', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'show'])->name('show');
             Route::get('/{id}/print', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'printOrder'])->name('print');
             Route::put('/{id}/status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'updateStatus'])->name('status');
+            Route::put('/{id}/payment-status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'updatePaymentStatus'])->name('payment-status');
             Route::post('/bulk-status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
         });
 

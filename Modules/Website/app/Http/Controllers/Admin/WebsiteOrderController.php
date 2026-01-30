@@ -238,6 +238,32 @@ class WebsiteOrderController extends Controller
     }
 
     /**
+     * Update payment status
+     */
+    public function updatePaymentStatus(Request $request, $id)
+    {
+        $request->validate([
+            'payment_status' => 'required|in:unpaid,paid,refunded',
+        ]);
+
+        $order = Sale::websiteOrders()->findOrFail($id);
+
+        $order->update([
+            'payment_status' => $request->payment_status,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('Payment status updated successfully.'),
+                'payment_status' => $order->payment_status,
+            ]);
+        }
+
+        return redirect()->back()->with('success', __('Payment status updated successfully.'));
+    }
+
+    /**
      * Bulk update order statuses
      */
     public function bulkUpdateStatus(Request $request)

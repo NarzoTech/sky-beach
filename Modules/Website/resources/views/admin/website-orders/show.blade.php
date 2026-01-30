@@ -79,19 +79,27 @@
                                 }
                             @endphp
                             <div class="d-flex flex-wrap gap-2">
+                                @php
+                                    // Terminal statuses should show checkmark, not spinner
+                                    $terminalStatuses = ['completed', 'delivered'];
+                                    $isTerminalStatus = in_array($orderStatus, $terminalStatuses);
+                                @endphp
                                 @foreach($allStatuses as $index => $status)
                                     @php
                                         $isCompleted = $currentIndex >= 0 && $index < $currentIndex;
                                         $isCurrent = $orderStatus === $status;
                                         $isActive = $isCompleted || $isCurrent;
+                                        // For terminal statuses, treat current as completed (show checkmark)
+                                        $showCheckmark = $isCompleted || ($isCurrent && $isTerminalStatus);
+                                        $showSpinner = $isCurrent && !$isTerminalStatus;
                                     @endphp
-                                    <span class="badge {{ $isCurrent ? 'bg-primary' : ($isCompleted ? 'bg-success' : 'bg-secondary text-white') }} py-2 px-3" style="{{ !$isActive ? 'opacity: 0.5;' : '' }}">
-                                        @if($isCompleted)<i class="bx bx-check me-1"></i>@endif
-                                        @if($isCurrent)<i class="bx bx-loader-alt bx-spin me-1"></i>@endif
+                                    <span class="badge {{ $isCurrent ? ($isTerminalStatus ? 'bg-success' : 'bg-primary') : ($isCompleted ? 'bg-success' : 'bg-secondary text-white') }} py-2 px-3" style="{{ !$isActive ? 'opacity: 0.5;' : '' }}">
+                                        @if($showCheckmark)<i class="bx bx-check me-1"></i>@endif
+                                        @if($showSpinner)<i class="bx bx-loader-alt bx-spin me-1"></i>@endif
                                         {{ __(ucfirst(str_replace('_', ' ', $status))) }}
                                     </span>
                                     @if(!$loop->last)
-                                        <i class="bx bx-chevron-right {{ $isCompleted ? 'text-success' : 'text-muted' }} align-self-center"></i>
+                                        <i class="bx bx-chevron-right {{ $isCompleted || ($isCurrent && $isTerminalStatus) ? 'text-success' : 'text-muted' }} align-self-center"></i>
                                     @endif
                                 @endforeach
                             </div>
@@ -264,11 +272,13 @@
                                     @endif
                                 </span>
                             </li>
-                            <li class="d-flex justify-content-between py-2 border-bottom">
+                            <li class="d-flex justify-content-between align-items-center py-4 border-bottom" style="min-height: 70px;">
                                 <span class="text-muted">{{ __('Payment Status') }}</span>
-                                <span class="badge {{ $order->payment_status === 'paid' ? 'bg-success' : 'bg-warning' }}">
-                                    {{ ucfirst($order->payment_status) }}
-                                </span>
+                                <select class="form-select payment-status-select no-nice-select" data-order-id="{{ $order->id }}" style="width: 130px; height: 45px; font-size: 14px;">
+                                    <option value="unpaid" {{ $order->payment_status == 'unpaid' ? 'selected' : '' }}>{{ __('Unpaid') }}</option>
+                                    <option value="paid" {{ $order->payment_status == 'paid' ? 'selected' : '' }}>{{ __('Paid') }}</option>
+                                    <option value="refunded" {{ $order->payment_status == 'refunded' ? 'selected' : '' }}>{{ __('Refunded') }}</option>
+                                </select>
                             </li>
                             <li class="d-flex justify-content-between py-2">
                                 <span class="text-muted">{{ __('Order Date') }}</span>
@@ -331,3 +341,62 @@
         </div>
     </div>
 @endsection
+
+@push('css')
+<style>
+    /* Override nice-select for payment status dropdown */
+    .payment-status-select.no-nice-select {
+        display: block !important;
+        width: 130px !important;
+        height: 45px !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+    }
+    .payment-status-select.no-nice-select + .nice-select {
+        display: none !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Destroy nice-select for payment status dropdown if it exists
+    if ($.fn.niceSelect) {
+        $('.payment-status-select.no-nice-select').niceSelect('destroy');
+    }
+
+    // Payment status update
+    $('.payment-status-select').on('change', function() {
+        const select = $(this);
+        const orderId = select.data('order-id');
+        const paymentStatus = select.val();
+        const originalValue = select.data('original') || paymentStatus;
+
+        $.ajax({
+            url: `{{ url('admin/restaurant/website-orders') }}/${orderId}/payment-status`,
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ payment_status: paymentStatus }),
+            success: function(data) {
+                if (data.success) {
+                    select.data('original', paymentStatus);
+                    toastr.success(data.message || '{{ __("Payment status updated successfully") }}');
+                } else {
+                    toastr.error(data.message || '{{ __("Failed to update payment status") }}');
+                    select.val(originalValue);
+                }
+            },
+            error: function(xhr) {
+                toastr.error('{{ __("An error occurred") }}');
+                select.val(originalValue);
+            }
+        });
+    });
+});
+</script>
+@endpush
