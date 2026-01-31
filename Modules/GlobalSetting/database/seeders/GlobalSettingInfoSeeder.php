@@ -72,6 +72,9 @@ class GlobalSettingInfoSeeder extends Seeder
             'sale_and_print_confirmation'          => '',
             'enable_service'                       => '',
             'show_stock_in_pos'                    => '',
+            'frontend_logo'                        => '',
+            'frontend_favicon'                     => '',
+            'frontend_footer_logo'                 => '',
         ];
 
         foreach ($setting_data as $index => $setting_item) {

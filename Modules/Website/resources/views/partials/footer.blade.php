@@ -10,7 +10,13 @@
                 <div class="footer_info">
                     <a class="footer_logo" href="{{ route('website.index') }}">
                         @if($footerSection && $footerSection->image)
-                            <img src="{{ asset('storage/' . $footerSection->image) }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
+                            <img src="{{ asset('storage/' . $footerSection->image) }}" alt="{{ $setting->app_name ?? config('app.name') }}" class="img-fluid w-100">
+                        @elseif(!empty($setting->frontend_footer_logo ?? null))
+                            <img src="{{ asset($setting->frontend_footer_logo) }}" alt="{{ $setting->app_name ?? config('app.name') }}" class="img-fluid w-100">
+                        @elseif(!empty($setting->frontend_logo ?? null))
+                            <img src="{{ asset($setting->frontend_logo) }}" alt="{{ $setting->app_name ?? config('app.name') }}" class="img-fluid w-100">
+                        @elseif(!empty($setting->logo ?? null))
+                            <img src="{{ asset($setting->logo) }}" alt="{{ $setting->app_name ?? config('app.name') }}" class="img-fluid w-100">
                         @else
                             <img src="{{ asset('website/images/footer_logo.png') }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
                         @endif

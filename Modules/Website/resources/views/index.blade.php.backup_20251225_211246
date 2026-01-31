@@ -1,6 +1,6 @@
 ﻿@extends('website::layouts.master')
 
-@section('title', 'index - CTAKE')
+@section('title', 'index - Sky Beach')
 
 @section('content')
 <div id="smooth-wrapper">

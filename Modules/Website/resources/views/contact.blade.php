@@ -123,7 +123,7 @@
                                 <img src="{{ asset('website/images/mail_icon.png') }}" alt="mail" class="img-fluid w-100">
                             </div>
                             <div class="text">
-                                <a href="mailto:{{ cms_contact('email') ?? 'info@ctake.com' }}">{{ cms_contact('email') ?? 'info@ctake.com' }}</a>
+                                <a href="mailto:{{ cms_contact('email') ?? 'info@skybeach.com' }}">{{ cms_contact('email') ?? 'info@skybeach.com' }}</a>
                                 @if(cms_contact('email_2'))
                                 <a href="mailto:{{ cms_contact('email_2') }}">{{ cms_contact('email_2') }}</a>
                                 @endif

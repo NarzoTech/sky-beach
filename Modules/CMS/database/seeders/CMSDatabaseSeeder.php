@@ -34,15 +34,15 @@ class CMSDatabaseSeeder extends Seeder
     {
         $settings = [
             // General
-            ['key' => 'general.site_name', 'value' => 'CTAKE', 'group' => 'general', 'type' => 'text', 'label' => 'Site Name'],
+            ['key' => 'general.site_name', 'value' => 'Sky Beach', 'group' => 'general', 'type' => 'text', 'label' => 'Site Name'],
             ['key' => 'general.tagline', 'value' => 'Delicious Food Restaurant', 'group' => 'general', 'type' => 'text', 'label' => 'Tagline'],
 
             // Contact
             ['key' => 'contact.address', 'value' => '16/A, Romadan House City Tower New York, United States', 'group' => 'contact', 'type' => 'textarea', 'label' => 'Address'],
             ['key' => 'contact.phone_primary', 'value' => '+990 123 456 789', 'group' => 'contact', 'type' => 'text', 'label' => 'Primary Phone'],
             ['key' => 'contact.phone_secondary', 'value' => '+990 456 123 789', 'group' => 'contact', 'type' => 'text', 'label' => 'Secondary Phone'],
-            ['key' => 'contact.email_primary', 'value' => 'info@ctake.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Primary Email'],
-            ['key' => 'contact.email_secondary', 'value' => 'support@ctake.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Secondary Email'],
+            ['key' => 'contact.email_primary', 'value' => 'info@skybeach.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Primary Email'],
+            ['key' => 'contact.email_secondary', 'value' => 'support@skybeach.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Secondary Email'],
             ['key' => 'contact.google_map_embed', 'value' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3105.1507877498064!2d-77.03279652422097!3d38.90177634678498!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89b7b7bae8f4e7b9%3A0x6c89e5e8d8b8f4e9!2sMarriott%20Marquis%20Washington%2C%20DC!5e0!3m2!1sen!2sus!4v1234567890', 'group' => 'contact', 'type' => 'textarea', 'label' => 'Google Map Embed URL'],
 
             // Social
@@ -299,15 +299,15 @@ class CMSDatabaseSeeder extends Seeder
                 'slug' => 'privacy-policy',
                 'title' => 'Privacy Policy',
                 'content' => $this->getPrivacyPolicyContent(),
-                'meta_title' => 'Privacy Policy - CTAKE',
-                'meta_description' => 'Learn about how CTAKE collects, uses, and protects your personal information.',
+                'meta_title' => 'Privacy Policy - Sky Beach',
+                'meta_description' => 'Learn about how Sky Beach collects, uses, and protects your personal information.',
             ],
             [
                 'slug' => 'terms-conditions',
                 'title' => 'Terms & Conditions',
                 'content' => $this->getTermsConditionsContent(),
-                'meta_title' => 'Terms & Conditions - CTAKE',
-                'meta_description' => 'Read our terms and conditions for using CTAKE services.',
+                'meta_title' => 'Terms & Conditions - Sky Beach',
+                'meta_description' => 'Read our terms and conditions for using Sky Beach services.',
             ],
         ];
 
@@ -438,7 +438,7 @@ class CMSDatabaseSeeder extends Seeder
 
 <h3>Contact Us</h3>
 <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-<p>Email: support@ctake.com<br>Address: 800S, Salt Lake City, USA</p>
+<p>Email: support@skybeach.com<br>Address: 800S, Salt Lake City, USA</p>
 HTML;
     }
 
@@ -455,17 +455,17 @@ HTML;
 <p>All orders are subject to acceptance and availability. Prices are subject to change without notice. Payment must be received in full before orders are processed. We accept various payment methods as indicated on our website.</p>
 
 <h3>Intellectual Property</h3>
-<p>All content on this website, including text, graphics, logos, images, and software, is the property of CTAKE and is protected by copyright and other intellectual property laws.</p>
+<p>All content on this website, including text, graphics, logos, images, and software, is the property of Sky Beach and is protected by copyright and other intellectual property laws.</p>
 
 <h3>Limitation of Liability</h3>
-<p>CTAKE shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of our services.</p>
+<p>Sky Beach shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of our services.</p>
 
 <h3>Changes to Terms</h3>
 <p>We reserve the right to modify these terms at any time. Your continued use of our services after any changes indicates your acceptance of the new terms.</p>
 
 <h3>Contact Us</h3>
 <p>If you have any questions about these Terms, please contact us at:</p>
-<p>Email: support@ctake.com<br>Address: 800S, Salt Lake City, USA</p>
+<p>Email: support@skybeach.com<br>Address: 800S, Salt Lake City, USA</p>
 HTML;
     }
 }

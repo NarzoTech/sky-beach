@@ -63,12 +63,32 @@ class GlobalSettingController extends Controller
                 $file_name = file_upload($request->login, 'uploads/custom-images/', $this->cachedSetting?->login);
                 $value = $file_name;
             }
+            // frontend logo
+            if ($key == 'frontend_logo') {
+                $file_name = file_upload($request->frontend_logo, 'uploads/custom-images/', $this->cachedSetting?->frontend_logo);
+                $value = $file_name;
+            }
+            // frontend favicon
+            if ($key == 'frontend_favicon') {
+                $file_name = file_upload($request->frontend_favicon, 'uploads/custom-images/', $this->cachedSetting?->frontend_favicon);
+                $value = $file_name;
+            }
+            // frontend footer logo
+            if ($key == 'frontend_footer_logo') {
+                $file_name = file_upload($request->frontend_footer_logo, 'uploads/custom-images/', $this->cachedSetting?->frontend_footer_logo);
+                $value = $file_name;
+            }
 
             if ($setting) {
                 $setting->value = $value;
                 $setting->save();
             } else {
-                continue;
+                // Create new setting if it doesn't exist (for new fields like frontend_logo, etc.)
+                if (in_array($key, ['frontend_logo', 'frontend_favicon', 'frontend_footer_logo', 'default_avatar'])) {
+                    Setting::create(['key' => $key, 'value' => $value]);
+                } else {
+                    continue;
+                }
             }
         }
 

@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'CTAKE - Food & Restaurant')</title>
-    <link rel="icon" type="image/png" href="{{ asset('website/images/favicon.png') }}">
+    <title>@yield('title', 'Sky Beach - Food & Restaurant')</title>
+    <link rel="icon" type="image/png" href="{{ !empty($setting->frontend_favicon ?? null) ? asset($setting->frontend_favicon) : (!empty($setting->favicon ?? null) ? asset($setting->favicon) : asset('website/images/favicon.png')) }}">
     
     {{-- CSS Files --}}
     <link rel="stylesheet" href="{{ asset('website/css/all.min.css') }}">

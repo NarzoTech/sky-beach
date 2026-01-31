@@ -48,6 +48,40 @@
                                                     hidden>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {{-- Website/Frontend Settings --}}
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <h5 class="text-primary border-bottom pb-2 mb-3">{{ __('Website/Frontend Settings') }}</h5>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="frontend_logo-preview" class="image_preview"
+                                                @if (!empty($setting->frontend_logo ?? null)) style="background-image: url({{ asset($setting->frontend_logo) }}); background-size: cover; background-position: center center;" @endif>
+                                                <label for="frontend_logo-upload" id="frontend_logo-label">{{ __('Website Logo') }}</label>
+                                                <input type="file" name="frontend_logo" id="frontend_logo-upload" hidden>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="frontend_favicon-preview" class="image_preview"
+                                                @if (!empty($setting->frontend_favicon ?? null)) style="background-image: url({{ asset($setting->frontend_favicon) }}); background-size: cover; background-position: center center;" @endif>
+                                                <label for="frontend_favicon-upload" id="frontend_favicon-label">{{ __('Website Favicon') }}</label>
+                                                <input type="file" name="frontend_favicon" id="frontend_favicon-upload" hidden>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div id="frontend_footer_logo-preview" class="image_preview"
+                                                @if (!empty($setting->frontend_footer_logo ?? null)) style="background-image: url({{ asset($setting->frontend_footer_logo) }}); background-size: cover; background-position: center center;" @endif>
+                                                <label for="frontend_footer_logo-upload" id="frontend_footer_logo-label">{{ __('Website Footer Logo') }}</label>
+                                                <input type="file" name="frontend_footer_logo" id="frontend_footer_logo-upload" hidden>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <h5 class="text-primary border-bottom pb-2 mb-3">{{ __('Business Information') }}</h5>
+                                        </div>
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label for="">Business Name</label>
@@ -271,5 +305,8 @@
         prevImage('favicon-upload', 'favicon-preview', 'favicon-label');
         prevImage('login-upload', 'login-preview', 'login-label');
         prevImage('default_avatar-upload', 'default_avatar-preview', 'default_avatar-label');
+        prevImage('frontend_logo-upload', 'frontend_logo-preview', 'frontend_logo-label');
+        prevImage('frontend_favicon-upload', 'frontend_favicon-preview', 'frontend_favicon-label');
+        prevImage('frontend_footer_logo-upload', 'frontend_footer_logo-preview', 'frontend_footer_logo-label');
     </script>
 @endpush

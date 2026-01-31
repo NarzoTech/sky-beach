@@ -8,7 +8,7 @@
 <nav class="navbar navbar-expand-lg main_menu">
     <div class="container">
         <a class="navbar-brand" href="{{ route('website.index') }}">
-            <img src="{{ asset('website/images/logo.png') }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
+            <img src="{{ !empty($setting->frontend_logo ?? null) ? asset($setting->frontend_logo) : (!empty($setting->logo ?? null) ? asset($setting->logo) : asset('website/images/logo.png')) }}" alt="{{ $setting->app_name ?? config('app.name') }}" class="img-fluid">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"

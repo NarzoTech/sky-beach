@@ -352,7 +352,7 @@ CREATE TABLE features (
 | Form Image | contact_img.jpg | page_sections | image |
 | Address Card | "16/A, Romadan House..." | site_settings | contact.address |
 | Phone Card | "+990 123 456 789" | site_settings | contact.phone_primary, contact.phone_secondary |
-| Email Card | "info@ctake.com" | site_settings | contact.email_primary, contact.email_secondary |
+| Email Card | "info@skybeach.com" | site_settings | contact.email_primary, contact.email_secondary |
 | Google Map | Iframe embed | site_settings | contact.google_map_embed |
 
 ---
