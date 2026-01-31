@@ -72,6 +72,9 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         // Tables Routes
         Route::get('/available-tables', [POSController::class, 'getAvailableTables'])->name('pos.available-tables');
 
+        // Customer Phone Lookup
+        Route::get('/customer-by-phone', [POSController::class, 'getCustomerByPhone'])->name('pos.customer-by-phone');
+
         // Loyalty Points Routes
         Route::get('/loyalty/customer', [POSController::class, 'getCustomerLoyalty'])->name('pos.loyalty.customer');
         Route::get('/loyalty/calculate-points', [POSController::class, 'calculatePointsToEarn'])->name('pos.loyalty.calculate');

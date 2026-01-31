@@ -64,15 +64,18 @@ class LoyaltyService
             ];
         }
 
-        // Get loyalty program
-        $program = LoyaltyProgram::byWarehouse($warehouseId)
+        // Get loyalty program (check warehouse-specific first, then global/null warehouse)
+        $program = LoyaltyProgram::where(function($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId)
+                      ->orWhereNull('warehouse_id');
+            })
             ->active()
             ->first();
 
         if (! $program) {
             return [
                 'success' => false,
-                'error' => 'No active loyalty program for this warehouse',
+                'error' => 'No active loyalty program',
             ];
         }
 
@@ -117,15 +120,18 @@ class LoyaltyService
             ];
         }
 
-        // Get loyalty program
-        $program = LoyaltyProgram::byWarehouse($warehouseId)
+        // Get loyalty program (check warehouse-specific first, then global/null warehouse)
+        $program = LoyaltyProgram::where(function($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId)
+                      ->orWhereNull('warehouse_id');
+            })
             ->active()
             ->first();
 
         if (! $program) {
             return [
                 'success' => false,
-                'error' => 'No active loyalty program for this warehouse',
+                'error' => 'No active loyalty program',
             ];
         }
 

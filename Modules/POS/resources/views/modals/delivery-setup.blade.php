@@ -37,12 +37,21 @@
                                 {{ __('Phone Number') }}
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="tel"
-                                   name="delivery_phone"
-                                   class="form-control"
-                                   placeholder="{{ __('+880 1XX-XXXXXXX') }}"
-                                   required
-                                   autocomplete="off">
+                            <div class="input-group">
+                                <input type="tel"
+                                       name="delivery_phone"
+                                       id="deliveryModalPhone"
+                                       class="form-control"
+                                       placeholder="{{ __('+880 1XX-XXXXXXX') }}"
+                                       required
+                                       autocomplete="off">
+                                <span class="input-group-text d-none" id="phoneLookupStatus">
+                                    <span class="spinner-border spinner-border-sm" id="phoneLookupSpinner"></span>
+                                    <i class="bx bx-check text-success d-none" id="phoneLookupFound"></i>
+                                    <i class="bx bx-x text-muted d-none" id="phoneLookupNotFound"></i>
+                                </span>
+                            </div>
+                            <small class="text-muted" id="phoneLookupHint">{{ __('Enter phone to auto-fill customer details') }}</small>
                         </div>
 
                         <div class="col-12">
@@ -149,6 +158,21 @@
     font-weight: 700;
     color: #333;
 }
+
+#phoneLookupStatus {
+    background: #f8f9fa;
+    border-left: none;
+}
+
+#phoneLookupHint {
+    font-size: 11px;
+    display: block;
+    margin-top: 4px;
+}
+
+#phoneLookupHint.found {
+    color: #198754 !important;
+}
 </style>
 
 <script>
@@ -192,19 +216,48 @@ function initDeliverySetupModal(subtotal, itemCount, deliveryFee) {
         document.getElementById('deliveryFeeInput').value = deliveryFeeVal;
     }
 
-    // Pre-fill from customer if selected
+    // Pre-fill from delivery info row (if user already entered values there)
+    const deliveryPhoneInput = document.getElementById('delivery_phone');
+    const deliveryAddressInput = document.getElementById('delivery_address');
+
+    if (deliveryPhoneInput && deliveryPhoneInput.value.trim()) {
+        document.querySelector('#deliverySetupForm input[name="delivery_phone"]').value = deliveryPhoneInput.value.trim();
+    }
+    if (deliveryAddressInput && deliveryAddressInput.value.trim()) {
+        document.querySelector('#deliverySetupForm textarea[name="delivery_address"]').value = deliveryAddressInput.value.trim();
+    }
+
+    // Pre-fill from customer if selected (and not already filled from delivery row)
     const selectedCustomer = document.getElementById('customer_id');
     if (selectedCustomer && selectedCustomer.value) {
         const selectedOption = selectedCustomer.options[selectedCustomer.selectedIndex];
         const customerPhone = selectedOption.dataset.phone;
         const customerName = selectedOption.text.split(' - ')[0];
+        const customerAddress = selectedOption.dataset.address;
 
         if (customerName && customerName !== 'Walk-In Customer') {
-            document.querySelector('#deliverySetupForm input[name="delivery_name"]').value = customerName;
+            const nameInput = document.querySelector('#deliverySetupForm input[name="delivery_name"]');
+            if (!nameInput.value.trim()) {
+                nameInput.value = customerName;
+            }
         }
         if (customerPhone) {
-            document.querySelector('#deliverySetupForm input[name="delivery_phone"]').value = customerPhone;
+            const phoneInput = document.querySelector('#deliverySetupForm input[name="delivery_phone"]');
+            if (!phoneInput.value.trim()) {
+                phoneInput.value = customerPhone;
+            }
         }
+        if (customerAddress) {
+            const addressInput = document.querySelector('#deliverySetupForm textarea[name="delivery_address"]');
+            if (!addressInput.value.trim()) {
+                addressInput.value = customerAddress;
+            }
+        }
+    }
+
+    // Hide preloader
+    if (typeof $ !== 'undefined') {
+        $('.preloader_area').addClass('d-none');
     }
 
     // Show modal
@@ -354,4 +407,124 @@ function getDeliveryFormData() {
         delivery_fee: document.getElementById('deliveryFeeInput')?.value || 0
     };
 }
+
+// Phone lookup functionality
+let phoneLookupTimeout = null;
+let lastLookedUpPhone = '';
+
+function lookupCustomerByPhone(phone) {
+    // Don't lookup if same phone or too short
+    if (phone === lastLookedUpPhone || phone.length < 5) {
+        return;
+    }
+
+    lastLookedUpPhone = phone;
+    const statusEl = document.getElementById('phoneLookupStatus');
+    const spinnerEl = document.getElementById('phoneLookupSpinner');
+    const foundEl = document.getElementById('phoneLookupFound');
+    const notFoundEl = document.getElementById('phoneLookupNotFound');
+    const hintEl = document.getElementById('phoneLookupHint');
+
+    // Show loading
+    statusEl.classList.remove('d-none');
+    spinnerEl.classList.remove('d-none');
+    foundEl.classList.add('d-none');
+    notFoundEl.classList.add('d-none');
+    hintEl.textContent = '{{ __("Searching...") }}';
+    hintEl.classList.remove('found');
+
+    fetch('{{ route("admin.pos.customer-by-phone") }}?phone=' + encodeURIComponent(phone), {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        spinnerEl.classList.add('d-none');
+
+        if (result.success && result.customer) {
+            foundEl.classList.remove('d-none');
+            hintEl.textContent = '{{ __("Customer found:") }} ' + result.customer.name;
+            hintEl.classList.add('found');
+
+            // Auto-fill name and address
+            const nameInput = document.querySelector('#deliverySetupForm input[name="delivery_name"]');
+            const addressInput = document.querySelector('#deliverySetupForm textarea[name="delivery_address"]');
+
+            if (nameInput && !nameInput.value.trim()) {
+                nameInput.value = result.customer.name;
+            }
+            if (addressInput && !addressInput.value.trim() && result.customer.address) {
+                addressInput.value = result.customer.address;
+            }
+
+            // Show success toast
+            if (typeof toastr !== 'undefined') {
+                toastr.info('{{ __("Customer details auto-filled") }}');
+            }
+        } else {
+            notFoundEl.classList.remove('d-none');
+            hintEl.textContent = '{{ __("No customer found with this number") }}';
+            hintEl.classList.remove('found');
+        }
+    })
+    .catch(error => {
+        console.error('Phone lookup error:', error);
+        spinnerEl.classList.add('d-none');
+        notFoundEl.classList.remove('d-none');
+        hintEl.textContent = '{{ __("Enter phone to auto-fill customer details") }}';
+        hintEl.classList.remove('found');
+    });
+}
+
+// Initialize phone lookup on modal shown
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('deliveryModalPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            const phone = this.value.trim();
+
+            // Clear previous timeout
+            if (phoneLookupTimeout) {
+                clearTimeout(phoneLookupTimeout);
+            }
+
+            // Reset status if phone is too short
+            if (phone.length < 5) {
+                document.getElementById('phoneLookupStatus').classList.add('d-none');
+                document.getElementById('phoneLookupHint').textContent = '{{ __("Enter phone to auto-fill customer details") }}';
+                document.getElementById('phoneLookupHint').classList.remove('found');
+                lastLookedUpPhone = '';
+                return;
+            }
+
+            // Debounce: wait 500ms after user stops typing
+            phoneLookupTimeout = setTimeout(function() {
+                lookupCustomerByPhone(phone);
+            }, 500);
+        });
+
+        // Also trigger on blur for immediate lookup
+        phoneInput.addEventListener('blur', function() {
+            const phone = this.value.trim();
+            if (phone.length >= 5 && phone !== lastLookedUpPhone) {
+                if (phoneLookupTimeout) {
+                    clearTimeout(phoneLookupTimeout);
+                }
+                lookupCustomerByPhone(phone);
+            }
+        });
+    }
+
+    // Reset lookup state when modal is hidden
+    const deliveryModal = document.getElementById('deliverySetupModal');
+    if (deliveryModal) {
+        deliveryModal.addEventListener('hidden.bs.modal', function() {
+            lastLookedUpPhone = '';
+            document.getElementById('phoneLookupStatus').classList.add('d-none');
+            document.getElementById('phoneLookupHint').textContent = '{{ __("Enter phone to auto-fill customer details") }}';
+            document.getElementById('phoneLookupHint').classList.remove('found');
+        });
+    }
+});
 </script>

@@ -2422,6 +2422,9 @@
                 return;
             }
 
+            // Show loader while preparing payment modal
+            $('.preloader_area').removeClass('d-none');
+
             // Get selected order type
             let orderType = $('input[name="order_type_radio"]:checked').val() || 'dine_in';
 

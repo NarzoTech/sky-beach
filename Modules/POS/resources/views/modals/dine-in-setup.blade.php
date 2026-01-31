@@ -214,6 +214,11 @@ function initDineInSetupModal(total, itemCount) {
         noWaiterOption.closest('.waiter-option').classList.add('active');
     }
 
+    // Hide preloader
+    if (typeof $ !== 'undefined') {
+        $('.preloader_area').addClass('d-none');
+    }
+
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('dineInSetupModal'));
     modal.show();

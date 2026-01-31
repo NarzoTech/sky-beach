@@ -30,7 +30,11 @@
       "Bash(del \"E:\\\\Others\\\\work\\\\sky-beach\\\\IMPLEMENTATION_PLAN.md\")",
       "Bash(php:*)",
       "Bash(del:*)",
-      "Bash(if not exist \"E:\\\\Others\\\\work\\\\sky-beach\\\\resources\\\\views\\\\admin\\\\tax-reports\" mkdir \"E:\\\\Others\\\\work\\\\sky-beach\\\\resources\\\\views\\\\admin\\\\tax-reports\")"
+      "Bash(if not exist \"E:\\\\Others\\\\work\\\\sky-beach\\\\resources\\\\views\\\\admin\\\\tax-reports\" mkdir \"E:\\\\Others\\\\work\\\\sky-beach\\\\resources\\\\views\\\\admin\\\\tax-reports\")",
+      "Bash(git status:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

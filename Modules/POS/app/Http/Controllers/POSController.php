@@ -883,6 +883,76 @@ class POSController extends Controller
         }
     }
 
+    /**
+     * Search customer by phone number
+     * Searches in both customers table and previous orders
+     */
+    public function getCustomerByPhone(Request $request)
+    {
+        $phone = $request->get('phone');
+
+        if (empty($phone) || strlen($phone) < 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number too short'
+            ]);
+        }
+
+        // Normalize phone: remove non-digits for flexible matching
+        $phoneDigits = preg_replace('/[^0-9]/', '', $phone);
+
+        // First, search in customers (users) table
+        $customer = User::whereRaw("REPLACE(REPLACE(REPLACE(phone, '-', ''), ' ', ''), '+', '') LIKE ?", ['%' . $phoneDigits . '%'])
+            ->where(function($query) {
+                $query->where('status', 'active')
+                      ->orWhere('status', 1);
+            })
+            ->first();
+
+        if ($customer) {
+            return response()->json([
+                'success' => true,
+                'source' => 'customer',
+                'customer' => [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                    'email' => $customer->email,
+                    'address' => $customer->address ?? '',
+                ]
+            ]);
+        }
+
+        // If not found in customers, search in previous orders (sales table)
+        $sale = Sale::whereNotNull('delivery_phone')
+            ->where('delivery_phone', '!=', '')
+            ->whereRaw("REPLACE(REPLACE(REPLACE(delivery_phone, '-', ''), ' ', ''), '+', '') LIKE ?", ['%' . $phoneDigits . '%'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($sale) {
+            // Try to get customer name from notes JSON
+            $notes = json_decode($sale->notes ?? '{}', true);
+            $customerName = $notes['customer_name'] ?? '';
+
+            return response()->json([
+                'success' => true,
+                'source' => 'order',
+                'customer' => [
+                    'id' => null,
+                    'name' => $customerName,
+                    'phone' => $sale->delivery_phone,
+                    'email' => $notes['customer_email'] ?? '',
+                    'address' => $sale->delivery_address ?? '',
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Customer not found'
+        ]);
+    }
 
     public function place_order(Request $request)
     {
@@ -960,7 +1030,9 @@ class POSController extends Controller
             $invoiceRoute = route('admin.sales.invoice', $order_result->id) . '?print=true';
 
             return response()->json([
+                'success' => true,
                 'order' => $order_result,
+                'order_id' => $order_result->id,
                 'invoice' => $receiptHtml,
                 'invoiceRoute' => $invoiceRoute,
                 'is_deferred' => false,

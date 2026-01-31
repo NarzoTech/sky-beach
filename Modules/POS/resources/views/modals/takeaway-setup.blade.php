@@ -303,6 +303,11 @@ function initTakeawaySetupModal(total, itemCount) {
     // Update estimated pickup time
     updateEstimatedPickupTime(10);
 
+    // Hide preloader
+    if (typeof $ !== 'undefined') {
+        $('.preloader_area').addClass('d-none');
+    }
+
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('takeawaySetupModal'));
     modal.show();

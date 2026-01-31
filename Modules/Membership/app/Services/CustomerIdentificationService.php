@@ -2,6 +2,7 @@
 
 namespace Modules\Membership\app\Services;
 
+use App\Models\User;
 use Modules\Membership\app\Models\LoyaltyCustomer;
 
 class CustomerIdentificationService
@@ -26,10 +27,46 @@ class CustomerIdentificationService
 
         // If not found, create new customer
         if (! $customer) {
-            $customer = $this->createCustomer($phone);
+            // Try to find user info from Users table
+            $userData = $this->findUserByPhone($phone);
+            $customer = $this->createCustomer($phone, $userData);
+        } elseif (empty($customer->name)) {
+            // If customer exists but has no name, try to update it from Users table
+            $userData = $this->findUserByPhone($phone);
+            if (!empty($userData['name'])) {
+                $customer->update(['name' => $userData['name']]);
+            }
         }
 
         return $customer;
+    }
+
+    /**
+     * Find user data by phone number from Users table
+     *
+     * @param string $phone
+     * @return array
+     */
+    private function findUserByPhone($phone)
+    {
+        // Remove the + prefix for searching
+        $phoneDigits = preg_replace('/[^0-9]/', '', $phone);
+
+        $user = User::whereRaw("REPLACE(REPLACE(REPLACE(phone, '-', ''), ' ', ''), '+', '') LIKE ?", ['%' . $phoneDigits . '%'])
+            ->where(function($q) {
+                $q->where('status', 'active')->orWhere('status', 1);
+            })
+            ->first();
+
+        if ($user) {
+            return [
+                'name' => $user->name,
+                'email' => $user->email,
+                'user_id' => $user->id,
+            ];
+        }
+
+        return [];
     }
 
     /**

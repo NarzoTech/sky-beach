@@ -209,18 +209,23 @@
                                 </div>
                             @endif
 
+                            @php
+                                $sidebarBanner = cms_banner('sidebar');
+                            @endphp
+                            @if($sidebarBanner)
                             <div class="menu_details_banner">
-                                <img src="{{ asset('website/images/details_banner_img.png') }}" alt="offer" class="img-fluid w-100">
+                                <img src="{{ $sidebarBanner->image ? asset($sidebarBanner->image) : asset('website/images/details_banner_img.png') }}" alt="{{ __('offer') }}" class="img-fluid w-100">
                                 <div class="text">
-                                    <h5>{{ __('Get Up to 50% Off') }}</h5>
-                                    <h3>{{ __('Combo Pack') }}</h3>
-                                    <a href="{{ route('website.menu') }}">
-                                        <span><img src="{{ asset('website/images/cart_icon_2.png') }}" alt="cart" class="img-fluid w-100"></span>
-                                        {{ __('Shop Now') }}
+                                    <h5>{{ $sidebarBanner->subtitle ?? __('Get Up to 50% Off') }}</h5>
+                                    <h3>{{ $sidebarBanner->title ?? __('Combo Pack') }}</h3>
+                                    <a href="{{ $sidebarBanner->button_link ?? route('website.menu') }}">
+                                        <span><img src="{{ asset('website/images/cart_icon_2.png') }}" alt="{{ __('cart') }}" class="img-fluid w-100"></span>
+                                        {{ $sidebarBanner->button_text ?? __('Shop Now') }}
                                         <i class="far fa-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>

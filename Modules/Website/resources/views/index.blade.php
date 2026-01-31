@@ -165,7 +165,7 @@
                                 <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
                                 <div class="d-flex flex-wrap align-items-center">
                                     <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
-                                    <h3>${{ number_format($item->base_price, 2) }}</h3>
+                                    <h3>{{ currency($item->base_price) }}</h3>
                                 </div>
                             </div>
                         </div>

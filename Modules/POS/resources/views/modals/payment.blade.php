@@ -44,7 +44,7 @@
                         <button type="button" class="btn btn-primary me-2" onclick="printReceipt()">
                             {{ __('Print Receipt') }}
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-outline-secondary" onclick="closePaymentAndClearCart()">
                             {{ __('Done') }}
                         </button>
                     </div>
@@ -529,75 +529,6 @@ function initPaymentModal(options) {
 
     console.log('initPaymentModal called with orderType:', currentOrderType, 'total:', currentTotal);
 
-    // Get summary values from POS
-    const subtotal = parseFloat(document.getElementById('subtotal')?.value) || currentTotal;
-    const discount = parseFloat(document.getElementById('discount_total_amount')?.value) || 0;
-    const taxRate = parseFloat(document.getElementById('taxRate')?.value) || 0;
-    const taxAmount = parseFloat(document.getElementById('taxAmount')?.value) || 0;
-
-    // Update summary display
-    document.getElementById('paymentSubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
-    document.getElementById('paymentTaxRateDisplay').textContent = taxRate;
-    document.getElementById('paymentTaxDisplay').textContent = currencyIcon + ' ' + taxAmount.toFixed(2);
-
-    // Show/hide discount row
-    if (discount > 0) {
-        document.getElementById('paymentDiscountRow').style.display = 'flex';
-        document.getElementById('paymentDiscountDisplay').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
-    } else {
-        document.getElementById('paymentDiscountRow').style.display = 'none';
-    }
-
-    // Update total display
-    document.getElementById('paymentTotalAmount').textContent = currencyIcon + ' ' + currentTotal.toFixed(2);
-    document.getElementById('paymentTotalHidden').value = currentTotal;
-
-    // Update order context
-    updateOrderTypeBadge(currentOrderType);
-    document.getElementById('paymentItemCount').textContent = itemCount + ' {{ __("items") }}';
-    document.getElementById('paymentOrderType').value = currentOrderType;
-
-    // Copy relevant data from setup forms
-    if (currentOrderType === 'dine_in') {
-        const tableId = document.getElementById('tableSelector_table_id')?.value || '';
-        const guestCount = document.querySelector('#dineInSetupForm input[name="guest_count"]')?.value || '';
-        const waiterId = document.querySelector('#dineInSetupForm input[name="waiter_id"]:checked')?.value || '';
-
-        document.getElementById('paymentTableId').value = tableId;
-        document.getElementById('paymentGuestCount').value = guestCount;
-        document.getElementById('paymentWaiterId').value = waiterId;
-    }
-
-    // Reset to single payment mode
-    resetToSinglePayment();
-
-    // Update amount input with total
-    const amountInput = document.getElementById('paymentReceiveAmount');
-    if (amountInput) {
-        amountInput.value = currentTotal.toFixed(2);
-    }
-
-    // Update amount input wrapper data-total for change calculation
-    const amountWrapper = document.getElementById('paymentReceiveAmountWrapper');
-    if (amountWrapper) {
-        amountWrapper.dataset.total = currentTotal;
-    }
-
-    // Update exact amount button
-    const exactBtn = document.getElementById('paymentReceiveAmountExactBtn');
-    if (exactBtn) {
-        exactBtn.dataset.amount = currentTotal;
-    }
-
-    // Update change display
-    calculateChange();
-
-    // Hide success/loading, show form
-    document.getElementById('paymentLoading').classList.add('d-none');
-    document.getElementById('paymentSuccess').classList.add('d-none');
-    document.getElementById('paymentFormContainer').classList.remove('d-none');
-    document.getElementById('paymentModalFooter').classList.remove('d-none');
-
     // Hide previous setup modal if open
     const setupModals = ['dineInSetupModal', 'takeawaySetupModal', 'deliverySetupModal'];
     setupModals.forEach(modalId => {
@@ -608,9 +539,97 @@ function initPaymentModal(options) {
         }
     });
 
-    // Show payment modal
+    // Show modal with loading state first
+    document.getElementById('paymentLoading').classList.remove('d-none');
+    document.getElementById('paymentSuccess').classList.add('d-none');
+    document.getElementById('paymentFormContainer').classList.add('d-none');
+    document.getElementById('paymentModalFooter').classList.add('d-none');
+
+    // Update loading text
+    const loadingText = document.querySelector('.payment-loading-text');
+    if (loadingText) {
+        loadingText.textContent = '{{ __("Preparing payment...") }}';
+    }
+
+    // Show payment modal immediately with loader
     const paymentModal = new bootstrap.Modal(document.getElementById('unifiedPaymentModal'));
     paymentModal.show();
+
+    // Initialize content after a brief delay for smooth UX
+    setTimeout(function() {
+        // Get summary values from POS
+        const subtotal = parseFloat(document.getElementById('subtotal')?.value) || currentTotal;
+        const discount = parseFloat(document.getElementById('discount_total_amount')?.value) || 0;
+        const taxRate = parseFloat(document.getElementById('taxRate')?.value) || 0;
+        const taxAmount = parseFloat(document.getElementById('taxAmount')?.value) || 0;
+
+        // Update summary display
+        document.getElementById('paymentSubtotal').textContent = currencyIcon + ' ' + subtotal.toFixed(2);
+        document.getElementById('paymentTaxRateDisplay').textContent = taxRate;
+        document.getElementById('paymentTaxDisplay').textContent = currencyIcon + ' ' + taxAmount.toFixed(2);
+
+        // Show/hide discount row
+        if (discount > 0) {
+            document.getElementById('paymentDiscountRow').style.display = 'flex';
+            document.getElementById('paymentDiscountDisplay').textContent = '- ' + currencyIcon + ' ' + discount.toFixed(2);
+        } else {
+            document.getElementById('paymentDiscountRow').style.display = 'none';
+        }
+
+        // Update total display
+        document.getElementById('paymentTotalAmount').textContent = currencyIcon + ' ' + currentTotal.toFixed(2);
+        document.getElementById('paymentTotalHidden').value = currentTotal;
+
+        // Update order context
+        updateOrderTypeBadge(currentOrderType);
+        document.getElementById('paymentItemCount').textContent = itemCount + ' {{ __("items") }}';
+        document.getElementById('paymentOrderType').value = currentOrderType;
+
+        // Copy relevant data from setup forms
+        if (currentOrderType === 'dine_in') {
+            const tableId = document.getElementById('tableSelector_table_id')?.value || '';
+            const guestCount = document.querySelector('#dineInSetupForm input[name="guest_count"]')?.value || '';
+            const waiterId = document.querySelector('#dineInSetupForm input[name="waiter_id"]:checked')?.value || '';
+
+            document.getElementById('paymentTableId').value = tableId;
+            document.getElementById('paymentGuestCount').value = guestCount;
+            document.getElementById('paymentWaiterId').value = waiterId;
+        }
+
+        // Reset to single payment mode
+        resetToSinglePayment();
+
+        // Update amount input with total
+        const amountInput = document.getElementById('paymentReceiveAmount');
+        if (amountInput) {
+            amountInput.value = currentTotal.toFixed(2);
+        }
+
+        // Update amount input wrapper data-total for change calculation
+        const amountWrapper = document.getElementById('paymentReceiveAmountWrapper');
+        if (amountWrapper) {
+            amountWrapper.dataset.total = currentTotal;
+        }
+
+        // Update exact amount button
+        const exactBtn = document.getElementById('paymentReceiveAmountExactBtn');
+        if (exactBtn) {
+            exactBtn.dataset.amount = currentTotal;
+        }
+
+        // Update change display
+        calculateChange();
+
+        // Hide loading, show form
+        document.getElementById('paymentLoading').classList.add('d-none');
+        document.getElementById('paymentFormContainer').classList.remove('d-none');
+        document.getElementById('paymentModalFooter').classList.remove('d-none');
+
+        // Reset loading text for future use
+        if (loadingText) {
+            loadingText.textContent = '{{ __("Processing payment...") }}';
+        }
+    }, 300);
 }
 
 // Update order type badge appearance
@@ -1032,6 +1051,9 @@ function completePayment() {
             // Store order ID for receipt printing
             window.lastOrderId = result.order_id;
 
+            // Award loyalty points if customer has phone
+            awardLoyaltyPointsForOrder(result.order_id, currentTotal);
+
             // Reset cart
             if (typeof getCart === 'function') {
                 getCart();
@@ -1078,6 +1100,94 @@ function printReceipt(orderId) {
     if (printWindow) {
         printWindow.focus();
     }
+}
+
+// Award loyalty points for completed order
+function awardLoyaltyPointsForOrder(orderId, orderTotal) {
+    // Get customer phone from various sources
+    let customerPhone = null;
+
+    // Try from customer selector
+    const customerSelect = document.getElementById('customer_id');
+    if (customerSelect && customerSelect.value && customerSelect.value !== 'walk-in-customer') {
+        const selectedOption = customerSelect.options[customerSelect.selectedIndex];
+        customerPhone = selectedOption?.dataset?.phone;
+    }
+
+    // Try from delivery form
+    if (!customerPhone) {
+        const deliveryPhone = document.getElementById('delivery_phone')?.value ||
+                              document.querySelector('#deliverySetupForm input[name="delivery_phone"]')?.value;
+        if (deliveryPhone && deliveryPhone.trim()) {
+            customerPhone = deliveryPhone.trim();
+        }
+    }
+
+    // If no phone, skip awarding points
+    if (!customerPhone) {
+        console.log('No customer phone found, skipping loyalty points');
+        return;
+    }
+
+    // Award points via API
+    const formData = new FormData();
+    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('phone', customerPhone);
+    formData.append('sale_id', orderId);
+    formData.append('order_total', orderTotal);
+
+    fetch('{{ route("admin.pos.loyalty.award") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success && result.points_earned > 0) {
+            // Show points earned notification
+            toastr.info('{{ __("Customer earned") }} ' + result.points_earned + ' {{ __("loyalty points!") }}');
+
+            // Update success message to include points
+            const successMsg = document.getElementById('paymentSuccessMessage');
+            if (successMsg) {
+                successMsg.innerHTML = successMsg.textContent +
+                    '<br><small class="text-info"><i class="bx bx-star"></i> +' + result.points_earned + ' {{ __("points earned") }}</small>';
+            }
+        }
+    })
+    .catch(error => {
+        console.log('Loyalty points error (non-critical):', error);
+    });
+}
+
+// Close payment modal and clear cart
+function closePaymentAndClearCart() {
+    // Close the modal
+    const paymentModal = bootstrap.Modal.getInstance(document.getElementById('unifiedPaymentModal'));
+    if (paymentModal) {
+        paymentModal.hide();
+    }
+
+    // Clear order ID
+    window.lastOrderId = null;
+
+    // Clear the cart by calling the cart-clear route and reload page
+    fetch('{{ route("admin.cart-clear") }}', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(() => {
+        // Reload the page to show empty cart
+        window.location.reload();
+    })
+    .catch(() => {
+        // Still reload on error
+        window.location.reload();
+    });
 }
 
 // Event listeners
