@@ -24,10 +24,11 @@
         }
     @endphp
     <div class="col-md-4 col-sm-6 mb-3">
-        <div class="card h-100 running-order-card" style="cursor: pointer;" onclick="viewOrderDetails({{ $order->id }})">
-            <div class="card-header bg-{{ $orderTypeConfig['color'] }} text-white py-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold">
+        <div class="card h-100 running-order-card border-0 shadow-sm" style="cursor: pointer; border-radius: 8px; overflow: hidden;" onclick="viewOrderDetails({{ $order->id }})">
+            <div class="card-body p-3">
+                {{-- Header Row --}}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge" style="background: #47c363; color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 4px;">
                         <i class="fas {{ $orderTypeConfig['icon'] }} me-1"></i>
                         @if($order->order_type == 'dine_in' && $order->table)
                             {{ $order->table->name }}
@@ -35,26 +36,24 @@
                             {{ $orderTypeConfig['label'] }}
                         @endif
                     </span>
-                    <span class="badge bg-light text-dark">
-                        #{{ $order->invoice }}
-                    </span>
+                    <span class="text-muted small fw-bold">#{{ $order->invoice }}</span>
                 </div>
-            </div>
-            <div class="card-body py-2">
+
+                {{-- Info Row --}}
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        {{ $order->created_at->diffForHumans() }}
+                        <i class="fas fa-clock me-1"></i>{{ $order->created_at->diffForHumans() }}
                     </small>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-info" title="{{ __('Guests') }}">
+                    <div class="d-flex gap-1">
+                        <span class="badge bg-light text-dark" style="font-size: 11px;" title="{{ __('Guests') }}">
                             <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }}
                         </span>
-                        <span class="badge bg-secondary" title="{{ __('Items') }}">
+                        <span class="badge bg-light text-dark" style="font-size: 11px;" title="{{ __('Items') }}">
                             <i class="fas fa-utensils me-1"></i>{{ $order->details->sum('quantity') }}
                         </span>
                     </div>
                 </div>
+
                 @if($order->estimated_prep_minutes)
                 @php
                     $prepEndTime = $order->created_at->addMinutes($order->estimated_prep_minutes);
@@ -65,47 +64,49 @@
                 @endphp
                 <div class="mb-2">
                     @if($isOverdue)
-                        <span class="badge bg-success w-100 py-1">
+                        <span class="badge bg-success w-100 py-1" style="font-size: 11px;">
                             <i class="fas fa-check-circle me-1"></i>{{ __('Ready') }}
                             <small class="opacity-75">(+{{ $overdueMinutes }} min)</small>
                         </span>
                     @else
-                        <span class="badge bg-warning text-light w-100 py-1">
+                        <span class="badge bg-warning text-dark w-100 py-1" style="font-size: 11px;">
                             <i class="fas fa-fire me-1"></i>{{ $remainingMinutes }} {{ __('min remaining') }}
                         </span>
                     @endif
                 </div>
                 @endif
 
-                <div class="order-items-preview" style="max-height: 80px; overflow: hidden;">
-                    @foreach($order->details->take(3) as $detail)
-                    <div class="d-flex justify-content-between small">
-                        <span class="text-truncate" style="max-width: 150px;">
+                {{-- Items Preview --}}
+                <div class="order-items-preview bg-light p-2 rounded" style="max-height: 70px; overflow: hidden; font-size: 12px;">
+                    @foreach($order->details->take(2) as $detail)
+                    <div class="d-flex justify-content-between">
+                        <span class="text-truncate" style="max-width: 140px;">
                             {{ $detail->quantity }}x {{ $detail->menuItem->name ?? ($detail->service->name ?? 'Item') }}
                         </span>
-                        <span>{{ currency($detail->sub_total) }}</span>
+                        <span class="fw-bold">{{ currency($detail->sub_total) }}</span>
                     </div>
                     @endforeach
-                    @if($order->details->count() > 3)
-                    <small class="text-muted">+{{ $order->details->count() - 3 }} more items...</small>
+                    @if($order->details->count() > 2)
+                    <small class="text-muted">+{{ $order->details->count() - 2 }} {{ __('more') }}...</small>
                     @endif
                 </div>
             </div>
-            <div class="card-footer bg-light py-2">
+            <div class="card-footer bg-white border-top py-2 px-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">
-                        <i class="fas fa-user me-1"></i>
-                        {{ $order->customer->name ?? 'Guest' }}
-                    </span>
-                    <span class="fw-bold text-primary">
+                    <div>
+                        <small class="text-muted d-block">
+                            <i class="fas fa-user me-1"></i>{{ $order->customer->name ?? 'Guest' }}
+                        </small>
+                        @if($order->waiter)
+                        <small class="text-muted">
+                            <i class="fas fa-user-tie me-1"></i>{{ $order->waiter->name }}
+                        </small>
+                        @endif
+                    </div>
+                    <span class="fw-bold" style="color: #47c363; font-size: 16px;">
                         {{ currency($orderGrandTotal) }}
                     </span>
                 </div>
-                @if($order->waiter)
-                <div class="text-muted small mt-1">
-                    <i class="fas fa-user-tie me-1"></i>{{ __('Waiter') }}: {{ $order->waiter->name }}
-                </div>
-                @endif
             </div>
         </div>
     </div>

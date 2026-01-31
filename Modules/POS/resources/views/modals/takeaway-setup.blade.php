@@ -413,11 +413,6 @@ function submitTakeawayOrderWithoutPayment() {
                 takeawayModal.hide();
             }
 
-            // Show success message
-            if (typeof toastr !== 'undefined') {
-                toastr.success(result.message || '{{ __("Take-away order placed successfully") }}');
-            }
-
             // Reset cart
             if (typeof getCart === 'function') {
                 getCart();
@@ -427,6 +422,39 @@ function submitTakeawayOrderWithoutPayment() {
             if (typeof updateRunningOrdersCount === 'function') {
                 updateRunningOrdersCount();
             }
+
+            // Get order ID from response
+            const orderId = result.order ? result.order.id : (result.order_id || null);
+            const successMessage = result.message || '{{ __("Take-away order placed successfully") }}';
+
+            // Show success dialog with print option
+            Swal.fire({
+                icon: 'success',
+                title: "{{ __('Order Placed') }}",
+                text: successMessage,
+                showCancelButton: true,
+                showDenyButton: orderId ? true : false,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                denyButtonColor: '#17a2b8',
+                confirmButtonText: '<i class="fas fa-list me-1"></i> {{ __("View Orders") }}',
+                cancelButtonText: '<i class="fas fa-plus me-1"></i> {{ __("New Order") }}',
+                denyButtonText: '<i class="fas fa-print me-1"></i> {{ __("Print Receipt") }}',
+                reverseButtons: true
+            }).then((dialogResult) => {
+                if (dialogResult.isConfirmed) {
+                    // Show running orders modal
+                    if (typeof openRunningOrders === 'function') {
+                        openRunningOrders();
+                    }
+                } else if (dialogResult.isDenied && orderId) {
+                    // Print receipt only
+                    if (typeof printDineInReceipt === 'function') {
+                        printDineInReceipt(orderId);
+                    }
+                }
+                // If cancelled, just stay on POS for new order
+            });
         } else {
             if (typeof toastr !== 'undefined') {
                 toastr.error(result.message || '{{ __("Failed to place order") }}');

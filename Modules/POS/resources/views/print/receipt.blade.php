@@ -24,7 +24,7 @@
             font-weight: bold;
         }
         .restaurant-info {
-            font-size: 10px;
+            font-size: 12px;
             margin-top: 3px;
         }
         .divider {
@@ -38,7 +38,7 @@
         .info-row {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 12px;
             margin: 2px 0;
         }
         .items-table {
@@ -48,13 +48,13 @@
         .items-table th {
             text-align: left;
             border-bottom: 1px solid #000;
-            font-size: 10px;
+            font-size: 12px;
             padding: 3px 0;
         }
         .items-table td {
             padding: 3px 0;
             vertical-align: top;
-            font-size: 11px;
+            font-size: 12px;
         }
         .items-table .qty {
             width: 30px;
@@ -65,8 +65,8 @@
             text-align: right;
         }
         .addon-row {
-            font-size: 10px;
-            color: #555;
+            font-size: 12px;
+            color: #000;
         }
         .addon-row td {
             padding: 1px 0 1px 10px;
@@ -77,7 +77,7 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 12px;
             padding: 2px 0;
         }
         .total-row.grand {
@@ -95,13 +95,13 @@
         }
         .payment-title {
             font-weight: bold;
-            font-size: 11px;
+            font-size: 12px;
             margin-bottom: 5px;
         }
         .footer {
             text-align: center;
             margin-top: 15px;
-            font-size: 10px;
+            font-size: 12px;
         }
         .footer-thanks {
             font-size: 12px;
@@ -144,7 +144,7 @@
     </div>
     <div class="info-row">
         <span>Date:</span>
-        <span>{{ $sale->created_at->format('d-M-Y H:i') }}</span>
+        <span>{{ $sale->created_at->setTimezone('Asia/Dhaka')->format('d-M-Y H:i') }}</span>
     </div>
     @if($sale->table)
     <div class="info-row">
@@ -221,27 +221,37 @@
         </div>
     </div>
 
+    @php
+        $totalAmount = $sale->total ?? $sale->grand_total ?? 0;
+        $paidAmount = $sale->paid_amount ?? 0;
+        $returnAmount = $paidAmount - $totalAmount;
+        $paymentMethod = 'Cash';
+        $isCashPayment = true;
+        if($sale->payments && $sale->payments->count() > 0) {
+            $firstPayment = $sale->payments->first();
+            $paymentMethod = ucfirst($firstPayment->payment_type ?? 'cash');
+            $isCashPayment = strtolower($firstPayment->payment_type ?? 'cash') == 'cash';
+        }
+    @endphp
     @if($sale->payments && $sale->payments->count() > 0)
     <div class="payment-info">
         <div class="payment-title">PAYMENT DETAILS</div>
-        @foreach($sale->payments as $payment)
+        @if($isCashPayment)
         <div class="info-row">
-            <span>{{ ucfirst($payment->payment_type ?? 'Cash') }}:</span>
-            <span>{{ number_format($payment->amount, 2) }}</span>
+            <span>Received:</span>
+            <span>{{ currency($paidAmount) }}</span>
         </div>
-        @endforeach
-        @if($sale->payments->count() > 1 && ($sale->paid_amount ?? 0) > 0)
-        <div class="info-row" style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;">
-            <span>Total Paid:</span>
-            <span>{{ number_format($sale->paid_amount, 2) }}</span>
+        @if($returnAmount > 0)
+        <div class="info-row">
+            <span>Return:</span>
+            <span>{{ currency($returnAmount) }}</span>
         </div>
         @endif
-        @if(($sale->change_amount ?? $sale->return_amount ?? 0) > 0)
-        <div class="info-row">
-            <span>Change:</span>
-            <span>{{ number_format($sale->change_amount ?? $sale->return_amount, 2) }}</span>
-        </div>
         @endif
+        <div class="info-row"{{ $isCashPayment ? ' style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;"' : '' }}>
+            <span>Payment By:</span>
+            <span>{{ $paymentMethod }}</span>
+        </div>
     </div>
     @endif
 
@@ -251,8 +261,8 @@
         @if($setting->website ?? false)
         <div>{{ $setting->website }}</div>
         @endif
-        <div style="margin-top: 8px; font-size: 9px;">
-            Printed: {{ now()->format('d-M-Y H:i:s') }}
+        <div style="margin-top: 8px;">
+            Printed: {{ now()->setTimezone('Asia/Dhaka')->format('d-M-Y H:i:s') }}
         </div>
     </div>
 

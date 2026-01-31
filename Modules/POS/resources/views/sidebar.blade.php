@@ -6,7 +6,14 @@
         checkAdminHasPermission('table.view') ||
         checkAdminHasPermission('reservation.view') ||
         checkAdminHasPermission('waiter.dashboard'))
-    <li class="menu-item {{ request()->is('admin/pos*') || request()->is('admin/tables*') || request()->is('admin/reservations*') || request()->is('admin/waiter*') || request()->is('admin/kitchen*') ? 'active open' : '' }}">
+    @php
+        $posMenuActive = request()->is('admin/pos*') || request()->is('admin/tables*') || request()->is('admin/reservations*') || request()->is('admin/kitchen*');
+        // For non-waiter users, also activate on waiter pages
+        if (!auth('admin')->user()->hasRole('Waiter')) {
+            $posMenuActive = $posMenuActive || request()->is('admin/waiter*');
+        }
+    @endphp
+    <li class="menu-item {{ $posMenuActive ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-store'></i>
             <div class="text-truncate" data-i18n="{{ __('POS Management') }}">{{ __('POS Management') }}</div>
@@ -22,7 +29,8 @@
                 </li>
             @endadminCan
 
-            {{-- Waiter Dashboard --}}
+            {{-- Waiter Dashboard (hidden for waiter users as they have it in main sidebar) --}}
+            @if(!auth('admin')->user()->hasRole('Waiter'))
             @adminCan('waiter.dashboard')
                 <li class="menu-item {{ Route::is('admin.waiter.dashboard') ? 'active' : '' }}">
                     <a class="menu-link" href="{{ route('admin.waiter.dashboard') }}">
@@ -30,6 +38,7 @@
                     </a>
                 </li>
             @endadminCan
+            @endif
 
             {{-- Kitchen Display --}}
             @adminCan('kitchen.view')

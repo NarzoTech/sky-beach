@@ -108,11 +108,13 @@
             <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
                 <h4 class="section_title">{{ __('Restaurant Tables') }}</h4>
             </div>
+            @if(!auth('admin')->user()->hasRole('Waiter'))
             <div class="btn-actions-pane-right actions-icon-btn">
                 <a href="{{ route('admin.tables.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ __('Add Table') }}
                 </a>
             </div>
+            @endif
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -169,17 +171,21 @@
                                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $table->id }}">
                                             <a href="{{ route('admin.tables.show', $table->id) }}"
                                                 class="dropdown-item">{{ __('View') }}</a>
+                                            @if(!auth('admin')->user()->hasRole('Waiter'))
                                             <a href="{{ route('admin.tables.edit', $table->id) }}"
                                                 class="dropdown-item">{{ __('Edit') }}</a>
+                                            @endif
                                             @if ($table->isOccupied())
                                                 <a href="javascript:void(0)"
                                                     class="dropdown-item release-table"
                                                     data-id="{{ $table->id }}">{{ __('Release Table') }}</a>
                                             @endif
+                                            @if(!auth('admin')->user()->hasRole('Waiter'))
                                             <a href="javascript:void(0)"
                                                 class="trigger--fire-modal-1 deleteForm dropdown-item"
                                                 data-url="{{ route('admin.tables.destroy', $table->id) }}"
                                                 data-form="deleteForm">{{ __('Delete') }}</a>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>

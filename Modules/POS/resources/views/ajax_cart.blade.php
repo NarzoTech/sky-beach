@@ -4,12 +4,11 @@
             <thead class="text-center" style="background: #00a65a">
                 <tr style="height: 25px; color: #fff;">
                     <th style="padding:4px 0px; margin:0px; width: 5%;">SL</th>
-                    <th style="padding:4px 0px; margin:0px; width: 35%;">Name</th>
+                    <th style="padding:4px 0px; margin:0px; width: 43%;">Name</th>
                     <th style="padding:4px 0px; margin:0px; width: 12%;">Qty</th>
-                    <th style="padding:4px 0px; margin:0px; width: 8%;">Unit</th>
-                    <th style="padding:4px 0px; margin:0px; width: 10%;">Price</th>
-                    <th style="padding:4px 0px; margin:0px; width: 12%;">Total</th>
-                    <th style="padding:4px 0px; margin:0px; width:8%;">
+                    <th style="padding:4px 0px; margin:0px; width: 12%;">Price</th>
+                    <th style="padding:4px 0px; margin:0px; width: 13%;">Total</th>
+                    <th style="padding:4px 0px; margin:0px; width: 15%;">
                         Action
                     </th>
                 </tr>
@@ -108,10 +107,6 @@
                             <input min="1" type="number" value="{{ $cart_content['qty'] }}"
                                 class="pos_input_qty form-control">
                         </td>
-                        <td class="px-3">
-                            {{ $cart_content['unit'] ?? '' }}
-                        </td>
-
                         <td class="price">
                             <span>
                                 {{ currency($cart_content['price']) }}

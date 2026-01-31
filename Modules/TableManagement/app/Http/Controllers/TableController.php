@@ -28,6 +28,11 @@ class TableController extends Controller
 
     public function create()
     {
+        // Restrict waiters from creating tables
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to create tables.');
+        }
+
         $floors = $this->service->getFloors();
         $sections = $this->service->getSections();
         $shapes = RestaurantTable::SHAPES;
@@ -37,6 +42,11 @@ class TableController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // Restrict waiters from creating tables
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to create tables.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'table_number' => 'nullable|string|max:50|unique:restaurant_tables,table_number',
@@ -68,6 +78,11 @@ class TableController extends Controller
 
     public function edit($id)
     {
+        // Restrict waiters from editing tables
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to edit tables.');
+        }
+
         $table = $this->service->find($id);
 
         if (!$table) {
@@ -83,6 +98,11 @@ class TableController extends Controller
 
     public function update(Request $request, $id): RedirectResponse
     {
+        // Restrict waiters from updating tables
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to update tables.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'table_number' => 'required|string|max:50|unique:restaurant_tables,table_number,' . $id,
@@ -103,6 +123,11 @@ class TableController extends Controller
 
     public function destroy($id): RedirectResponse
     {
+        // Restrict waiters from deleting tables
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to delete tables.');
+        }
+
         try {
             $this->service->destroy($id);
             return redirect()->route('admin.tables.index')

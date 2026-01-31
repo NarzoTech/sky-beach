@@ -11,7 +11,9 @@
         }
         body {
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
             width: 80mm;
             margin: 0 auto;
             padding: 5mm;
@@ -22,13 +24,15 @@
             margin-bottom: 10px;
         }
         .shop-name {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 700;
+            color: #000;
             margin-bottom: 3px;
         }
         .shop-info {
-            font-size: 10px;
-            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .divider {
             border-top: 1px dashed #000;
@@ -40,8 +44,9 @@
         }
         .receipt-title {
             text-align: center;
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            color: #000;
             margin: 5px 0;
         }
         .info-section {
@@ -50,11 +55,13 @@
         .info-row {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            margin: 2px 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
+            margin: 3px 0;
         }
         .info-row strong {
-            font-weight: bold;
+            font-weight: 700;
         }
         .items-section {
             margin: 10px 0;
@@ -64,8 +71,9 @@
             border-bottom: 1px solid #000;
             padding-bottom: 3px;
             margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #000;
         }
         .col-item { flex: 1; }
         .col-qty { width: 35px; text-align: center; }
@@ -74,8 +82,10 @@
 
         .item-row {
             display: flex;
-            margin: 3px 0;
-            font-size: 11px;
+            margin: 4px 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .item-name {
             flex: 1;
@@ -85,9 +95,10 @@
         }
         .addon-row {
             display: flex;
-            font-size: 10px;
-            color: #555;
-            margin: 1px 0 1px 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #000;
+            margin: 2px 0 2px 10px;
         }
         .addon-name {
             flex: 1;
@@ -100,15 +111,18 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            padding: 2px 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
+            padding: 3px 0;
         }
         .total-row.discount {
-            color: #060;
+            color: #000;
         }
         .total-row.grand {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 18px;
+            font-weight: 700;
+            color: #000;
             border-top: 2px solid #000;
             border-bottom: 2px solid #000;
             padding: 8px 0;
@@ -121,8 +135,9 @@
             border-radius: 3px;
         }
         .payment-title {
-            font-weight: bold;
-            font-size: 11px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #000;
             margin-bottom: 5px;
         }
         .footer {
@@ -132,20 +147,23 @@
             border-top: 1px dashed #000;
         }
         .thank-you {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
             margin-bottom: 5px;
         }
         .footer-info {
-            font-size: 10px;
-            color: #555;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .order-type {
             display: inline-block;
-            padding: 2px 8px;
-            background: #333;
+            padding: 3px 10px;
+            background: #000;
             color: #fff;
-            font-size: 10px;
+            font-size: 13px;
+            font-weight: 600;
             border-radius: 3px;
             margin-top: 8px;
         }
@@ -221,7 +239,7 @@
         </div>
         <div class="info-row">
             <span>Date:</span>
-            <span>{{ $sale->created_at->format('d/m/Y h:i A') }}</span>
+            <span>{{ $sale->created_at->setTimezone('Asia/Dhaka')->format('d/m/Y h:i A') }}</span>
         </div>
         @if($sale->table)
         <div class="info-row">
@@ -318,41 +336,35 @@
     </div>
 
     <!-- Payment Info -->
-    @if($sale->payment && $sale->payment->count() > 0)
+    @php
+        $returnAmount = ($sale->paid_amount ?? 0) - ($sale->grand_total ?? 0);
+        $paymentMethod = 'Cash';
+        $isCashPayment = true;
+        if($sale->payment && $sale->payment->count() > 0) {
+            $firstPayment = $sale->payment->first();
+            $paymentMethod = ucfirst($firstPayment->account->account_type ?? $firstPayment->payment_type ?? 'cash');
+            $isCashPayment = strtolower($firstPayment->account->account_type ?? $firstPayment->payment_type ?? 'cash') == 'cash';
+        }
+    @endphp
+    @if($sale->payment && $sale->payment->count() > 0 || ($sale->paid_amount ?? 0) > 0)
     <div class="payment-section">
         <div class="payment-title">PAYMENT</div>
-        @foreach($sale->payment as $payment)
+        @if($isCashPayment)
         <div class="info-row">
-            <span>{{ ucfirst($payment->account->account_type ?? $payment->payment_type ?? 'Cash') }}:</span>
-            <span>{{ number_format($payment->paying_amount ?? $payment->amount ?? 0, 2) }}</span>
+            <span>Received:</span>
+            <span>{{ currency($sale->paid_amount) }}</span>
         </div>
-        @endforeach
-        @if($sale->payment->count() > 1 && ($sale->paid_amount ?? 0) > 0)
-        <div class="info-row" style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;">
-            <span>Total Paid:</span>
-            <span>{{ number_format($sale->paid_amount, 2) }}</span>
+        @if($returnAmount > 0)
+        <div class="info-row">
+            <span>Return:</span>
+            <span>{{ currency($returnAmount) }}</span>
         </div>
         @endif
-        @if(($sale->return_amount ?? 0) > 0)
-        <div class="info-row">
-            <span>Change:</span>
-            <span>{{ number_format($sale->return_amount, 2) }}</span>
-        </div>
         @endif
-    </div>
-    @elseif(($sale->paid_amount ?? 0) > 0)
-    <div class="payment-section">
-        <div class="payment-title">PAYMENT</div>
-        <div class="info-row">
-            <span>Paid:</span>
-            <span>{{ number_format($sale->paid_amount, 2) }}</span>
+        <div class="info-row"{{ $isCashPayment ? ' style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;"' : '' }}>
+            <span>Payment By:</span>
+            <span>{{ $paymentMethod }}</span>
         </div>
-        @if(($sale->return_amount ?? 0) > 0)
-        <div class="info-row">
-            <span>Change:</span>
-            <span>{{ number_format($sale->return_amount, 2) }}</span>
-        </div>
-        @endif
     </div>
     @endif
 
@@ -366,19 +378,17 @@
         @if($setting->website ?? null)
         <div class="footer-info" style="margin-top: 8px;">{{ $setting->website }}</div>
         @endif
-        <div class="footer-info" style="margin-top: 8px; font-size: 9px;">
-            Printed: {{ now()->format('d/m/Y H:i:s') }}
+        <div class="footer-info" style="margin-top: 8px;">
+            Printed: {{ now()->setTimezone('Asia/Dhaka')->format('d/m/Y H:i:s') }}
         </div>
     </div>
 
     <script>
-        // Auto-print on load if coming from POS
-        if (window.location.search.includes('auto=1')) {
-            window.onload = function() {
-                setTimeout(function() {
-                    window.print();
-                }, 300);
-            }
+        // Auto-print on page load
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 300);
         }
     </script>
 </body>

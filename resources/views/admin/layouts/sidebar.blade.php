@@ -16,12 +16,21 @@
 
     <ul class="menu-inner py-1">
 
+        @if(auth('admin')->user()->hasRole('Waiter'))
+        <li class="menu-item {{ Route::is('admin.waiter.dashboard') ? 'active' : '' }}">
+            <a href="{{ route('admin.waiter.dashboard') }}" class="menu-link">
+                <i class='menu-icon tf-icons bx bx-home-smile'></i>
+                <div class="text-truncate" data-i18n="Basic">{{ __('Waiter Dashboard') }}</div>
+            </a>
+        </li>
+        @else
         <li class="menu-item {{ Route::is('admin.dashboard') ? 'active' : '' }}">
             <a href="{{ route('admin.dashboard') }}" class="menu-link">
                 <i class='menu-icon tf-icons bx bx-home-smile'></i>
                 <div class="text-truncate" data-i18n="Basic">{{ __('Dashboard') }}</div>
             </a>
         </li>
+        @endif
 
         @if (Module::isEnabled('Supplier'))
             @include('supplier::sidebar')
@@ -112,7 +121,8 @@
             @include('report::sidebar')
         @endif
 
-        {{-- Tax Reports --}}
+        {{-- Tax Reports (hidden for waiters) --}}
+        @if(!auth('admin')->user()->hasRole('Waiter'))
         <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class='menu-icon tf-icons bx bx-receipt'></i>
@@ -136,6 +146,7 @@
                 </li>
             </ul>
         </li>
+        @endif
 
         @if (Module::isEnabled('Expense'))
             @include('expense::sidebar')
@@ -174,7 +185,8 @@
             @include('attendance::sidebar')
         @endif
 
-        {{-- CMS Management Menu --}}
+        {{-- CMS Management Menu (hidden for waiters) --}}
+        @if(!auth('admin')->user()->hasRole('Waiter'))
         @if (Module::isEnabled('CMS'))
             <li class="menu-item {{ request()->is('admin/cms/*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -242,6 +254,7 @@
                     </li>
                 </ul>
             </li>
+        @endif
         @endif
 
         {{-- Restaurant/Website Management Menu --}}

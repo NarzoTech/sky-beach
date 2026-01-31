@@ -4,10 +4,15 @@
 }
 .product-modal-header {
     position: relative;
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #696cff;
     padding: 20px;
     border-radius: 0;
     color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-right: 50px;
 }
 .product-modal-close {
     position: absolute;
@@ -95,8 +100,8 @@
 }
 .variant-select:focus {
     outline: none;
-    border-color: #11998e;
-    box-shadow: 0 0 0 3px rgba(17,153,142,0.1);
+    border-color: #696cff;
+    box-shadow: 0 0 0 3px rgba(105,108,255,0.1);
 }
 .attributes-grid {
     display: grid;
@@ -107,7 +112,7 @@
     flex: 0 0 200px;
     max-width: 200px;
     padding: 24px;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+    background: #f8f9fa;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -127,7 +132,7 @@
 .price-value {
     font-size: 2rem;
     font-weight: 800;
-    color: #11998e;
+    color: #696cff;
 }
 .price-original {
     font-size: 14px;
@@ -157,8 +162,8 @@
     justify-content: center;
 }
 .qty-btn:hover {
-    border-color: #11998e;
-    color: #11998e;
+    border-color: #696cff;
+    color: #696cff;
 }
 .qty-btn:active {
     transform: scale(0.95);
@@ -175,12 +180,12 @@
 }
 .qty-input:focus {
     outline: none;
-    border-color: #11998e;
+    border-color: #696cff;
 }
 .add-to-cart-btn {
     width: 100%;
     padding: 14px 20px;
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #696cff;
     border: none;
     border-radius: 12px;
     color: #fff;
@@ -195,7 +200,7 @@
 }
 .add-to-cart-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(17,153,142,0.4);
+    box-shadow: 0 8px 25px rgba(105,108,255,0.4);
 }
 .add-to-cart-btn:active {
     transform: translateY(0);

@@ -96,7 +96,7 @@
     @endif
     <div class="info-row">
         <span>Date:</span>
-        <span>{{ now()->format('d-M-Y H:i') }}</span>
+        <span>{{ now()->setTimezone('Asia/Dhaka')->format('d-M-Y H:i') }}</span>
     </div>
 
     <div class="divider"></div>
@@ -150,7 +150,7 @@
     <div class="footer">
         <div>Thank You!</div>
         <div style="margin-top: 5px; font-size: 9px;">
-            Printed: {{ now()->format('d-M-Y H:i:s') }}
+            Printed: {{ now()->setTimezone('Asia/Dhaka')->format('d-M-Y H:i:s') }}
         </div>
     </div>
 

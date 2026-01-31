@@ -324,7 +324,7 @@ input {
 }
 
 .product-table .table-responsive {
-    height: 390px;
+    height: 385px;
     overflow-y: auto;
     margin-bottom: 25px;
     border: 1px solid #ddd;
@@ -433,7 +433,7 @@ input {
 }
 
 .pos_product_area {
-    height: 490px;
+    height: 470px;
     overflow: hidden;
     overflow-y: scroll;
     margin-bottom: 15px;

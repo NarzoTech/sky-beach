@@ -9,6 +9,40 @@
     .stat-card {
         border-radius: 8px;
     }
+    .stat-card .card-body h6 {
+        color: #697a8d !important;
+    }
+    .stat-card .card-body h3 {
+        color: #566a7f !important;
+    }
+    .stat-card .avatar {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .stat-card .avatar.bg-label-primary {
+        background-color: rgba(105, 108, 255, 0.16) !important;
+    }
+    .stat-card .avatar.bg-label-primary i {
+        color: #696cff !important;
+        font-size: 1.5rem;
+    }
+    .stat-card .avatar.bg-label-success {
+        background-color: rgba(113, 221, 55, 0.16) !important;
+    }
+    .stat-card .avatar.bg-label-success i {
+        color: #71dd37 !important;
+        font-size: 1.5rem;
+    }
+    .stat-card .avatar.bg-label-warning {
+        background-color: rgba(255, 171, 0, 0.16) !important;
+    }
+    .stat-card .avatar.bg-label-warning i {
+        color: #ffab00 !important;
+        font-size: 1.5rem;
+    }
     .table-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -235,10 +269,7 @@
                         @empty
                         <div class="text-center py-4 text-muted">
                             <i class="bx bx-inbox bx-lg mb-2"></i>
-                            <p class="mb-2">{{ __('No active orders') }}</p>
-                            <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-sm">
-                                <i class="bx bx-plus me-1"></i>{{ __('Create Order') }}
-                            </a>
+                            <p class="mb-0">{{ __('No active orders') }}</p>
                         </div>
                         @endforelse
                     </div>

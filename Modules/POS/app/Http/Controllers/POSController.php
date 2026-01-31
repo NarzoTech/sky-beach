@@ -203,96 +203,103 @@ class POSController extends Controller
     {
         Paginator::useBootstrap();
 
-        $menuItems = MenuItem::with('activeAddons')->where('status', 1)->where('is_available', 1)
-            ->where(function ($query) {
-                $query->whereNull('category_id')
-                    ->orWhereHas('category', function ($q) {
-                        $q->where('status', 1);
-                    });
-            })
-            ->orderBy('display_order', 'asc');
+        $searchType = $request->search_type ?? 'all'; // 'regular', 'combo', or 'all'
 
-        if ($request->category_id) {
-            $menuItems = $menuItems->where('category_id', $request->category_id);
+        $menuItemView = '';
+        $featuredMenuItemView = '';
+        $serviceView = '';
+        $favoriteServiceView = '';
+        $comboView = '';
+
+        // Load regular menu items if search type is 'regular' or 'all'
+        if ($searchType === 'regular' || $searchType === 'all') {
+            $menuItems = MenuItem::with('activeAddons')->where('status', 1)->where('is_available', 1)
+                ->where(function ($query) {
+                    $query->whereNull('category_id')
+                        ->orWhereHas('category', function ($q) {
+                            $q->where('status', 1);
+                        });
+                })
+                ->orderBy('display_order', 'asc');
+
+            if ($request->category_id) {
+                $menuItems = $menuItems->where('category_id', $request->category_id);
+            }
+
+            if ($request->name) {
+                $menuItems = $menuItems->where(function ($q) use ($request) {
+                    $q->where('name', 'LIKE', '%' . $request->name . '%')
+                        ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
+                });
+            }
+
+            // Paginate featured menu items (clone to avoid modifying original query)
+            $featuredItems = (clone $menuItems)->featured()->paginate(15);
+            $featuredItems->appends(request()->query());
+
+            // Paginate non-featured menu items (use clone of original query)
+            $nonFeaturedItems = (clone $menuItems)->paginate(15);
+            $nonFeaturedItems->appends(request()->query());
+
+            $services = $this->services->all()->where('status', 1);
+
+            if ($request->service_name) {
+                $services = $services->where(function ($q) use ($request) {
+                    $q->where('name', 'LIKE', '%' . $request->service_name . '%');
+                });
+            }
+
+            if ($request->service_category_id) {
+                $services = $services->where('category_id', $request->service_category_id);
+            }
+
+            $favoriteServices = clone $services;
+            $favoriteServices = $favoriteServices->where('is_favourite', 1)->paginate(15);
+            $favoriteServices->appends(request()->query());
+
+            $services = $services->paginate(15);
+            $services->appends(request()->query());
+
+            $serviceView = view('pos::ajax_service')->with([
+                'services' => $services,
+            ])->render();
+
+            $favoriteServiceView = view('pos::ajax_service')->with([
+                'services' => $favoriteServices,
+            ])->render();
+
+            $menuItemView = view('pos::ajax_menu_items')->with([
+                'menuItems' => $nonFeaturedItems,
+            ])->render();
+
+            $featuredMenuItemView = view('pos::ajax_menu_items')->with([
+                'menuItems' => $featuredItems,
+            ])->render();
         }
 
-        if ($request->name) {
-            $menuItems = $menuItems->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->name . '%')
-                    ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
-            });
+        // Load combos if search type is 'combo' or 'all'
+        if ($searchType === 'combo' || $searchType === 'all') {
+            $combos = Combo::currentlyAvailable()->ordered();
+
+            if ($request->name) {
+                $combos = $combos->where('name', 'LIKE', '%' . $request->name . '%');
+            }
+
+            $combos = $combos->paginate(15);
+            $combos->appends(request()->query());
+
+            $comboView = view('pos::ajax_combos')->with([
+                'combos' => $combos,
+            ])->render();
         }
-
-
-        // Paginate featured menu items (clone to avoid modifying original query)
-        $featuredItems = (clone $menuItems)->featured()->paginate(15);
-        $featuredItems->appends(request()->query());  // Append request parameters
-
-        // Paginate non-featured menu items (use clone of original query)
-        $nonFeaturedItems = (clone $menuItems)->paginate(15);
-        $nonFeaturedItems->appends(request()->query()); // Append request parameters
-
-
-
-        $services = $this->services->all()->where('status', 1);
-
-        if ($request->service_name) {
-            $services = $services->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->service_name . '%');
-            });
-        }
-
-
-        if ($request->service_category_id) {
-            $services = $services->where('category_id', $request->service_category_id);
-        }
-
-
-        $favoriteServices = clone $services; // Clone the query to avoid conflicts
-        $favoriteServices = $favoriteServices->where('is_favourite', 1)->paginate(15);
-        $favoriteServices->appends(request()->query());
-
-
-        $services = $services->paginate(15);
-        $services->appends(request()->query());
-
-
-        $serviceView = view('pos::ajax_service')->with([
-            'services' => $services,
-        ])->render();
-
-        $favoriteServiceView = view('pos::ajax_service')->with([
-            'services' => $favoriteServices,
-        ])->render();
-
-        $menuItemView =  view('pos::ajax_menu_items')->with([
-            'menuItems' => $nonFeaturedItems,
-        ])->render();
-
-        $featuredMenuItemView =  view('pos::ajax_menu_items')->with([
-            'menuItems' => $featuredItems,
-        ])->render();
-
-        // Load combos
-        $combos = Combo::currentlyAvailable()->ordered();
-
-        if ($request->name) {
-            $combos = $combos->where('name', 'LIKE', '%' . $request->name . '%');
-        }
-
-        $combos = $combos->paginate(15);
-        $combos->appends(request()->query());
-
-        $comboView = view('pos::ajax_combos')->with([
-            'combos' => $combos,
-        ])->render();
 
         return response()->json([
             'productView' => $menuItemView,
             'serviceView' => $serviceView,
             'favProductView' => $featuredMenuItemView,
             'favoriteServiceView' => $favoriteServiceView,
-            'comboView' => $comboView
+            'comboView' => $comboView,
+            'searchType' => $searchType
         ]);
     }
 
@@ -306,7 +313,27 @@ class POSController extends Controller
 
     public function load_products_list(Request $request)
     {
+        $searchType = $request->search_type ?? 'regular';
 
+        // If searching combos
+        if ($searchType === 'combo') {
+            $combos = Combo::currentlyAvailable()->ordered();
+
+            if ($request->name) {
+                $combos = $combos->where('name', 'LIKE', '%' . $request->name . '%');
+            }
+
+            $combos = $combos->get();
+
+            $view = view('pos::ajax_combos')->with([
+                'combos' => $combos,
+                'isAutocomplete' => true
+            ])->render();
+
+            return response()->json(['view' => $view, 'total' => $combos->count(), 'type' => 'combo']);
+        }
+
+        // Regular menu items search
         $menuItems = MenuItem::with('activeAddons')->active()->available()
             ->where(function ($query) {
                 $query->whereNull('category_id')
@@ -333,7 +360,7 @@ class POSController extends Controller
             'menuItems' => $menuItems
         ])->render();
 
-        return response()->json(['view' => $view, 'total' => $menuItems->count(), 'menuItem' => $menuItems->first()]);
+        return response()->json(['view' => $view, 'total' => $menuItems->count(), 'menuItem' => $menuItems->first(), 'type' => 'regular']);
     }
 
     public function load_product_modal($menu_item_id)
@@ -1007,7 +1034,9 @@ class POSController extends Controller
                 };
 
                 return response()->json([
+                    'success' => true,
                     'order' => $order_result,
+                    'order_id' => $order_result->id,
                     'invoice' => null,
                     'invoiceRoute' => null,
                     'is_deferred' => true,

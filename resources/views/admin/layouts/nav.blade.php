@@ -28,9 +28,17 @@
 
         <ul class="navbar-nav flex-wrap flex-row align-items-center ms-auto">
 
+            @if(!$header_admin->hasRole('Waiter'))
+            <!-- Website Link -->
+            <li class="nav-item">
+                <a href="{{ url('/') }}" target="_blank" class="nav-link nav-link-lg">
+                    <i class="bx bx-globe"></i> {{ __('Website') }}
+                </a>
+            </li>
+
             <!-- Calculator Button -->
             <li class="nav-item me-2">
-                <button type="button" class="btn btn-sm btn-success d-flex align-items-center" data-bs-toggle="modal"
+                <button type="button" class="btn btn-sm d-flex align-items-center" style="height: 32px; border-radius: 4px; background: #47c363; color: #fff; border-color: #47c363;" data-bs-toggle="modal"
                     data-bs-target="#calculatorModal">
                     <i class="bx bx-calculator me-1"></i> <span class="d-none d-md-inline">{{ __('Calculator') }}</span>
                 </button>
@@ -38,13 +46,12 @@
 
             <!-- Real-time Clock -->
             <li class="nav-item me-2 d-none d-lg-block">
-                <div class="topbar-clock-widget d-flex align-items-center px-2 py-1 rounded" style="background: linear-gradient(135deg, #696cff 0%, #5a5edd 100%); color: #fff;">
-                    <i class="bx bx-time-five me-2"></i>
-                    <div>
-                        <div class="topbar-clock-time" id="topbarClock" style="font-size: 0.9rem; font-weight: 600; font-family: 'Courier New', monospace;">00:00:00</div>
-                    </div>
+                <div class="topbar-clock-widget btn btn-sm d-flex align-items-center" style="height: 32px; border-radius: 4px; background: #696cff; color: #fff;">
+                    <i class="bx bx-time-five me-1"></i>
+                    <span class="topbar-clock-time" id="topbarClock" style="font-size: 0.85rem; font-weight: 600; font-family: 'Courier New', monospace;">00:00:00</span>
                 </div>
             </li>
+            @endif
 
             @adminCan('report.view')
                 <li class="nav-item">
@@ -77,11 +84,13 @@
                 </li>
             @endadminCan
             @adminCan('waiter.order.create')
+                @if(!Route::is('admin.waiter.dashboard'))
                 <li class="nav-item me-2">
-                    <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-sm d-flex align-items-center">
+                    <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-sm d-flex align-items-center" style="height: 32px; border-radius: 4px;">
                         <i class='bx bx-plus me-1'></i> <span class="d-none d-md-inline">{{ __('New Order') }}</span>
                     </a>
                 </li>
+                @endif
             @endadminCan
             <!-- User -->
             <li class="navbar-dropdown dropdown-user dropdown ms-3">

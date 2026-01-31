@@ -4,10 +4,15 @@
 }
 .product-modal-header {
     position: relative;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #696cff;
     padding: 20px;
     border-radius: 0;
     color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-right: 50px;
 }
 .product-modal-close {
     position: absolute;
@@ -63,13 +68,16 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: #2d3748;
-    margin-bottom: 8px;
+    margin-bottom: 0;
+}
+.product-modal-header .product-name {
+    color: #fff;
 }
 .product-badges {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 .product-badge {
     display: inline-flex;
@@ -80,9 +88,9 @@
     font-size: 11px;
     font-weight: 600;
 }
-.product-badge.vegetarian { background: #d4edda; color: #155724; }
-.product-badge.vegan { background: #cce5ff; color: #004085; }
-.product-badge.spicy { background: #f8d7da; color: #721c24; }
+.product-badge.vegetarian { background: rgba(255,255,255,0.9); color: #155724; }
+.product-badge.vegan { background: rgba(255,255,255,0.9); color: #004085; }
+.product-badge.spicy { background: rgba(255,255,255,0.9); color: #721c24; }
 .product-description {
     color: #718096;
     font-size: 14px;
@@ -105,7 +113,7 @@
     color: #4a5568;
 }
 .product-meta-item i {
-    color: #667eea;
+    color: #696cff;
 }
 .option-section {
     margin-bottom: 20px;
@@ -131,8 +139,8 @@
 }
 .variant-select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    border-color: #696cff;
+    box-shadow: 0 0 0 3px rgba(105,108,255,0.1);
 }
 .addons-grid {
     display: grid;
@@ -154,7 +162,7 @@
 }
 .addon-item.selected {
     background: #ebf4ff;
-    border-color: #667eea;
+    border-color: #696cff;
 }
 .addon-item input {
     display: none;
@@ -171,8 +179,8 @@
     transition: all 0.2s;
 }
 .addon-item.selected .addon-checkbox-visual {
-    background: #667eea;
-    border-color: #667eea;
+    background: #696cff;
+    border-color: #696cff;
 }
 .addon-item.selected .addon-checkbox-visual::after {
     content: '\2713';
@@ -190,14 +198,14 @@
 }
 .addon-price {
     font-size: 12px;
-    color: #667eea;
+    color: #696cff;
     font-weight: 600;
 }
 .product-action-section {
     flex: 0 0 200px;
     max-width: 200px;
     padding: 24px;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
+    background: #f8f9fa;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -217,7 +225,7 @@
 .price-value {
     font-size: 2rem;
     font-weight: 800;
-    color: #667eea;
+    color: #696cff;
 }
 .quantity-control {
     display: flex;
@@ -242,8 +250,8 @@
     justify-content: center;
 }
 .qty-btn:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #696cff;
+    color: #696cff;
 }
 .qty-btn:active {
     transform: scale(0.95);
@@ -260,12 +268,12 @@
 }
 .qty-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #696cff;
 }
 .add-to-cart-btn {
     width: 100%;
     padding: 14px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #696cff;
     border: none;
     border-radius: 12px;
     color: #fff;
@@ -280,7 +288,7 @@
 }
 .add-to-cart-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+    box-shadow: 0 8px 25px rgba(105,108,255,0.4);
 }
 .add-to-cart-btn:active {
     transform: translateY(0);

@@ -85,7 +85,7 @@
             position: relative;
             width: 80px;
             height: 80px;
-            margin: 0 auto 10px;
+            margin: 20px auto 15px;
         }
 
         .table-surface {
@@ -191,28 +191,31 @@
         }
 
         .table-info {
-            margin-top: 5px;
+            margin-top: 10px;
+            padding: 8px 5px;
+            border-top: 1px solid #eee;
         }
         .table-info strong {
             font-size: 13px;
             color: #333;
+            display: block;
+            margin-bottom: 5px;
         }
         .table-info small {
             font-size: 11px;
+            display: block;
+            margin-top: 3px;
+        }
+        .table-info small i,
+        .table-info small svg {
+            margin-right: 4px;
         }
 
-        #openTableModal {
-            border-style: dashed;
-            padding: 12px 15px;
-        }
-        #openTableModal:hover {
-            background: rgba(0,123,255,0.05);
-        }
-        #openTableModal.table-selected {
-            border-style: solid;
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            border-color: #28a745;
-            color: #28a745;
+        /* Take Away button checked state */
+        #orderTypeTakeAway:checked + label {
+            background: #47c363 !important;
+            border-color: #47c363 !important;
+            color: #fff !important;
         }
 
         /* Product Search Dropdown Styles */
@@ -279,6 +282,80 @@
             font-weight: 600;
             color: #696cff !important;
         }
+
+        /* POS Item Tabs Styles */
+        #posItemTabs {
+            border: none;
+            margin-bottom: 0;
+            display: flex;
+            width: 100%;
+        }
+
+        #posItemTabs .nav-item {
+            flex: 1;
+            width: 50%;
+        }
+
+        #posItemTabs .nav-link {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-weight: 600;
+            color: #6c757d;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+            box-shadow: none;
+        }
+
+        #posItemTabs .nav-link:hover {
+            color: #47c363;
+            background: #e9ecef;
+        }
+
+        #posItemTabs .nav-link.active {
+            color: #fff;
+            background: #47c363;
+            border: 1px solid #47c363;
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        #posItemTabsContent .tab-pane {
+            min-height: 300px;
+        }
+
+        #posItemTabsContent .card-body {
+            padding: 10px;
+        }
+
+        /* Equal height cards */
+        .section-body > .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .section-body > .row > .col-lg-5,
+        .section-body > .row > .col-lg-7 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-body > .row > .col-lg-5 > .card,
+        .section-body > .row > .col-lg-7 > .card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #products {
+            height: 100%;
+        }
+
+        .col-lg-7 > .card {
+            height: 100%;
+        }
     </style>
 @endpush
 @section('content')
@@ -292,6 +369,7 @@
                         <div class="card" id="products">
                                     <div class="card-header">
                                         <form id="product_search_form" class="pos_pro_search_form w-100">
+                                            <input type="hidden" name="search_type" id="search_type" value="regular">
                                             <div class="row">
                                                 @if($posSettings->show_barcode)
                                                 <div class="col-12">
@@ -307,17 +385,7 @@
                                                     </div>
                                                 </div>
                                                 @endif
-                                                <div class="col-12">
-                                                    <div class="form-group mb-2">
-                                                        <input type="text" class="form-control" name="name"
-                                                            id="name"
-                                                            placeholder="{{ __('Enter Menu Item name / SKU') }}"
-                                                            autocomplete="off" value="{{ request()->get('name') }}">
-                                                        <ul class="dropdown-menu" id="itemList">
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12">
+                                                <div class="col-5" id="categoryFilterContainer">
                                                     <div class="form-group mb-2">
                                                         <select name="category_id" id="category_id"
                                                             class="form-control select2">
@@ -330,20 +398,48 @@
                                                         </select>
                                                     </div>
                                                 </div>
+                                                <div class="col-7" id="searchFilterContainer">
+                                                    <div class="form-group mb-2">
+                                                        <input type="text" class="form-control" name="name"
+                                                            id="name"
+                                                            placeholder="{{ __('Search menu items...') }}"
+                                                            autocomplete="off" value="{{ request()->get('name') }}">
+                                                        <ul class="dropdown-menu" id="itemList">
+                                                        </ul>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </form>
-                                    </div>
-                                    <div class="card-body product_body">
 
+                                        <!-- Tabs for Regular and Combo -->
+                                        <ul class="nav nav-tabs nav-tabs-solid mt-2" id="posItemTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active" id="regular-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#regularItems" type="button" role="tab"
+                                                    aria-controls="regularItems" aria-selected="true">
+                                                    <i class="fas fa-utensils me-1"></i>{{ __('Regular') }}
+                                                </button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link" id="combo-tab" data-bs-toggle="tab"
+                                                    data-bs-target="#comboItems" type="button" role="tab"
+                                                    aria-controls="comboItems" aria-selected="false">
+                                                    <i class="fas fa-box me-1"></i>{{ __('Combo') }}
+                                                </button>
+                                            </li>
+                                        </ul>
                                     </div>
-                                </div>
 
-                                <!-- Combo Packages -->
-                                <div class="card mt-3" id="combos">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-box me-2"></i>{{ __('Combo Packages') }}</h6>
-                                    </div>
-                                    <div class="card-body combo_body" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Tab Content -->
+                                    <div class="tab-content pt-0" id="posItemTabsContent">
+                                        <div class="tab-pane fade show active" id="regularItems" role="tabpanel" aria-labelledby="regular-tab">
+                                            <div class="card-body product_body">
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="comboItems" role="tabpanel" aria-labelledby="combo-tab">
+                                            <div class="card-body combo_body">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                     </div>
@@ -391,48 +487,26 @@
                                 <!-- Order Type Selection -->
                                 <div class="row w-100 mt-2">
                                     <div class="col-12">
-                                        <div class="btn-group w-100" role="group" id="orderTypeGroup">
+                                        <div class="d-flex gap-2 w-100" role="group" id="orderTypeGroup">
                                             <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeDineIn" value="dine_in" checked>
-                                            <label class="btn btn-outline-primary" for="orderTypeDineIn">
-                                                <i class="fas fa-utensils"></i> {{ __('Dine In') }}
+                                            <label class="btn btn-outline-primary flex-fill" for="orderTypeDineIn">
+                                                <i class="fas fa-utensils me-2"></i>{{ __('Dine In') }}
                                             </label>
 
                                             <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeTakeAway" value="take_away">
-                                            <label class="btn btn-outline-success" for="orderTypeTakeAway">
-                                                <i class="fas fa-shopping-bag"></i> {{ __('Take Away') }}
+                                            <label class="btn flex-fill" style="border: 1px solid #47c363; color: #47c363;" for="orderTypeTakeAway">
+                                                <i class="fas fa-shopping-bag me-2"></i>{{ __('Take Away') }}
                                             </label>
 
                                             <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeDelivery" value="delivery">
-                                            <label class="btn btn-outline-info" for="orderTypeDelivery">
-                                                <i class="fas fa-motorcycle"></i> {{ __('Delivery') }}
+                                            <label class="btn btn-outline-info flex-fill" for="orderTypeDelivery">
+                                                <i class="fas fa-motorcycle me-2"></i>{{ __('Delivery') }}
                                             </label>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Table Selection for Dine In -->
-                                <div class="row w-100 mt-2" id="tableSelectionRow">
-                                    <div class="col-12">
-                                        <input type="hidden" name="table_id" id="table_id" value="">
-                                        <button type="button" class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-between" id="openTableModal">
-                                            <span>
-                                                <i class="fas fa-chair me-2"></i>
-                                                <span id="selectedTableText">{{ __('Click to Select Table') }}</span>
-                                            </span>
-                                            <span class="badge bg-primary" id="selectedTableBadge" style="display: none;">
-                                                <i class="fas fa-users me-1"></i><span id="selectedTableSeats">0</span>
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <!-- Delivery Info (Hidden by default) -->
-                                <div class="row w-100 mt-2 d-none" id="deliveryInfoRow">
-                                    <div class="col-md-6">
-                                        <input type="text" name="delivery_phone" id="delivery_phone" class="form-control" placeholder="{{ __('Delivery Phone') }}">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="text" name="delivery_address" id="delivery_address" class="form-control" placeholder="{{ __('Delivery Address') }}">
-                                    </div>
-                                </div>
+                                <!-- Hidden Table ID Input -->
+                                <input type="hidden" name="table_id" id="table_id" value="">
                                 <!-- Edit Mode Banner -->
                                 @if(isset($editingOrderId) && $editingOrderId)
                                 <div class="row w-100 mt-2" id="editModeRow">
@@ -520,17 +594,17 @@
         </h3>
         <div class="btn-group lg-btns">
             <div class="btn-group">
-                <button type="button" class="btn hold-list-btn" title="Hold Sale List">
+                <button type="button" class="btn hold-list-btn" style="background: #03b0d4 !important; color: #fff !important; border-color: #03b0d4 !important;" title="Hold Sale List">
                     <i class="fa fa-list" aria-hidden="true"></i>
                 </button>
-                <button type="button" class="btn hold-btn" title="Hold Current Sale">
-                    Hold
+                <button type="button" class="btn hold-btn" style="background: #47c363 !important; color: #fff !important; border-color: #47c363 !important;" title="Hold Current Sale">
+                    {{ __('Hold') }}
                 </button>
             </div>
             <button type="button" class="btn btn-info running-orders-btn" onclick="openRunningOrders()" title="Running Orders">
-                <i class="fa fa-utensils" aria-hidden="true"></i>
-                <span class="running-orders-count badge bg-danger d-none">0</span>
+                <i class="fa fa-utensils me-1" aria-hidden="true"></i>
                 {{ __('Running') }}
+                <span class="running-orders-count badge bg-danger ms-1 d-none">0</span>
             </button>
             <button type="button" class="btn cancel-btn" onclick="resetCart()">
                 Clear
@@ -876,7 +950,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
+                <div class="modal-header text-white" style="background: #47c363;">
                     <h4 class="modal-title">
                         <i class="fas fa-utensils me-2"></i>{{ __('Running Orders') }}
                     </h4>
@@ -1089,7 +1163,7 @@
 
     {{-- Table Selection Modal --}}
     <div class="modal fade" id="tableSelectionModal" tabindex="-1" role="dialog" aria-labelledby="tableSelectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="tableSelectionModalLabel">
@@ -1277,29 +1351,29 @@
     <!-- Start Dine-In Order Modal -->
     <div class="modal fade" id="startDineInModal" tabindex="-1" role="dialog" aria-labelledby="startDineInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom">
                     <h5 class="modal-title" id="startDineInModalLabel">
-                        <i class="fas fa-utensils me-2"></i>{{ __('Start Dine-In Order') }}
+                        <i class="fas fa-utensils me-2 text-primary"></i>{{ __('Start Dine-In Order') }}
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Selected Table Info -->
-                    <div class="card bg-light mb-3">
-                        <div class="card-body py-2">
-                            <div class="d-flex align-items-center">
-                                <div class="table-icon me-3">
-                                    <i class="fas fa-chair fa-2x text-primary"></i>
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="d-flex align-items-center">
+                            <div class="table-icon me-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                                    <i class="fas fa-chair fa-lg text-primary"></i>
                                 </div>
-                                <div>
-                                    <h6 class="mb-0" id="dineInTableName">Table Name</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-users me-1"></i>
-                                        <span id="dineInTableCapacity">0</span> {{ __('seats') }}
-                                        <span class="ms-2" id="dineInAvailableSeats"></span>
-                                    </small>
-                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold" id="dineInTableName">Table Name</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i>
+                                    <span id="dineInTableCapacity">0</span> {{ __('seats') }}
+                                    <span class="ms-2" id="dineInAvailableSeats"></span>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -1307,14 +1381,14 @@
                     <!-- Guest Count -->
                     <div class="mb-3">
                         <label for="dineInGuestCount" class="form-label fw-bold">
-                            <i class="fas fa-users me-1"></i>{{ __('Number of Guests') }} <span class="text-danger">*</span>
+                            <i class="fas fa-users me-1 text-muted"></i>{{ __('Number of Guests') }} <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
-                            <button type="button" class="btn btn-outline-secondary" onclick="adjustGuestCount(-1)">
+                            <button type="button" class="btn btn-outline-primary" onclick="adjustGuestCount(-1)">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <input type="number" class="form-control text-center" id="dineInGuestCount" value="1" min="1" max="20">
-                            <button type="button" class="btn btn-outline-secondary" onclick="adjustGuestCount(1)">
+                            <input type="number" class="form-control text-center fw-bold" id="dineInGuestCount" value="1" min="1" max="20">
+                            <button type="button" class="btn btn-outline-primary" onclick="adjustGuestCount(1)">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -1324,9 +1398,9 @@
                     <!-- Waiter Selection -->
                     <div class="mb-3">
                         <label for="dineInWaiter" class="form-label fw-bold">
-                            <i class="fas fa-user-tie me-1"></i>{{ __('Assign Waiter') }}
+                            <i class="fas fa-user-tie me-1 text-muted"></i>{{ __('Assign Waiter') }}
                         </label>
-                        <select class="form-control" id="dineInWaiter">
+                        <select class="form-control select2" id="dineInWaiter">
                             <option value="">{{ __('-- Select Waiter --') }}</option>
                             @foreach($waiters as $waiter)
                                 <option value="{{ $waiter->id }}" data-image="{{ $waiter->image ? asset($waiter->image) : '' }}">
@@ -1339,17 +1413,17 @@
                     <!-- Order Note (Optional) -->
                     <div class="mb-3">
                         <label for="dineInNote" class="form-label fw-bold">
-                            <i class="fas fa-sticky-note me-1"></i>{{ __('Order Note') }} <small class="text-muted">({{ __('Optional') }})</small>
+                            <i class="fas fa-sticky-note me-1 text-muted"></i>{{ __('Order Note') }} <small class="text-muted">({{ __('Optional') }})</small>
                         </label>
                         <textarea class="form-control" id="dineInNote" rows="2" placeholder="{{ __('Any special instructions...') }}"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back') }}
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
                     </button>
-                    <button type="button" class="btn btn-success btn-lg" id="confirmStartDineIn">
-                        <i class="fas fa-play me-1"></i>{{ __('Start Order') }}
+                    <button type="button" class="btn btn-primary" id="confirmStartDineIn">
+                        <i class="fas fa-check me-1"></i>{{ __('Start Order') }}
                     </button>
                 </div>
             </div>
@@ -1417,6 +1491,85 @@
             $(document).ready(function() {
                 totalSummery();
                 loadProudcts();
+
+                // POS Item Tab Switching Handler
+                $('#posItemTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+                    var targetTab = $(e.target).attr('id');
+                    var searchInput = $('#name');
+                    var searchContainer = $('#searchFilterContainer');
+                    var categoryContainer = $('#categoryFilterContainer');
+
+                    if (targetTab === 'combo-tab') {
+                        // Switched to Combo tab
+                        $('#search_type').val('combo');
+                        searchInput.attr('placeholder', "{{ __('Search combos...') }}");
+                        categoryContainer.hide();
+                        // Make search bar full width
+                        searchContainer.removeClass('col-7').addClass('col-12');
+                    } else {
+                        // Switched to Regular tab
+                        $('#search_type').val('regular');
+                        searchInput.attr('placeholder', "{{ __('Search menu items...') }}");
+                        categoryContainer.show();
+                        // Reset search bar width
+                        searchContainer.removeClass('col-12').addClass('col-7');
+                    }
+
+                    // Clear search and reload
+                    searchInput.val('');
+                    $('#category_id').val('').trigger('change');
+                });
+
+                // Handle search input changes with debounce
+                var searchTimeout;
+                $('#name').on('input', function() {
+                    var searchValue = $(this).val();
+                    var searchType = $('#search_type').val();
+
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(function() {
+                        if (searchValue.length >= 2 || searchValue.length === 0) {
+                            performTabSearch();
+                        }
+                    }, 300);
+                });
+
+                // Handle category change
+                $('#category_id').on('change', function() {
+                    performTabSearch();
+                });
+
+                // Tab-aware search function
+                function performTabSearch() {
+                    var searchType = $('#search_type').val();
+                    var searchName = $('#name').val();
+                    var categoryId = $('#category_id').val();
+
+                    $('.preloader_area').removeClass('d-none');
+
+                    $.ajax({
+                        type: 'get',
+                        url: "{{ route('admin.load-products') }}",
+                        data: {
+                            name: searchName,
+                            category_id: categoryId,
+                            search_type: searchType
+                        },
+                        success: function(response) {
+                            if (searchType === 'combo') {
+                                $(".combo_body").html(response.comboView);
+                            } else {
+                                $("#products .product_body").html(response.productView);
+                                $("#favoriteProducts .product_body").html(response.favProductView);
+                            }
+                            $('.preloader_area').addClass('d-none');
+                        },
+                        error: function() {
+                            toastr.error("{{ __('Search error occurred') }}");
+                            $('.preloader_area').addClass('d-none');
+                        }
+                    });
+                }
 
                 // Barcode Scanner Handler
                 @if($posSettings->show_barcode)
@@ -1850,6 +2003,8 @@
                 $("#product_search_form,#favorite_product_search_form").on("submit", function(e) {
                     e.preventDefault();
 
+                    var searchType = $('#search_type').val();
+
                     $("#search_btn_text").html(`<div class="spinner-border" role="status">
                                             <span class="sr-only">Loading...</span></div>`)
 
@@ -1865,10 +2020,16 @@
                         success: function(response) {
                             $("#search_btn_text").html(
                                 `<i class="fas fa-search fa-2x fs-25"></i>`)
-                            if (favorite == 1) {
-                                $("#favoriteProducts .product_body").html(response)
+
+                            // Handle tab-aware search response
+                            if (searchType === 'combo') {
+                                $(".combo_body").html(response.comboView);
                             } else {
-                                $("#products .product_body").html(response)
+                                if (favorite == 1) {
+                                    $("#favoriteProducts .product_body").html(response.favProductView || response)
+                                } else {
+                                    $("#products .product_body").html(response.productView || response)
+                                }
                             }
                         },
                         error: function(response) {
@@ -1920,9 +2081,11 @@
                             favorite = 1;
                         }
 
+                        let searchType = $('#search_type').val() || 'regular';
+
                         $.ajax({
                             url: "{{ route('admin.load-products-list') }}?favorite=" +
-                                favorite,
+                                favorite + "&search_type=" + searchType,
                             dataType: 'json',
                             data: {
                                 name: request.term
@@ -1938,6 +2101,9 @@
                                         $('#favoriteItemList').html(response.view)
                                             .addClass('show');
                                     }
+                                } else {
+                                    $('#itemList').removeClass('show');
+                                    $('#favoriteItemList').removeClass('show');
                                 }
                             }
                         })
@@ -1950,17 +2116,19 @@
                         $(this).removeClass('ui-corner-top').addClass('ui-corner-all')
                     }
                 })
-                // search products
+                // search products (handled by performTabSearch for category_id)
 
-                $("#category_id,#brand_id").on('change', function() {
+                $("#brand_id").on('change', function() {
                     const category_id = $('#category_id').val();
                     const brand = $('#brand_id').val();
                     const name = $('#name').val();
+                    const searchType = $('#search_type').val();
 
                     loadProudcts({
                         category_id,
                         brand,
-                        name
+                        name,
+                        search_type: searchType
                     })
                 })
 
@@ -3827,6 +3995,23 @@
             printWindow.document.close();
         }
 
+        // Print receipt for dine-in/running order
+        function printDineInReceipt(orderId) {
+            if (!orderId) {
+                toastr.warning("{{ __('No order to print') }}");
+                return;
+            }
+
+            // Open POS receipt in print-friendly window (80mm thermal printer format)
+            const printUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId) + '?auto=1';
+            const printWindow = window.open(printUrl, 'pos_receipt', 'width=350,height=600,scrollbars=yes,resizable=yes');
+
+            // Focus on print window
+            if (printWindow) {
+                printWindow.focus();
+            }
+        }
+
         function cancelRunningOrder(orderId) {
             // Hide the modal first to prevent z-index conflict
             $('#order-details-modal').modal('hide');
@@ -4206,13 +4391,6 @@
                 },
                 success: function(response) {
                     if (response['alert-type'] == 'success') {
-                        // Show success message with table info
-                        if (response.table_name) {
-                            toastr.success(response.message + ' - ' + response.table_name);
-                        } else {
-                            toastr.success(response.message);
-                        }
-
                         // Reset cart
                         $(".product-table tbody").html('');
                         $('#titems').text(0);
@@ -4241,10 +4419,37 @@
                         // Update payment button state
                         updatePaymentButtonState();
 
-                        // Show running orders modal
-                        setTimeout(function() {
-                            openRunningOrders();
-                        }, 500);
+                        // Get order ID from response
+                        const orderId = response.order ? response.order.id : null;
+                        const tableName = response.table_name || '';
+                        const successMessage = tableName
+                            ? response.message + ' - ' + tableName
+                            : response.message;
+
+                        // Show success dialog with print option
+                        Swal.fire({
+                            icon: 'success',
+                            title: "{{ __('Order Started') }}",
+                            text: successMessage,
+                            showCancelButton: true,
+                            showDenyButton: orderId ? true : false,
+                            confirmButtonColor: '#28a745',
+                            cancelButtonColor: '#6c757d',
+                            denyButtonColor: '#17a2b8',
+                            confirmButtonText: '<i class="fas fa-list me-1"></i> {{ __("View Orders") }}',
+                            cancelButtonText: '<i class="fas fa-plus me-1"></i> {{ __("New Order") }}',
+                            denyButtonText: '<i class="fas fa-print me-1"></i> {{ __("Print Receipt") }}',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Show running orders modal
+                                openRunningOrders();
+                            } else if (result.isDenied && orderId) {
+                                // Print receipt only
+                                printDineInReceipt(orderId);
+                            }
+                            // If cancelled, just stay on POS for new order
+                        });
                     } else {
                         toastr.error(response.message);
                     }

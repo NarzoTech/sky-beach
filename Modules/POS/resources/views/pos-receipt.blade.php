@@ -6,6 +6,9 @@
             margin: 0 auto;
             padding: 10px;
             background: #fff;
+            color: #000;
+            font-size: 13px;
+            font-weight: 500;
         }
         .pos-receipt .receipt-header {
             text-align: center;
@@ -14,35 +17,48 @@
             margin-bottom: 10px;
         }
         .pos-receipt .shop-name {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 700;
             margin-bottom: 5px;
+            color: #000;
         }
         .pos-receipt .shop-info {
-            font-size: 11px;
-            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .pos-receipt .receipt-info {
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
             margin-bottom: 10px;
         }
         .pos-receipt .receipt-info div {
             display: flex;
             justify-content: space-between;
         }
+        .pos-receipt .receipt-info strong {
+            font-weight: 700;
+        }
         .pos-receipt .items-table {
             width: 100%;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
             border-collapse: collapse;
         }
         .pos-receipt .items-table th {
             text-align: left;
             border-bottom: 1px dashed #000;
             padding: 5px 0;
+            font-weight: 700;
+            color: #000;
         }
         .pos-receipt .items-table td {
             padding: 4px 0;
             vertical-align: top;
+            font-weight: 500;
+            color: #000;
         }
         .pos-receipt .items-table .text-right {
             text-align: right;
@@ -54,36 +70,45 @@
             border-top: 1px dashed #000;
             margin-top: 10px;
             padding-top: 10px;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .pos-receipt .totals div {
             display: flex;
             justify-content: space-between;
-            padding: 2px 0;
+            padding: 3px 0;
         }
         .pos-receipt .totals .grand-total {
-            font-size: 16px;
-            font-weight: bold;
-            border-top: 1px dashed #000;
+            font-size: 18px;
+            font-weight: 700;
+            color: #000;
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
             margin-top: 5px;
-            padding-top: 5px;
+            padding: 8px 0;
         }
         .pos-receipt .payment-info {
             border-top: 1px dashed #000;
             margin-top: 10px;
             padding-top: 10px;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .pos-receipt .receipt-footer {
             text-align: center;
             border-top: 1px dashed #000;
             margin-top: 15px;
             padding-top: 10px;
-            font-size: 11px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #000;
         }
         .pos-receipt .thank-you {
-            font-size: 14px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
             margin-bottom: 5px;
         }
         @media print {
@@ -118,7 +143,7 @@
         </div>
         <div>
             <span>Date:</span>
-            <span>{{ $sale->created_at->format('d/m/Y h:i A') }}</span>
+            <span>{{ $sale->created_at->setTimezone('Asia/Dhaka')->format('d/m/Y h:i A') }}</span>
         </div>
         @if($sale->table)
         <div>
@@ -160,10 +185,10 @@
                 <td>
                     {{ $detail->menuItem->name ?? ($detail->service->name ?? ($detail->ingredient->name ?? 'Item')) }}
                     @if($detail->attributes)
-                    <br><small style="color: #666;">{{ $detail->attributes }}</small>
+                    <br><small>{{ $detail->attributes }}</small>
                     @endif
                     @if(!empty($detail->addons))
-                    <br><small style="color: #0099cc;">+ @foreach($detail->addons as $addon){{ $addon['name'] }}@if(!$loop->last), @endif @endforeach</small>
+                    <br><small>+ @foreach($detail->addons as $addon){{ $addon['name'] }}@if(!$loop->last), @endif @endforeach</small>
                     @endif
                 </td>
                 <td class="text-center">{{ $detail->quantity }}</td>
@@ -200,24 +225,32 @@
 
     <!-- Payment Info -->
     <div class="payment-info">
+        @php
+            $returnAmount = ($sale->paid_amount ?? 0) - ($sale->grand_total ?? 0);
+            $paymentMethod = 'Cash';
+            $isCashPayment = true;
+            if($sale->payment && $sale->payment->count() > 0) {
+                $firstPayment = $sale->payment->first();
+                $paymentMethod = ucfirst($firstPayment->account->account_type ?? 'cash');
+                $isCashPayment = strtolower($firstPayment->account->account_type ?? 'cash') == 'cash';
+            }
+        @endphp
+        @if($isCashPayment)
         <div style="display: flex; justify-content: space-between;">
-            <span>Paid:</span>
+            <span>Received:</span>
             <span>{{ currency($sale->paid_amount) }}</span>
         </div>
-        @if($sale->return_amount > 0)
+        @if($returnAmount > 0)
         <div style="display: flex; justify-content: space-between;">
-            <span>Change:</span>
-            <span>{{ currency($sale->return_amount) }}</span>
+            <span>Return:</span>
+            <span>{{ currency($returnAmount) }}</span>
         </div>
         @endif
-        @if($sale->payment && $sale->payment->count() > 0)
-        <div style="margin-top: 5px; font-size: 11px; color: #666;">
-            Payment:
-            @foreach($sale->payment as $payment)
-                {{ ucfirst($payment->account->account_type ?? 'cash') }}{{ !$loop->last ? ', ' : '' }}
-            @endforeach
-        </div>
         @endif
+        <div style="display: flex; justify-content: space-between;{{ $isCashPayment ? ' margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000;' : '' }}">
+            <span>Payment By:</span>
+            <span>{{ $paymentMethod }}</span>
+        </div>
     </div>
 
     <!-- Footer -->

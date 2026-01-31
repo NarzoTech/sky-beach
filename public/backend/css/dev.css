@@ -800,7 +800,7 @@ table tr td {
 }
 
 .produt_card .produt_card_img {
-    height: 160px;
+    height: 120px;
     overflow: hidden;
     border-bottom: 1px solid #ddd;
 }

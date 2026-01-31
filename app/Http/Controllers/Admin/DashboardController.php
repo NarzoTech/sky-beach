@@ -27,6 +27,11 @@ class DashboardController extends Controller
     }
     public function dashboard()
     {
+        // Redirect waiters to their dedicated dashboard
+        if (auth('admin')->user()->hasRole('Waiter')) {
+            return redirect()->route('admin.waiter.dashboard');
+        }
+
         $data['customerDues'] = CustomerDue::where('status', 1)->sum('due_amount');
         $data['todaySales'] = Sale::whereDate('order_date', date('Y-m-d'))->sum('grand_total');
         $data['totalIngredients'] = Ingredient::count();
