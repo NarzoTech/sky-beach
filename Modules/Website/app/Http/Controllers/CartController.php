@@ -106,7 +106,7 @@ class CartController extends Controller
                 'id' => $cartItem->id,
                 'name' => $cartItem->menuItem->name ?? 'Item',
                 'image' => $cartItem->menuItem && $cartItem->menuItem->image
-                    ? asset('storage/' . $cartItem->menuItem->image)
+                    ? asset($cartItem->menuItem->image)
                     : null,
                 'unit_price' => $cartItem->unit_price,
                 'quantity' => $cartItem->quantity,

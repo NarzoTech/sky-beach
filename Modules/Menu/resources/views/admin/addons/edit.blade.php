@@ -108,7 +108,7 @@
                                                 <div class="card-body">
                                                     @if ($addon->image)
                                                         <div class="mb-3">
-                                                            <img src="{{ asset('storage/' . $addon->image) }}" alt="{{ $addon->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                                                            <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
                                                         </div>
                                                     @endif
                                                     <div class="form-group">

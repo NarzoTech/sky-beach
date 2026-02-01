@@ -77,11 +77,11 @@
             <ul id="mini-cart-items">
                 @forelse($headerCartItems as $cartItem)
                 <li data-cart-item-id="{{ $cartItem->id }}">
-                    <div class="img">
+                    <div class="img" style="width: 100px; min-width: 100px; height: 100px; margin-right: 15px;">
                         @if($cartItem->menuItem && $cartItem->menuItem->image)
-                            <img src="{{ asset($cartItem->menuItem->image) }}" alt="{{ $cartItem->menuItem->name }}" class="img-fluid w-100">
+                            <img src="{{ asset($cartItem->menuItem->image) }}" alt="{{ $cartItem->menuItem->name }}" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">
                         @else
-                            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="Item" class="img-fluid w-100">
+                            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="Item" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">
                         @endif
                     </div>
                     <div class="text">

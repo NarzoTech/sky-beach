@@ -712,10 +712,20 @@ table tr td {
     padding: 10px 20px !important;
 }
 
-.form-group button.btn {
+.form-group button.btn:not([class*="btn-outline"]) {
     padding: 12px 20px !important;
     color: #fff;
     width: 49%;
+}
+
+.form-group button.btn[class*="btn-outline"] {
+    padding: 12px 20px !important;
+}
+
+.input-group-append .btn {
+    height: 43px;
+    padding: 0 15px !important;
+    width: auto !important;
 }
 
 .section_title,

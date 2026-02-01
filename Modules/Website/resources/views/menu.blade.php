@@ -181,7 +181,7 @@
                                 <div class="col-xl-4 col-sm-6 wow fadeInUp">
                                     <div class="single_menu">
                                         <div class="single_menu_img">
-                                            <img src="{{ $item->image ? asset('storage/' . $item->image) : asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                            <img src="{{ $item->image ? asset($item->image) : asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                             <ul>
                                                 <li><a href="#" data-item-id="{{ $item->id }}" onclick="showQuickView({{ $item->id }}); return false;"><i class="far fa-eye"></i></a></li>
                                                 <li>
@@ -199,16 +199,24 @@
                                             <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>
                                             <div class="d-flex flex-wrap align-items-center">
                                                 <a class="add_to_cart" href="#" onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">{{ __('Add to Cart') }}</a>
-                                                <h3>{{ currency($item->base_price) }}</h3>
+                                                @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                    <div class="price-wrap">
+                                                        <span class="old-price" style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
+                                                        <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
+                                                    </div>
+                                                @else
+                                                    <h3>{{ currency($item->base_price) }}</h3>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 @empty
                                 <div class="col-12">
-                                    <div class="alert alert-info text-center">
-                                        <h4>{{ __('No menu items found') }}</h4>
-                                        <p>{{ __('Try adjusting your filters or search terms.') }}</p>
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-search fa-3x mb-3" style="color: var(--colorPrimary); opacity: 0.5;"></i>
+                                        <h4 style="color: var(--colorPrimary);">{{ __('No menu items found') }}</h4>
+                                        <p class="text-muted">{{ __('Try adjusting your filters or search terms.') }}</p>
                                     </div>
                                 </div>
                                 @endforelse
@@ -414,8 +422,8 @@
                 if (miniCartItems) {
                     const itemHtml = `
                         <li data-cart-item-id="${newItem.id}" class="mini-cart-item-new">
-                            <div class="img">
-                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                            <div class="img" style="width: 100px; min-width: 100px; height: 100px; margin-right: 15px;">
+                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">
                             </div>
                             <div class="text">
                                 <h5>${newItem.name}</h5>
@@ -555,29 +563,18 @@
             });
         }
 
-        // Update slider value labels position after initialization
+        // Fix slider value labels positioning after initialization
         setTimeout(function() {
             const sliderInput = document.getElementById('slider_range');
             if (sliderInput && jQuery) {
                 const $slider = jQuery(sliderInput).next('.flat-slider');
                 if ($slider.length) {
-                    // Calculate and update positions based on handle positions
-                    const handles = $slider.find('.ui-slider-handle');
+                    const minValueEl = $slider.find('.min_value');
+                    const maxValueEl = $slider.find('.max_value');
 
-                    if (handles.length === 2) {
-                        const minHandle = jQuery(handles[0]);
-                        const maxHandle = jQuery(handles[1]);
-                        const minValueEl = $slider.find('.min_value');
-                        const maxValueEl = $slider.find('.max_value');
-
-                        // Position min value label
-                        const minLeft = minHandle.position().left;
-                        minValueEl.css('left', Math.max(0, minLeft - minValueEl.width() / 2) + 'px');
-
-                        // Position max value label
-                        const maxLeft = maxHandle.position().left;
-                        maxValueEl.css('left', maxLeft + 'px');
-                    }
+                    // Reset inline styles and let CSS handle positioning
+                    minValueEl.css({'left': '0', 'right': 'auto'});
+                    maxValueEl.css({'left': 'auto', 'right': '0'});
                 }
             }
         }, 100);
@@ -750,6 +747,37 @@
             transform: translateY(0);
             background-color: transparent;
         }
+    }
+
+    /* Price slider fixes */
+    .price_ranger {
+        overflow: visible;
+        position: relative;
+    }
+
+    .price_ranger .flat-slider {
+        position: relative;
+        overflow: visible;
+    }
+
+    .price_ranger .flat-slider .min_value,
+    .price_ranger .flat-slider .max_value {
+        position: absolute;
+        bottom: -25px;
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .price_ranger .flat-slider .min_value {
+        left: 0 !important;
+        transform: none;
+    }
+
+    .price_ranger .flat-slider .max_value {
+        left: auto !important;
+        right: 0 !important;
+        transform: none;
     }
 </style>
 @endpush

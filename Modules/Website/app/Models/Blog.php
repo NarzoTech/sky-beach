@@ -54,10 +54,7 @@ class Blog extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            if (str_starts_with($this->image, 'storage/') || str_starts_with($this->image, 'website/')) {
-                return asset($this->image);
-            }
-            return asset('storage/' . $this->image);
+            return asset($this->image);
         }
         return asset('website/images/blog_placeholder.jpg');
     }

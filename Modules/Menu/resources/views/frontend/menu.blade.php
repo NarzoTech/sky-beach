@@ -28,7 +28,7 @@
                         <a href="{{ route('menu.combo.detail', $combo->slug) }}" class="block">
                             <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card">
                                 @if ($combo->image)
-                                    <img src="{{ asset('storage/' . $combo->image) }}" alt="{{ $combo->name }}"
+                                    <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}"
                                         class="w-full h-40 object-cover">
                                 @else
                                     <div class="w-full h-40 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">
@@ -69,7 +69,7 @@
                         <a href="{{ route('menu.item', $item->slug) }}" class="block">
                             <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card">
                                 @if ($item->image)
-                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                                    <img src="{{ asset($item->image) }}" alt="{{ $item->name }}"
                                         class="w-full h-48 object-cover">
                                 @else
                                     <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
@@ -117,7 +117,7 @@
                     <a href="{{ route('menu.category', $category->slug) }}" class="block">
                         <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card text-center">
                             @if ($category->image)
-                                <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}"
+                                <img src="{{ asset($category->image) }}" alt="{{ $category->name }}"
                                     class="w-full h-32 object-cover">
                             @else
                                 <div class="w-full h-32 bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
@@ -138,7 +138,7 @@
                             <a href="{{ route('menu.category', $child->slug) }}" class="block">
                                 <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card text-center border-l-4 border-orange-400">
                                     @if ($child->image)
-                                        <img src="{{ asset('storage/' . $child->image) }}" alt="{{ $child->name }}"
+                                        <img src="{{ asset($child->image) }}" alt="{{ $child->name }}"
                                             class="w-full h-32 object-cover">
                                     @else
                                         <div class="w-full h-32 bg-gradient-to-r from-orange-100 to-orange-200 flex items-center justify-center">

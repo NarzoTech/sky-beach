@@ -107,7 +107,7 @@
                                                                     <tr data-id="{{ $addon->id }}">
                                                                         <td>
                                                                             @if ($addon->image)
-                                                                                <img src="{{ asset('storage/' . $addon->image) }}" alt="{{ $addon->name }}" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;" class="mr-2">
+                                                                                <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;" class="mr-2">
                                                                             @endif
                                                                             {{ $addon->name }}
                                                                         </td>

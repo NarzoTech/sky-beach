@@ -193,7 +193,12 @@
                                                 <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
                                                 <div class="d-flex flex-wrap align-items-center">
                                                     <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
-                                                    <h3>{{ currency($item->base_price) }}</h3>
+                                                    @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                        <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
+                                                        <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
+                                                    @else
+                                                        <h3>{{ currency($item->base_price) }}</h3>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -241,7 +246,12 @@
                                 <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
                                 <div class="d-flex flex-wrap align-items-center">
                                     <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
-                                    <h3>{{ currency($item->base_price) }}</h3>
+                                    @if($item->discount_price && $item->discount_price < $item->base_price)
+                                        <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
+                                        <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
+                                    @else
+                                        <h3>{{ currency($item->base_price) }}</h3>
+                                    @endif
                                 </div>
                             </div>
                         </div>

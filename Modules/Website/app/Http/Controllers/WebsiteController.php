@@ -73,7 +73,10 @@ class WebsiteController extends Controller
         // Get min and max prices from menu items
         $menuPriceRange = MenuItem::where('status', 1)
             ->where('is_available', 1)
-            ->where('available_in_website', 1)
+            ->where(function($q) {
+                $q->where('available_in_website', 1)
+                  ->orWhereNull('available_in_website');
+            })
             ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
             ->first();
 
@@ -110,11 +113,14 @@ class WebsiteController extends Controller
             ->withCount(['activeMenuItems'])
             ->get();
 
-        // Build query for menu items
+        // Build query for menu items (NULL treated as available for backward compatibility)
         $query = MenuItem::with(['category', 'variants', 'addons'])
             ->where('status', 1)
             ->where('is_available', 1)
-            ->where('available_in_website', 1);
+            ->where(function($q) {
+                $q->where('available_in_website', 1)
+                  ->orWhereNull('available_in_website');
+            });
 
         // Apply category filter by slug
         if ($categorySlug) {
@@ -197,14 +203,20 @@ class WebsiteController extends Controller
             ->where('slug', $slug)
             ->where('status', 1)
             ->where('is_available', 1)
-            ->where('available_in_website', 1)
+            ->where(function($q) {
+                $q->where('available_in_website', 1)
+                  ->orWhereNull('available_in_website');
+            })
             ->firstOrFail();
 
         // Get related items from same category
         $relatedItems = MenuItem::with('category')
             ->where('status', 1)
             ->where('is_available', 1)
-            ->where('available_in_website', 1)
+            ->where(function($q) {
+                $q->where('available_in_website', 1)
+                  ->orWhereNull('available_in_website');
+            })
             ->where('id', '!=', $menuItem->id)
             ->where('category_id', $menuItem->category_id)
             ->inRandomOrder()
@@ -216,7 +228,10 @@ class WebsiteController extends Controller
             $additionalItems = MenuItem::with('category')
                 ->where('status', 1)
                 ->where('is_available', 1)
-                ->where('available_in_website', 1)
+                ->where(function($q) {
+                    $q->where('available_in_website', 1)
+                      ->orWhereNull('available_in_website');
+                })
                 ->where('id', '!=', $menuItem->id)
                 ->whereNotIn('id', $relatedItems->pluck('id'))
                 ->where('is_featured', 1)

@@ -102,7 +102,7 @@
                                                                 </td>
                                                                 <td>
                                                                     @if ($item->image)
-                                                                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                                                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
                                                                     @else
                                                                         <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                                                             <i class="fa fa-image text-muted"></i>

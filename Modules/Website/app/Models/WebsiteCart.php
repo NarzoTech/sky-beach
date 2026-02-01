@@ -172,8 +172,8 @@ class WebsiteCart extends Model
     {
         $menuItem = MenuItem::with(['variants', 'addons'])->findOrFail($menuItemId);
 
-        // Calculate unit price
-        $unitPrice = $menuItem->base_price;
+        // Calculate unit price (use final_price which considers discount)
+        $unitPrice = $menuItem->final_price;
 
         // Add variant price adjustment
         if ($variantId) {

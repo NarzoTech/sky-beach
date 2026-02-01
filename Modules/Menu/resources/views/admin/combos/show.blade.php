@@ -22,7 +22,7 @@
                                 <div class="row">
                                     <div class="col-lg-4">
                                         @if ($combo->image)
-                                            <img src="{{ asset('storage/' . $combo->image) }}" alt="{{ $combo->name }}" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;">
+                                            <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;">
                                         @else
                                             <div style="height: 200px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                                 <i class="fa fa-image fa-3x text-muted"></i>

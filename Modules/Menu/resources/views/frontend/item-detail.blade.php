@@ -26,7 +26,7 @@
                 <!-- Image Section -->
                 <div class="lg:w-1/2">
                     @if ($item->image)
-                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}"
                             class="w-full h-96 lg:h-full object-cover">
                     @else
                         <div class="w-full h-96 lg:h-full bg-gray-200 flex items-center justify-center">
@@ -170,7 +170,7 @@
                         <a href="{{ route('menu.item', $related->slug) }}" class="block">
                             <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card">
                                 @if ($related->image)
-                                    <img src="{{ asset('storage/' . $related->image) }}" alt="{{ $related->name }}"
+                                    <img src="{{ asset($related->image) }}" alt="{{ $related->name }}"
                                         class="w-full h-40 object-cover">
                                 @else
                                     <div class="w-full h-40 bg-gray-200 flex items-center justify-center">

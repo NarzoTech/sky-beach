@@ -102,7 +102,7 @@
                     <div class="card-body">
                         @if($blog->image)
                             <div class="mb-3">
-                                <img src="{{ asset('storage/' . $blog->image) }}" alt="{{ $blog->title }}" class="img-fluid rounded" style="max-height: 200px;">
+                                <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid rounded" style="max-height: 200px;">
                             </div>
                         @endif
                         <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">

@@ -77,7 +77,7 @@
                                                                     <input type="text" name="sku" class="form-control" id="sku" value="{{ old('sku') }}" placeholder="auto-generated">
                                                                     <div class="input-group-append">
                                                                         <button type="button" class="btn btn-outline-primary" id="generate-sku" title="{{ __('Generate SKU') }}">
-                                                                            <i class="fas fa-sync-alt"></i>
+                                                                            <i class="bx bx-refresh"></i>
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -142,7 +142,7 @@
                                             <!-- Ingredients/Recipe -->
                                             <div class="card mt-3">
                                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                                    <h5><i class="fas fa-utensils mr-2"></i>{{ __('Ingredients (Recipe)') }}</h5>
+                                                    <h5><i class="bx bx-food-menu me-2"></i> {{ __('Ingredients (Recipe)') }}</h5>
                                                     <button type="button" class="btn btn-sm btn-primary" id="add-ingredient">
                                                         <i class="fas fa-plus"></i> {{ __('Add Ingredient') }}
                                                     </button>
@@ -289,15 +289,15 @@
                                                     <div class="form-group">
                                                         <label for="status">{{ __('Status') }}<span class="text-danger">*</span></label>
                                                         <select name="status" id="status" class="form-control">
-                                                            <option value="1" {{ old('status', 1) == 1 ? 'selected' : '' }}>{{ __('Active') }}</option>
-                                                            <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>{{ __('Inactive') }}</option>
+                                                            <option value="1" {{ old('status', '1') === '1' ? 'selected' : '' }}>{{ __('Active') }}</option>
+                                                            <option value="0" {{ old('status', '1') === '0' ? 'selected' : '' }}>{{ __('Inactive') }}</option>
                                                         </select>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="is_available">{{ __('Available') }}</label>
                                                         <select name="is_available" id="is_available" class="form-control">
-                                                            <option value="1" {{ old('is_available', 1) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
-                                                            <option value="0" {{ old('is_available') == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                            <option value="1" {{ old('is_available', '1') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                            <option value="0" {{ old('is_available', '1') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                                         </select>
                                                     </div>
                                                     <div class="row">
@@ -305,8 +305,8 @@
                                                             <div class="form-group">
                                                                 <label for="available_in_pos">{{ __('Show in POS') }}</label>
                                                                 <select name="available_in_pos" id="available_in_pos" class="form-control">
-                                                                    <option value="1" {{ old('available_in_pos', 1) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
-                                                                    <option value="0" {{ old('available_in_pos') == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                    <option value="1" {{ old('available_in_pos', '1') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                    <option value="0" {{ old('available_in_pos', '1') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -314,8 +314,8 @@
                                                             <div class="form-group">
                                                                 <label for="available_in_website">{{ __('Show on Website') }}</label>
                                                                 <select name="available_in_website" id="available_in_website" class="form-control">
-                                                                    <option value="1" {{ old('available_in_website', 1) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
-                                                                    <option value="0" {{ old('available_in_website') == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                    <option value="1" {{ old('available_in_website', '1') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                    <option value="0" {{ old('available_in_website', '1') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                                                 </select>
                                                             </div>
                                                         </div>

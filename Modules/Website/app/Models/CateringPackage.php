@@ -96,11 +96,7 @@ class CateringPackage extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            // Handle both old paths with storage/ prefix and new paths without
-            if (str_starts_with($this->image, 'storage/')) {
-                return asset($this->image);
-            }
-            return asset('storage/' . $this->image);
+            return asset($this->image);
         }
         return asset('website/images/catering_placeholder.jpg');
     }

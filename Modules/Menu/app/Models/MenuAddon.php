@@ -28,7 +28,7 @@ class MenuAddon extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            return asset('storage/' . $this->image);
+            return asset($this->image);
         }
         return asset('assets/images/placeholder.png');
     }

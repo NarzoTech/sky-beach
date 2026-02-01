@@ -22,7 +22,7 @@
                 <!-- Image Section -->
                 <div class="lg:w-1/2">
                     @if ($combo->image)
-                        <img src="{{ asset('storage/' . $combo->image) }}" alt="{{ $combo->name }}"
+                        <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}"
                             class="w-full h-80 lg:h-full object-cover">
                     @else
                         <div class="w-full h-80 lg:h-full bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">
@@ -93,7 +93,7 @@
                     @foreach ($combo->items as $comboItem)
                         <div class="flex items-center p-4 bg-gray-50 rounded-xl">
                             @if ($comboItem->menuItem && $comboItem->menuItem->image)
-                                <img src="{{ asset('storage/' . $comboItem->menuItem->image) }}"
+                                <img src="{{ asset($comboItem->menuItem->image) }}"
                                     alt="{{ $comboItem->menuItem->name }}"
                                     class="w-20 h-20 object-cover rounded-lg mr-4">
                             @else

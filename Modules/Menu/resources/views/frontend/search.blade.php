@@ -63,7 +63,7 @@
                             <a href="{{ route('menu.item', $item->slug) }}" class="block">
                                 <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card h-full">
                                     @if ($item->image)
-                                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}"
                                             class="w-full h-48 object-cover">
                                     @else
                                         <div class="w-full h-48 bg-gray-200 flex items-center justify-center">

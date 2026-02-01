@@ -39,7 +39,7 @@
                                 }
                                 if ($menuItem->gallery && is_array($menuItem->gallery)) {
                                     foreach ($menuItem->gallery as $img) {
-                                        $images[] = asset('storage/' . $img);
+                                        $images[] = asset($img);
                                     }
                                 }
                                 if (empty($images)) {
@@ -82,7 +82,15 @@
                                 @endif
                             </div>
 
+                            @if($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
+                            <p class="price" id="displayPrice">
+                                <span style="text-decoration: line-through; color: #999; font-size: 18px; margin-right: 8px;">{{ currency($menuItem->base_price) }}</span>
+                                <span style="color: var(--colorPrimary);">{{ currency($menuItem->final_price) }}</span>
+                                <span class="badge bg-danger ms-2">{{ $menuItem->discount_percentage }}% OFF</span>
+                            </p>
+                            @else
                             <p class="price" id="displayPrice">{{ currency($menuItem->base_price) }}</p>
+                            @endif
 
                             @if($menuItem->short_description)
                                 <div class="details_short_description">
@@ -118,7 +126,7 @@
                                             <input class="form-check-input variant-radio" type="radio" name="variant_id"
                                                    id="variant_{{ $variant->id }}"
                                                    value="{{ $variant->id }}"
-                                                   data-price="{{ $menuItem->base_price + $variant->price_adjustment }}"
+                                                   data-price="{{ $menuItem->final_price + $variant->price_adjustment }}"
                                                    {{ $index === 0 ? 'checked' : '' }}>
                                             <label class="form-check-label" for="variant_{{ $variant->id }}">
                                                 {{ $variant->name }}
@@ -162,7 +170,7 @@
                                         <input type="text" id="quantity" value="1" readonly>
                                         <button type="button" class="btn btn-success" id="increaseQty"><i class="fal fa-plus"></i></button>
                                     </div>
-                                    <h3 id="totalPrice">{{ currency($menuItem->base_price) }}</h3>
+                                    <h3 id="totalPrice">{{ currency($menuItem->final_price) }}</h3>
                                 </div>
                             </div>
 
@@ -311,7 +319,12 @@
                                         @endif
                                         <div class="d-flex flex-wrap align-items-center">
                                             <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('View') }}</a>
-                                            <h3>{{ currency($item->base_price) }}</h3>
+                                            @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
+                                                <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
+                                            @else
+                                                <h3>{{ currency($item->base_price) }}</h3>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -327,7 +340,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const basePrice = {{ $menuItem->base_price }};
+    const basePrice = {{ $menuItem->final_price }};
     let currentPrice = basePrice;
     let quantity = 1;
 
@@ -512,8 +525,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (miniCartItems) {
                     const itemHtml = `
                         <li data-cart-item-id="${newItem.id}" style="animation: fadeInSlide 0.4s ease;">
-                            <div class="img">
-                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                            <div class="img" style="width: 100px; min-width: 100px; height: 100px; margin-right: 15px;">
+                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">
                             </div>
                             <div class="text">
                                 <h5>${newItem.name}</h5>

@@ -88,7 +88,7 @@ class MenuItem extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            return asset('storage/' . $this->image);
+            return asset($this->image);
         }
         return asset('assets/images/placeholder.png');
     }
@@ -97,7 +97,7 @@ class MenuItem extends Model
     {
         if ($this->gallery && is_array($this->gallery)) {
             return array_map(function ($img) {
-                return asset('storage/' . $img);
+                return asset($img);
             }, $this->gallery);
         }
         return [];

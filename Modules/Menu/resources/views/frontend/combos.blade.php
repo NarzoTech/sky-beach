@@ -19,7 +19,7 @@
                 @foreach ($combos as $combo)
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden menu-card">
                         @if ($combo->image)
-                            <img src="{{ asset('storage/' . $combo->image) }}" alt="{{ $combo->name }}"
+                            <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}"
                                 class="w-full h-56 object-cover">
                         @else
                             <div class="w-full h-56 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center">

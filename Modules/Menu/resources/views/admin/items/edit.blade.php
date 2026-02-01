@@ -75,7 +75,7 @@
                                                                     <input type="text" name="sku" class="form-control" id="sku" value="{{ old('sku', $item->sku) }}">
                                                                     <div class="input-group-append">
                                                                         <button type="button" class="btn btn-outline-primary" id="generate-sku" title="{{ __('Generate SKU') }}">
-                                                                            <i class="fas fa-sync-alt"></i>
+                                                                            <i class="bx bx-refresh"></i>
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -137,7 +137,7 @@
                                             <!-- Ingredients/Recipe -->
                                             <div class="card mt-3">
                                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                                    <h5><i class="fas fa-utensils mr-2"></i>{{ __('Ingredients (Recipe)') }}</h5>
+                                                    <h5><i class="bx bx-food-menu me-2"></i> {{ __('Ingredients (Recipe)') }}</h5>
                                                     <button type="button" class="btn btn-sm btn-primary" id="add-ingredient">
                                                         <i class="fas fa-plus"></i> {{ __('Add Ingredient') }}
                                                     </button>

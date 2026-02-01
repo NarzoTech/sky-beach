@@ -81,7 +81,7 @@
                                                 <tr>
                                                     <td>
                                                         @if ($combo->image)
-                                                            <img src="{{ asset('storage/' . $combo->image) }}" alt="{{ $combo->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                                            <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
                                                         @else
                                                             <div style="width: 60px; height: 60px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
                                                                 <i class="fa fa-image text-muted"></i>
