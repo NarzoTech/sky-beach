@@ -109,9 +109,6 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::resource('bookings', \Modules\Website\app\Http\Controllers\Admin\BookingController::class)->only(['index', 'show', 'destroy']);
         Route::put('bookings/{booking}/status', [\Modules\Website\app\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.update-status');
         
-        // CMS Pages Management
-        Route::resource('cms-pages', \Modules\Website\app\Http\Controllers\Admin\CmsPageController::class)->except('show');
-        
         // FAQs Management
         Route::resource('faqs', \Modules\Website\app\Http\Controllers\Admin\FaqController::class)->except('show');
         

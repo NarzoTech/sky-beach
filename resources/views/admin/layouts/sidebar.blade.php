@@ -300,13 +300,6 @@
                                 </a>
                             </li>
                         @endadminCan
-                        @adminCan('restaurant.cms.view')
-                            <li class="menu-item {{ request()->is('admin/restaurant/cms-pages*') ? 'active' : '' }}">
-                                <a class="menu-link" href="{{ route('admin.restaurant.cms-pages.index') }}">
-                                    {{ __('CMS Pages') }}
-                                </a>
-                            </li>
-                        @endadminCan
                         @adminCan('restaurant.faq.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/faqs*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.faqs.index') }}">
