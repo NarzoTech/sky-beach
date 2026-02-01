@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('System Update') . ' - ' . $setting->app_name ?? 'AppeyTech' }}</title>
-@endsection
+@section('title', __('System Update') . ' - ' . ($setting->app_name ?? 'AppeyTech'))
 @section('content')
     <!-- Main Content -->
     <div class="main-content">

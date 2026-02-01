@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Pos Settings') }}</title>
-@endsection
+@section('title', __('Pos Settings'))
 
 @section('content')
     <div class="main-content">

@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Split Bill') }} - Order #{{ $order->id }}</title>
-@endsection
+@section('title', __('Split Bill') . ' - Order #' . $order->id)
 
 @push('css')
 <style>

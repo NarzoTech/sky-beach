@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Add Items to Order') }} #{{ $order->id }}</title>
-@endsection
+@section('title', __('Add Items to Order') . ' #' . $order->id)
 
 @push('css')
 <style>

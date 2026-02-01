@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Manage Roles') }}</title>
-@endsection
+@section('title', __('Manage Roles'))
 @section('content')
     <div class="card">
         <div class="card-header d-flex justify-content-between">

@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Order Details') }} #{{ $order->id }}</title>
-@endsection
+@section('title', __('Order Details') . ' #' . $order->id)
 
 @section('content')
 <div class="main-content">

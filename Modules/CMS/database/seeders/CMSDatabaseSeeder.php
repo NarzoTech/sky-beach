@@ -3,7 +3,7 @@
 namespace Modules\CMS\database\seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\CMS\app\Models\SiteSetting;
+use Modules\GlobalSetting\app\Models\Setting;
 use Modules\CMS\app\Models\PageSection;
 use Modules\CMS\app\Models\Testimonial;
 use Modules\CMS\app\Models\Counter;
@@ -34,32 +34,31 @@ class CMSDatabaseSeeder extends Seeder
     {
         $settings = [
             // General
-            ['key' => 'general.site_name', 'value' => 'Sky Beach', 'group' => 'general', 'type' => 'text', 'label' => 'Site Name'],
-            ['key' => 'general.tagline', 'value' => 'Delicious Food Restaurant', 'group' => 'general', 'type' => 'text', 'label' => 'Tagline'],
+            ['key' => 'general.site_name', 'value' => 'Sky Beach'],
+            ['key' => 'general.tagline', 'value' => 'Delicious Food Restaurant'],
 
             // Contact
-            ['key' => 'contact.address', 'value' => '16/A, Romadan House City Tower New York, United States', 'group' => 'contact', 'type' => 'textarea', 'label' => 'Address'],
-            ['key' => 'contact.phone_primary', 'value' => '+990 123 456 789', 'group' => 'contact', 'type' => 'text', 'label' => 'Primary Phone'],
-            ['key' => 'contact.phone_secondary', 'value' => '+990 456 123 789', 'group' => 'contact', 'type' => 'text', 'label' => 'Secondary Phone'],
-            ['key' => 'contact.email_primary', 'value' => 'info@skybeach.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Primary Email'],
-            ['key' => 'contact.email_secondary', 'value' => 'support@skybeach.com', 'group' => 'contact', 'type' => 'text', 'label' => 'Secondary Email'],
-            ['key' => 'contact.google_map_embed', 'value' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3105.1507877498064!2d-77.03279652422097!3d38.90177634678498!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89b7b7bae8f4e7b9%3A0x6c89e5e8d8b8f4e9!2sMarriott%20Marquis%20Washington%2C%20DC!5e0!3m2!1sen!2sus!4v1234567890', 'group' => 'contact', 'type' => 'textarea', 'label' => 'Google Map Embed URL'],
+            ['key' => 'contact.address', 'value' => '16/A, Romadan House City Tower New York, United States'],
+            ['key' => 'contact.phone_primary', 'value' => '+990 123 456 789'],
+            ['key' => 'contact.phone_secondary', 'value' => '+990 456 123 789'],
+            ['key' => 'contact.email_primary', 'value' => 'info@skybeach.com'],
+            ['key' => 'contact.email_secondary', 'value' => 'support@skybeach.com'],
 
             // Social
-            ['key' => 'social.facebook', 'value' => 'https://facebook.com', 'group' => 'social', 'type' => 'text', 'label' => 'Facebook URL'],
-            ['key' => 'social.twitter', 'value' => 'https://twitter.com', 'group' => 'social', 'type' => 'text', 'label' => 'Twitter URL'],
-            ['key' => 'social.instagram', 'value' => 'https://instagram.com', 'group' => 'social', 'type' => 'text', 'label' => 'Instagram URL'],
-            ['key' => 'social.linkedin', 'value' => 'https://linkedin.com', 'group' => 'social', 'type' => 'text', 'label' => 'LinkedIn URL'],
-            ['key' => 'social.youtube', 'value' => 'https://youtube.com', 'group' => 'social', 'type' => 'text', 'label' => 'YouTube URL'],
+            ['key' => 'social.facebook', 'value' => 'https://facebook.com'],
+            ['key' => 'social.twitter', 'value' => 'https://twitter.com'],
+            ['key' => 'social.instagram', 'value' => 'https://instagram.com'],
+            ['key' => 'social.linkedin', 'value' => 'https://linkedin.com'],
+            ['key' => 'social.youtube', 'value' => 'https://youtube.com'],
 
             // Hours
-            ['key' => 'hours.weekdays', 'value' => 'Monday - Sunday: 10:00 AM - 10:00 PM', 'group' => 'hours', 'type' => 'text', 'label' => 'Operating Hours'],
+            ['key' => 'hours.weekdays', 'value' => 'Monday - Sunday: 10:00 AM - 10:00 PM'],
         ];
 
-        foreach ($settings as $index => $setting) {
-            SiteSetting::updateOrCreate(
+        foreach ($settings as $setting) {
+            Setting::updateOrCreate(
                 ['key' => $setting['key']],
-                array_merge($setting, ['sort_order' => $index])
+                ['value' => $setting['value']]
             );
         }
     }

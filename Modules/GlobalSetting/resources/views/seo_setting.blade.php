@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('SEO Setup') }}</title>
-@endsection
+@section('title', __('SEO Setup'))
 @section('content')
     <!-- Main Content -->
     <div class="main-content">

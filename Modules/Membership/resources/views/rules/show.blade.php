@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Rule Details') }} - {{ $rule->name }}</title>
-@endsection
+@section('title', __('Rule Details') . ' - ' . $rule->name)
 @section('content')
     <div class="card mb-5">
         <div class="card-header-tab card-header">

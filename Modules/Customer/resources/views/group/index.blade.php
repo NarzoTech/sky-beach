@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Customer Group List') }}</title>
-@endsection
+@section('title', __('Customer Group List'))
 
 @section('content')
     <div class="row">

@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Edit Printer') }}</title>
-@endsection
+@section('title', __('Edit Printer'))
 
 @section('content')
 <div class="main-content">

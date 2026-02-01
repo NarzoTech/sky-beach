@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Select Table') }}</title>
-@endsection
+@section('title', __('Select Table'))
 
 @push('css')
 <style>

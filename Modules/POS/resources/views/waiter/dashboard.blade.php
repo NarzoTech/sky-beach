@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Waiter Dashboard') }}</title>
-@endsection
+@section('title', __('Waiter Dashboard'))
 
 @push('css')
 <style>

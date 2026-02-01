@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('Create Order') }} - {{ $table->name }}</title>
-@endsection
+@section('title', __('Create Order') . ' - ' . $table->name)
 
 @push('css')
 <style>

@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Expense Supplier Advance Pay') }}</title>
-@endsection
+@section('title', __('Expense Supplier Advance Pay'))
 @section('content')
     <div class="main-content">
         <section class="section">

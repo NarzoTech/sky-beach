@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Create Account') }}</title>
-@endsection
+@section('title', __('Create Account'))
 
 
 @section('content')

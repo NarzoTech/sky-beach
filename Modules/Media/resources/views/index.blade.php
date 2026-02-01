@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{!! config('media.name') !!}</title>
-@endsection
+@section('title', config('media.name'))
 @section('content')
     <!-- Main Content -->
     <div class="main-content">

@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Import Suppliers') }}</title>
-@endsection
+@section('title', __('Import Suppliers'))
 
 @push('css')
     <link rel="stylesheet" href="{{ asset('backend/css/dropzone.min.css') }}">

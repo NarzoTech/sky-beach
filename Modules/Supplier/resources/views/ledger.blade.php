@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>
-        {{ $title }}</title>
-@endsection
+@section('title', $title)
 
 @section('content')
     <div class="row">

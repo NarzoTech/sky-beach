@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Barcode Wise Product Report') }}</title>
-@endsection
+@section('title', __('Barcode Wise Product Report'))
 
 
 @section('content')

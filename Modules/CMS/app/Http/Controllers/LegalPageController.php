@@ -21,7 +21,7 @@ class LegalPageController extends Controller
     public function index()
     {
         checkAdminHasPermissionAndThrowException('cms.legal-pages.view');
-        $pages = LegalPage::orderBy('sort_order')->get();
+        $pages = LegalPage::orderBy('created_at', 'desc')->get();
         return view('cms::admin.legal-pages.index', compact('pages'));
     }
 
@@ -49,7 +49,7 @@ class LegalPageController extends Controller
 
         DB::beginTransaction();
         try {
-            $data = $request->only(['title', 'content', 'meta_title', 'meta_description', 'is_active', 'sort_order']);
+            $data = $request->only(['title', 'content', 'meta_title', 'meta_description', 'is_active']);
             $data['slug'] = $request->slug ?: Str::slug($request->title);
 
             LegalPage::create($data);
@@ -89,7 +89,7 @@ class LegalPageController extends Controller
         DB::beginTransaction();
         try {
             $page = LegalPage::findOrFail($id);
-            $data = $request->only(['title', 'content', 'meta_title', 'meta_description', 'is_active', 'sort_order']);
+            $data = $request->only(['title', 'content', 'meta_title', 'meta_description', 'is_active']);
 
             if ($request->slug) {
                 $data['slug'] = $request->slug;

@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Balance Transfer List') }}</title>
-@endsection
+@section('title', __('Balance Transfer List'))
 
 
 @section('content')

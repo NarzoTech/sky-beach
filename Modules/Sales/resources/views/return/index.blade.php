@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Sales Return List') }}</title>
-@endsection
+@section('title', __('Sales Return List'))
 @section('content')
     <div class="row">
         <div class="col-12">

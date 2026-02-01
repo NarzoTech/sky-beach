@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Install Addon') }}</title>
-@endsection
+@section('title', __('Install Addon'))
 @section('content')
     <!-- Main Content -->
     <div class="main-content">

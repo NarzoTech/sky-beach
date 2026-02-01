@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>
-        {{ __('POS') }}</title>
-@endsection
+@section('title', __('POS'))
 @push('css')
     <link rel="stylesheet" href="{{ asset('backend/css/pos.css') }}">
     <link rel="stylesheet" href="{{ asset('backend/css/jquery-ui.min.css') }}">

@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Account List') }}</title>
-@endsection
+@section('title', __('Account List'))
 
 @push('css')
     <style>

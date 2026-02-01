@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ $title }}</title>
-@endsection
+@section('title', $title)
 
 @push('css')
 <style>

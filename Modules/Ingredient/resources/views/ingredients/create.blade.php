@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Add Ingredient') }}</title>
-@endsection
+@section('title', __('Add Ingredient'))
 
 
 @section('content')

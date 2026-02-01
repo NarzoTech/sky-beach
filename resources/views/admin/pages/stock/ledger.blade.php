@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Stock Ledger') }}</title>
-@endsection
+@section('title', __('Stock Ledger'))
 
 
 @section('content')

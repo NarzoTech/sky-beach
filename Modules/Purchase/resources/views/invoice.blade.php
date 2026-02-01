@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Invoice') }}</title>
-@endsection
+@section('title', __('Invoice'))
 
 @push('css')
     <link rel="stylesheet" href="{{ asset('/backend/css/invoice.css') }}">

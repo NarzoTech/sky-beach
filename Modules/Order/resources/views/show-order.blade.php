@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Invoice') }}</title>
-@endsection
+@section('title', __('Invoice'))
 <style>
     @media print {
 

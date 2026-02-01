@@ -2,9 +2,7 @@
     $type = request()->pay;
 @endphp
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ $type == 1 ? __('Pay Salary') : __('Pay Advance') }}</title>
-@endsection
+@section('title', $type == 1 ? __('Pay Salary') : __('Pay Advance'))
 
 
 @section('content')

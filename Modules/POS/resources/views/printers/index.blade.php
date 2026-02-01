@@ -1,8 +1,6 @@
 @extends('admin.layouts.master')
 
-@section('title')
-    <title>{{ __('POS Printers') }}</title>
-@endsection
+@section('title', __('POS Printers'))
 
 @section('content')
 <div class="main-content">

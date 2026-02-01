@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Weekdays Setup') }}</title>
-@endsection
+@section('title', __('Weekdays Setup'))
 @section('content')
     <div class="row">
         <div class="col-12">

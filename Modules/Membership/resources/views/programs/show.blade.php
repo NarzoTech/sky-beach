@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Program Details') }} - {{ $program->name }}</title>
-@endsection
+@section('title', __('Program Details') . ' - ' . $program->name)
 @section('content')
     <div class="card mb-5">
         <div class="card-header-tab card-header">

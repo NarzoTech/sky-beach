@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Edit Currency') }}</title>
-@endsection
+@section('title', __('Edit Currency'))
 @section('content')
     <div class="main-content">
         <section class="section">

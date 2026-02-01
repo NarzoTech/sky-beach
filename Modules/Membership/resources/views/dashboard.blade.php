@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Membership Dashboard') }}</title>
-@endsection
+@section('title', __('Membership Dashboard'))
 @section('content')
     <!-- Statistics Cards -->
     <div class="row mb-4">

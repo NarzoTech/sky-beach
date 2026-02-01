@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Translate Language') }} ({{ $language->name }})</title>
-@endsection
+@section('title', __('Translate Language') . ' (' . $language->name . ')')
 
 @section('content')
     <!-- Main Content -->

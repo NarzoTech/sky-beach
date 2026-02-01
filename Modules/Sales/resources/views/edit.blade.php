@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Edit Sale') }} - #{{ $sale->invoice }}</title>
-@endsection
+@section('title', __('Edit Sale') . ' - #' . $sale->invoice)
 @push('css')
     <link rel="stylesheet" href="{{ asset('backend/css/pos.css') }}">
     <link rel="stylesheet" href="{{ asset('backend/css/jquery-ui.min.css') }}">
