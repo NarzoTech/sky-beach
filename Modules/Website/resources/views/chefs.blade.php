@@ -30,11 +30,7 @@
                     <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
                         <div class="single_chef">
                             <div class="single_chef_img">
-                                @if($chef->image)
-                                    <img src="{{ asset($chef->image) }}" alt="{{ $chef->name }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/chef_img_1.jpg') }}" alt="{{ $chef->name }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $chef->image_url }}" alt="{{ $chef->name }}" class="img-fluid w-100">
                                 <span>{{ $chef->designation }}</span>
                             </div>
                             <div class="single_chef_text">

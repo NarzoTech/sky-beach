@@ -589,6 +589,51 @@ if (! function_exists('formatDate')) {
     }
 }
 
+/**
+ * Upload image to storage/app/public directory
+ *
+ * @param \Illuminate\Http\UploadedFile $file The uploaded file
+ * @param string $folder The folder name inside storage/app/public
+ * @param string|null $oldImage The old image path to delete (optional)
+ * @return string The stored file path
+ */
+if (!function_exists('upload_image')) {
+    function upload_image($file, string $folder, ?string $oldImage = null): string
+    {
+        // Delete old image if exists
+        if ($oldImage) {
+            delete_image($oldImage);
+        }
+
+        // Store new image
+        return $file->store($folder, 'public');
+    }
+}
+
+/**
+ * Delete image from storage/app/public directory
+ *
+ * @param string|null $path The image path to delete
+ * @return bool
+ */
+if (!function_exists('delete_image')) {
+    function delete_image(?string $path): bool
+    {
+        if (!$path) {
+            return false;
+        }
+
+        // Handle paths with 'storage/' prefix (used by some modules)
+        $cleanPath = str_replace('storage/', '', $path);
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cleanPath)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->delete($cleanPath);
+        }
+
+        return false;
+    }
+}
+
 if (! function_exists('routeList')) {
     function routeList(): object
     {

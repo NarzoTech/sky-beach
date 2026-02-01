@@ -355,29 +355,11 @@
                     <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
                         <div class="single_chef">
                             <a href="{{ route('website.chefs') }}" class="single_chef_img">
-                                @if($chef->image)
-                                    <img src="{{ asset($chef->image) }}" alt="{{ $chef->name }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/chef_img_1.jpg') }}" alt="{{ $chef->name }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $chef->image_url }}" alt="{{ $chef->name }}" class="img-fluid w-100">
                                 <span>{{ $chef->designation }}</span>
                             </a>
                             <div class="single_chef_text">
                                 <a class="title" href="{{ route('website.chefs') }}">{{ $chef->name }}</a>
-                                <ul>
-                                    @if($chef->facebook)
-                                        <li><a class="facebook" href="{{ $chef->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-                                    @endif
-                                    @if($chef->twitter)
-                                        <li><a class="twitter" href="{{ $chef->twitter }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
-                                    @endif
-                                    @if($chef->linkedin)
-                                        <li><a class="linkedin" href="{{ $chef->linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
-                                    @endif
-                                    @if($chef->instagram)
-                                        <li><a class="instagram" href="{{ $chef->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
-                                    @endif
-                                </ul>
                             </div>
                         </div>
                     </div>

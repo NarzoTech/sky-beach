@@ -36,7 +36,7 @@ class CmsPageController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
         if ($request->hasFile('banner_image')) {
-            $validated['banner_image'] = $request->file('banner_image')->store('cms', 'public');
+            $validated['banner_image'] = upload_image($request->file('banner_image'), 'cms');
         }
 
         CmsPage::create($validated);
@@ -66,7 +66,7 @@ class CmsPageController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
         if ($request->hasFile('banner_image')) {
-            $validated['banner_image'] = $request->file('banner_image')->store('cms', 'public');
+            $validated['banner_image'] = upload_image($request->file('banner_image'), 'cms', $cmsPage->banner_image);
         }
 
         $cmsPage->update($validated);
@@ -77,6 +77,7 @@ class CmsPageController extends Controller
 
     public function destroy(CmsPage $cmsPage)
     {
+        delete_image($cmsPage->banner_image);
         $cmsPage->delete();
         return redirect()->route('admin.cms-pages.index')
             ->with('success', 'CMS Page deleted successfully');

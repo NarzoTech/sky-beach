@@ -50,7 +50,7 @@ class RestaurantMenuItemController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'menu-items');
         }
 
         RestaurantMenuItem::create($validated);
@@ -94,7 +94,7 @@ class RestaurantMenuItemController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('menu-items', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'menu-items', $menuItem->image);
         }
 
         $menuItem->update($validated);
@@ -105,6 +105,7 @@ class RestaurantMenuItemController extends Controller
 
     public function destroy(RestaurantMenuItem $menuItem)
     {
+        delete_image($menuItem->image);
         $menuItem->delete();
         return redirect()->route('admin.menu-items.index')
             ->with('success', 'Menu item deleted successfully');

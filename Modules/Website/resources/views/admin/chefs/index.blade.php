@@ -33,7 +33,7 @@
                                 <tr>
                                     <td>
                                         @if($chef->image)
-                                            <img src="{{ asset('storage/' . $chef->image) }}" alt="{{ $chef->name }}" 
+                                            <img src="{{ $chef->image_url }}" alt="{{ $chef->name }}" 
                                                  style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
                                         @else
                                             <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 50%;"></div>

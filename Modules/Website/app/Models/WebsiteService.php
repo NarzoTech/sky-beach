@@ -56,4 +56,18 @@ class WebsiteService extends Model
     {
         return $this->hasMany(ServiceFaq::class, 'service_id');
     }
+
+    /**
+     * Get the image URL
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            if (str_starts_with($this->image, 'storage/') || str_starts_with($this->image, 'website/')) {
+                return asset($this->image);
+            }
+            return asset('storage/' . $this->image);
+        }
+        return asset('website/images/service_placeholder.jpg');
+    }
 }

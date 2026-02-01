@@ -50,4 +50,19 @@ class Chef extends Model
     {
         return $query->orderBy('order', 'asc');
     }
+
+    /**
+     * Get the image URL
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            // Handle paths that already include storage/ or website/
+            if (str_starts_with($this->image, 'storage/') || str_starts_with($this->image, 'website/')) {
+                return asset($this->image);
+            }
+            return asset('storage/' . $this->image);
+        }
+        return asset('website/images/chef_placeholder.jpg');
+    }
 }

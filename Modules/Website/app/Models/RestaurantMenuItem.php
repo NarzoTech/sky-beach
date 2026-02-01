@@ -103,4 +103,18 @@ class RestaurantMenuItem extends Model
     {
         return $this->discount_price ?? $this->price;
     }
+
+    /**
+     * Get the image URL
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            if (str_starts_with($this->image, 'storage/') || str_starts_with($this->image, 'website/')) {
+                return asset($this->image);
+            }
+            return asset('storage/' . $this->image);
+        }
+        return asset('website/images/menu_placeholder.jpg');
+    }
 }

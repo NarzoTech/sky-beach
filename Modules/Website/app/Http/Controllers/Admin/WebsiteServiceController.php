@@ -39,7 +39,7 @@ class WebsiteServiceController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('services', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'services');
         }
 
         WebsiteService::create($validated);
@@ -72,7 +72,7 @@ class WebsiteServiceController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('services', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'services', $websiteService->image);
         }
 
         $websiteService->update($validated);
@@ -83,6 +83,7 @@ class WebsiteServiceController extends Controller
 
     public function destroy(WebsiteService $websiteService)
     {
+        delete_image($websiteService->image);
         $websiteService->delete();
         return redirect()->route('admin.website-services.index')
             ->with('success', 'Service deleted successfully');

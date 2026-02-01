@@ -29,10 +29,6 @@ class ChefController extends Controller
             'image' => 'nullable|image|max:2048',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'facebook' => 'nullable|url',
-            'twitter' => 'nullable|url',
-            'instagram' => 'nullable|url',
-            'linkedin' => 'nullable|url',
             'experience_years' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
@@ -40,12 +36,12 @@ class ChefController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('chefs', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'chefs');
         }
 
         Chef::create($validated);
 
-        return redirect()->route('admin.chefs.index')
+        return redirect()->route('admin.restaurant.chefs.index')
             ->with('success', 'Chef created successfully');
     }
 
@@ -64,10 +60,6 @@ class ChefController extends Controller
             'image' => 'nullable|image|max:2048',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'facebook' => 'nullable|url',
-            'twitter' => 'nullable|url',
-            'instagram' => 'nullable|url',
-            'linkedin' => 'nullable|url',
             'experience_years' => 'nullable|integer|min:0',
             'order' => 'nullable|integer|min:0',
             'is_featured' => 'nullable|boolean',
@@ -75,19 +67,20 @@ class ChefController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('chefs', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'chefs', $chef->image);
         }
 
         $chef->update($validated);
 
-        return redirect()->route('admin.chefs.index')
+        return redirect()->route('admin.restaurant.chefs.index')
             ->with('success', 'Chef updated successfully');
     }
 
     public function destroy(Chef $chef)
     {
+        delete_image($chef->image);
         $chef->delete();
-        return redirect()->route('admin.chefs.index')
+        return redirect()->route('admin.restaurant.chefs.index')
             ->with('success', 'Chef deleted successfully');
     }
 }

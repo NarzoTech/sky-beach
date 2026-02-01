@@ -74,8 +74,7 @@ class CateringController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('catering', 'public');
-            $validated['image'] = 'storage/' . $validated['image'];
+            $validated['image'] = upload_image($request->file('image'), 'catering');
         }
 
         // Filter empty includes
@@ -123,8 +122,7 @@ class CateringController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('catering', 'public');
-            $validated['image'] = 'storage/' . $validated['image'];
+            $validated['image'] = upload_image($request->file('image'), 'catering', $package->image);
         }
 
         // Filter empty includes
@@ -146,6 +144,7 @@ class CateringController extends Controller
      */
     public function packagesDestroy(CateringPackage $package)
     {
+        delete_image($package->image);
         $package->delete();
 
         return redirect()->route('admin.restaurant.catering.packages.index')

@@ -37,9 +37,9 @@ class BlogController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
-        
+
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('blogs', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'blogs');
         }
 
         Blog::create($validated);
@@ -72,7 +72,7 @@ class BlogController extends Controller
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('blogs', 'public');
+            $validated['image'] = upload_image($request->file('image'), 'blogs', $blog->image);
         }
 
         $blog->update($validated);
@@ -83,6 +83,7 @@ class BlogController extends Controller
 
     public function destroy(Blog $blog)
     {
+        delete_image($blog->image);
         $blog->delete();
         return redirect()->route('admin.restaurant.blogs.index')
             ->with('success', 'Blog deleted successfully');

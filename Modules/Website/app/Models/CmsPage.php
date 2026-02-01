@@ -34,4 +34,18 @@ class CmsPage extends Model
     {
         return 'slug';
     }
+
+    /**
+     * Get the banner image URL
+     */
+    public function getBannerImageUrlAttribute()
+    {
+        if ($this->banner_image) {
+            if (str_starts_with($this->banner_image, 'storage/') || str_starts_with($this->banner_image, 'website/')) {
+                return asset($this->banner_image);
+            }
+            return asset('storage/' . $this->banner_image);
+        }
+        return null;
+    }
 }
