@@ -12,7 +12,7 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::latest()->paginate(20);
-        return view('website::admin.blogs.index', compact('blogs'));
+        return view('website::admin.restaurant.blogs.index', compact('blogs'));
     }
 
     public function create()
@@ -44,7 +44,7 @@ class BlogController extends Controller
 
         Blog::create($validated);
 
-        return redirect()->route('admin.blogs.index')
+        return redirect()->route('admin.restaurant.blogs.index')
             ->with('success', 'Blog created successfully');
     }
 
@@ -77,14 +77,14 @@ class BlogController extends Controller
 
         $blog->update($validated);
 
-        return redirect()->route('admin.blogs.index')
+        return redirect()->route('admin.restaurant.blogs.index')
             ->with('success', 'Blog updated successfully');
     }
 
     public function destroy(Blog $blog)
     {
         $blog->delete();
-        return redirect()->route('admin.blogs.index')
+        return redirect()->route('admin.restaurant.blogs.index')
             ->with('success', 'Blog deleted successfully');
     }
 }
