@@ -375,8 +375,8 @@ class WebsiteController extends Controller
         $validated = $request->validate([
             'service_id' => 'required|exists:website_services,id',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'required|string|max:20',
             'message' => 'required|string',
         ]);
 

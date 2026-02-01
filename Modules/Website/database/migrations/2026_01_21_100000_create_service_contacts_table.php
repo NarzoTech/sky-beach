@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('service_id')->constrained('website_services')->onDelete('cascade');
             $table->string('name');
-            $table->string('email');
-            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone');
             $table->text('message');
             $table->enum('status', ['pending', 'read', 'replied'])->default('pending');
             $table->text('admin_notes')->nullable();

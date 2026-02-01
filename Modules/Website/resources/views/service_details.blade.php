@@ -29,11 +29,7 @@
                 <div class="row">
                     <div class="col-lg-8 wow fadeInLeft">
                         <div class="service_details_img">
-                            @if($service->image)
-                                <img src="{{ asset($service->image) }}" alt="{{ $service->title }}" class="img-fluid w-100">
-                            @else
-                                <img src="{{ asset('website/images/service_details.jpg') }}" alt="{{ $service->title }}" class="img-fluid w-100">
-                            @endif
+                            <img src="{{ $service->image_url }}" alt="{{ $service->title }}" class="img-fluid w-100">
                         </div>
                         <div class="service_details_text">
                             <h2>{{ $service->title }}</h2>
@@ -118,28 +114,28 @@
                                 <form action="{{ route('website.service-contact.store') }}" method="POST" class="service_contact_form">
                                     @csrf
                                     <input type="hidden" name="service_id" value="{{ $service->id }}">
-                                    <div class="mb-3">
-                                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" placeholder="{{ __('Your Name') }} *" value="{{ old('name') }}" required>
+                                    <div class="review_input_box">
+                                        <input type="text" name="name" placeholder="{{ __('Your Name') }} *" value="{{ old('name') }}" required>
                                         @error('name')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                    <div class="mb-3">
-                                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" placeholder="{{ __('Your Email') }} *" value="{{ old('email') }}" required>
+                                    <div class="review_input_box">
+                                        <input type="email" name="email" placeholder="{{ __('Your Email') }}" value="{{ old('email') }}">
                                         @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                    <div class="mb-3">
-                                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="{{ __('Phone Number') }}" value="{{ old('phone') }}">
+                                    <div class="review_input_box">
+                                        <input type="text" name="phone" placeholder="{{ __('Phone Number') }} *" value="{{ old('phone') }}" required>
                                         @error('phone')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
-                                    <div class="mb-3">
-                                        <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="4" placeholder="{{ __('Your Message') }} *" required>{{ old('message') }}</textarea>
+                                    <div class="review_input_box">
+                                        <textarea name="message" rows="4" placeholder="{{ __('Your Message') }} *" required>{{ old('message') }}</textarea>
                                         @error('message')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <span class="text-danger">{{ $message }}</span>
                                         @enderror
                                     </div>
                                     <button type="submit" class="common_btn w-100" style="justify-content: center;">{{ __('Send Inquiry') }}</button>
@@ -153,11 +149,7 @@
                                     @foreach($relatedServices as $relatedService)
                                     <div class="col-xl-6 col-sm-6">
                                         <div class="service_category_img">
-                                            @if($relatedService->image)
-                                                <img src="{{ asset($relatedService->image) }}" alt="{{ $relatedService->title }}" class="img-fluid w-100">
-                                            @else
-                                                <img src="{{ asset('website/images/service_catg_1.jpg') }}" alt="{{ $relatedService->title }}" class="img-fluid w-100">
-                                            @endif
+                                            <img src="{{ $relatedService->image_url }}" alt="{{ $relatedService->title }}" class="img-fluid w-100">
                                             <div class="service_category_text">
                                                 <a href="{{ route('website.service-details', $relatedService->slug) }}">{{ $relatedService->title }}</a>
                                             </div>
