@@ -196,7 +196,7 @@
                                 <i class="fas fa-phone-alt"></i>
                             </div>
                             <h4>{{ __('Call Us') }}</h4>
-                            <p>{{ __('For immediate assistance') }}<br>{{ cms_contact('phone') ?? cms_setting('contact_phone', __('Phone not set')) }}</p>
+                            <p>{{ __('For immediate assistance') }}<br>{{ $setting->mobile ?? cms_contact('phone') ?? __('Phone not set') }}</p>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6 wow fadeInUp">

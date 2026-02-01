@@ -327,15 +327,19 @@
                     <div class="app_download_text">
                         <h2 class="wow bounceIn">{{ $appDownload->title ?? 'Are you Ready to Start your Order?' }}</h2>
                         <p>{{ $appDownload->description ?? 'Download our app and enjoy exclusive offers, easy ordering, and fast delivery.' }}</p>
+                        @php
+                            $contactPhone = $setting->mobile ?? cms_contact('phone');
+                            $whatsappNumber = cms_contact('whatsapp') ?? $contactPhone;
+                        @endphp
                         <ul class="d-flex flex-wrap">
                             <li>
-                                <a class="common_btn" href="tel:{{ cms_contact('phone') ?? '+990123456789' }}">
+                                <a class="common_btn" href="tel:{{ preg_replace('/[\s\-]/', '', $contactPhone ?? '') }}">
                                     <i class="fas fa-phone-alt me-2"></i>
                                     {{ __('Call Us') }}
                                 </a>
                             </li>
                             <li>
-                                <a class="common_btn" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', cms_contact('whatsapp') ?? cms_contact('phone') ?? '990123456789') }}" target="_blank">
+                                <a class="common_btn" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber ?? '') }}" target="_blank">
                                     <i class="fab fa-whatsapp me-2" style="font-size: 20px;"></i>
                                     {{ __('WhatsApp') }}
                                 </a>

@@ -62,9 +62,9 @@
 
                                 <h4>{{ __('Contact Us') }}</h4>
                                 <p>{{ __('If you have any questions or concerns about our Privacy Policy or data practices, please contact us at:') }}</p>
-                                @php $email = cms_contact('email') ?? cms_setting('contact_email'); @endphp
+                                @php $email = $setting->email ?? cms_contact('email'); @endphp
                                 <a href="mailto:{{ $email }}">{{ __('Email') }}: {{ $email ?? __('Not set') }}</a>
-                                <p>{{ __('Location') }}: {{ cms_contact('address') ?? cms_setting('contact_address', __('Address not set')) }}</p>
+                                <p>{{ __('Location') }}: {{ $setting->address ?? cms_contact('address') ?? __('Address not set') }}</p>
                             @endif
                         </div>
                     </div>

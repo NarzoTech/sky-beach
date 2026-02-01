@@ -93,6 +93,12 @@
                     </div>
                 </div>
                 @if(!$infoSection || $infoSection->section_status)
+                @php
+                    // Use main business settings first, fallback to CMS
+                    $contactAddress = $setting->address ?? cms_contact('address');
+                    $contactPhone = $setting->mobile ?? cms_contact('phone');
+                    $contactEmail = $setting->email ?? cms_contact('email');
+                @endphp
                 <div class="row mt_95 xs_mt_75">
                     <div class="col-xl-4 col-md-6 wow fadeInUp">
                         <div class="contact_info">
@@ -100,7 +106,7 @@
                                 <img src="{{ asset('website/images/location_2.png') }}" alt="location" class="img-fluid w-100">
                             </div>
                             <div class="text">
-                                <p>{{ cms_contact('address') ?? '16/A, Romadan House City Tower New York, United States' }}</p>
+                                <p>{{ $contactAddress ?? __('Address not set') }}</p>
                             </div>
                         </div>
                     </div>
@@ -110,7 +116,7 @@
                                 <img src="{{ asset('website/images/call_icon_3.png') }}" alt="call" class="img-fluid w-100">
                             </div>
                             <div class="text">
-                                <a href="tel:{{ cms_contact('phone') ?? '+990123456789' }}">{{ cms_contact('phone') ?? '+990 123 456 789' }}</a>
+                                <a href="tel:{{ preg_replace('/[\s\-]/', '', $contactPhone ?? '') }}">{{ $contactPhone ?? __('Phone not set') }}</a>
                                 @if(cms_contact('phone_2'))
                                 <a href="tel:{{ cms_contact('phone_2') }}">{{ cms_contact('phone_2') }}</a>
                                 @endif
@@ -123,7 +129,7 @@
                                 <img src="{{ asset('website/images/mail_icon.png') }}" alt="mail" class="img-fluid w-100">
                             </div>
                             <div class="text">
-                                <a href="mailto:{{ cms_contact('email') ?? 'info@skybeach.com' }}">{{ cms_contact('email') ?? 'info@skybeach.com' }}</a>
+                                <a href="mailto:{{ $contactEmail ?? '' }}">{{ $contactEmail ?? __('Email not set') }}</a>
                                 @if(cms_contact('email_2'))
                                 <a href="mailto:{{ cms_contact('email_2') }}">{{ cms_contact('email_2') }}</a>
                                 @endif
