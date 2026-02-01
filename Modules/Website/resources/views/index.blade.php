@@ -122,6 +122,19 @@
 
 
     @if(!$featuredMenu || $featuredMenu->section_status)
+    @php
+        // Get categories with their menu items for the filter
+        $menuCategoriesWithItems = \Modules\Menu\app\Models\MenuCategory::active()
+            ->ordered()
+            ->with(['activeMenuItems' => function($query) {
+                $query->where('status', 1)
+                    ->where('is_available', 1)
+                    ->orderBy('display_order')
+                    ->take(8);
+            }])
+            ->take(6)
+            ->get();
+    @endphp
     <!--==========MENU ITEM START===========-->
     <section class="menu_item pt_125 xs_pt_85">
         <div class="container">
@@ -135,6 +148,69 @@
                     </div>
                 </div>
             </div>
+
+            @if($menuCategoriesWithItems->count() > 0)
+            <div id="schedule">
+                <div class="colorful-tab-wrapper" id="filter_area">
+                    <div class="row mb_15 wow fadeInUp">
+                        <div class="col-xxl-10 col-lg-11 m-auto">
+                            <ul class="filter_btn_area">
+                                @foreach($menuCategoriesWithItems as $index => $cat)
+                                    <li class="{{ $index === 0 ? 'active' : '' }}"><a href="#category_{{ $cat->id }}">{{ strtoupper($cat->name) }}</a></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            @foreach($menuCategoriesWithItems as $index => $cat)
+                            <div class="colorful-tab-content {{ $index === 0 ? 'active' : '' }}" id="category_{{ $cat->id }}">
+                                <div class="row">
+                                    @forelse($cat->activeMenuItems as $item)
+                                    <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
+                                        <div class="single_menu">
+                                            <div class="single_menu_img">
+                                                @if($item->image)
+                                                    <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                                @else
+                                                    <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                                @endif
+                                                <ul>
+                                                    <li><a href="{{ route('website.menu-details', $item->slug) }}"><i class="far fa-eye"></i></a></li>
+                                                    <li><a href="#" class="favorite-btn" data-item-id="{{ $item->id }}"><i class="far fa-heart"></i></a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="single_menu_text">
+                                                <p class="rating">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                </p>
+                                                <a class="category" href="{{ route('website.menu', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
+                                                <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
+                                                <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
+                                                <div class="d-flex flex-wrap align-items-center">
+                                                    <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
+                                                    <h3>{{ currency($item->base_price) }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @empty
+                                    <div class="col-12 text-center">
+                                        <p>{{ __('No items in this category.') }}</p>
+                                    </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @else
             <div class="row">
                 @forelse($featuredMenuItems as $item)
                     <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
@@ -175,6 +251,10 @@
                         <p>No menu items available at the moment.</p>
                     </div>
                 @endforelse
+            </div>
+            @endif
+
+            <div class="row">
                 <div class="col-12 text-center mt_60 wow fadeInUp">
                     <a class="common_btn" href="{{ route('website.menu') }}">
                         <span class="icon">
@@ -235,19 +315,15 @@
                         <p>{{ $appDownload->description ?? 'Download our app and enjoy exclusive offers, easy ordering, and fast delivery.' }}</p>
                         <ul class="d-flex flex-wrap">
                             <li>
-                                <a class="common_btn" href="{{ $appDownload->button_link ?? '#' }}">
-                                    <span class="icon">
-                                        <img src="{{ asset('website/images/apple_icon.png') }}" alt="order" class="img-fluid w-100">
-                                    </span>
-                                    Apple Store
+                                <a class="common_btn" href="tel:{{ cms_contact('phone') ?? '+990123456789' }}">
+                                    <i class="fas fa-phone-alt me-2"></i>
+                                    {{ __('Call Us') }}
                                 </a>
                             </li>
                             <li>
-                                <a class="common_btn" href="{{ $appDownload->button_link_2 ?? '#' }}">
-                                    <span class="icon">
-                                        <img src="{{ asset('website/images/play_store_icon.png') }}" alt="order" class="img-fluid w-100">
-                                    </span>
-                                    Play Store
+                                <a class="common_btn" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', cms_contact('whatsapp') ?? cms_contact('phone') ?? '990123456789') }}" target="_blank">
+                                    <i class="fab fa-whatsapp me-2" style="font-size: 20px;"></i>
+                                    {{ __('WhatsApp') }}
                                 </a>
                             </li>
                         </ul>
