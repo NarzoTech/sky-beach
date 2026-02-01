@@ -78,6 +78,50 @@
                                         </div>
                                     </div>
 
+                                    {{-- Footer Settings --}}
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <h5 class="text-primary border-bottom pb-2 mb-3">{{ __('Footer Settings') }}</h5>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="footer_about">{{ __('Footer About Text') }}</label>
+                                                <textarea name="footer_about" id="footer_about" class="form-control" rows="3" placeholder="{{ __('Short description about your business for the footer...') }}">{{ $setting->footer_about ?? '' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="copyright_text">{{ __('Copyright Text') }}</label>
+                                                <input type="text" name="copyright_text" id="copyright_text" class="form-control" value="{{ $setting->copyright_text ?? '' }}" placeholder="{{ __('e.g., All Rights Reserved') }}">
+                                                <small class="text-muted">{{ __('Leave empty to use default: "Copyright © [App Name] [Year]. All Rights Reserved"') }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="footer_facebook">{{ __('Facebook URL') }}</label>
+                                                <input type="url" name="footer_facebook" id="footer_facebook" class="form-control" value="{{ $setting->footer_facebook ?? '' }}" placeholder="https://facebook.com/yourpage">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="footer_instagram">{{ __('Instagram URL') }}</label>
+                                                <input type="url" name="footer_instagram" id="footer_instagram" class="form-control" value="{{ $setting->footer_instagram ?? '' }}" placeholder="https://instagram.com/yourpage">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="footer_twitter">{{ __('Twitter/X URL') }}</label>
+                                                <input type="url" name="footer_twitter" id="footer_twitter" class="form-control" value="{{ $setting->footer_twitter ?? '' }}" placeholder="https://twitter.com/yourpage">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="footer_youtube">{{ __('YouTube URL') }}</label>
+                                                <input type="url" name="footer_youtube" id="footer_youtube" class="form-control" value="{{ $setting->footer_youtube ?? '' }}" placeholder="https://youtube.com/yourchannel">
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="row mt-4">
                                         <div class="col-12">
                                             <h5 class="text-primary border-bottom pb-2 mb-3">{{ __('Business Information') }}</h5>

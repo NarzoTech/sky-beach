@@ -79,12 +79,19 @@ class GlobalSettingController extends Controller
                 $value = $file_name;
             }
 
+            // Convert null to empty string to avoid database constraint violation
+            $value = $value ?? '';
+
             if ($setting) {
                 $setting->value = $value;
                 $setting->save();
             } else {
-                // Create new setting if it doesn't exist (for new fields like frontend_logo, etc.)
-                if (in_array($key, ['frontend_logo', 'frontend_favicon', 'frontend_footer_logo', 'default_avatar'])) {
+                // Create new setting if it doesn't exist (for new fields like frontend_logo, footer settings, etc.)
+                $allowedNewKeys = [
+                    'frontend_logo', 'frontend_favicon', 'frontend_footer_logo', 'default_avatar',
+                    'footer_about', 'copyright_text', 'footer_facebook', 'footer_instagram', 'footer_twitter', 'footer_youtube'
+                ];
+                if (in_array($key, $allowedNewKeys) && $value !== '') {
                     Setting::create(['key' => $key, 'value' => $value]);
                 } else {
                     continue;

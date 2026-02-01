@@ -21,28 +21,30 @@
                             <img src="{{ asset('website/images/footer_logo.png') }}" alt="{{ config('app.name') }}" class="img-fluid w-100">
                         @endif
                     </a>
-                    <p>{{ $footerSection->description ?? cms_setting('footer_description', __('Delicious food delivered to your doorstep.')) }}</p>
+                    <p>{{ $setting->footer_about ?? $footerSection->description ?? cms_setting('footer_description', __('Delicious food delivered to your doorstep.')) }}</p>
                     <ul>
-                        @if($socialLinks)
-                            @if(!empty($socialLinks['social.facebook'] ?? $socialLinks['facebook'] ?? null))
-                                <li><a class="facebook" href="{{ $socialLinks['social.facebook'] ?? $socialLinks['facebook'] }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
-                            @endif
-                            @if(!empty($socialLinks['social.twitter'] ?? $socialLinks['twitter'] ?? null))
-                                <li><a class="twitter" href="{{ $socialLinks['social.twitter'] ?? $socialLinks['twitter'] }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
-                            @endif
-                            @if(!empty($socialLinks['social.instagram'] ?? $socialLinks['instagram'] ?? null))
-                                <li><a class="instagram" href="{{ $socialLinks['social.instagram'] ?? $socialLinks['instagram'] }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
-                            @endif
-                            @if(!empty($socialLinks['social.linkedin'] ?? $socialLinks['linkedin'] ?? null))
-                                <li><a class="linkedin" href="{{ $socialLinks['social.linkedin'] ?? $socialLinks['linkedin'] }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
-                            @endif
-                            @if(!empty($socialLinks['social.youtube'] ?? $socialLinks['youtube'] ?? null))
-                                <li><a class="youtube" href="{{ $socialLinks['social.youtube'] ?? $socialLinks['youtube'] }}" target="_blank"><i class="fab fa-youtube"></i></a></li>
-                            @endif
-                        @else
-                            <li><a class="facebook" href="#"><i class="fab fa-facebook-f"></i></a></li>
-                            <li><a class="twitter" href="#"><i class="fab fa-twitter"></i></a></li>
-                            <li><a class="linkedin" href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                        @php
+                            // Use main settings first, fallback to CMS settings
+                            $facebook = $setting->footer_facebook ?? $socialLinks['social.facebook'] ?? $socialLinks['facebook'] ?? null;
+                            $twitter = $setting->footer_twitter ?? $socialLinks['social.twitter'] ?? $socialLinks['twitter'] ?? null;
+                            $instagram = $setting->footer_instagram ?? $socialLinks['social.instagram'] ?? $socialLinks['instagram'] ?? null;
+                            $youtube = $setting->footer_youtube ?? $socialLinks['social.youtube'] ?? $socialLinks['youtube'] ?? null;
+                            $linkedin = $socialLinks['social.linkedin'] ?? $socialLinks['linkedin'] ?? null;
+                        @endphp
+                        @if(!empty($facebook))
+                            <li><a class="facebook" href="{{ $facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                        @endif
+                        @if(!empty($twitter))
+                            <li><a class="twitter" href="{{ $twitter }}" target="_blank"><i class="fab fa-twitter"></i></a></li>
+                        @endif
+                        @if(!empty($instagram))
+                            <li><a class="instagram" href="{{ $instagram }}" target="_blank"><i class="fab fa-instagram"></i></a></li>
+                        @endif
+                        @if(!empty($linkedin))
+                            <li><a class="linkedin" href="{{ $linkedin }}" target="_blank"><i class="fab fa-linkedin-in"></i></a></li>
+                        @endif
+                        @if(!empty($youtube))
+                            <li><a class="youtube" href="{{ $youtube }}" target="_blank"><i class="fab fa-youtube"></i></a></li>
                         @endif
                     </ul>
                 </div>
@@ -84,9 +86,10 @@
                     <h3>{{ __('Contact Us') }}</h3>
                     <ul>
                         @php
-                            $address = cms_contact('address') ?? cms_setting('contact_address');
-                            $phone = cms_contact('phone') ?? cms_setting('contact_phone');
-                            $email = cms_contact('email') ?? cms_setting('contact_email');
+                            // Use main settings first (address, mobile, email), fallback to CMS
+                            $address = $setting->address ?? cms_contact('address') ?? cms_setting('contact_address');
+                            $phone = $setting->mobile ?? cms_contact('phone') ?? cms_setting('contact_phone');
+                            $email = $setting->email ?? cms_contact('email') ?? cms_setting('contact_email');
                         @endphp
                         <li><a href="javascript:void(0);"><i class="fas fa-map-marker-alt me-2"></i>{{ $address ?? __('Address not set') }}</a></li>
                         <li><a href="tel:{{ preg_replace('/[\s\-]/', '', $phone ?? '') }}"><i class="fas fa-phone-alt me-2"></i>{{ $phone ?? __('Phone not set') }}</a></li>
@@ -101,7 +104,11 @@
             <div class="row">
                 <div class="col-12">
                     <div class="footer_copyright">
-                        <p>{{ __('Copyright') }} © {{ config('app.name') }} {{ date('Y') }}. {{ __('All Rights Reserved') }}</p>
+                        @if(!empty($setting->copyright_text ?? null))
+                            <p>{{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }} {{ date('Y') }}. {{ $setting->copyright_text }}</p>
+                        @else
+                            <p>{{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }} {{ date('Y') }}. {{ __('All Rights Reserved') }}</p>
+                        @endif
                     </div>
                 </div>
             </div>

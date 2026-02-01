@@ -1,6 +1,6 @@
 <?php
 
-use Modules\CMS\app\Models\SiteSetting;
+use Modules\GlobalSetting\app\Models\Setting;
 use Modules\CMS\app\Models\SiteSection;
 use Modules\CMS\app\Models\PageSection;
 use Modules\CMS\app\Models\Testimonial;
@@ -51,25 +51,26 @@ if (!function_exists('cms_setting')) {
     function cms_setting($key, $default = null)
     {
         return Cache::remember("cms_setting_{$key}", 3600, function () use ($key, $default) {
-            $setting = SiteSetting::where('key', $key)->first();
+            $setting = Setting::where('key', $key)->first();
             return $setting ? $setting->value : $default;
         });
     }
 }
 
 /**
- * Get multiple site settings by group
+ * Get multiple site settings by key prefix
  */
 if (!function_exists('cms_settings')) {
-    function cms_settings($group = null)
+    function cms_settings($prefix = null)
     {
-        $cacheKey = "cms_settings_group_{$group}";
-        return Cache::remember($cacheKey, 3600, function () use ($group) {
-            $query = SiteSetting::query();
-            if ($group) {
-                $query->where('group', $group);
+        $cacheKey = "cms_settings_prefix_{$prefix}";
+        return Cache::remember($cacheKey, 3600, function () use ($prefix) {
+            $query = Setting::query();
+            if ($prefix) {
+                // Filter by key prefix (e.g., 'contact' matches 'contact.address', 'contact.phone', etc.)
+                $query->where('key', 'like', $prefix . '.%');
             }
-            return $query->orderBy('sort_order')->pluck('value', 'key')->toArray();
+            return $query->pluck('value', 'key')->toArray();
         });
     }
 }
