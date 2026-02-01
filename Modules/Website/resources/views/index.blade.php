@@ -452,8 +452,15 @@
                     </div>
                     <div class="col-md-3">
                         <div class="testimonial_video">
-                            <a class="venobox play_btn" data-autoplay="true" data-vbtype="video"
-                                href="{{ $testimonialSection->video ?? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }}">
+                            @php
+                                $videoUrl = $testimonialSection->video ?? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+                                // Convert YouTube URL to embed format
+                                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
+                                    $videoUrl = 'https://www.youtube.com/embed/' . $matches[1] . '?autoplay=1';
+                                }
+                            @endphp
+                            <a class="venobox play_btn" data-autoplay="true" data-vbtype="iframe"
+                                href="{{ $videoUrl }}">
                                 <i class="fas fa-play"></i>
                             </a>
                         </div>
