@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ asset('website/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/colorfulTab.min.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/flatpickr.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/venobox@2.1.8/dist/venobox.min.css">
     <link rel="stylesheet" href="{{ asset('website/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/responsive.css') }}">
 
@@ -67,6 +68,19 @@
     <script src="{{ asset('website/js/ScrollTrigger.min.js') }}"></script>
     <script src="{{ asset('website/js/script.js') }}"></script>
     <script src="{{ asset('website/js/flatpickr.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/venobox@2.1.8/dist/venobox.min.js"></script>
+    <script>
+        // Initialize Venobox for video lightbox
+        document.addEventListener('DOMContentLoaded', function() {
+            new VenoBox({
+                selector: '.venobox',
+                numeration: true,
+                infinigall: true,
+                share: false,
+                spinner: 'rotating-plane'
+            });
+        });
+    </script>
 
     @stack('scripts')
 </body>
