@@ -419,8 +419,8 @@ class WebsiteController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'required|string|max:20',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:5000',
             'newsletter' => 'nullable|boolean',

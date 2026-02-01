@@ -68,10 +68,10 @@
                                         <input type="text" name="name" placeholder="{{ __('Your Name') }}" value="{{ old('name') }}" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="email" name="email" placeholder="{{ __('Your Email') }}" value="{{ old('email') }}" required>
+                                        <input type="email" name="email" placeholder="{{ __('Your Email') }}" value="{{ old('email') }}">
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="text" name="phone" placeholder="{{ __('Phone Number') }}" value="{{ old('phone') }}">
+                                        <input type="text" name="phone" placeholder="{{ __('Phone Number') }}" value="{{ old('phone') }}" required>
                                     </div>
                                     <div class="col-md-6">
                                         <input type="text" name="subject" placeholder="{{ __('Subject') }}" value="{{ old('subject') }}" required>

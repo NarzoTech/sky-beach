@@ -140,7 +140,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $item->category->name ?? 'N/A' }}</td>
-                                <td>{{ number_format($item->base_price, 2) }}</td>
+                                <td>{{ currency($item->base_price) }}</td>
                                 <td>
                                     <span class="badge bg-info">{{ $item->variants->count() }}</span>
                                 </td>

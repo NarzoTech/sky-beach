@@ -55,10 +55,10 @@
                                     <td>{{ $item->category ?? '-' }}</td>
                                     <td>
                                         @if($item->discount_price)
-                                            <del class="text-muted">${{ number_format($item->price, 2) }}</del>
-                                            <strong class="text-success">${{ number_format($item->discount_price, 2) }}</strong>
+                                            <del class="text-muted">{{ currency($item->price) }}</del>
+                                            <strong class="text-success">{{ currency($item->discount_price) }}</strong>
                                         @else
-                                            ${{ number_format($item->price, 2) }}
+                                            {{ currency($item->price) }}
                                         @endif
                                     </td>
                                     <td>
