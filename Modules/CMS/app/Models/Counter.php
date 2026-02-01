@@ -46,16 +46,24 @@ class Counter extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all counter cache keys
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget('cms_counters');
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function () {
-            Cache::forget('cms_counters');
+            self::clearCache();
         });
 
         static::deleted(function () {
-            Cache::forget('cms_counters');
+            self::clearCache();
         });
     }
 }
