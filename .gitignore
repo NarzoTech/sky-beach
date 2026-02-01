@@ -25,3 +25,4 @@ public/uploads/media/
 todo.txt
 nul
 vendor
+.claude/settings.local.json
