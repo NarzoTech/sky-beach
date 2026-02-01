@@ -149,13 +149,6 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::put('sections/{section}', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'updateSection'])->name('sections.update');
         Route::post('sections/{section}/toggle-status', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
 
-        // Site Settings
-        Route::get('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'index'])->name('site-settings.index');
-        Route::get('site-settings/create', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'create'])->name('site-settings.create');
-        Route::post('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'store'])->name('site-settings.store');
-        Route::put('site-settings', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'update'])->name('site-settings.update');
-        Route::delete('site-settings/{id}', [\Modules\CMS\app\Http\Controllers\SiteSettingController::class, 'destroy'])->name('site-settings.destroy');
-
         // Testimonials
         Route::resource('testimonials', \Modules\CMS\app\Http\Controllers\TestimonialController::class)->except('show');
         Route::post('testimonials/{id}/toggle-status', [\Modules\CMS\app\Http\Controllers\TestimonialController::class, 'toggleStatus'])->name('testimonials.toggle-status');

@@ -247,11 +247,6 @@
                             <i class='bx bx-file me-2'></i>{{ __('Legal Pages') }}
                         </a>
                     </li>
-                    <li class="menu-item {{ request()->is('admin/cms/site-settings*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.site-settings.index') }}">
-                            <i class='bx bx-cog me-2'></i>{{ __('Site Settings') }}
-                        </a>
-                    </li>
                 </ul>
             </li>
         @endif
