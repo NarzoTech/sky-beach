@@ -286,6 +286,14 @@ class SectionService
                 'description' => 'nullable|string|max:1000',
             ],
         ],
+        'reservation_map' => [
+            'label' => 'Map',
+            'fields' => ['title', 'video'], // 'video' field is used for map embed URL
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'video' => 'nullable|string|max:2000', // Google Maps embed URL
+            ],
+        ],
 
         // ============ SERVICE PAGE SECTIONS ============
         'service_breadcrumb' => [
@@ -359,6 +367,7 @@ class SectionService
                 'reservation_breadcrumb',
                 'reservation_form',
                 'reservation_info',
+                'reservation_map',
             ],
             'service' => [
                 'service_breadcrumb',

@@ -23,6 +23,7 @@
                             'reservation_breadcrumb' => ['label' => 'Breadcrumb', 'icon' => 'bx-link'],
                             'reservation_form' => ['label' => 'Reservation Form', 'icon' => 'bx-calendar-check'],
                             'reservation_info' => ['label' => 'Info Cards', 'icon' => 'bx-info-circle'],
+                            'reservation_map' => ['label' => 'Map', 'icon' => 'bx-map'],
                         ];
                     @endphp
                     @foreach($sections as $section)

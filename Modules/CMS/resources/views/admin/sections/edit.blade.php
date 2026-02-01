@@ -87,15 +87,26 @@
 
                         @if(in_array('video', $config['fields']))
                         <div class="mb-3">
-                            <label class="form-label" for="video">{{ __('Video URL') }}</label>
+                            @php
+                                $isMapSection = str_contains($section, '_map') || $section === 'contact_map';
+                            @endphp
+                            <label class="form-label" for="video">
+                                {{ $isMapSection ? __('Google Maps Embed URL') : __('Video URL') }}
+                            </label>
                             <input type="url" class="form-control @error('video') is-invalid @enderror"
                                    id="video" name="video"
                                    value="{{ old('video', $sectionData->video ?? '') }}"
-                                   placeholder="https://youtube.com/watch?v=...">
+                                   placeholder="{{ $isMapSection ? 'https://www.google.com/maps/embed?pb=...' : 'https://youtube.com/watch?v=...' }}">
                             @error('video')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="text-muted">{{ __('YouTube or Vimeo URL') }}</small>
+                            <small class="text-muted">
+                                @if($isMapSection)
+                                    {{ __('Paste the Google Maps embed URL (from Google Maps > Share > Embed)') }}
+                                @else
+                                    {{ __('YouTube or Vimeo URL') }}
+                                @endif
+                            </small>
                         </div>
                         @endif
                     </div>

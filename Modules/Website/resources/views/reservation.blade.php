@@ -7,6 +7,7 @@
     $breadcrumb = $sections['reservation_breadcrumb'] ?? null;
     $formSection = $sections['reservation_form'] ?? null;
     $infoSection = $sections['reservation_info'] ?? null;
+    $mapSection = $sections['reservation_map'] ?? null;
 @endphp
 
 @section('content')
@@ -162,9 +163,9 @@
 
         <!--==========MAP SECTION START===========-->
         @php
-            $mapUrl = cms_setting('google_map_embed_url');
+            $mapUrl = $mapSection?->video ?? cms_setting('google_map_embed_url');
         @endphp
-        @if($mapUrl)
+        @if((!$mapSection || $mapSection->section_status) && $mapUrl)
         <div class="contact_map mt_120 xs_mt_100 wow fadeInUp">
             <iframe
                 src="{{ $mapUrl }}"
