@@ -18,9 +18,10 @@
     <link rel="stylesheet" href="{{ asset('website/css/custom_spacing.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/colorfulTab.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('website/css/flatpickr.min.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('website/css/responsive.css') }}">
-    
+
     @stack('styles')
 </head>
 
@@ -65,7 +66,8 @@
     <script src="{{ asset('website/js/ScrollSmoother.min.js') }}"></script>
     <script src="{{ asset('website/js/ScrollTrigger.min.js') }}"></script>
     <script src="{{ asset('website/js/script.js') }}"></script>
-    
+    <script src="{{ asset('website/js/flatpickr.min.js') }}"></script>
+
     @stack('scripts')
 </body>
 

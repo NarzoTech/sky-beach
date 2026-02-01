@@ -81,7 +81,7 @@
                         @if($cartItem->menuItem && $cartItem->menuItem->image)
                             <img src="{{ asset($cartItem->menuItem->image) }}" alt="{{ $cartItem->menuItem->name }}" class="img-fluid w-100">
                         @else
-                            <img src="{{ asset('website/images/placeholder-food.png') }}" alt="Item" class="img-fluid w-100">
+                            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="Item" class="img-fluid w-100">
                         @endif
                     </div>
                     <div class="text">
@@ -99,12 +99,10 @@
                     </span>
                 </li>
                 @empty
-                <li class="empty-cart-message text-center py-4">
-                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">{{ __('Your cart is empty') }}</p>
-                    <a href="{{ route('website.menu') }}" class="btn btn-sm btn-outline-primary">
-                        {{ __('Browse Menu') }}
-                    </a>
+                <li class="empty-cart-message">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>{{ __('Your cart is empty') }}</p>
+                    <a href="{{ route('website.menu') }}">{{ __('Browse Menu') }}</a>
                 </li>
                 @endforelse
             </ul>
@@ -112,6 +110,7 @@
                 <h6>{{ __('Total') }} <span id="mini-cart-total">{{ currency($headerCartTotal) }}</span></h6>
                 <a class="common_btn" href="{{ route('website.cart.index') }}">{{ __('View Cart') }}</a>
                 <a class="common_btn" href="{{ route('website.checkout.index') }}">{{ __('Checkout') }}</a>
+                <a class="common_btn clear_cart_btn" href="javascript:void(0);" onclick="clearMiniCart()">{{ __('Clear Cart') }}</a>
             </div>
         </div>
     </div>
@@ -121,7 +120,73 @@
 <script>
     // Mini cart remove item function
     function removeMiniCartItem(itemId) {
+        // Immediately remove item from UI for instant feedback
+        const item = document.querySelector(`#mini-cart-items li[data-cart-item-id="${itemId}"]`);
+        if (item) {
+            item.style.opacity = '0.5';
+        }
+
         fetch("{{ url('/cart/remove') }}/" + itemId, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Remove item from mini cart
+                if (item) item.remove();
+
+                // Update counts
+                updateCartBadge(data.cart_count);
+                const countEl = document.getElementById('mini-cart-count');
+                const totalEl = document.getElementById('mini-cart-total');
+                const qntyEl = document.querySelector('.menu_cart .qnty');
+
+                if (countEl) countEl.textContent = '(' + data.cart_count + ')';
+                if (totalEl) totalEl.textContent = '{{ currency_icon() }}' + parseFloat(data.cart_total).toFixed(2);
+                if (qntyEl) qntyEl.textContent = data.cart_count;
+
+                // Show empty message if cart is empty
+                if (data.cart_count === 0) {
+                    document.getElementById('mini-cart-items').innerHTML = `
+                        <li class="empty-cart-message">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>{{ __('Your cart is empty') }}</p>
+                            <a href="{{ route('website.menu') }}">{{ __('Browse Menu') }}</a>
+                        </li>
+                    `;
+                    document.getElementById('mini-cart-footer').style.display = 'none';
+                }
+            } else {
+                // Restore item if failed
+                if (item) item.style.opacity = '1';
+                alert(data.message || '{{ __("Failed to remove item") }}');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Restore item if error
+            if (item) item.style.opacity = '1';
+            alert('{{ __("Failed to remove item. Please try again.") }}');
+        });
+    }
+
+    // Clear all items from mini cart
+    function clearMiniCart() {
+        if (!confirm('{{ __("Are you sure you want to clear your cart?") }}')) {
+            return;
+        }
+
+        fetch("{{ route('website.cart.clear') }}", {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -131,28 +196,24 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Remove item from mini cart
-                const item = document.querySelector(`#mini-cart-items li[data-cart-item-id="${itemId}"]`);
-                if (item) item.remove();
-
                 // Update counts
-                updateCartBadge(data.cart_count);
-                document.getElementById('mini-cart-count').textContent = '(' + data.cart_count + ')';
-                document.getElementById('mini-cart-total').textContent = '{{ currency_icon() }}' + data.cart_total.toFixed(2);
+                updateCartBadge(0);
+                document.getElementById('mini-cart-count').textContent = '(0)';
+                document.getElementById('mini-cart-total').textContent = '{{ currency_icon() }}0.00';
 
-                // Show empty message if cart is empty
-                if (data.cart_count === 0) {
-                    document.getElementById('mini-cart-items').innerHTML = `
-                        <li class="empty-cart-message text-center py-4">
-                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">{{ __('Your cart is empty') }}</p>
-                            <a href="{{ route('website.menu') }}" class="btn btn-sm btn-outline-primary">
-                                {{ __('Browse Menu') }}
-                            </a>
-                        </li>
-                    `;
-                    document.getElementById('mini-cart-footer').style.display = 'none';
-                }
+                // Show empty message
+                document.getElementById('mini-cart-items').innerHTML = `
+                    <li class="empty-cart-message">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>{{ __('Your cart is empty') }}</p>
+                        <a href="{{ route('website.menu') }}">{{ __('Browse Menu') }}</a>
+                    </li>
+                `;
+                document.getElementById('mini-cart-footer').style.display = 'none';
+
+                // Update header cart badge
+                const qntyEl = document.querySelector('.menu_cart .qnty');
+                if (qntyEl) qntyEl.textContent = '0';
             }
         })
         .catch(error => console.error('Error:', error));

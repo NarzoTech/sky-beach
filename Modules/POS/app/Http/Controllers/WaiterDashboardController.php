@@ -532,4 +532,34 @@ class WaiterDashboardController extends Controller
             'active_orders' => $table->activeOrders,
         ]);
     }
+
+    /**
+     * Print kitchen ticket for an order
+     */
+    public function printKitchenTicket($id)
+    {
+        $sale = Sale::with(['table', 'waiter', 'details.menuItem', 'details.service', 'customer'])
+            ->findOrFail($id);
+
+        return view('pos::print.kitchen-ticket', [
+            'sale' => $sale,
+            'printer' => null,
+            'setting' => cache('setting'),
+        ]);
+    }
+
+    /**
+     * Print cash slip for an order
+     */
+    public function printCashSlip($id)
+    {
+        $sale = Sale::with(['table', 'waiter', 'details.menuItem', 'details.service', 'customer'])
+            ->findOrFail($id);
+
+        return view('pos::print.cash-slip', [
+            'sale' => $sale,
+            'printer' => null,
+            'setting' => cache('setting'),
+        ]);
+    }
 }

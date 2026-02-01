@@ -142,7 +142,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    <button type="submit" class="common_btn w-100">{{ __('Send Inquiry') }}</button>
+                                    <button type="submit" class="common_btn w-100" style="justify-content: center;">{{ __('Send Inquiry') }}</button>
                                 </form>
                             </div>
 

@@ -56,23 +56,21 @@
                                                data-slider-value="[{{ $minPrice ?? 0 }},{{ $maxPrice ?? 100 }}]" />
                                     </div>
                                     <div class="price-display mt-3 text-center">
-                                        <span style="color: #333;">{{ __('Price') }}: {{ currency_icon() }}<span id="min-price">{{ $minPrice ?? 0 }}</span> - {{ currency_icon() }}<span id="max-price">{{ $maxPrice ?? 100 }}</span></span>
-                                        <button type="button" class="btn btn-sm btn-primary mt-2 w-100" onclick="applyPriceFilter()">{{ __('Apply Filter') }}</button>
+                                        <button type="button" class="common_btn w-100" onclick="applyPriceFilter()">{{ __('Apply Filter') }}</button>
                                     </div>
                                 </div>
                                 <div class="sidebar_wizard sidebar_category mt_25">
                                     <h2>{{ __('Categories') }}</h2>
                                     <ul>
                                         <li>
-                                            <a href="{{ route('website.menu') }}" class="{{ !$categorySlug ? 'active' : '' }}" style="{{ !$categorySlug ? 'color: #B99D6B; font-weight: 600;' : '' }}">
+                                            <a href="{{ route('website.menu') }}" class="{{ !$categorySlug ? 'active' : '' }}">
                                                 {{ __('All Items') }} <span>({{ $menuItems->total() }})</span>
                                             </a>
                                         </li>
                                         @foreach($categories as $category)
                                             <li>
                                                 <a href="{{ route('website.menu', ['category' => $category->slug, 'search' => $search ?? '', 'min_price' => $minPrice ?? 0, 'max_price' => $maxPrice ?? 100]) }}"
-                                                   class="{{ $categorySlug == $category->slug ? 'active' : '' }}"
-                                                   style="{{ $categorySlug == $category->slug ? 'color: #B99D6B; font-weight: 600;' : '' }}">
+                                                   class="{{ $categorySlug == $category->slug ? 'active' : '' }}">
                                                     {{ $category->name }} <span>({{ $category->active_menu_items_count }})</span>
                                                 </a>
                                             </li>
@@ -86,7 +84,7 @@
                             @if(isset($combos) && $combos->count() > 0)
                             <div class="combo-packages-section mb-5">
                                 <div class="section-title mb-4">
-                                    <h3 style="color: #B99D6B; font-weight: 600; border-bottom: 2px solid #B99D6B; padding-bottom: 10px; display: inline-block;">
+                                    <h3 style="color: #000; font-weight: 600; border-bottom: 2px solid #000; padding-bottom: 10px; display: inline-block;">
                                         <i class="fas fa-gift me-2"></i>{{ __('Combo Packages') }}
                                     </h3>
                                     <p class="text-muted">{{ __('Save more with our special combo deals!') }}</p>
@@ -94,15 +92,15 @@
                                 <div class="row">
                                     @foreach($combos as $combo)
                                     <div class="col-xl-4 col-sm-6 wow fadeInUp mb-4">
-                                        <div class="single_menu combo-card" style="border: 2px solid #B99D6B; border-radius: 10px; overflow: hidden;">
+                                        <div class="single_menu combo-card" style="border: 2px solid var(--colorPrimary); border-radius: 10px; overflow: hidden;">
                                             <div class="single_menu_img position-relative">
                                                 <img src="{{ $combo->image_url ?? asset('website/images/combo_default.jpg') }}" alt="{{ $combo->name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover;">
                                                 @if($combo->savings > 0)
-                                                <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px; font-size: 14px; padding: 8px 12px;">
+                                                <span class="badge position-absolute" style="top: 10px; right: 10px; font-size: 14px; padding: 8px 12px; background: var(--colorPrimary); color: #fff;">
                                                     {{ __('Save') }} {{ currency($combo->savings) }}
                                                 </span>
                                                 @endif
-                                                <span class="badge bg-warning text-dark position-absolute" style="top: 10px; left: 10px; font-size: 12px;">
+                                                <span class="badge position-absolute" style="top: 10px; left: 10px; font-size: 12px; background: var(--colorYellow); color: #000;">
                                                     <i class="fas fa-box me-1"></i>{{ __('COMBO') }}
                                                 </span>
                                             </div>
@@ -128,7 +126,7 @@
                                                         @if($combo->original_price > $combo->combo_price)
                                                         <span style="text-decoration: line-through; color: #999; font-size: 14px;">{{ currency($combo->original_price) }}</span>
                                                         @endif
-                                                        <h3 class="mb-0" style="color: #B99D6B; font-size: 22px;">{{ currency($combo->combo_price) }}</h3>
+                                                        <h3 class="mb-0" style="color: var(--colorPrimary); font-size: 22px;">{{ currency($combo->combo_price) }}</h3>
                                                     </div>
                                                     <a class="add_to_cart" href="#" onclick="addComboToCart({{ $combo->id }}, '{{ $combo->name }}'); return false;" style="padding: 8px 15px;">
                                                         <i class="fas fa-cart-plus me-1"></i>{{ __('Add') }}
@@ -203,7 +201,7 @@
                             @if($menuItems->hasPages())
                             <div class="pagination_area mt_35 xs_mb_60 wow fadeInUp">
                                 <nav aria-label="Page navigation example">
-                                    {{ $menuItems->appends(request()->query())->links('pagination::bootstrap-4') }}
+                                    {{ $menuItems->appends(request()->query())->links('website::partials.pagination') }}
                                 </nav>
                             </div>
                             @endif
@@ -222,14 +220,21 @@
     // Price filter functionality
     function applyPriceFilter() {
         const slider = document.getElementById('slider_range');
-        if (slider && slider._flatpickr) {
-            const values = slider._flatpickr.selectedDates;
-            const minPrice = values[0];
-            const maxPrice = values[1];
-            
-            document.getElementById('hidden_min_price').value = minPrice;
-            document.getElementById('hidden_max_price').value = maxPrice;
-            document.getElementById('menu-search-form').submit();
+        if (slider) {
+            // Get values from the flatslider (stored as "min;max" in the input value)
+            const sliderValue = slider.value || '';
+            const values = sliderValue.split(';');
+
+            if (values.length === 2) {
+                const minPrice = parseFloat(values[0]) || 0;
+                const maxPrice = parseFloat(values[1]) || 100;
+
+                // Build URL with price filter
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('min_price', minPrice);
+                currentUrl.searchParams.set('max_price', maxPrice);
+                window.location.href = currentUrl.toString();
+            }
         }
     }
     
@@ -263,7 +268,7 @@
                 if (data.is_favorite) {
                     icon.classList.remove('far');
                     icon.classList.add('fas');
-                    icon.style.color = '#B99D6B';
+                    icon.style.color = 'var(--colorPrimary)';
                     showToast('success', data.message);
                 } else {
                     icon.classList.remove('fas');
@@ -395,7 +400,7 @@
                     const itemHtml = `
                         <li data-cart-item-id="${newItem.id}" class="mini-cart-item-new">
                             <div class="img">
-                                <img src="${newItem.image || '{{ asset("website/images/placeholder-food.png") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid w-100">
                             </div>
                             <div class="text">
                                 <h5>${newItem.name}</h5>
@@ -480,17 +485,46 @@
     
     // Load user favorites on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Price slider updates
-        const slider = document.getElementById('slider_range');
-        if (slider) {
-            slider.addEventListener('change', function(e) {
-                const values = e.target.value.split(',');
-                if (values.length === 2) {
-                    document.getElementById('min-price').textContent = Math.round(values[0]);
-                    document.getElementById('max-price').textContent = Math.round(values[1]);
+        // Initialize price slider with correct values
+        setTimeout(function() {
+            const sliderInput = document.getElementById('slider_range');
+            if (sliderInput && jQuery) {
+                const minPrice = {{ $minPrice ?? $priceRange->min_price ?? 0 }};
+                const maxPrice = {{ $maxPrice ?? $priceRange->max_price ?? 100 }};
+                const sliderMin = {{ $priceRange->min_price ?? 0 }};
+                const sliderMax = {{ $priceRange->max_price ?? 100 }};
+
+                const $slider = jQuery(sliderInput).next('.flat-slider');
+                if ($slider.length) {
+                    // Update slider values
+                    $slider.find('.slider').slider('values', [minPrice, maxPrice]);
+                    sliderInput.value = minPrice + ';' + maxPrice;
+
+                    // Update value labels text
+                    $slider.find('.min_value').text(minPrice + ' TK');
+                    $slider.find('.max_value').text(maxPrice + ' TK');
+
+                    // Calculate and update positions based on handle positions
+                    const handles = $slider.find('.ui-slider-handle');
+                    const sliderWidth = $slider.find('.slider').width();
+
+                    if (handles.length === 2) {
+                        const minHandle = jQuery(handles[0]);
+                        const maxHandle = jQuery(handles[1]);
+                        const minValueEl = $slider.find('.min_value');
+                        const maxValueEl = $slider.find('.max_value');
+
+                        // Position min value label
+                        const minLeft = minHandle.position().left;
+                        minValueEl.css('left', Math.max(0, minLeft - minValueEl.width() / 2) + 'px');
+
+                        // Position max value label
+                        const maxLeft = maxHandle.position().left;
+                        maxValueEl.css('left', maxLeft + 'px');
+                    }
                 }
-            });
-        }
+            }
+        }, 500);
         
         // Load favorites
         fetch('{{ route('website.menu.favorites.get') }}', {
@@ -508,7 +542,7 @@
                         const icon = btn.querySelector('i');
                         icon.classList.remove('far');
                         icon.classList.add('fas');
-                        icon.style.color = '#B99D6B';
+                        icon.style.color = 'var(--colorPrimary)';
                     }
                 });
             }
@@ -520,6 +554,12 @@
 </script>
 
 <style>
+    /* Active category link styling */
+    .sidebar_category ul li a.active {
+        color: var(--colorPrimary) !important;
+        font-weight: 600;
+    }
+
     @keyframes pulse {
         0% { transform: scale(1); }
         50% { transform: scale(1.2); }
@@ -531,7 +571,7 @@
     }
 
     .favorite-btn .fas {
-        color: #B99D6B;
+        color: var(--colorPrimary);
     }
 
     .favorite-btn:hover i {

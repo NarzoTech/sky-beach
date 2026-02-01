@@ -141,7 +141,7 @@ class WebsiteController extends Controller
             ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
             ->first();
 
-        // Get active combo packages
+        // Get active combo packages with price filter
         $combos = \Modules\Menu\app\Models\Combo::with(['comboItems.menuItem'])
             ->where('is_active', 1)
             ->where('status', 1)
@@ -153,6 +153,7 @@ class WebsiteController extends Controller
                 $q->whereNull('end_date')
                   ->orWhere('end_date', '>=', now());
             })
+            ->whereBetween('combo_price', [$minPrice, $maxPrice])
             ->orderBy('created_at', 'desc')
             ->get();
 

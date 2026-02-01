@@ -83,15 +83,13 @@
                     </a>
                 </li>
             @endadminCan
-            @adminCan('waiter.order.create')
-                @if(!Route::is('admin.waiter.dashboard'))
+            @if($header_admin->hasRole('Waiter'))
                 <li class="nav-item me-2">
                     <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-sm d-flex align-items-center" style="height: 32px; border-radius: 4px;">
                         <i class='bx bx-plus me-1'></i> <span class="d-none d-md-inline">{{ __('New Order') }}</span>
                     </a>
                 </li>
-                @endif
-            @endadminCan
+            @endif
             <!-- User -->
             <li class="navbar-dropdown dropdown-user dropdown ms-3">
                 <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">

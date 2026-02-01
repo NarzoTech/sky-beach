@@ -89,9 +89,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="date" name="booking_date" id="bookingDate"
-                                                   min="{{ date('Y-m-d') }}"
-                                                   value="{{ old('booking_date') }}" required>
+                                            <input type="text" name="booking_date" class="flatpickr-date" placeholder="{{ __('Select Date') }} *" required>
                                             @error('booking_date')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
@@ -99,7 +97,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <select class="select_2" name="booking_time" id="bookingTime" required>
+                                            <select class="select_2" name="booking_time" required>
                                                 <option value="">{{ __('Select Time') }} *</option>
                                                 @foreach($timeSlots as $value => $display)
                                                     <option value="{{ $value }}" {{ old('booking_time') == $value ? 'selected' : '' }}>
@@ -110,12 +108,11 @@
                                             @error('booking_time')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
-                                            <small id="timeAvailability" class="availability-hint"></small>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="reservation_form_input">
-                                            <select class="select_2" name="number_of_guests" id="numberOfGuests" required>
+                                            <select class="select_2" name="number_of_guests" required>
                                                 <option value="">{{ __('Number of Guests') }} *</option>
                                                 @for($i = 1; $i <= 20; $i++)
                                                     <option value="{{ $i }}" {{ old('number_of_guests') == $i ? 'selected' : '' }}>
@@ -126,18 +123,6 @@
                                             @error('number_of_guests')
                                                 <small class="text-danger">{{ $message }}</small>
                                             @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="reservation_form_input">
-                                            <select class="select_2" name="table_preference">
-                                                <option value="any">{{ __('Table Preference (Optional)') }}</option>
-                                                @foreach($tablePreferences as $value => $label)
-                                                    <option value="{{ $value }}" {{ old('table_preference') == $value ? 'selected' : '' }}>
-                                                        {{ __($label) }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-12">
@@ -173,6 +158,21 @@
         </section>
         @endif
         <!--==========RESERVATION PAGE END===========-->
+
+
+        <!--==========MAP SECTION START===========-->
+        @php
+            $mapUrl = cms_setting('google_map_embed_url');
+        @endphp
+        @if($mapUrl)
+        <div class="contact_map mt_120 xs_mt_100 wow fadeInUp">
+            <iframe
+                src="{{ $mapUrl }}"
+                width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        @endif
+        <!--==========MAP SECTION END===========-->
 
 
         <!--==========INFO SECTION START===========-->
@@ -256,24 +256,6 @@
         margin-top: 5px;
     }
 
-    .availability-hint {
-        display: block;
-        margin-top: 5px;
-        font-size: 13px;
-    }
-
-    .availability-hint.available {
-        color: #28a745;
-    }
-
-    .availability-hint.unavailable {
-        color: #dc3545;
-    }
-
-    .availability-hint.checking {
-        color: #666;
-    }
-
     .info_card {
         background: #fff;
         padding: 30px;
@@ -332,82 +314,35 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr date picker
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-date', {
+            dateFormat: 'Y-m-d',
+            minDate: 'today',
+            disableMobile: true,
+            altInput: true,
+            altFormat: 'F j, Y',
+        });
+    }
+
     // Bangladesh phone number formatting
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-
-            // Limit to 11 digits
+            let value = e.target.value.replace(/\D/g, '');
             if (value.length > 11) {
                 value = value.slice(0, 11);
             }
-
-            // Format as 01XXX-XXXXXX
             if (value.length > 5) {
                 value = value.slice(0, 5) + '-' + value.slice(5);
             }
-
             e.target.value = value;
         });
-
-        // Format existing value on page load
-        if (phoneInput.value) {
-            let value = phoneInput.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.slice(0, 11);
-            if (value.length > 5) value = value.slice(0, 5) + '-' + value.slice(5);
-            phoneInput.value = value;
-        }
     }
 
     const form = document.getElementById('reservationForm');
-    const dateInput = document.getElementById('bookingDate');
-    const timeSelect = document.getElementById('bookingTime');
-    const guestsSelect = document.getElementById('numberOfGuests');
     const submitBtn = document.getElementById('submitBtn');
-    const availabilityHint = document.getElementById('timeAvailability');
     const formAlerts = document.getElementById('formAlerts');
-
-    // Check availability when date or time changes
-    function checkAvailability() {
-        const date = dateInput.value;
-        const time = timeSelect.value;
-        const guests = guestsSelect.value || 1;
-
-        if (!date || !time) {
-            availabilityHint.textContent = '';
-            availabilityHint.className = 'availability-hint';
-            return;
-        }
-
-        availabilityHint.textContent = '{{ __("Checking availability...") }}';
-        availabilityHint.className = 'availability-hint checking';
-
-        fetch(`{{ route('website.reservation.check') }}?date=${date}&time=${time}&guests=${guests}`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.available) {
-                availabilityHint.textContent = '{{ __("✓ This time slot is available!") }}';
-                availabilityHint.className = 'availability-hint available';
-            } else {
-                availabilityHint.textContent = '{{ __("✗ This time slot is not available") }}';
-                availabilityHint.className = 'availability-hint unavailable';
-            }
-        })
-        .catch(error => {
-            availabilityHint.textContent = '';
-            availabilityHint.className = 'availability-hint';
-        });
-    }
-
-    dateInput.addEventListener('change', checkAvailability);
-    timeSelect.addEventListener('change', checkAvailability);
-    guestsSelect.addEventListener('change', checkAvailability);
 
     // Form submission
     form.addEventListener('submit', function(e) {
@@ -430,7 +365,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             return response.json().then(data => {
                 if (!response.ok) {
-                    // Handle validation errors (422) or other errors
                     if (data.errors) {
                         const errorMessages = Object.values(data.errors).flat().join('<br>');
                         throw new Error(errorMessages);
@@ -442,7 +376,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                // Redirect to success page
                 window.location.href = data.redirect_url;
             } else {
                 formAlerts.innerHTML = `<div class="alert alert-danger alert-dismissible fade show" role="alert">

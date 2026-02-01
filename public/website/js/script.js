@@ -355,7 +355,7 @@ $(function () {
             step: 5,
             values: [0, 1000],
             range: true,
-            einheit: '$'
+            einheit: 'TK'
         });
     });
 

@@ -176,15 +176,15 @@
     <div class="totals">
         <div class="total-row">
             <span>Subtotal:</span>
-            <span>{{ number_format($sale->subtotal, 2) }}</span>
+            <span>{{ number_format($sale->total_price ?? 0, 2) }}</span>
         </div>
-        @if($sale->tax_amount > 0)
+        @if(($sale->total_tax ?? 0) > 0)
         <div class="total-row">
             <span>Tax:</span>
-            <span>{{ number_format($sale->tax_amount, 2) }}</span>
+            <span>{{ number_format($sale->total_tax, 2) }}</span>
         </div>
         @endif
-        @if($sale->discount_amount > 0)
+        @if(($sale->discount_amount ?? 0) > 0)
         <div class="total-row">
             <span>Discount:</span>
             <span>-{{ number_format($sale->discount_amount, 2) }}</span>
@@ -192,7 +192,7 @@
         @endif
         <div class="total-row grand">
             <span>TOTAL:</span>
-            <span>{{ number_format($sale->total, 2) }}</span>
+            <span>{{ number_format($sale->grand_total ?? $sale->total_price ?? 0, 2) }}</span>
         </div>
     </div>
 

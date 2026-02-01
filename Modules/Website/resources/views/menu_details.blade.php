@@ -73,19 +73,19 @@
 
                     <div class="col-xl-5 col-md-8 col-lg-7 wow fadeInUp">
                         <div class="menu_det_text">
-                            <h2 class="details_title">{{ $menuItem->name }}</h2>
-
-                            @if($menuItem->category)
-                                <a href="{{ route('website.menu', ['category' => $menuItem->category->slug]) }}" class="badge bg-secondary mb-2">
-                                    {{ $menuItem->category->name }}
-                                </a>
-                            @endif
+                            <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+                                <h2 class="details_title mb-0">{{ $menuItem->name }}</h2>
+                                @if($menuItem->category)
+                                    <a href="{{ route('website.menu', ['category' => $menuItem->category->slug]) }}" class="badge bg-secondary">
+                                        {{ $menuItem->category->name }}
+                                    </a>
+                                @endif
+                            </div>
 
                             <p class="price" id="displayPrice">{{ currency($menuItem->base_price) }}</p>
 
                             @if($menuItem->short_description)
                                 <div class="details_short_description">
-                                    <h3>{{ __('Description') }}</h3>
                                     <p>{{ $menuItem->short_description }}</p>
                                 </div>
                             @endif
@@ -169,7 +169,7 @@
                             <!-- Special Instructions -->
                             <div class="special_instructions mb-3">
                                 <label class="form-label">{{ __('Special Instructions') }} <small class="text-muted">({{ __('optional') }})</small></label>
-                                <textarea id="specialInstructions" class="form-control" rows="2" placeholder="{{ __('Any special requests or dietary notes...') }}" maxlength="500"></textarea>
+                                <textarea id="specialInstructions" rows="2" placeholder="{{ __('Any special requests or dietary notes...') }}" maxlength="500"></textarea>
                             </div>
 
                             <!-- Action Buttons -->
@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const itemHtml = `
                         <li data-cart-item-id="${newItem.id}" style="animation: fadeInSlide 0.4s ease;">
                             <div class="img">
-                                <img src="${newItem.image || '{{ asset("website/images/placeholder-food.png") }}'}" alt="${newItem.name}" class="img-fluid w-100">
+                                <img src="${newItem.image || '{{ asset("website/images/menu_img_1.jpg") }}'}" alt="${newItem.name}" class="img-fluid w-100">
                             </div>
                             <div class="text">
                                 <h5>${newItem.name}</h5>

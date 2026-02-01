@@ -81,23 +81,17 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-8">
-                <div class="footer_contact">
+                <div class="footer_link footer_contact">
                     <h3>{{ __('Contact Us') }}</h3>
                     <ul>
-                        <li>
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>{{ cms_contact('address') ?? cms_setting('contact_address', __('Address not set')) }}</span>
-                        </li>
-                        <li>
-                            <i class="fas fa-phone-alt"></i>
-                            @php $phone = cms_contact('phone') ?? cms_setting('contact_phone'); @endphp
-                            <a href="tel:{{ preg_replace('/[\s\-]/', '', $phone ?? '') }}">{{ $phone ?? __('Phone not set') }}</a>
-                        </li>
-                        <li>
-                            <i class="fas fa-envelope"></i>
-                            @php $email = cms_contact('email') ?? cms_setting('contact_email'); @endphp
-                            <a href="mailto:{{ $email ?? '' }}">{{ $email ?? __('Email not set') }}</a>
-                        </li>
+                        @php
+                            $address = cms_contact('address') ?? cms_setting('contact_address');
+                            $phone = cms_contact('phone') ?? cms_setting('contact_phone');
+                            $email = cms_contact('email') ?? cms_setting('contact_email');
+                        @endphp
+                        <li><a href="javascript:void(0);"><i class="fas fa-map-marker-alt me-2"></i>{{ $address ?? __('Address not set') }}</a></li>
+                        <li><a href="tel:{{ preg_replace('/[\s\-]/', '', $phone ?? '') }}"><i class="fas fa-phone-alt me-2"></i>{{ $phone ?? __('Phone not set') }}</a></li>
+                        <li><a href="mailto:{{ $email ?? '' }}"><i class="fas fa-envelope me-2"></i>{{ $email ?? __('Email not set') }}</a></li>
                     </ul>
                 </div>
             </div>

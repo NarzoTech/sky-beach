@@ -62,13 +62,13 @@
                                                 <td class="pro_img">
                                                     @if($item->is_combo)
                                                         <div class="position-relative">
-                                                            <img src="{{ $item->combo->image_url ?? asset('website/images/placeholder-food.png') }}" alt="{{ $item->combo->name ?? 'Combo' }}" class="img-fluid w-100">
+                                                            <img src="{{ $item->combo->image_url ?? asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->combo->name ?? 'Combo' }}" class="img-fluid w-100">
                                                             <span class="badge bg-warning text-dark position-absolute" style="top: 5px; left: 5px; font-size: 10px;">{{ __('COMBO') }}</span>
                                                         </div>
                                                     @elseif($item->menuItem && $item->menuItem->image)
                                                         <img src="{{ asset($item->menuItem->image) }}" alt="{{ $item->menuItem->name }}" class="img-fluid w-100">
                                                     @else
-                                                        <img src="{{ asset('website/images/placeholder-food.png') }}" alt="{{ $item->menuItem->name ?? 'Item' }}" class="img-fluid w-100">
+                                                        <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->menuItem->name ?? 'Item' }}" class="img-fluid w-100">
                                                     @endif
                                                 </td>
 

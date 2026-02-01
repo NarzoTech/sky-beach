@@ -133,10 +133,13 @@
                 </div>
                 @endif
             </div>
-            @if(!$mapSection || $mapSection->section_status)
+            @php
+                $mapUrl = cms_setting('google_map_embed_url');
+            @endphp
+            @if($mapUrl)
             <div class="contact_map mt_120 xs_mt_100 wow fadeInUp">
                 <iframe
-                    src="{{ $mapSection?->video ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3104.8776746534986!2d-77.027541687759!3d38.903912546200644!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89b7b7931d95b707%3A0x16e85cf5a8a5fdce!2sMarriott%20Marquis%20Washington%2C%20DC!5e0!3m2!1sen!2sbd!4v1700767199965!5m2!1sen!2sbd' }}"
+                    src="{{ $mapUrl }}"
                     width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>

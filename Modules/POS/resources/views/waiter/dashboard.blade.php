@@ -124,11 +124,6 @@
                     <h4 class="mb-1">{{ __('Waiter Dashboard') }}</h4>
                     <p class="text-muted mb-0">{{ __('Welcome') }}, {{ $employee->name ?? Auth::guard('admin')->user()->name }}</p>
                 </div>
-                <div class="col-md-6 text-end">
-                    <a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary">
-                        <i class="bx bx-plus me-1"></i>{{ __('New Order') }}
-                    </a>
-                </div>
             </div>
         </div>
 

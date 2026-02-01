@@ -127,6 +127,9 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/cancel-order/{id}', [WaiterDashboardController::class, 'cancelOrder'])->name('cancel-order');
         Route::get('/menu-items', [WaiterDashboardController::class, 'getMenuItems'])->name('menu-items');
         Route::get('/table-status/{id}', [WaiterDashboardController::class, 'getTableStatus'])->name('table-status');
+        // Print Routes
+        Route::get('/print/kitchen/{id}', [WaiterDashboardController::class, 'printKitchenTicket'])->name('print.kitchen');
+        Route::get('/print/cash/{id}', [WaiterDashboardController::class, 'printCashSlip'])->name('print.cash');
         // Change Table Routes
         Route::get('/change-table/{id}', [TableTransferController::class, 'getTransferData'])->name('change-table.data');
         Route::post('/change-table/{id}', [TableTransferController::class, 'transfer'])->name('change-table');

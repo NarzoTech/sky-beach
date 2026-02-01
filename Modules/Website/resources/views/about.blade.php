@@ -161,7 +161,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="reservation_form_input">
-                                            <input type="date" name="booking_date" min="{{ date('Y-m-d') }}" required>
+                                            <input type="text" name="booking_date" class="flatpickr-date" placeholder="{{ __('Select Date') }} *" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -461,6 +461,17 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr date picker
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-date', {
+            dateFormat: 'Y-m-d',
+            minDate: 'today',
+            disableMobile: true,
+            altInput: true,
+            altFormat: 'F j, Y',
+        });
+    }
+
     // Bangladesh phone number formatting
     const phoneInput = document.getElementById('aboutPhone');
     if (phoneInput) {

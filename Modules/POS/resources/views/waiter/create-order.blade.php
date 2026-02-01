@@ -1253,6 +1253,10 @@
             success: function(response) {
                 if (response.success) {
                     clearCartStorage();
+
+                    // Print kitchen ticket and cash slip
+                    printOrderReceipts(response.order_id);
+
                     Swal.fire({
                         icon: 'success',
                         title: '{{ __("Order Sent!") }}',
@@ -1292,6 +1296,18 @@
                 title: message
             });
         }
+    }
+
+    function printOrderReceipts(orderId) {
+        // Print kitchen ticket
+        const kitchenUrl = "{{ url('admin/waiter/print/kitchen') }}/" + orderId;
+        const kitchenWindow = window.open(kitchenUrl, 'kitchen_ticket_' + orderId, 'width=400,height=600');
+
+        // Print cash slip after a short delay to allow first print dialog
+        setTimeout(function() {
+            const cashUrl = "{{ url('admin/waiter/print/cash') }}/" + orderId;
+            window.open(cashUrl, 'cash_slip_' + orderId, 'width=400,height=600');
+        }, 2000);
     }
 </script>
 @endpush
