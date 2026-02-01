@@ -169,14 +169,14 @@
             } else {
                 // Restore item if failed
                 if (item) item.style.opacity = '1';
-                alert(data.message || '{{ __("Failed to remove item") }}');
+                showHeaderToast(data.message || '{{ __("Failed to remove item") }}', 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
             // Restore item if error
             if (item) item.style.opacity = '1';
-            alert('{{ __("Failed to remove item. Please try again.") }}');
+            showHeaderToast('{{ __("Failed to remove item. Please try again.") }}', 'error');
         });
     }
 
@@ -226,5 +226,61 @@
             badge.textContent = count;
             badge.style.display = count > 0 ? 'inline-block' : 'none';
         }
+    }
+
+    // Toast notification for header actions
+    function showHeaderToast(message, type = 'success') {
+        // Check if toastr is available
+        if (typeof toastr !== 'undefined') {
+            toastr[type](message);
+            return;
+        }
+
+        // Check if Swal (SweetAlert) is available
+        if (typeof Swal !== 'undefined') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+            Toast.fire({
+                icon: type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'),
+                title: message
+            });
+            return;
+        }
+
+        // Custom toast fallback
+        let toastContainer = document.getElementById('custom-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'custom-toast-container';
+            toastContainer.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(toastContainer);
+        }
+
+        const colors = {
+            success: { bg: '#28a745', icon: 'fa-check-circle' },
+            error: { bg: '#dc3545', icon: 'fa-times-circle' },
+            info: { bg: '#17a2b8', icon: 'fa-info-circle' },
+            warning: { bg: '#ffc107', icon: 'fa-exclamation-circle' }
+        };
+
+        const config = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.style.cssText = `background:${config.bg};color:#fff;padding:12px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease;min-width:250px;`;
+        toast.innerHTML = `<i class="fas ${config.icon}"></i><span>${message}</span>`;
+
+        toastContainer.appendChild(toast);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 </script>

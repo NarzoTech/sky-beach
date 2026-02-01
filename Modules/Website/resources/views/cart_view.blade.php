@@ -63,7 +63,7 @@
                                                     @if($item->is_combo)
                                                         <div class="position-relative">
                                                             <img src="{{ $item->combo->image_url ?? asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->combo->name ?? 'Combo' }}" class="img-fluid w-100">
-                                                            <span class="badge bg-warning text-dark position-absolute" style="top: 5px; left: 5px; font-size: 10px;">{{ __('COMBO') }}</span>
+                                                            <span class="badge position-absolute" style="top: 5px; left: 5px; font-size: 10px; background: var(--colorYellow); color: #000;">{{ __('COMBO') }}</span>
                                                         </div>
                                                     @elseif($item->menuItem && $item->menuItem->image)
                                                         <img src="{{ asset($item->menuItem->image) }}" alt="{{ $item->menuItem->name }}" class="img-fluid w-100">
@@ -77,7 +77,7 @@
                                                         <a href="{{ route('website.menu') }}">
                                                             {{ $item->combo->name ?? __('Unknown Combo') }}
                                                         </a>
-                                                        <span class="badge bg-warning text-dark">{{ __('Combo Package') }}</span>
+                                                        <span class="badge" style="background: var(--colorYellow); color: #000;">{{ __('Combo Package') }}</span>
                                                         @if($item->combo && $item->combo->comboItems)
                                                         <small class="text-muted d-block mt-1">
                                                             {{ __('Includes') }}:
@@ -165,6 +165,19 @@
         </section>
         <!--==========CART VIEW END===========-->
 @endsection
+
+@push('styles')
+<style>
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -335,7 +348,13 @@
     }
 
     function showToast(message, type = 'info') {
-        // Use SweetAlert if available, otherwise use alert
+        // Check if toastr is available
+        if (typeof toastr !== 'undefined') {
+            toastr[type](message);
+            return;
+        }
+
+        // Use SweetAlert if available
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 toast: true,
@@ -346,9 +365,39 @@
                 timer: 3000,
                 timerProgressBar: true
             });
-        } else {
-            alert(message);
+            return;
         }
+
+        // Custom toast fallback
+        let toastContainer = document.getElementById('custom-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'custom-toast-container';
+            toastContainer.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(toastContainer);
+        }
+
+        const colors = {
+            success: { bg: '#28a745', icon: 'fa-check-circle' },
+            error: { bg: '#dc3545', icon: 'fa-times-circle' },
+            info: { bg: '#17a2b8', icon: 'fa-info-circle' },
+            warning: { bg: '#ffc107', icon: 'fa-exclamation-circle' }
+        };
+
+        const config = colors[type] || colors.info;
+
+        const toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        toast.style.cssText = `background:${config.bg};color:#fff;padding:12px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;animation:slideIn 0.3s ease;min-width:250px;`;
+        toast.innerHTML = `<i class="fas ${config.icon}"></i><span>${message}</span>`;
+
+        toastContainer.appendChild(toast);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 </script>
 @endpush

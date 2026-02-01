@@ -349,15 +349,7 @@ $(function () {
 
 
     //======slider ranger======
-    jQuery(function () {
-        jQuery("#slider_range").flatslider({
-            min: 0, max: 1000,
-            step: 5,
-            values: [0, 1000],
-            range: true,
-            einheit: 'TK'
-        });
-    });
+    // Slider initialization moved to menu.blade.php for dynamic values from database
 
 
     //=====RELATED SLIDER====== 

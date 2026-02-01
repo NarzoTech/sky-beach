@@ -49,11 +49,11 @@
                                 <div class="sidebar_wizard sidebar_price_ranger mt_25">
                                     <h2>{{ __('Pricing Filter') }}</h2>
                                     <div class="price_ranger">
-                                        <input type="hidden" id="slider_range" class="flat-slider" 
-                                               data-slider-min="{{ $priceRange->min_price ?? 0 }}" 
-                                               data-slider-max="{{ $priceRange->max_price ?? 100 }}" 
-                                               data-slider-step="1" 
-                                               data-slider-value="[{{ $minPrice ?? 0 }},{{ $maxPrice ?? 100 }}]" />
+                                        <input type="hidden" id="slider_range" class="flat-slider"
+                                               data-slider-min="{{ floor($priceRange->min_price ?? 0) }}"
+                                               data-slider-max="{{ ceil($priceRange->max_price ?? 100) }}"
+                                               data-slider-step="1"
+                                               data-slider-value="[{{ floor($minPrice ?? 0) }},{{ ceil($maxPrice ?? 100) }}]" />
                                     </div>
                                     <div class="price-display mt-3 text-center">
                                         <button type="button" class="common_btn w-100" onclick="applyPriceFilter()">{{ __('Apply Filter') }}</button>
@@ -485,28 +485,32 @@
     
     // Load user favorites on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize price slider with correct values
+        // Initialize price slider with dynamic values from database
+        var $sliderInput = jQuery("#slider_range");
+        if ($sliderInput.length) {
+            var sliderMin = {{ floor($priceRange->min_price ?? 0) }};
+            var sliderMax = {{ ceil($priceRange->max_price ?? 1000) }};
+            var currentMin = {{ floor($minPrice ?? $priceRange->min_price ?? 0) }};
+            var currentMax = {{ ceil($maxPrice ?? $priceRange->max_price ?? 1000) }};
+
+            $sliderInput.flatslider({
+                min: sliderMin,
+                max: sliderMax,
+                step: 1,
+                values: [currentMin, currentMax],
+                range: true,
+                einheit: 'TK'
+            });
+        }
+
+        // Update slider value labels position after initialization
         setTimeout(function() {
             const sliderInput = document.getElementById('slider_range');
             if (sliderInput && jQuery) {
-                const minPrice = {{ $minPrice ?? $priceRange->min_price ?? 0 }};
-                const maxPrice = {{ $maxPrice ?? $priceRange->max_price ?? 100 }};
-                const sliderMin = {{ $priceRange->min_price ?? 0 }};
-                const sliderMax = {{ $priceRange->max_price ?? 100 }};
-
                 const $slider = jQuery(sliderInput).next('.flat-slider');
                 if ($slider.length) {
-                    // Update slider values
-                    $slider.find('.slider').slider('values', [minPrice, maxPrice]);
-                    sliderInput.value = minPrice + ';' + maxPrice;
-
-                    // Update value labels text
-                    $slider.find('.min_value').text(minPrice + ' TK');
-                    $slider.find('.max_value').text(maxPrice + ' TK');
-
                     // Calculate and update positions based on handle positions
                     const handles = $slider.find('.ui-slider-handle');
-                    const sliderWidth = $slider.find('.slider').width();
 
                     if (handles.length === 2) {
                         const minHandle = jQuery(handles[0]);
@@ -524,7 +528,7 @@
                     }
                 }
             }
-        }, 500);
+        }, 100);
         
         // Load favorites
         fetch('{{ route('website.menu.favorites.get') }}', {

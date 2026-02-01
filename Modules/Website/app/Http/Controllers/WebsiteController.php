@@ -70,11 +70,37 @@ class WebsiteController extends Controller
      */
     public function menu(Request $request)
     {
-        // Get filter parameters
+        // Get min and max prices from menu items
+        $menuPriceRange = MenuItem::where('status', 1)
+            ->where('is_available', 1)
+            ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
+            ->first();
+
+        // Get min and max prices from active combos
+        $comboPriceRange = \Modules\Menu\app\Models\Combo::where('is_active', 1)
+            ->where('status', 1)
+            ->where(function($q) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', now());
+            })
+            ->selectRaw('MIN(combo_price) as min_price, MAX(combo_price) as max_price')
+            ->first();
+
+        // Combine both to get overall min/max (min always starts at 0)
+        $priceRange = (object) [
+            'min_price' => 0,
+            'max_price' => max($menuPriceRange->max_price ?? 0, $comboPriceRange->max_price ?? 0),
+        ];
+
+        // Get filter parameters - use actual price range as default
         $categorySlug = $request->get('category');
         $search = $request->get('search');
-        $minPrice = $request->get('min_price', 0);
-        $maxPrice = $request->get('max_price', 100);
+        $minPrice = $request->get('min_price', $priceRange->min_price ?? 0);
+        $maxPrice = $request->get('max_price', $priceRange->max_price ?? 1000);
         $sortBy = $request->get('sort_by', 'default'); // default, price_low, price_high, name_asc, name_desc, popular
 
         // Get all active categories with item counts
@@ -95,7 +121,7 @@ class WebsiteController extends Controller
                 $query->where('category_id', $category->id);
             }
         }
-        
+
         // Apply search filter
         if ($search) {
             $query->where(function($q) use ($search) {
@@ -104,9 +130,11 @@ class WebsiteController extends Controller
                   ->orWhere('long_description', 'like', "%{$search}%");
             });
         }
-        
-        // Apply price filter
-        $query->whereBetween('base_price', [$minPrice, $maxPrice]);
+
+        // Apply price filter only if explicitly set in request
+        if ($request->has('min_price') || $request->has('max_price')) {
+            $query->whereBetween('base_price', [$minPrice, $maxPrice]);
+        }
         
         // Apply sorting
         switch ($sortBy) {
@@ -134,15 +162,9 @@ class WebsiteController extends Controller
         
         // Get results with pagination
         $menuItems = $query->paginate(9);
-        
-        // Get min and max prices for price range slider
-        $priceRange = MenuItem::where('status', 1)
-            ->where('is_available', 1)
-            ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
-            ->first();
 
         // Get active combo packages with price filter
-        $combos = \Modules\Menu\app\Models\Combo::with(['comboItems.menuItem'])
+        $comboQuery = \Modules\Menu\app\Models\Combo::with(['comboItems.menuItem'])
             ->where('is_active', 1)
             ->where('status', 1)
             ->where(function($q) {
@@ -152,10 +174,14 @@ class WebsiteController extends Controller
             ->where(function($q) {
                 $q->whereNull('end_date')
                   ->orWhere('end_date', '>=', now());
-            })
-            ->whereBetween('combo_price', [$minPrice, $maxPrice])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            });
+
+        // Apply price filter to combos only if explicitly set
+        if ($request->has('min_price') || $request->has('max_price')) {
+            $comboQuery->whereBetween('combo_price', [$minPrice, $maxPrice]);
+        }
+
+        $combos = $comboQuery->orderBy('created_at', 'desc')->get();
 
         return view('website::menu', compact('menuItems', 'categories', 'priceRange', 'categorySlug', 'search', 'minPrice', 'maxPrice', 'sortBy', 'combos'));
     }
