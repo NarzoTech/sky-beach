@@ -127,6 +127,7 @@ class SiteSection extends Model
 
     /**
      * Get all sections for a page (with caching)
+     * Returns all sections regardless of status - views should check section_status
      */
     public static function getPageSections(string $pageName = 'home'): \Illuminate\Database\Eloquent\Collection
     {
@@ -135,7 +136,6 @@ class SiteSection extends Model
         return Cache::remember($cacheKey, 3600, function () use ($pageName) {
             return static::with('translation')
                 ->where('page_name', $pageName)
-                ->where('section_status', true)
                 ->orderBy('sort_order')
                 ->get()
                 ->keyBy('section_name');
