@@ -324,25 +324,10 @@
                                 {{ __('Contact Messages') }}
                             </a>
                         </li>
-                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Orders & Catering') }}</span></li>
+                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Orders') }}</span></li>
                         <li class="menu-item {{ request()->is('admin/restaurant/website-orders*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.website-orders.index') }}">
                                 <i class='bx bx-cart me-2'></i>{{ __('Website Orders') }}
-                            </a>
-                        </li>
-                        <li class="menu-item {{ request()->is('admin/restaurant/catering/packages*') ? 'active' : '' }}">
-                            <a class="menu-link" href="{{ route('admin.restaurant.catering.packages.index') }}">
-                                <i class='bx bx-package me-2'></i>{{ __('Catering Packages') }}
-                            </a>
-                        </li>
-                        <li class="menu-item {{ request()->is('admin/restaurant/catering/inquiries*') ? 'active' : '' }}">
-                            <a class="menu-link" href="{{ route('admin.restaurant.catering.inquiries.index') }}">
-                                <i class='bx bx-message-square-detail me-2'></i>{{ __('Catering Inquiries') }}
-                            </a>
-                        </li>
-                        <li class="menu-item {{ request()->is('admin/restaurant/catering/quotations*') ? 'active' : '' }}">
-                            <a class="menu-link" href="{{ route('admin.restaurant.catering.quotations.index') }}">
-                                <i class='bx bx-file me-2'></i>{{ __('Catering Quotations') }}
                             </a>
                         </li>
                     </ul>

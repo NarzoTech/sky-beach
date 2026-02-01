@@ -8,9 +8,7 @@ use Modules\Website\app\Http\Controllers\CheckoutController;
 use Modules\Website\app\Http\Controllers\BkashController;
 use Modules\Website\app\Http\Controllers\OrderController;
 use Modules\Website\app\Http\Controllers\ReservationController;
-use Modules\Website\app\Http\Controllers\CateringController;
 use Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController;
-use Modules\Website\app\Http\Controllers\Admin\CateringController as AdminCateringController;
 use Modules\Website\app\Http\Controllers\Admin\CouponController;
 
 /*
@@ -92,16 +90,6 @@ Route::group([], function () {
         Route::get('/success/{code}', [ReservationController::class, 'success'])->name('success');
     });
 
-    // Catering Routes
-    Route::prefix('catering')->name('website.catering.')->group(function() {
-        Route::get('/', [CateringController::class, 'index'])->name('index');
-        Route::get('/inquiry', [CateringController::class, 'inquiryForm'])->name('inquiry');
-        Route::post('/inquiry', [CateringController::class, 'submitInquiry'])->name('inquiry.submit');
-        Route::get('/inquiry/success/{inquiryNumber}', [CateringController::class, 'inquirySuccess'])->name('inquiry.success');
-        Route::get('/price-estimate', [CateringController::class, 'getPriceEstimate'])->name('price-estimate');
-        Route::get('/{slug}', [CateringController::class, 'show'])->name('show');
-    });
-
     // Service Pages
     Route::get('/service', [WebsiteController::class, 'service'])->name('website.service');
     Route::get('/service/{slug}', [WebsiteController::class, 'serviceDetails'])->name('website.service-details');
@@ -143,24 +131,6 @@ Route::middleware('auth')->group(function() {
 //     Route::get('/{id}/print', [WebsiteOrderController::class, 'printOrder'])->name('print');
 //     Route::put('/{id}/status', [WebsiteOrderController::class, 'updateStatus'])->name('status');
 //     Route::post('/bulk-status', [WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
-// });
-
-// Admin Catering Routes - Moved to routes/admin.php under Restaurant section
-// Route::prefix('admin/catering')->middleware(['auth:admin'])->name('admin.catering.')->group(function() {
-//     // Packages Management
-//     Route::get('/packages', [AdminCateringController::class, 'packagesIndex'])->name('packages.index');
-//     Route::get('/packages/create', [AdminCateringController::class, 'packagesCreate'])->name('packages.create');
-//     Route::post('/packages', [AdminCateringController::class, 'packagesStore'])->name('packages.store');
-//     Route::get('/packages/{package}/edit', [AdminCateringController::class, 'packagesEdit'])->name('packages.edit');
-//     Route::put('/packages/{package}', [AdminCateringController::class, 'packagesUpdate'])->name('packages.update');
-//     Route::delete('/packages/{package}', [AdminCateringController::class, 'packagesDestroy'])->name('packages.destroy');
-//
-//     // Inquiries Management
-//     Route::get('/inquiries', [AdminCateringController::class, 'inquiriesIndex'])->name('inquiries.index');
-//     Route::get('/inquiries/export', [AdminCateringController::class, 'inquiriesExport'])->name('inquiries.export');
-//     Route::get('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesShow'])->name('inquiries.show');
-//     Route::patch('/inquiries/{inquiry}/status', [AdminCateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
-//     Route::delete('/inquiries/{inquiry}', [AdminCateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
 // });
 
 // Admin Coupons Routes

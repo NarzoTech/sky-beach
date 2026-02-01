@@ -134,33 +134,6 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::post('/bulk-status', [\Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController::class, 'bulkUpdateStatus'])->name('bulk-status');
         });
 
-        // Catering Management
-        Route::prefix('catering')->name('catering.')->group(function () {
-            Route::get('/packages', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesIndex'])->name('packages.index');
-            Route::get('/packages/create', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesCreate'])->name('packages.create');
-            Route::post('/packages', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesStore'])->name('packages.store');
-            Route::get('/packages/{package}/edit', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesEdit'])->name('packages.edit');
-            Route::put('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesUpdate'])->name('packages.update');
-            Route::delete('/packages/{package}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'packagesDestroy'])->name('packages.destroy');
-            Route::get('/inquiries', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesIndex'])->name('inquiries.index');
-            Route::get('/inquiries/export', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesExport'])->name('inquiries.export');
-            Route::get('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesShow'])->name('inquiries.show');
-            Route::patch('/inquiries/{inquiry}/status', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesUpdateStatus'])->name('inquiries.update-status');
-            Route::post('/inquiries/{inquiry}/quotation', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesSaveQuotation'])->name('inquiries.save-quotation');
-            Route::delete('/inquiries/{inquiry}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'inquiriesDestroy'])->name('inquiries.destroy');
-
-            // Quotations Management
-            Route::get('/quotations', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsIndex'])->name('quotations.index');
-            Route::get('/quotations/create', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsCreate'])->name('quotations.create');
-            Route::post('/quotations', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsStore'])->name('quotations.store');
-            Route::get('/quotations/guest-estimate', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsGuestEstimate'])->name('quotations.guest-estimate');
-            Route::get('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsShow'])->name('quotations.show');
-            Route::get('/quotations/{quotation}/edit', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsEdit'])->name('quotations.edit');
-            Route::put('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsUpdate'])->name('quotations.update');
-            Route::delete('/quotations/{quotation}', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsDestroy'])->name('quotations.destroy');
-            Route::get('/quotations/{quotation}/print', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsPrint'])->name('quotations.print');
-            Route::get('/quotations/{quotation}/pdf', [\Modules\Website\app\Http\Controllers\Admin\CateringController::class, 'quotationsPdf'])->name('quotations.pdf');
-        });
     });
 
     // CMS Management Routes

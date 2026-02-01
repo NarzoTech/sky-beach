@@ -67,7 +67,6 @@
                         <li><a href="{{ route('website.chefs') }}">{{ __('Chefs') }}</a></li>
                         <li><a href="{{ route('website.faq') }}">{{ __('FAQs') }}</a></li>
                         <li><a href="{{ route('website.reservation.index') }}">{{ __('Reservation') }}</a></li>
-                        <li><a href="{{ route('website.catering.index') }}">{{ __('Catering') }}</a></li>
                     </ul>
                 </div>
             </div>
