@@ -12,7 +12,7 @@ class BlogController extends Controller
     public function index()
     {
         $blogs = Blog::latest()->paginate(20);
-        return view('website::admin.restaurant.blogs.index', compact('blogs'));
+        return view('website::admin.blogs.index', compact('blogs'));
     }
 
     public function create()
