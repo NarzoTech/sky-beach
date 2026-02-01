@@ -32,6 +32,8 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forget-password', [PasswordResetLinkController::class, 'custom_forget_password'])->name('forget-password');
+    Route::post('/get-security-questions', [PasswordResetLinkController::class, 'get_security_questions'])->name('get-security-questions');
+    Route::post('/verify-security-questions', [PasswordResetLinkController::class, 'verify_security_questions'])->name('verify-security-questions');
     Route::get('reset-password/{token}', [NewPasswordController::class, 'custom_reset_password_page'])->name('password.reset');
     Route::post('/reset-password-store/{token}', [NewPasswordController::class, 'custom_reset_password_store'])->name('password.reset-store');
     /* End admin auth route */
@@ -53,6 +55,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
             Route::get('edit-profile', 'edit_profile')->name('edit-profile');
             Route::put('profile-update', 'profile_update')->name('profile-update');
             Route::put('update-password', 'update_password')->name('update-password');
+            Route::put('update-security-questions', 'update_security_questions')->name('update-security-questions');
         });
 
         Route::get('role/assign', [RolesController::class, 'assignRoleView'])->name('role.assign');

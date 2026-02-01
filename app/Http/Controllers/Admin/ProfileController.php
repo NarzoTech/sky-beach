@@ -90,4 +90,38 @@ class ProfileController extends Controller
             return redirect()->back()->with($notification);
         }
     }
+
+    public function update_security_questions(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('admin.profile.update');
+
+        $rules = [
+            'security_question_1' => 'required|string',
+            'security_answer_1' => 'required|string|min:2',
+            'security_question_2' => 'required|string|different:security_question_1',
+            'security_answer_2' => 'required|string|min:2',
+        ];
+        $customMessages = [
+            'security_question_1.required' => __('Security question 1 is required'),
+            'security_answer_1.required' => __('Answer 1 is required'),
+            'security_answer_1.min' => __('Answer must be at least 2 characters'),
+            'security_question_2.required' => __('Security question 2 is required'),
+            'security_question_2.different' => __('Please select a different question for Question 2'),
+            'security_answer_2.required' => __('Answer 2 is required'),
+            'security_answer_2.min' => __('Answer must be at least 2 characters'),
+        ];
+        $this->validate($request, $rules, $customMessages);
+
+        $admin = Auth::guard('admin')->user();
+        $admin->security_question_1 = $request->security_question_1;
+        $admin->security_answer_1 = strtolower(trim($request->security_answer_1));
+        $admin->security_question_2 = $request->security_question_2;
+        $admin->security_answer_2 = strtolower(trim($request->security_answer_2));
+        $admin->save();
+
+        $notification = __('Security questions updated successfully');
+        $notification = ['messege' => $notification, 'alert-type' => 'success'];
+
+        return redirect()->back()->with($notification);
+    }
 }

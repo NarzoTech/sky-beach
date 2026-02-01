@@ -6,26 +6,144 @@
     <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg p-sm-12 p-6">
         <div class="w-px-400 mx-auto mt-12 pt-5">
             <h4 class="mb-1">{{ __('Forgot Password') }}</h4>
-            <form action="{{ route('admin.forget-password') }}" method="POST">
-                @csrf
+            <p class="mb-4 text-muted">{{ __('Choose how you want to reset your password') }}</p>
 
-                <div class="form-group">
-                    <label for="email">{{ __('Email') }}</label>
-                    <input id="email exampleInputEmail" type="email" class="form-control" name="email" tabindex="1"
-                        autofocus placeholder="{{ old('email') }}">
-                </div>
-                <div class="form-group">
-                    <button id="adminLoginBtn" type="submit" class="btn btn-primary btn-lg btn-block" tabindex="4">
-                        {{ __('Send Reset Link') }}
+            {{-- Tab Navigation --}}
+            <ul class="nav nav-pills nav-justified mb-4" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#emailReset" type="button" role="tab">
+                        <i class="bx bx-envelope me-1"></i> {{ __('Email') }}
                     </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#securityReset" type="button" role="tab">
+                        <i class="bx bx-shield-quarter me-1"></i> {{ __('Security Questions') }}
+                    </button>
+                </li>
+            </ul>
+
+            {{-- Tab Content --}}
+            <div class="tab-content">
+                {{-- Email Reset Tab --}}
+                <div class="tab-pane fade show active" id="emailReset" role="tabpanel">
+                    <form action="{{ route('admin.forget-password') }}" method="POST">
+                        @csrf
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label">{{ __('Email Address') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-envelope"></i></span>
+                                <input id="email" type="email" class="form-control" name="email" tabindex="1"
+                                    autofocus placeholder="{{ __('Enter your email') }}" value="{{ old('email') }}" required>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" tabindex="2">
+                                <i class="bx bx-mail-send me-1"></i> {{ __('Send Reset Link') }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <div class="d-block">
-                        <a href="{{ route('admin.login') }}">
-                            {{ __('Go to login page') }} -> </a>
-                    </div>
+
+                {{-- Security Questions Reset Tab --}}
+                <div class="tab-pane fade" id="securityReset" role="tabpanel">
+                    <form action="{{ route('admin.verify-security-questions') }}" method="POST" id="securityForm">
+                        @csrf
+                        <div class="form-group mb-3">
+                            <label for="security_email" class="form-label">{{ __('Email Address') }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-envelope"></i></span>
+                                <input id="security_email" type="email" class="form-control" name="email"
+                                    placeholder="{{ __('Enter your email') }}" required>
+                                <button type="button" class="btn btn-outline-primary" id="loadQuestionsBtn">
+                                    {{ __('Load Questions') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="securityQuestionsContainer" style="display: none;">
+                            <div class="form-group mb-3">
+                                <label class="form-label" id="question1Label">{{ __('Security Question 1') }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bx bx-help-circle"></i></span>
+                                    <input type="text" class="form-control" name="security_answer_1"
+                                        placeholder="{{ __('Enter your answer') }}">
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label" id="question2Label">{{ __('Security Question 2') }}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bx bx-help-circle"></i></span>
+                                    <input type="text" class="form-control" name="security_answer_2"
+                                        placeholder="{{ __('Enter your answer') }}">
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bx bx-check-circle me-1"></i> {{ __('Verify & Reset Password') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="noQuestionsAlert" class="alert alert-warning" style="display: none;">
+                            <i class="bx bx-info-circle me-2"></i>
+                            {{ __('Security questions are not set up for this account. Please use email reset instead.') }}
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
+
+            <div class="form-group text-center mt-4">
+                <a href="{{ route('admin.login') }}" class="text-primary">
+                    <i class="bx bx-arrow-back me-1"></i> {{ __('Back to Login') }}
+                </a>
+            </div>
         </div>
     </div>
 @endsection
+
+@push('js')
+<script>
+    $(document).ready(function() {
+        $('#loadQuestionsBtn').on('click', function() {
+            const email = $('#security_email').val();
+            if (!email) {
+                toastr.error('{{ __("Please enter your email address") }}');
+                return;
+            }
+
+            const btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+            $.ajax({
+                url: '{{ route("admin.get-security-questions") }}',
+                method: 'POST',
+                data: {
+                    email: email,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.success && response.questions) {
+                        $('#question1Label').text(response.questions.question_1);
+                        $('#question2Label').text(response.questions.question_2);
+                        $('#securityQuestionsContainer').slideDown();
+                        $('#noQuestionsAlert').hide();
+                        $('input[name="security_answer_1"]').attr('required', true);
+                        $('input[name="security_answer_2"]').attr('required', true);
+                    } else {
+                        $('#securityQuestionsContainer').hide();
+                        $('#noQuestionsAlert').slideDown();
+                    }
+                },
+                error: function(xhr) {
+                    toastr.error(xhr.responseJSON?.message || '{{ __("An error occurred") }}');
+                    $('#securityQuestionsContainer').hide();
+                    $('#noQuestionsAlert').hide();
+                },
+                complete: function() {
+                    btn.prop('disabled', false).html('{{ __("Load Questions") }}');
+                }
+            });
+        });
+    });
+</script>
+@endpush

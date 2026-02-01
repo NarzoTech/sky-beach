@@ -8,6 +8,7 @@ use App\Services\MailSenderService;
 use App\Traits\GetGlobalInformationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -55,5 +56,87 @@ class PasswordResetLinkController extends Controller
 
             return redirect()->back()->with($notification);
         }
+    }
+
+    /**
+     * Get security questions for an email (AJAX)
+     */
+    public function get_security_questions(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $admin = Admin::where('email', $request->email)->first();
+
+        if (!$admin) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Email does not exist')
+            ], 404);
+        }
+
+        if (!$admin->security_question_1 || !$admin->security_question_2) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Security questions not set up')
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'questions' => [
+                'question_1' => $admin->security_question_1,
+                'question_2' => $admin->security_question_2,
+            ]
+        ]);
+    }
+
+    /**
+     * Verify security questions and show reset password form
+     */
+    public function verify_security_questions(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'security_answer_1' => ['required', 'string'],
+            'security_answer_2' => ['required', 'string'],
+        ], [
+            'email.required' => __('Email is required'),
+            'security_answer_1.required' => __('Answer 1 is required'),
+            'security_answer_2.required' => __('Answer 2 is required'),
+        ]);
+
+        $admin = Admin::where('email', $request->email)->first();
+
+        if (!$admin) {
+            $notification = __('Email does not exist');
+            $notification = ['messege' => $notification, 'alert-type' => 'error'];
+            return redirect()->back()->with($notification);
+        }
+
+        if (!$admin->security_question_1 || !$admin->security_question_2) {
+            $notification = __('Security questions not set up for this account');
+            $notification = ['messege' => $notification, 'alert-type' => 'error'];
+            return redirect()->back()->with($notification);
+        }
+
+        // Verify answers (case-insensitive)
+        $answer1Match = strtolower(trim($request->security_answer_1)) === strtolower(trim($admin->security_answer_1));
+        $answer2Match = strtolower(trim($request->security_answer_2)) === strtolower(trim($admin->security_answer_2));
+
+        if (!$answer1Match || !$answer2Match) {
+            $notification = __('Security answers do not match');
+            $notification = ['messege' => $notification, 'alert-type' => 'error'];
+            return redirect()->back()->with($notification);
+        }
+
+        // Generate a token and redirect to reset password page
+        $token = Str::random(100);
+        $admin->forget_password_token = $token;
+        $admin->save();
+
+        return redirect()->route('admin.password.reset', ['token' => $token])
+            ->with(['messege' => __('Security questions verified. Please set your new password.'), 'alert-type' => 'success']);
     }
 }
