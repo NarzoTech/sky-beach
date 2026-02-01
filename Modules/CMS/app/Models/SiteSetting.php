@@ -67,4 +67,38 @@ class SiteSetting extends Model
     {
         return $query->where('group', $group);
     }
+
+    /**
+     * Clear all settings cache keys
+     */
+    public static function clearCache($key = null, $group = null): void
+    {
+        if ($key) {
+            Cache::forget("cms_setting_{$key}");
+        }
+
+        if ($group) {
+            Cache::forget("cms_settings_group_{$group}");
+        }
+
+        // Clear common setting groups
+        $groups = ['general', 'contact', 'social', 'seo', 'hours', 'payment', 'email'];
+        foreach ($groups as $g) {
+            Cache::forget("cms_settings_group_{$g}");
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
+     */
+    protected static function booted()
+    {
+        static::saved(function ($setting) {
+            self::clearCache($setting->key, $setting->group);
+        });
+
+        static::deleted(function ($setting) {
+            self::clearCache($setting->key, $setting->group);
+        });
+    }
 }

@@ -86,16 +86,40 @@ class GalleryImage extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all gallery cache keys
+     */
+    public static function clearCache($category = null, $page = null): void
+    {
+        $limits = [null, 3, 4, 5, 6, 8, 10, 12, 20];
+        $categories = $category ? [$category] : ['food', 'restaurant', 'events', 'about', 'general'];
+        $pages = $page ? [$page] : ['home', 'about', 'menu', 'contact', 'reservation'];
+
+        // Clear category-based cache
+        foreach ($categories as $cat) {
+            foreach ($limits as $limit) {
+                Cache::forget("cms_gallery_{$cat}_{$limit}");
+            }
+        }
+
+        // Clear page-based cache
+        foreach ($pages as $p) {
+            foreach ($limits as $limit) {
+                Cache::forget("cms_gallery_page_{$p}_{$limit}");
+            }
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function ($image) {
-            Cache::forget("cms_gallery_{$image->category}");
+            self::clearCache($image->category, $image->page);
         });
 
         static::deleted(function ($image) {
-            Cache::forget("cms_gallery_{$image->category}");
+            self::clearCache($image->category, $image->page);
         });
     }
 }

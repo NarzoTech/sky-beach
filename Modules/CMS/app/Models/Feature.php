@@ -79,18 +79,31 @@ class Feature extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all feature cache keys
+     */
+    public static function clearCache($page = null, $section = null): void
+    {
+        $pages = $page ? [$page] : ['home', 'about', 'menu', 'contact', 'reservation', 'services'];
+        $sections = $section ? [$section] : [null, 'hero', 'features', 'services', 'benefits'];
+
+        foreach ($pages as $p) {
+            foreach ($sections as $s) {
+                Cache::forget("cms_features_{$p}_{$s}");
+            }
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function ($feature) {
-            Cache::forget("cms_features_{$feature->page}_{$feature->section}");
-            Cache::forget("cms_features_{$feature->page}_");
+            self::clearCache($feature->page, $feature->section);
         });
 
         static::deleted(function ($feature) {
-            Cache::forget("cms_features_{$feature->page}_{$feature->section}");
-            Cache::forget("cms_features_{$feature->page}_");
+            self::clearCache($feature->page, $feature->section);
         });
     }
 }

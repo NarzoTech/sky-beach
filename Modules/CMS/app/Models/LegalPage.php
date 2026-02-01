@@ -47,16 +47,32 @@ class LegalPage extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all legal page cache keys
+     */
+    public static function clearCache($slug = null): void
+    {
+        if ($slug) {
+            Cache::forget("cms_legal_{$slug}");
+        } else {
+            // Clear common legal page slugs
+            $slugs = ['terms-and-conditions', 'privacy-policy', 'refund-policy', 'about-us', 'faq'];
+            foreach ($slugs as $s) {
+                Cache::forget("cms_legal_{$s}");
+            }
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function ($page) {
-            Cache::forget("cms_legal_{$page->slug}");
+            self::clearCache($page->slug);
         });
 
         static::deleted(function ($page) {
-            Cache::forget("cms_legal_{$page->slug}");
+            self::clearCache($page->slug);
         });
     }
 }

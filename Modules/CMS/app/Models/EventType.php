@@ -53,16 +53,24 @@ class EventType extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all event type cache keys
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget('cms_event_types');
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function () {
-            Cache::forget('cms_event_types');
+            self::clearCache();
         });
 
         static::deleted(function () {
-            Cache::forget('cms_event_types');
+            self::clearCache();
         });
     }
 }

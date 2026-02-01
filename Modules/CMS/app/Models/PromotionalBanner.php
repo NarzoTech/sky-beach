@@ -112,16 +112,29 @@ class PromotionalBanner extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all banner cache keys
+     */
+    public static function clearCache($position = null): void
+    {
+        $positions = $position ? [$position] : ['header', 'sidebar', 'footer', 'popup', 'home', 'menu', 'checkout'];
+
+        foreach ($positions as $pos) {
+            Cache::forget("cms_banner_{$pos}");
+            Cache::forget("cms_banners_{$pos}");
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function ($banner) {
-            Cache::forget("cms_banner_{$banner->position}");
+            self::clearCache($banner->position);
         });
 
         static::deleted(function ($banner) {
-            Cache::forget("cms_banner_{$banner->position}");
+            self::clearCache($banner->position);
         });
     }
 }

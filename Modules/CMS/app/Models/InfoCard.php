@@ -66,16 +66,28 @@ class InfoCard extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all info card cache keys
+     */
+    public static function clearCache($page = null): void
+    {
+        $pages = $page ? [$page] : ['home', 'about', 'menu', 'contact', 'reservation', 'services'];
+
+        foreach ($pages as $p) {
+            Cache::forget("cms_info_cards_{$p}");
+        }
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function ($card) {
-            Cache::forget("cms_info_cards_{$card->page}");
+            self::clearCache($card->page);
         });
 
         static::deleted(function ($card) {
-            Cache::forget("cms_info_cards_{$card->page}");
+            self::clearCache($card->page);
         });
     }
 }
