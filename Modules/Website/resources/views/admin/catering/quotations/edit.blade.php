@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-
-@section('title')
-    <title>{{ __('Edit Quotation') }} - {{ $quotation->quotation_number }}</title>
-@endsection
+@section('title', __('Edit Quotation') . ' - ' . $quotation->quotation_number)
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">

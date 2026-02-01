@@ -74,7 +74,7 @@
                                 </div>
                                 <div class="package_content">
                                     <h4>{{ $package->name }}</h4>
-                                    <p class="package_desc">{{ Str::limit($package->description, 100) }}</p>
+                                    <p class="package_desc">{{ Str::limit(strip_tags($package->description), 100) }}</p>
                                     <div class="package_info">
                                         <div class="info_item">
                                             <i class="fas fa-users"></i>
@@ -124,7 +124,7 @@
                                 </div>
                                 <div class="package_content">
                                     <h4>{{ $package->name }}</h4>
-                                    <p class="package_desc">{{ Str::limit($package->description, 100) }}</p>
+                                    <p class="package_desc">{{ Str::limit(strip_tags($package->description), 100) }}</p>
                                     <div class="package_info">
                                         <div class="info_item">
                                             <i class="fas fa-users"></i>

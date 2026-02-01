@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-
-@section('title')
-    <title>{{ __('Website Orders') }}</title>
-@endsection
+@section('title', __('Website Orders'))
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">

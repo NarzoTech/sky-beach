@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-
-@section('title')
-    <title>{{ __('Order') }} #{{ $order->invoice }}</title>
-@endsection
+@section('title', __('Order') . ' #' . $order->invoice)
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">

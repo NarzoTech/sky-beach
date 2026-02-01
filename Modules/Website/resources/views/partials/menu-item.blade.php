@@ -24,7 +24,7 @@
         <h3>
             <a href="{{ route('website.menu-details') }}">{{ $item->name }}</a>
         </h3>
-        <p>{{ Str::limit($item->description, 100) }}</p>
+        <p>{{ Str::limit(strip_tags($item->description), 100) }}</p>
         
         @if($item->is_spicy)
             <span class="spicy_indicator">🌶️ {{ ucfirst($item->spice_level ?? 'Spicy') }}</span>

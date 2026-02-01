@@ -48,7 +48,7 @@
                                     @endif
                                 </div>
                                 <h2>{{ $service->title }}</h2>
-                                <p>{{ Str::limit($service->short_description, 120) }}</p>
+                                <p>{{ Str::limit(strip_tags($service->short_description), 120) }}</p>
                                 <a class="common_btn" href="{{ route('website.service-details', $service->slug) }}">
                                     <span class="icon">
                                         <img src="{{ asset('website/images/eye.png') }}" alt="{{ __('view') }}" class="img-fluid w-100">

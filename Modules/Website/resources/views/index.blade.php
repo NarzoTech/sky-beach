@@ -190,15 +190,17 @@
                                                 </p>
                                                 <a class="category" href="{{ route('website.menu', ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
                                                 <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
-                                                <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
-                                                <div class="d-flex flex-wrap align-items-center">
-                                                    <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
-                                                    @if($item->discount_price && $item->discount_price < $item->base_price)
-                                                        <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
-                                                        <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
-                                                    @else
-                                                        <h3>{{ currency($item->base_price) }}</h3>
-                                                    @endif
+                                                <p class="descrption">{{ Str::limit(strip_tags($item->short_description), 40) }}</p>
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                                    <div class="price-wrapper">
+                                                        @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                            <span style="text-decoration: line-through; color: #999; font-size: 13px; display: block;">{{ currency($item->base_price) }}</span>
+                                                            <h3 style="margin: 0;">{{ currency($item->final_price) }}</h3>
+                                                        @else
+                                                            <h3 style="margin: 0;">{{ currency($item->base_price) }}</h3>
+                                                        @endif
+                                                    </div>
+                                                    <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('Buy Now') }}</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -243,15 +245,17 @@
                                     <a class="category" href="{{ route('website.menu', ['category' => $item->category->slug]) }}">{{ $item->category->name }}</a>
                                 @endif
                                 <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
-                                <p class="descrption">{{ Str::limit($item->short_description, 40) }}</p>
-                                <div class="d-flex flex-wrap align-items-center">
-                                    <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">Buy Now</a>
-                                    @if($item->discount_price && $item->discount_price < $item->base_price)
-                                        <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
-                                        <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
-                                    @else
-                                        <h3>{{ currency($item->base_price) }}</h3>
-                                    @endif
+                                <p class="descrption">{{ Str::limit(strip_tags($item->short_description), 40) }}</p>
+                                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                    <div class="price-wrapper">
+                                        @if($item->discount_price && $item->discount_price < $item->base_price)
+                                            <span style="text-decoration: line-through; color: #999; font-size: 13px; display: block;">{{ currency($item->base_price) }}</span>
+                                            <h3 style="margin: 0;">{{ currency($item->final_price) }}</h3>
+                                        @else
+                                            <h3 style="margin: 0;">{{ currency($item->base_price) }}</h3>
+                                        @endif
+                                    </div>
+                                    <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('Buy Now') }}</a>
                                 </div>
                             </div>
                         </div>

@@ -94,7 +94,7 @@
 
                             @if($menuItem->short_description)
                                 <div class="details_short_description">
-                                    <p>{{ $menuItem->short_description }}</p>
+                                    {!! $menuItem->short_description !!}
                                 </div>
                             @endif
 
@@ -255,9 +255,9 @@
                                      aria-labelledby="nav-description-tab" tabindex="0">
                                     <div class="menu_det_description">
                                         @if($menuItem->long_description)
-                                            {!! nl2br(e($menuItem->long_description)) !!}
+                                            {!! $menuItem->long_description !!}
                                         @elseif($menuItem->short_description)
-                                            <p>{{ $menuItem->short_description }}</p>
+                                            {!! $menuItem->short_description !!}
                                         @else
                                             <p class="text-muted">{{ __('No detailed description available.') }}</p>
                                         @endif
@@ -315,16 +315,18 @@
                                         @endif
                                         <a class="title" href="{{ route('website.menu-details', $item->slug) }}">{{ $item->name }}</a>
                                         @if($item->short_description)
-                                            <p class="descrption">{{ Str::limit($item->short_description, 50) }}</p>
+                                            <p class="descrption">{{ Str::limit(strip_tags($item->short_description), 50) }}</p>
                                         @endif
-                                        <div class="d-flex flex-wrap align-items-center">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between">
+                                            <div class="price-wrapper">
+                                                @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                    <span style="text-decoration: line-through; color: #999; font-size: 13px; display: block;">{{ currency($item->base_price) }}</span>
+                                                    <h3 style="margin: 0;">{{ currency($item->final_price) }}</h3>
+                                                @else
+                                                    <h3 style="margin: 0;">{{ currency($item->base_price) }}</h3>
+                                                @endif
+                                            </div>
                                             <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('View') }}</a>
-                                            @if($item->discount_price && $item->discount_price < $item->base_price)
-                                                <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">{{ currency($item->base_price) }}</span>
-                                                <h3 style="display: inline; margin: 0;">{{ currency($item->final_price) }}</h3>
-                                            @else
-                                                <h3>{{ currency($item->base_price) }}</h3>
-                                            @endif
                                         </div>
                                     </div>
                                 </div>

@@ -1,8 +1,5 @@
 @extends('admin.layouts.master')
-
-@section('title')
-    <title>{{ __('Create Quotation') }}</title>
-@endsection
+@section('title', __('Create Quotation'))
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
