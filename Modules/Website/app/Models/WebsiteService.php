@@ -68,6 +68,6 @@ class WebsiteService extends Model
             }
             return asset('storage/' . $this->image);
         }
-        return asset('website/images/service_placeholder.jpg');
+        return asset('website/images/service_1.jpg');
     }
 }

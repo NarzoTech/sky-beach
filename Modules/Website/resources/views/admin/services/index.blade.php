@@ -19,6 +19,7 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th width="80">{{ __('Image') }}</th>
                                 <th>{{ __('Title') }}</th>
                                 <th>{{ __('Price') }}</th>
                                 <th>{{ __('Duration') }}</th>
@@ -29,6 +30,9 @@
                         <tbody>
                             @forelse($services as $service)
                                 <tr>
+                                    <td>
+                                        <img src="{{ $service->image_url }}" alt="{{ $service->title }}" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                                    </td>
                                     <td>
                                         <strong>{{ $service->title }}</strong>
                                         @if($service->is_featured)
@@ -59,7 +63,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">{{ __('No services found') }}</td>
+                                    <td colspan="6" class="text-center py-4">{{ __('No services found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

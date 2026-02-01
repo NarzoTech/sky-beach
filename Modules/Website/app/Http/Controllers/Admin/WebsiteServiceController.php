@@ -44,7 +44,7 @@ class WebsiteServiceController extends Controller
 
         WebsiteService::create($validated);
 
-        return redirect()->route('admin.website-services.index')
+        return redirect()->route('admin.restaurant.website-services.index')
             ->with('success', 'Service created successfully');
     }
 
@@ -77,7 +77,7 @@ class WebsiteServiceController extends Controller
 
         $websiteService->update($validated);
 
-        return redirect()->route('admin.website-services.index')
+        return redirect()->route('admin.restaurant.website-services.index')
             ->with('success', 'Service updated successfully');
     }
 
@@ -85,7 +85,7 @@ class WebsiteServiceController extends Controller
     {
         delete_image($websiteService->image);
         $websiteService->delete();
-        return redirect()->route('admin.website-services.index')
+        return redirect()->route('admin.restaurant.website-services.index')
             ->with('success', 'Service deleted successfully');
     }
 }

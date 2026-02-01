@@ -38,11 +38,7 @@
                     @forelse($services as $service)
                     <div class="col-lg-4 col-sm-6 wow fadeInUp">
                         <div class="service_item">
-                            @if($service->image)
-                                <img src="{{ asset($service->image) }}" alt="{{ $service->title }}" class="img-fluid w-100">
-                            @else
-                                <img src="{{ asset('website/images/service_1.jpg') }}" alt="{{ $service->title }}" class="img-fluid w-100">
-                            @endif
+                            <img src="{{ $service->image_url }}" alt="{{ $service->title }}" class="img-fluid w-100">
                             <div class="service_item_overly">
                                 <div class="service_item_icon">
                                     @if($service->icon)
