@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Manage Add-ons') }} - {{ $item->name }}</title>
-@endsection
+@section('title', __('Manage Add-ons') . ' - ' . $item->name)
 @section('content')
     <div class="main-content">
         <section class="section">

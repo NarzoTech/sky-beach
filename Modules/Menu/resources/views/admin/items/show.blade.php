@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('View Menu Item') }}</title>
-@endsection
+@section('title', __('View Menu Item'))
 @section('content')
     <div class="main-content">
         <section class="section">

@@ -1,7 +1,5 @@
 @extends('admin.layouts.master')
-@section('title')
-    <title>{{ __('Manage Variants') }} - {{ $item->name }}</title>
-@endsection
+@section('title', __('Manage Variants') . ' - ' . $item->name)
 @section('content')
     <div class="main-content">
         <section class="section">
