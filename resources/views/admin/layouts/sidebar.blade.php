@@ -324,13 +324,6 @@
                                 {{ __('Contact Messages') }}
                             </a>
                         </li>
-                        @adminCan('restaurant.menu_item.view')
-                            <li class="menu-item {{ request()->is('admin/restaurant/menu-items*') ? 'active' : '' }}">
-                                <a class="menu-link" href="{{ route('admin.restaurant.menu-items.index') }}">
-                                    {{ __('Menu Items') }}
-                                </a>
-                            </li>
-                        @endadminCan
                         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Orders & Catering') }}</span></li>
                         <li class="menu-item {{ request()->is('admin/restaurant/website-orders*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.website-orders.index') }}">

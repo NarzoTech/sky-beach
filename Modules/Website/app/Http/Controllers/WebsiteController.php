@@ -11,7 +11,6 @@ use Modules\Website\app\Models\Faq;
 use Modules\Website\app\Models\ServiceContact;
 use Modules\Website\app\Models\ServiceFaq;
 use Modules\Website\app\Models\ContactMessage;
-use Modules\Website\app\Models\RestaurantMenuItem;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuCategory;
 
@@ -25,6 +24,7 @@ class WebsiteController extends Controller
         $featuredMenuItems = MenuItem::with('category')
             ->active()
             ->available()
+            ->forWebsite()
             ->featured()
             ->ordered()
             ->take(6)
@@ -73,6 +73,7 @@ class WebsiteController extends Controller
         // Get min and max prices from menu items
         $menuPriceRange = MenuItem::where('status', 1)
             ->where('is_available', 1)
+            ->where('available_in_website', 1)
             ->selectRaw('MIN(base_price) as min_price, MAX(base_price) as max_price')
             ->first();
 
@@ -112,7 +113,8 @@ class WebsiteController extends Controller
         // Build query for menu items
         $query = MenuItem::with(['category', 'variants', 'addons'])
             ->where('status', 1)
-            ->where('is_available', 1);
+            ->where('is_available', 1)
+            ->where('available_in_website', 1);
 
         // Apply category filter by slug
         if ($categorySlug) {
@@ -195,12 +197,14 @@ class WebsiteController extends Controller
             ->where('slug', $slug)
             ->where('status', 1)
             ->where('is_available', 1)
+            ->where('available_in_website', 1)
             ->firstOrFail();
 
         // Get related items from same category
         $relatedItems = MenuItem::with('category')
             ->where('status', 1)
             ->where('is_available', 1)
+            ->where('available_in_website', 1)
             ->where('id', '!=', $menuItem->id)
             ->where('category_id', $menuItem->category_id)
             ->inRandomOrder()
@@ -212,6 +216,7 @@ class WebsiteController extends Controller
             $additionalItems = MenuItem::with('category')
                 ->where('status', 1)
                 ->where('is_available', 1)
+                ->where('available_in_website', 1)
                 ->where('id', '!=', $menuItem->id)
                 ->whereNotIn('id', $relatedItems->pluck('id'))
                 ->where('is_featured', 1)

@@ -111,9 +111,6 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         
         // FAQs Management
         Route::resource('faqs', \Modules\Website\app\Http\Controllers\Admin\FaqController::class)->except('show');
-        
-        // Restaurant Menu Items Management
-        Route::resource('menu-items', \Modules\Website\app\Http\Controllers\Admin\RestaurantMenuItemController::class)->except('show');
 
         // Service Contacts Management
         Route::resource('service-contacts', \Modules\Website\app\Http\Controllers\Admin\ServiceContactController::class)->only(['index', 'show', 'destroy']);

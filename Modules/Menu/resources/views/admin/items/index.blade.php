@@ -136,6 +136,12 @@
                                     @if ($item->is_spicy)
                                         <span class="badge bg-danger" title="Spicy">🌶</span>
                                     @endif
+                                    @if ($item->is_new)
+                                        <span class="badge bg-info" title="New">{{ __('New') }}</span>
+                                    @endif
+                                    @if ($item->is_popular)
+                                        <span class="badge bg-warning text-dark" title="Popular">{{ __('Popular') }}</span>
+                                    @endif
                                 </td>
                                 <td>{{ $item->category->name ?? 'N/A' }}</td>
                                 <td>{{ currency($item->base_price) }}</td>

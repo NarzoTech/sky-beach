@@ -20,9 +20,11 @@ class MenuItem extends Model
         'short_description',
         'long_description',
         'category_id',
+        'cuisine_type',
         'image',
         'gallery',
         'base_price',
+        'discount_price',
         'cost_price',
         'preparation_time',
         'calories',
@@ -32,7 +34,11 @@ class MenuItem extends Model
         'spice_level',
         'allergens',
         'is_featured',
+        'is_new',
+        'is_popular',
         'is_available',
+        'available_in_pos',
+        'available_in_website',
         'status',
         'sku',
         'barcode',
@@ -43,16 +49,21 @@ class MenuItem extends Model
         'gallery' => 'array',
         'allergens' => 'array',
         'base_price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
         'cost_price' => 'decimal:2',
         'is_vegetarian' => 'boolean',
         'is_vegan' => 'boolean',
         'is_spicy' => 'boolean',
         'is_featured' => 'boolean',
+        'is_new' => 'boolean',
+        'is_popular' => 'boolean',
         'is_available' => 'boolean',
+        'available_in_pos' => 'boolean',
+        'available_in_website' => 'boolean',
         'status' => 'boolean',
     ];
 
-    protected $appends = ['image_url', 'final_price', 'profit_margin', 'price'];
+    protected $appends = ['image_url', 'final_price', 'profit_margin', 'price', 'discount_percentage'];
 
     protected static function boot()
     {
@@ -94,12 +105,20 @@ class MenuItem extends Model
 
     public function getFinalPriceAttribute()
     {
-        return $this->base_price;
+        return $this->discount_price ?? $this->base_price;
     }
 
     public function getPriceAttribute()
     {
         return $this->base_price;
+    }
+
+    public function getDiscountPercentageAttribute()
+    {
+        if ($this->discount_price && $this->base_price > 0) {
+            return round((($this->base_price - $this->discount_price) / $this->base_price) * 100);
+        }
+        return 0;
     }
 
     public function getProfitMarginAttribute()
@@ -276,5 +295,30 @@ class MenuItem extends Model
     public function scopeByCategory($query, $categoryId)
     {
         return $query->where('category_id', $categoryId);
+    }
+
+    public function scopeForPos($query)
+    {
+        return $query->where('available_in_pos', true);
+    }
+
+    public function scopeForWebsite($query)
+    {
+        return $query->where('available_in_website', true);
+    }
+
+    public function scopeNew($query)
+    {
+        return $query->where('is_new', true);
+    }
+
+    public function scopePopular($query)
+    {
+        return $query->where('is_popular', true);
+    }
+
+    public function scopeByCuisine($query, $cuisineType)
+    {
+        return $query->where('cuisine_type', $cuisineType);
     }
 }

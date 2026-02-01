@@ -46,7 +46,7 @@
                                                                 @enderror
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="col-md-4">
                                                             <div class="form-group">
                                                                 <label for="category_id">{{ __('Category') }}</label>
                                                                 <select name="category_id" id="category_id" class="form-control select2">
@@ -59,7 +59,16 @@
                                                                 </select>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-6">
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="cuisine_type">{{ __('Cuisine Type') }}</label>
+                                                                <input type="text" name="cuisine_type" class="form-control" id="cuisine_type" value="{{ old('cuisine_type', $item->cuisine_type) }}" placeholder="e.g., Italian, Thai, Indian">
+                                                                @error('cuisine_type')
+                                                                    <span class="text-danger">{{ $message }}</span>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
                                                             <div class="form-group">
                                                                 <label for="sku">{{ __('SKU') }}</label>
                                                                 <div class="input-group">
@@ -95,22 +104,29 @@
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-md-4">
+                                                        <div class="col-md-3">
                                                             <div class="form-group">
                                                                 <label for="base_price">{{ __('Base Price') }}<span class="text-danger">*</span></label>
                                                                 <input type="number" name="base_price" class="form-control" id="base_price" required value="{{ old('base_price', $item->base_price) }}" step="0.01" min="0">
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-4">
+                                                        <div class="col-md-3">
+                                                            <div class="form-group">
+                                                                <label for="discount_price">{{ __('Discount Price') }}</label>
+                                                                <input type="number" name="discount_price" class="form-control" id="discount_price" value="{{ old('discount_price', $item->discount_price) }}" step="0.01" min="0">
+                                                                <small class="text-muted">{{ __('Leave empty for no discount') }}</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
                                                             <div class="form-group">
                                                                 <label for="cost_price">{{ __('Cost Price') }}</label>
                                                                 <input type="number" class="form-control bg-light" id="cost_price_display" value="{{ number_format($item->cost_price, 2) }}" step="0.01" readonly>
-                                                                <small class="text-info"><i class="bx bx-info-circle"></i> {{ __('Auto-calculated from ingredients below') }}</small>
+                                                                <small class="text-info"><i class="bx bx-info-circle"></i> {{ __('Auto-calculated') }}</small>
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-4">
+                                                        <div class="col-md-3">
                                                             <div class="form-group">
-                                                                <label for="preparation_time">{{ __('Preparation Time (min)') }}</label>
+                                                                <label for="preparation_time">{{ __('Prep Time (min)') }}</label>
                                                                 <input type="number" name="preparation_time" class="form-control" id="preparation_time" value="{{ old('preparation_time', $item->preparation_time) }}" min="0">
                                                             </div>
                                                         </div>
@@ -268,10 +284,10 @@
 
                                         <!-- Sidebar -->
                                         <div class="col-lg-4">
-                                            <!-- Image -->
+                                            <!-- Thumbnail Image -->
                                             <div class="card">
                                                 <div class="card-header">
-                                                    <h5>{{ __('Image') }}</h5>
+                                                    <h5>{{ __('Thumbnail Image') }}</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     @if ($item->image)
@@ -284,15 +300,40 @@
                                                         @error('image')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
+                                                        <small class="text-muted">{{ __('Main display image for listings') }}</small>
                                                     </div>
                                                     <div id="image-preview" class="mt-2"></div>
                                                 </div>
                                             </div>
 
-                                            <!-- Status -->
+                                            <!-- Gallery Images -->
                                             <div class="card mt-3">
                                                 <div class="card-header">
-                                                    <h5>{{ __('Status') }}</h5>
+                                                    <h5>{{ __('Gallery Images') }}</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    @if($item->gallery && count($item->gallery) > 0)
+                                                        <div class="mb-3 d-flex flex-wrap gap-2">
+                                                            @foreach($item->gallery_urls as $galleryUrl)
+                                                                <img src="{{ $galleryUrl }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                    <div class="form-group">
+                                                        <input type="file" name="gallery[]" class="form-control" id="gallery" accept="image/*" multiple>
+                                                        @error('gallery.*')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                        <small class="text-muted">{{ __('Additional images for detail page (max 5). Uploading new images will replace existing.') }}</small>
+                                                    </div>
+                                                    <div id="gallery-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Visibility -->
+                                            <div class="card mt-3">
+                                                <div class="card-header">
+                                                    <h5>{{ __('Visibility') }}</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="form-group">
@@ -309,16 +350,67 @@
                                                             <option value="0" {{ old('is_available', $item->is_available) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
                                                         </select>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label for="is_featured">{{ __('Featured') }}</label>
-                                                        <select name="is_featured" id="is_featured" class="form-control">
-                                                            <option value="0" {{ old('is_featured', $item->is_featured) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
-                                                            <option value="1" {{ old('is_featured', $item->is_featured) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
-                                                        </select>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label for="available_in_pos">{{ __('Show in POS') }}</label>
+                                                                <select name="available_in_pos" id="available_in_pos" class="form-control">
+                                                                    <option value="1" {{ old('available_in_pos', $item->available_in_pos) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                    <option value="0" {{ old('available_in_pos', $item->available_in_pos) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label for="available_in_website">{{ __('Show on Website') }}</label>
+                                                                <select name="available_in_website" id="available_in_website" class="form-control">
+                                                                    <option value="1" {{ old('available_in_website', $item->available_in_website) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                    <option value="0" {{ old('available_in_website', $item->available_in_website) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="display_order">{{ __('Display Order') }}</label>
                                                         <input type="number" name="display_order" class="form-control" id="display_order" value="{{ old('display_order', $item->display_order) }}" min="0">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Marketing -->
+                                            <div class="card mt-3">
+                                                <div class="card-header">
+                                                    <h5>{{ __('Marketing Badges') }}</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label for="is_featured">{{ __('Featured') }}</label>
+                                                                <select name="is_featured" id="is_featured" class="form-control">
+                                                                    <option value="0" {{ old('is_featured', $item->is_featured) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                    <option value="1" {{ old('is_featured', $item->is_featured) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <div class="form-group">
+                                                                <label for="is_new">{{ __('New') }}</label>
+                                                                <select name="is_new" id="is_new" class="form-control">
+                                                                    <option value="0" {{ old('is_new', $item->is_new) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                    <option value="1" {{ old('is_new', $item->is_new) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <div class="form-group">
+                                                                <label for="is_popular">{{ __('Popular') }}</label>
+                                                                <select name="is_popular" id="is_popular" class="form-control">
+                                                                    <option value="0" {{ old('is_popular', $item->is_popular) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
+                                                                    <option value="1" {{ old('is_popular', $item->is_popular) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -392,6 +484,24 @@
                             $('#image-preview').html('<img src="' + e.target.result + '" style="max-width: 100%; max-height: 200px; border-radius: 5px;">');
                         }
                         reader.readAsDataURL(file);
+                    }
+                });
+
+                // Gallery preview
+                $('#gallery').on('change', function() {
+                    var files = this.files;
+                    $('#gallery-preview').html('');
+                    if (files.length > 5) {
+                        alert('{{ __("Maximum 5 gallery images allowed") }}');
+                        this.value = '';
+                        return;
+                    }
+                    for (var i = 0; i < files.length; i++) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            $('#gallery-preview').append('<img src="' + e.target.result + '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">');
+                        }
+                        reader.readAsDataURL(files[i]);
                     }
                 });
 
