@@ -49,7 +49,7 @@
                         </div>
                         <div class="blog_details_text">
                             <h2>{{ $blog->title }}</h2>
-                            {!! $blog->content !!}
+                            {!! $blog->description !!}
                         </div>
 
                         @if($blog->tags)

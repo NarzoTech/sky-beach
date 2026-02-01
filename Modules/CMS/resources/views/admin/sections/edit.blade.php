@@ -63,7 +63,7 @@
                         @if(in_array('description', $config['fields']))
                         <div class="mb-3">
                             <label class="form-label" for="description">{{ __('Description') }}</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror"
+                            <textarea class="form-control summernote @error('description') is-invalid @enderror"
                                       id="description" name="description" rows="4"
                                       placeholder="{{ __('Enter section description') }}">{{ old('description', $translation->description ?? '') }}</textarea>
                             @error('description')

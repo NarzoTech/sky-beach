@@ -58,7 +58,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">{{ __('Long Description') }}</label>
-                            <textarea name="long_description" class="form-control @error('long_description') is-invalid @enderror" rows="5">{{ old('long_description') }}</textarea>
+                            <textarea name="long_description" class="form-control summernote @error('long_description') is-invalid @enderror" rows="5">{{ old('long_description') }}</textarea>
                             @error('long_description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

@@ -65,7 +65,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">{{ __('Content') }}</label>
-                        <textarea name="content" class="form-control" rows="5">{{ old('content', $section->content) }}</textarea>
+                        <textarea name="content" class="form-control summernote" rows="5">{{ old('content', $section->content) }}</textarea>
                     </div>
 
                     <div class="row">
