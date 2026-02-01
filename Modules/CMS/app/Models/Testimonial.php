@@ -58,16 +58,35 @@ class Testimonial extends Model
     }
 
     /**
-     * Clear cache when saved
+     * Clear all testimonial cache keys
+     */
+    public static function clearCache(): void
+    {
+        // Clear all possible testimonial cache combinations
+        $limits = [null, 3, 4, 5, 6, 8, 10, 12];
+        $featured = [true, false, '', '1', '0'];
+
+        foreach ($limits as $limit) {
+            foreach ($featured as $feat) {
+                Cache::forget("cms_testimonials_{$limit}_{$feat}");
+            }
+        }
+
+        // Also clear the base key
+        Cache::forget('cms_testimonials');
+    }
+
+    /**
+     * Clear cache when saved or deleted
      */
     protected static function booted()
     {
         static::saved(function () {
-            Cache::forget('cms_testimonials');
+            self::clearCache();
         });
 
         static::deleted(function () {
-            Cache::forget('cms_testimonials');
+            self::clearCache();
         });
     }
 }
