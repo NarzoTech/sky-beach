@@ -429,6 +429,17 @@
         margin-bottom: 5px;
     }
 
+    .contact_info a {
+        color: var(--colorPrimary);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .contact_info a:hover {
+        color: var(--colorYellow);
+    }
+
     @media (max-width: 768px) {
         .success_content {
             padding: 20px;

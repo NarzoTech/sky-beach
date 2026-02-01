@@ -148,15 +148,30 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="d-flex justify-content-end align-items-center">
-                                        <label for="sort-select" class="me-2 mb-0" style="white-space: nowrap;">{{ __('Sort By') }}:</label>
-                                        <select id="sort-select" class="form-select form-select-sm" style="width: auto;" onchange="applySorting(this.value)">
-                                            <option value="default" {{ $sortBy == 'default' ? 'selected' : '' }}>{{ __('Default') }}</option>
-                                            <option value="popular" {{ $sortBy == 'popular' ? 'selected' : '' }}>{{ __('Most Popular') }}</option>
-                                            <option value="price_low" {{ $sortBy == 'price_low' ? 'selected' : '' }}>{{ __('Price: Low to High') }}</option>
-                                            <option value="price_high" {{ $sortBy == 'price_high' ? 'selected' : '' }}>{{ __('Price: High to Low') }}</option>
-                                            <option value="name_asc" {{ $sortBy == 'name_asc' ? 'selected' : '' }}>{{ __('Name: A to Z') }}</option>
-                                            <option value="name_desc" {{ $sortBy == 'name_desc' ? 'selected' : '' }}>{{ __('Name: Z to A') }}</option>
-                                        </select>
+                                        <label class="me-2 mb-0" style="white-space: nowrap;">{{ __('Sort By') }}:</label>
+                                        <div class="custom-sort-dropdown">
+                                            <div class="sort-dropdown-selected" onclick="toggleSortDropdown()">
+                                                <span id="sort-selected-text">
+                                                    @switch($sortBy)
+                                                        @case('popular') {{ __('Most Popular') }} @break
+                                                        @case('price_low') {{ __('Price: Low to High') }} @break
+                                                        @case('price_high') {{ __('Price: High to Low') }} @break
+                                                        @case('name_asc') {{ __('Name: A to Z') }} @break
+                                                        @case('name_desc') {{ __('Name: Z to A') }} @break
+                                                        @default {{ __('Default') }}
+                                                    @endswitch
+                                                </span>
+                                                <i class="fas fa-chevron-down sort-arrow"></i>
+                                            </div>
+                                            <ul class="sort-dropdown-options" id="sort-options">
+                                                <li data-value="default" class="{{ $sortBy == 'default' ? 'active' : '' }}">{{ __('Default') }}</li>
+                                                <li data-value="popular" class="{{ $sortBy == 'popular' ? 'active' : '' }}">{{ __('Most Popular') }}</li>
+                                                <li data-value="price_low" class="{{ $sortBy == 'price_low' ? 'active' : '' }}">{{ __('Price: Low to High') }}</li>
+                                                <li data-value="price_high" class="{{ $sortBy == 'price_high' ? 'active' : '' }}">{{ __('Price: High to Low') }}</li>
+                                                <li data-value="name_asc" class="{{ $sortBy == 'name_asc' ? 'active' : '' }}">{{ __('Name: A to Z') }}</li>
+                                                <li data-value="name_desc" class="{{ $sortBy == 'name_desc' ? 'active' : '' }}">{{ __('Name: Z to A') }}</li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -483,6 +498,43 @@
         }, 3000);
     }
     
+    // Custom sort dropdown functions
+    function toggleSortDropdown() {
+        document.querySelector('.custom-sort-dropdown').classList.toggle('open');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.custom-sort-dropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+
+    // Handle sort option selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const sortOptions = document.querySelectorAll('.sort-dropdown-options li');
+        sortOptions.forEach(function(option) {
+            option.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const text = this.textContent;
+
+                // Update selected text
+                document.getElementById('sort-selected-text').textContent = text;
+
+                // Update active state
+                sortOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+
+                // Close dropdown
+                document.querySelector('.custom-sort-dropdown').classList.remove('open');
+
+                // Apply sorting
+                applySorting(value);
+            });
+        });
+    });
+
     // Load user favorites on page load
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize price slider with dynamic values from database
@@ -558,6 +610,94 @@
 </script>
 
 <style>
+    /* Custom sort dropdown styling */
+    .custom-sort-dropdown {
+        position: relative;
+        min-width: 180px;
+    }
+
+    .sort-dropdown-selected {
+        padding: 10px 35px 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fff;
+        color: #333;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sort-dropdown-selected:hover {
+        border-color: var(--colorPrimary);
+    }
+
+    .sort-dropdown-selected .sort-arrow {
+        color: var(--colorPrimary);
+        font-size: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .custom-sort-dropdown.open .sort-arrow {
+        transform: rotate(180deg);
+    }
+
+    .custom-sort-dropdown.open .sort-dropdown-selected {
+        border-color: var(--colorPrimary);
+        border-radius: 8px 8px 0 0;
+    }
+
+    .sort-dropdown-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid var(--colorPrimary);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: none;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .custom-sort-dropdown.open .sort-dropdown-options {
+        display: block;
+    }
+
+    .sort-dropdown-options li {
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .sort-dropdown-options li:hover {
+        background-color: var(--colorPrimary);
+        color: #fff;
+    }
+
+    .sort-dropdown-options li.active {
+        background-color: rgba(171, 22, 44, 0.1);
+        color: var(--colorPrimary);
+        font-weight: 500;
+    }
+
+    .sort-dropdown-options li.active:hover {
+        background-color: var(--colorPrimary);
+        color: #fff;
+    }
+
+    .sort-dropdown-options li:last-child {
+        border-radius: 0 0 8px 8px;
+    }
+
     /* Active category link styling */
     .sidebar_category ul li a.active {
         color: var(--colorPrimary) !important;

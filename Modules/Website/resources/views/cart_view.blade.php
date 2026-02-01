@@ -176,6 +176,60 @@
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(100%); opacity: 0; }
     }
+
+    /* Cart Summary Styling */
+    .cart_summery {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .cart_summery h6 {
+        color: var(--colorPrimary);
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--colorPrimary);
+    }
+
+    .cart_summery p {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        color: #555;
+        font-size: 15px;
+    }
+
+    .cart_summery p span {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .cart_summery p.total {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px dashed #ddd;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .cart_summery p.total span:first-child {
+        color: #333;
+    }
+
+    .cart_summery p.total span:last-child {
+        color: var(--colorPrimary);
+        font-size: 20px;
+    }
+
+    .cart_summery .common_btn {
+        width: 100%;
+        margin-top: 15px;
+        text-align: center;
+    }
 </style>
 @endpush
 

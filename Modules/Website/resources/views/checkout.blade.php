@@ -254,25 +254,25 @@
     }
 
     .payment-method-card:has(input[value="cash"]:checked) {
-        border-color: var(--colorGreen, #0F9043) !important;
-        background-color: rgba(15, 144, 67, 0.05) !important;
+        border-color: var(--colorPrimary) !important;
+        background-color: rgba(171, 22, 44, 0.05) !important;
     }
 
     .payment-method-card:has(input[value="cash"]:checked) label span,
     .payment-method-card:has(input[value="cash"]:checked) .cod-text {
-        color: var(--colorGreen, #0F9043) !important;
+        color: var(--colorPrimary) !important;
     }
 
     .payment-method-card:has(input[value="cash"]:checked) .cod-icon {
-        color: var(--colorGreen, #0F9043) !important;
+        color: var(--colorPrimary) !important;
     }
 
     .cod-icon {
-        color: var(--colorGreen, #0F9043);
+        color: var(--colorPrimary);
     }
 
     .cod-text {
-        color: var(--colorGreen, #0F9043);
+        color: var(--colorPrimary);
         font-weight: 600;
     }
 
@@ -360,11 +360,95 @@
     #place-order-btn {
         padding: 15px 30px;
         font-size: 16px;
+        background: var(--colorPrimary) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    #place-order-btn:hover {
+        background: var(--colorPrimary) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    #place-order-btn:hover::before,
+    #place-order-btn:hover::after {
+        display: none !important;
+    }
+
+    #place-order-btn i {
+        color: #fff !important;
     }
 
     #place-order-btn:disabled {
         opacity: 0.7;
         cursor: not-allowed;
+    }
+
+    /* Cart Summary Styling */
+    .cart_summery {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+    }
+
+    .cart_summery h6 {
+        color: var(--colorPrimary);
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--colorPrimary);
+    }
+
+    .cart_summery p {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        color: #555;
+        font-size: 15px;
+    }
+
+    .cart_summery p span {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .cart_summery p.total {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px dashed #ddd;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .cart_summery p.total span:first-child {
+        color: #333;
+    }
+
+    .cart_summery p.total span:last-child {
+        color: var(--colorPrimary);
+        font-size: 20px;
+    }
+
+    .cart_summery a {
+        color: var(--colorPrimary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .cart_summery a:hover {
+        color: var(--colorYellow);
+    }
+
+    .cart_summery .text-info {
+        color: var(--colorPrimary) !important;
+        background: rgba(171, 22, 44, 0.1);
+        padding: 8px 12px;
+        border-radius: 5px;
+        margin-top: 10px;
     }
 </style>
 @endpush
@@ -469,7 +553,7 @@
 
         function updateSubmitButton(paymentMethod) {
             if (paymentMethod === 'bkash') {
-                submitBtn.style.background = '#e2136e';
+                submitBtn.style.background = 'var(--colorPrimary)';
                 submitBtn.innerHTML = '<i class="fas fa-mobile-alt me-2"></i>{{ __("Pay with bKash") }}';
             } else {
                 submitBtn.style.background = '';

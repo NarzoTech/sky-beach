@@ -367,8 +367,8 @@ class CheckoutController extends Controller
             'postal_code' => $request->postal_code,
         ];
 
-        // Cookie expires in 30 days (43200 minutes)
-        $cookie = cookie('checkout_data', json_encode($checkoutData), 43200);
+        // Cookie expires in 1 year (525600 minutes)
+        $cookie = cookie('checkout_data', json_encode($checkoutData), 525600);
 
         // Queue the cookie to be sent with the response
         cookie()->queue($cookie);
