@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             ChefSeeder::class,
             WebsiteServiceSeeder::class,
             FaqSeeder::class,
-            RestaurantMenuItemSeeder::class,
         ]);
     }
 }
