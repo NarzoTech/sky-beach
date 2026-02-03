@@ -3,7 +3,6 @@
 namespace Modules\Menu\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Traits\RedirectHelperTrait;
 use Illuminate\Http\Request;
 use Modules\Menu\app\Http\Requests\ComboRequest;
 use Modules\Menu\app\Models\Combo;
@@ -12,8 +11,6 @@ use Modules\Menu\app\Services\ComboService;
 
 class ComboController extends Controller
 {
-    use RedirectHelperTrait;
-
     protected ComboService $comboService;
 
     public function __construct(ComboService $comboService)
@@ -64,11 +61,10 @@ class ComboController extends Controller
         try {
             $this->comboService->create($request->validated());
 
-            return $this->redirectWithMessage(
-                'admin.combo.index',
-                'success',
-                __('Combo created successfully')
-            );
+            return redirect()->route('admin.combo.index')->with([
+                'alert-type' => 'success',
+                'messege' => __('Combo created successfully'),
+            ]);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
         }
@@ -109,11 +105,10 @@ class ComboController extends Controller
         try {
             $this->comboService->update($combo, $request->validated());
 
-            return $this->redirectWithMessage(
-                'admin.combo.index',
-                'success',
-                __('Combo updated successfully')
-            );
+            return redirect()->route('admin.combo.index')->with([
+                'alert-type' => 'success',
+                'messege' => __('Combo updated successfully'),
+            ]);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
         }

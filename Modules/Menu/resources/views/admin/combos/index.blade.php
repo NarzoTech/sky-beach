@@ -80,13 +80,7 @@
                                             @forelse ($combos as $combo)
                                                 <tr>
                                                     <td>
-                                                        @if ($combo->image)
-                                                            <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
-                                                        @else
-                                                            <div style="width: 60px; height: 60px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                                                <i class="fa fa-image text-muted"></i>
-                                                            </div>
-                                                        @endif
+                                                        <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
                                                     </td>
                                                     <td>
                                                         <strong>{{ $combo->name }}</strong>
@@ -124,27 +118,34 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <div class="custom-control custom-switch">
-                                                            <input type="checkbox" class="custom-control-input active-toggle" id="active{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->is_active ? 'checked' : '' }}>
-                                                            <label class="custom-control-label" for="active{{ $combo->id }}"></label>
+                                                        <div class="form-check form-switch">
+                                                            <input type="checkbox" class="form-check-input active-toggle" id="active{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->is_active ? 'checked' : '' }}>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div class="custom-control custom-switch">
-                                                            <input type="checkbox" class="custom-control-input status-toggle" id="status{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->status ? 'checked' : '' }}>
-                                                            <label class="custom-control-label" for="status{{ $combo->id }}"></label>
+                                                        <div class="form-check form-switch">
+                                                            <input type="checkbox" class="form-check-input status-toggle" id="status{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->status ? 'checked' : '' }}>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <a href="{{ route('admin.combo.edit', $combo->id) }}" class="btn btn-sm btn-warning" title="{{ __('Edit') }}">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-                                                        <a href="{{ route('admin.combo.show', $combo->id) }}" class="btn btn-sm btn-info" title="{{ __('View') }}">
-                                                            <i class="fa fa-eye"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-sm btn-danger delete-combo" data-id="{{ $combo->id }}" title="{{ __('Delete') }}">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
+                                                        <div class="btn-group" role="group">
+                                                            <button id="btnGroupDrop{{ $combo->id }}" type="button"
+                                                                class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"
+                                                                aria-haspopup="true" aria-expanded="false">
+                                                                {{ __('Action') }}
+                                                            </button>
+                                                            <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $combo->id }}">
+                                                                <a href="{{ route('admin.combo.show', $combo->id) }}" class="dropdown-item">
+                                                                    <i class="fa fa-eye me-2"></i> {{ __('View') }}
+                                                                </a>
+                                                                <a href="{{ route('admin.combo.edit', $combo->id) }}" class="dropdown-item">
+                                                                    <i class="fa fa-edit me-2"></i> {{ __('Edit') }}
+                                                                </a>
+                                                                <a href="javascript:void(0)" class="dropdown-item text-danger delete-combo" data-id="{{ $combo->id }}">
+                                                                    <i class="fa fa-trash me-2"></i> {{ __('Delete') }}
+                                                                </a>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @empty
