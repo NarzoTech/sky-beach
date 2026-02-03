@@ -62,9 +62,6 @@ class WebsiteService extends Model
      */
     public function getImageUrlAttribute()
     {
-        if ($this->image) {
-            return asset($this->image);
-        }
-        return asset('website/images/service_1.jpg');
+        return image_url($this->image, 'website/images/service_1.jpg');
     }
 }

@@ -53,9 +53,6 @@ class Blog extends Model
      */
     public function getImageUrlAttribute()
     {
-        if ($this->image) {
-            return asset($this->image);
-        }
-        return asset('website/images/blog_placeholder.jpg');
+        return image_url($this->image, 'website/images/blog_placeholder.jpg');
     }
 }

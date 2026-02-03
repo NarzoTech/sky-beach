@@ -74,7 +74,7 @@ class GalleryImage extends Model
      */
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset($this->image) : null;
+        return image_url($this->image);
     }
 
     /**

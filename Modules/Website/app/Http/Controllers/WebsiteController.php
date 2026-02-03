@@ -21,27 +21,33 @@ class WebsiteController extends Controller
      */
     public function index()
     {
+        // Get CMS section settings for quantities
+        $sections = site_sections('home');
+        $featuredMenuSection = $sections['featured_menu'] ?? null;
+        $chefsSection = $sections['our_chefs'] ?? null;
+        $blogsSection = $sections['latest_blogs'] ?? null;
+
         $featuredMenuItems = MenuItem::with('category')
             ->active()
             ->available()
             ->forWebsite()
             ->featured()
             ->ordered()
-            ->take(6)
+            ->take($featuredMenuSection->quantity ?? 6)
             ->get();
-            
+
         $featuredChefs = Chef::active()
             ->featured()
             ->ordered()
-            ->take(4)
+            ->take($chefsSection->quantity ?? 4)
             ->get();
-            
+
         $recentBlogs = Blog::active()
             ->published()
             ->latest()
-            ->take(3)
+            ->take($blogsSection->quantity ?? 3)
             ->get();
-        
+
         return view('website::index', compact('featuredMenuItems', 'featuredChefs', 'recentBlogs'));
     }
 
@@ -50,16 +56,21 @@ class WebsiteController extends Controller
      */
     public function about()
     {
+        // Get CMS section settings for quantities
+        $sections = site_sections('about');
+        $chefsSection = $sections['about_chefs'] ?? null;
+        $blogsSection = $sections['about_blogs'] ?? null;
+
         $chefs = Chef::active()
             ->featured()
             ->ordered()
-            ->take(4)
+            ->take($chefsSection->quantity ?? 4)
             ->get();
 
         $blogs = Blog::active()
             ->published()
             ->latest()
-            ->take(3)
+            ->take($blogsSection->quantity ?? 3)
             ->get();
 
         return view('website::about', compact('chefs', 'blogs'));

@@ -29,11 +29,7 @@
                 <div class="row">
                     <div class="col-lg-8 wow fadeInLeft">
                         <div class="blog_details_img">
-                            @if($blog->image)
-                                <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                            @else
-                                <img src="{{ asset('website/images/blog_details_img.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                            @endif
+                            <img src="{{ $blog->image_url }}" alt="{{ $blog->title }}" class="img-fluid w-100">
                         </div>
                         <div class="blog_details_header">
                             <ul class="left_info">

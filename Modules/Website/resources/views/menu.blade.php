@@ -181,7 +181,7 @@
                                 <div class="col-xl-4 col-sm-6 wow fadeInUp">
                                     <div class="single_menu">
                                         <div class="single_menu_img">
-                                            <img src="{{ $item->image ? asset($item->image) : asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
+                                            <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                             <ul>
                                                 <li><a href="#" data-item-id="{{ $item->id }}" onclick="showQuickView({{ $item->id }}); return false;"><i class="far fa-eye"></i></a></li>
                                                 <li>

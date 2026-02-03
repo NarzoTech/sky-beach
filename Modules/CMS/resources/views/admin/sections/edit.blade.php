@@ -235,6 +235,42 @@
                 </div>
                 @endif
 
+                <!-- Gallery Images -->
+                @if(in_array('gallery_images', $config['fields']))
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ __('Gallery Images') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            $galleryCount = $config['gallery_count'] ?? 4;
+                            $galleryLabels = $config['gallery_labels'] ?? [];
+                            $existingImages = $sectionData->images ?? [];
+                        @endphp
+                        <div class="row">
+                            @for($i = 0; $i < $galleryCount; $i++)
+                            <div class="col-6 mb-3">
+                                <label class="form-label">
+                                    {{ $galleryLabels[$i] ?? __('Image') . ' ' . ($i + 1) }}
+                                </label>
+                                @if(!empty($existingImages[$i]))
+                                    <div class="mb-2 position-relative">
+                                        <img src="{{ asset($existingImages[$i]) }}" alt="Gallery Image {{ $i + 1 }}" class="img-fluid rounded" style="max-height: 120px; width: 100%; object-fit: cover;">
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control form-control-sm @error('gallery_images.' . $i) is-invalid @enderror"
+                                       name="gallery_images[{{ $i }}]" accept="image/*">
+                                @error('gallery_images.' . $i)
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            @endfor
+                        </div>
+                        <small class="text-muted">{{ __('Max 2MB per image. Leave empty to keep existing.') }}</small>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Background Image -->
                 @if(in_array('background_image', $config['fields']))
                 <div class="card mb-4">

@@ -1,11 +1,7 @@
 {{-- Menu Item Component --}}
 <div class="menu_item wow fadeInUp" data-wow-duration="1s">
     <div class="menu_img">
-        @if($item->image)
-            <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
-        @else
-            <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
-        @endif
+        <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="img-fluid w-100">
         
         @if($item->discount_percentage > 0)
             <span class="discount_badge">{{ $item->discount_percentage }}% OFF</span>

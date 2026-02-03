@@ -611,6 +611,49 @@ if (!function_exists('upload_image')) {
 }
 
 /**
+ * Get the proper URL for an image path
+ * Handles various storage patterns consistently:
+ * - uploads/... → public directory
+ * - website/... → public directory (static assets)
+ * - assets/... → public directory
+ * - storage/... → already prefixed
+ * - http... → external URL
+ * - everything else → storage directory
+ *
+ * @param string|null $path The image path from database
+ * @param string|null $default The default image path if $path is empty
+ * @return string|null
+ */
+if (!function_exists('image_url')) {
+    function image_url(?string $path, ?string $default = null): ?string
+    {
+        if (empty($path)) {
+            return $default ? asset($default) : null;
+        }
+
+        // Paths that are in public directory (no storage prefix needed)
+        $publicPrefixes = ['uploads/', 'website/', 'assets/', 'images/', 'storage/', 'http://', 'https://'];
+
+        foreach ($publicPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                return asset($path);
+            }
+        }
+
+        // Everything else is assumed to be in storage
+        return asset('storage/' . $path);
+    }
+}
+
+// Alias for backwards compatibility
+if (!function_exists('storage_url')) {
+    function storage_url(?string $path, ?string $default = null): ?string
+    {
+        return image_url($path, $default);
+    }
+}
+
+/**
  * Delete image from storage/app/public directory
  *
  * @param string|null $path The image path to delete

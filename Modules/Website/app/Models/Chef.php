@@ -56,9 +56,6 @@ class Chef extends Model
      */
     public function getImageUrlAttribute()
     {
-        if ($this->image) {
-            return asset($this->image);
-        }
-        return asset('website/images/chef_placeholder.jpg');
+        return image_url($this->image, 'website/images/chef_placeholder.jpg');
     }
 }

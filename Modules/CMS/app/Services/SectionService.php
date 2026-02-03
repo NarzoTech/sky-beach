@@ -135,12 +135,15 @@ class SectionService
         ],
         'about_story' => [
             'label' => 'About Story',
-            'fields' => ['title', 'description', 'button_text', 'button_link'],
+            'fields' => ['title', 'description', 'button_text', 'button_link', 'gallery_images'],
+            'gallery_count' => 4,
+            'gallery_labels' => ['Large Image (Left)', 'Small Image (Top Right)', 'Small Image (Bottom Left)', 'Large Image (Right)'],
             'validation' => [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:3000',
                 'button_text' => 'nullable|string|max:50',
                 'button_link' => 'nullable|string|max:255',
+                'gallery_images.*' => 'nullable|image|max:2048',
             ],
         ],
         'about_gallery' => [
@@ -153,10 +156,12 @@ class SectionService
         ],
         'about_showcase' => [
             'label' => 'About Showcase',
-            'fields' => ['title', 'quantity'],
+            'fields' => ['title', 'gallery_images'],
+            'gallery_count' => 4,
+            'gallery_labels' => ['Large Image (Left)', 'Small Image (Top)', 'Small Image (Bottom)', 'Large Image (Right)'],
             'validation' => [
                 'title' => 'nullable|string|max:255',
-                'quantity' => 'nullable|integer|min:1|max:12',
+                'gallery_images.*' => 'nullable|image|max:2048',
             ],
         ],
         'about_reservation' => [
@@ -407,6 +412,21 @@ class SectionService
 
             if ($request->hasFile('background_image')) {
                 $section->background_image = $this->uploadImage($request->file('background_image'), $section->background_image);
+            }
+
+            // Handle gallery images (multiple images stored as array)
+            if ($request->hasFile('gallery_images')) {
+                $existingImages = $section->images ?? [];
+                $galleryImages = $request->file('gallery_images');
+
+                foreach ($galleryImages as $index => $file) {
+                    if ($file instanceof UploadedFile) {
+                        $oldPath = $existingImages[$index] ?? null;
+                        $existingImages[$index] = $this->uploadImage($file, $oldPath);
+                    }
+                }
+
+                $section->images = $existingImages;
             }
 
             // Update non-translatable fields

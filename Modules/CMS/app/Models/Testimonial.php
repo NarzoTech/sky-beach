@@ -54,7 +54,7 @@ class Testimonial extends Model
      */
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset($this->image) : asset('website/images/default_avatar.png');
+        return image_url($this->image, 'website/images/default_avatar.png');
     }
 
     /**

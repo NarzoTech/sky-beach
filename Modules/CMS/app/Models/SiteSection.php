@@ -163,7 +163,7 @@ class SiteSection extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image ? asset($this->image) : null;
+        return image_url($this->image);
     }
 
     /**
@@ -171,7 +171,7 @@ class SiteSection extends Model
      */
     public function getBackgroundImageUrlAttribute(): ?string
     {
-        return $this->background_image ? asset($this->background_image) : null;
+        return image_url($this->background_image);
     }
 
     /**

@@ -32,7 +32,6 @@ class IngredientBrand extends Model
     public function getImageUrlAttribute()
     {
         $img = Media::find($this->image)?->path;
-
-        return asset($img);
+        return image_url($img);
     }
 }

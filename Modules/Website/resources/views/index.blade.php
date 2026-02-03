@@ -123,16 +123,28 @@
 
     @if(!$featuredMenu || $featuredMenu->section_status)
     @php
-        // Get categories with their menu items for the filter
+        // Get categories with their featured menu items
         $menuCategoriesWithItems = \Modules\Menu\app\Models\MenuCategory::active()
             ->ordered()
-            ->with(['activeMenuItems' => function($query) {
+            ->whereHas('menuItems', function($query) {
                 $query->where('status', 1)
                     ->where('is_available', 1)
-                    ->orderBy('display_order')
-                    ->take(8);
+                    ->where('is_featured', 1)
+                    ->where(function($q) {
+                        $q->where('available_in_website', 1)
+                          ->orWhereNull('available_in_website');
+                    });
+            })
+            ->with(['menuItems' => function($query) {
+                $query->where('status', 1)
+                    ->where('is_available', 1)
+                    ->where('is_featured', 1)
+                    ->where(function($q) {
+                        $q->where('available_in_website', 1)
+                          ->orWhereNull('available_in_website');
+                    })
+                    ->orderBy('display_order');
             }])
-            ->take(6)
             ->get();
     @endphp
     <!--==========MENU ITEM START===========-->
@@ -166,15 +178,11 @@
                             @foreach($menuCategoriesWithItems as $index => $cat)
                             <div class="colorful-tab-content {{ $index === 0 ? 'active' : '' }}" id="category_{{ $cat->id }}">
                                 <div class="row">
-                                    @forelse($cat->activeMenuItems as $item)
+                                    @forelse($cat->menuItems as $item)
                                     <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
                                         <div class="single_menu">
                                             <div class="single_menu_img">
-                                                @if($item->image)
-                                                    <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
-                                                @else
-                                                    <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
-                                                @endif
+                                                <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                                 <ul>
                                                     <li><a href="{{ route('website.menu-details', $item->slug) }}"><i class="far fa-eye"></i></a></li>
                                                     <li><a href="#" class="favorite-btn" data-item-id="{{ $item->id }}"><i class="far fa-heart"></i></a></li>
@@ -223,11 +231,7 @@
                     <div class="col-xl-3 col-sm-6 col-lg-4 wow fadeInUp">
                         <div class="single_menu">
                             <div class="single_menu_img">
-                                @if($item->image)
-                                    <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/menu_img_1.jpg') }}" alt="{{ $item->name }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="img-fluid w-100">
                                 <ul>
                                     <li><a href="{{ route('website.menu-details', $item->slug) }}"><i class="far fa-eye"></i></a></li>
                                     <li><a href="#" class="favorite-btn" data-item-id="{{ $item->id }}"><i class="far fa-heart"></i></a></li>
@@ -421,7 +425,7 @@
                                         <p class="description">"{{ $testimonial->content }}"</p>
                                         <div class="single_testimonial_footer">
                                             <div class="img">
-                                                <img src="{{ $testimonial->image ? asset($testimonial->image) : asset('website/images/client_img_1.png') }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
+                                                <img src="{{ $testimonial->image_url }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
                                             </div>
                                             <h3>{{ $testimonial->name }} <span>{{ $testimonial->designation }}</span></h3>
                                         </div>
@@ -539,11 +543,7 @@
                     <div class="col-lg-4 col-sm-6 wow fadeInUp">
                         <div class="single_blog">
                             <div class="single_blog_img">
-                                @if($blog->image)
-                                    <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $blog->image_url }}" alt="{{ $blog->title }}" class="img-fluid w-100">
                                 @if($blog->tags)
                                     <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
                                 @else

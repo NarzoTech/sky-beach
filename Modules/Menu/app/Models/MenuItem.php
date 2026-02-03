@@ -87,18 +87,13 @@ class MenuItem extends Model
 
     public function getImageUrlAttribute()
     {
-        if ($this->image) {
-            return asset($this->image);
-        }
-        return asset('assets/images/placeholder.png');
+        return image_url($this->image, 'website/images/menu_img_1.jpg');
     }
 
     public function getGalleryUrlsAttribute()
     {
         if ($this->gallery && is_array($this->gallery)) {
-            return array_map(function ($img) {
-                return asset($img);
-            }, $this->gallery);
+            return array_map(fn($img) => image_url($img), $this->gallery);
         }
         return [];
     }

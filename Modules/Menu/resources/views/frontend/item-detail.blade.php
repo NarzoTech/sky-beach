@@ -25,14 +25,8 @@
             <div class="lg:flex">
                 <!-- Image Section -->
                 <div class="lg:w-1/2">
-                    @if ($item->image)
-                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}"
-                            class="w-full h-96 lg:h-full object-cover">
-                    @else
-                        <div class="w-full h-96 lg:h-full bg-gray-200 flex items-center justify-center">
-                            <i class="fas fa-utensils text-gray-400 text-6xl"></i>
-                        </div>
-                    @endif
+                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}"
+                        class="w-full h-96 lg:h-full object-cover">
                 </div>
 
                 <!-- Details Section -->

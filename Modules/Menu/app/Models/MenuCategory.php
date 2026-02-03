@@ -49,10 +49,7 @@ class MenuCategory extends Model
 
     public function getImageUrlAttribute()
     {
-        if ($this->image) {
-            return asset($this->image);
-        }
-        return asset('assets/images/placeholder.png');
+        return image_url($this->image, 'assets/images/placeholder.png');
     }
 
     public function menuItems(): HasMany

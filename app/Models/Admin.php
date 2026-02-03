@@ -51,24 +51,24 @@ class Admin extends Authenticatable
     ];
 
     public function getImageUrlAttribute()
-    {;
+    {
         $setting = cache('setting');
-        $value = $this->attributes['image'];
+        $value = $this->attributes['image'] ?? null;
 
-        // check if file is exists
-        if ($value && !file_exists(public_path($value))) {
-            if (str_contains($value, 'https:/')) {
-                $value = $value;
-            } else {
-                $value = $this->media?->path;
-                if ($value) {
-                    $value = asset($value);
-                }
+        // If has image value
+        if ($value) {
+            // External URL - use as-is
+            if (str_starts_with($value, 'http')) {
+                return $value;
             }
-        } else if ($value) {
-            $value = asset($value);
+            // Check if file exists, if not try media
+            if (!file_exists(public_path($value))) {
+                $value = $this->media?->path;
+            }
         }
-        return $value ? $value : asset($setting->default_avatar);
+
+        // Use image_url helper or fallback to default avatar
+        return image_url($value, $setting->default_avatar ?? 'assets/images/placeholder.png');
     }
     public static function getPermissionGroup()
     {

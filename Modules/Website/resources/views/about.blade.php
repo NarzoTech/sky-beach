@@ -65,30 +65,33 @@
                             @endif
                         </div>
                     </div>
+                    @php
+                        $storyImages = $story->images ?? [];
+                    @endphp
                     <div class="col-xl-6">
                         <div class="about_us_story_img">
                             <div class="row">
                                 <div class="col-lg-8 col-sm-6 wow fadeInLeft">
                                     <div class="about_us_story_img_large">
-                                        <img src="{{ asset('website/images/about_story_img_1.jpg') }}" alt="story"
+                                        <img src="{{ !empty($storyImages[0]) ? asset($storyImages[0]) : asset('website/images/about_story_img_1.jpg') }}" alt="{{ __('story') }}"
                                             class="img-fluid w-100">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-sm-6 wow fadeInRight">
                                     <div class="about_us_story_img_small">
-                                        <img src="{{ asset('website/images/about_story_img_3.jpg') }}" alt="story"
+                                        <img src="{{ !empty($storyImages[1]) ? asset($storyImages[1]) : asset('website/images/about_story_img_3.jpg') }}" alt="{{ __('story') }}"
                                             class="img-fluid w-100">
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-sm-6 wow fadeInLeft">
                                     <div class="about_us_story_img_small">
-                                        <img src="{{ asset('website/images/about_story_img_4.jpg') }}" alt="story"
+                                        <img src="{{ !empty($storyImages[2]) ? asset($storyImages[2]) : asset('website/images/about_story_img_4.jpg') }}" alt="{{ __('story') }}"
                                             class="img-fluid w-100">
                                     </div>
                                 </div>
                                 <div class="col-lg-8 col-sm-6 wow fadeInRight">
                                     <div class="about_us_story_img_large">
-                                        <img src="{{ asset('website/images/about_story_img_2.jpg') }}" alt="story"
+                                        <img src="{{ !empty($storyImages[3]) ? asset($storyImages[3]) : asset('website/images/about_story_img_2.jpg') }}" alt="{{ __('story') }}"
                                             class="img-fluid w-100">
                                     </div>
                                 </div>
@@ -101,24 +104,27 @@
         @endif
 
         @if(!$showcase || $showcase->section_status)
+        @php
+            $showcaseImages = $showcase->images ?? [];
+        @endphp
         <section class="about_showsase pt_95 xs_pt_65">
             <div class="row">
                 <div class="col-lg-4 col-sm-6 wow fadeInLeft">
                     <div class="about_showsase_img_large">
-                        <img src="{{ asset('website/images/showcase_img_1.jpg') }}" alt="showcase" class="img-fluid w-100">
+                        <img src="{{ !empty($showcaseImages[0]) ? asset($showcaseImages[0]) : asset('website/images/showcase_img_1.jpg') }}" alt="{{ __('showcase') }}" class="img-fluid w-100">
                     </div>
                 </div>
                 <div class="col-lg-4 col-sm-6 wow fadeInUp">
                     <div class="about_showsase_img_small">
-                        <img src="{{ asset('website/images/showcase_img_2.jpg') }}" alt="showcase" class="img-fluid w-100">
+                        <img src="{{ !empty($showcaseImages[1]) ? asset($showcaseImages[1]) : asset('website/images/showcase_img_2.jpg') }}" alt="{{ __('showcase') }}" class="img-fluid w-100">
                     </div>
                     <div class="about_showsase_img_small">
-                        <img src="{{ asset('website/images/showcase_img_3.jpg') }}" alt="showcase" class="img-fluid w-100">
+                        <img src="{{ !empty($showcaseImages[2]) ? asset($showcaseImages[2]) : asset('website/images/showcase_img_3.jpg') }}" alt="{{ __('showcase') }}" class="img-fluid w-100">
                     </div>
                 </div>
                 <div class="col-lg-4 col-sm-6 wow fadeInRight">
                     <div class="about_showsase_img_large">
-                        <img src="{{ asset('website/images/showcase_img_4.jpg') }}" alt="showcase" class="img-fluid w-100">
+                        <img src="{{ !empty($showcaseImages[3]) ? asset($showcaseImages[3]) : asset('website/images/showcase_img_4.jpg') }}" alt="{{ __('showcase') }}" class="img-fluid w-100">
                     </div>
                 </div>
             </div>
@@ -244,11 +250,7 @@
                                             <p class="description">"{{ $testimonial->content ?? $testimonial->testimonial ?? '' }}"</p>
                                             <div class="single_testimonial_footer">
                                                 <div class="img">
-                                                    @if($testimonial->image)
-                                                        <img src="{{ asset($testimonial->image) }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
-                                                    @else
-                                                        <img src="{{ asset('website/images/client_img_1.png') }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
-                                                    @endif
+                                                    <img src="{{ $testimonial->image_url }}" alt="{{ $testimonial->name }}" class="img-fluid w-100">
                                                 </div>
                                                 <h3>{{ $testimonial->name }} <span>{{ $testimonial->designation ?? $testimonial->position ?? '' }}</span></h3>
                                             </div>
@@ -400,11 +402,7 @@
                     <div class="col-lg-4 col-sm-6 wow fadeInUp">
                         <div class="single_blog">
                             <div class="single_blog_img">
-                                @if($blog->image)
-                                    <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $blog->image_url }}" alt="{{ $blog->title }}" class="img-fluid w-100">
                                 @if($blog->tags)
                                     <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
                                 @else

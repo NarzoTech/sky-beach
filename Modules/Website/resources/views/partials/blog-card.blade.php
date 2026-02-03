@@ -1,11 +1,7 @@
 {{-- Blog Card Component --}}
 <div class="blog_item wow fadeInUp" data-wow-duration="1s">
     <div class="blog_img">
-        @if($blog->image)
-            <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-        @else
-            <img src="{{ asset('website/images/footer_post_img_1.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-        @endif
+        <img src="{{ $blog->image_url }}" alt="{{ $blog->title }}" class="img-fluid w-100">
         
         @if($blog->is_featured)
             <span class="featured_badge">⭐ Featured</span>

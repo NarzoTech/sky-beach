@@ -703,7 +703,7 @@ class Ingredient extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image;
+        return image_url($this->image);
     }
 
 

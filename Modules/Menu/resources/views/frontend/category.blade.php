@@ -86,14 +86,8 @@
                         @foreach ($items as $item)
                             <a href="{{ route('menu.item', $item->slug) }}" class="block">
                                 <div class="bg-white rounded-xl shadow-md overflow-hidden menu-card h-full">
-                                    @if ($item->image)
-                                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}"
-                                            class="w-full h-48 object-cover">
-                                    @else
-                                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                            <i class="fas fa-utensils text-gray-400 text-4xl"></i>
-                                        </div>
-                                    @endif
+                                    <img src="{{ $item->image_url }}" alt="{{ $item->name }}"
+                                        class="w-full h-48 object-cover">
                                     <div class="p-4">
                                         <div class="flex items-start justify-between mb-2">
                                             <h3 class="font-bold text-gray-800">{{ $item->name }}</h3>

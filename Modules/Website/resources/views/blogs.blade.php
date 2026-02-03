@@ -30,11 +30,7 @@
                     <div class="col-lg-4 col-sm-6 wow fadeInUp">
                         <div class="single_blog">
                             <div class="single_blog_img">
-                                @if($blog->image)
-                                    <img src="{{ asset($blog->image) }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @else
-                                    <img src="{{ asset('website/images/blog_img_1.jpg') }}" alt="{{ $blog->title }}" class="img-fluid w-100">
-                                @endif
+                                <img src="{{ $blog->image_url }}" alt="{{ $blog->title }}" class="img-fluid w-100">
                                 @if($blog->tags)
                                     <a class="category" href="#">{{ trim(explode(',', $blog->tags)[0]) }}</a>
                                 @else
