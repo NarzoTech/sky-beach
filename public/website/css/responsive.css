@@ -899,9 +899,13 @@
     /*===============================
         HOME 3 END
     ===============================*/
+
+    .single_menu_text {
+        padding: 20px;
+    }
 }
 
-@media (min-width: 768px) and (max-width: 991.99px) {
+@media (min-width: 767px) and (max-width: 991.99px) {
 
     /*================================
         HOME PAGE START
@@ -933,7 +937,7 @@
         line-height: 55px;
         background: var(--colorWhite);
         border-top: 1px solid var(--colorYellow);
-        margin-top: 11px !important;
+        margin-top: 8px !important;
         padding-top: 10px;
         padding-left: 20px;
     }
@@ -1601,7 +1605,7 @@
     ===============================*/
 }
 
-@media (min-width: 576px) and (max-width: 767.99px) {
+@media (min-width: 576px) and (max-width: 766px) {
 
     /*================================
         HOME PAGE START
@@ -1623,7 +1627,7 @@
         line-height: 55px;
         background: var(--colorWhite);
         border-top: 1px solid var(--colorYellow);
-        margin-top: 11px !important;
+        margin-top: 8px !important;
         padding-top: 10px;
         padding-left: 12px;
     }
@@ -2559,7 +2563,7 @@
         line-height: 55px;
         background: var(--colorWhite);
         border-top: 1px solid var(--colorYellow);
-        margin-top: 11px !important;
+        margin-top: 7px !important;
         padding-top: 10px;
     }
 
@@ -2769,10 +2773,6 @@
 
     .add_banner_full_text .img {
         display: none;
-    }
-
-    .single_menu_text {
-        padding: 25px;
     }
 
     /*================================
