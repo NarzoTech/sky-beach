@@ -1,0 +1,71 @@
+/**
+ * Admin Responsive CSS
+ * All responsive/breakpoint-related styles for admin panel
+ */
+
+/* ============================================
+   BREAKPOINTS REFERENCE:
+   - xs: < 576px (mobile)
+   - sm: 576px - 767px (small tablets)
+   - md: 768px - 991px (tablets)
+   - lg: 992px - 1199px (small desktops)
+   - xl: 1200px - 1399px (desktops)
+   - xxl: >= 1400px (large desktops)
+   ============================================ */
+
+/* ============================================
+   WAITER CREATE ORDER PAGE
+   ============================================ */
+
+/* Table info banner text color fix */
+.table-info-banner,
+.table-info-banner h5,
+.table-info-banner span,
+.table-info-banner i {
+    color: #fff !important;
+}
+
+/* Combo cards - 3 columns for tablet/small desktop (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .combo-item-wrapper {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+/* Menu item cards - increase height */
+.menu-item-card,
+.combo-card {
+    min-height: 200px;
+}
+
+.menu-item-card .menu-item-img,
+.combo-card .menu-item-img {
+    height: 120px;
+}
+
+/* Tablet adjustments (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .menu-item-card,
+    .combo-card {
+        min-height: 250px;
+    }
+
+    .menu-item-card .menu-item-img,
+    .combo-card .menu-item-img {
+        height: 150px;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    .menu-item-card,
+    .combo-card {
+        min-height: 180px;
+    }
+
+    .menu-item-card .menu-item-img,
+    .combo-card .menu-item-img {
+        height: 100px;
+    }
+}

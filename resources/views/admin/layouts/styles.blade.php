@@ -34,6 +34,7 @@
 <link rel="stylesheet" href="{{ asset('backend/css/nice-select.css') }}" />
 <link rel="stylesheet" href="{{ asset('backend/css/dev.css') }}" />
 <link rel="stylesheet" href="{{ asset('backend/css/payment-modals.css') }}" />
+<link rel="stylesheet" href="{{ asset('backend/css/responsive.css') }}" />
 
 <!-- Global Calculator Styles -->
 <style>
