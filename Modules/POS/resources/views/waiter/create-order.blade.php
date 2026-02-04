@@ -496,8 +496,11 @@
                             <span class="text-danger">{{ __('Discount') }}:</span>
                             <span class="text-danger" id="cart-discount">- {{ currency_icon() }}0.00</span>
                         </div>
+                        @php
+                            $taxRate = optional($posSettings)->pos_tax_rate ?: 15;
+                        @endphp
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%):</span>
+                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $taxRate }}</span>%):</span>
                             <span id="cart-tax">{{ currency_icon() }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
@@ -510,7 +513,7 @@
                         <button class="btn btn-success w-100" onclick="placeOrder()" id="place-order-btn">
                             <i class="bx bx-send me-2"></i>{{ __('Send to Kitchen') }}
                         </button>
-                        <input type="hidden" id="posTaxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
+                        <input type="hidden" id="posTaxRate" value="{{ $taxRate }}">
                     </div>
                 </div>
             </div>
@@ -1336,24 +1339,27 @@
                     // Print kitchen ticket and cash slip
                     printOrderReceipts(response.order_id);
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: '{{ __("Order Sent!") }}',
-                        html: '{{ __("Order") }} #' + response.order_id + '<br>{{ __("has been sent to the kitchen.") }}',
-                        confirmButtonText: '{{ __("Back to Dashboard") }}'
-                    }).then(() => {
-                        window.location.href = response.redirect || "{{ route('admin.waiter.dashboard') }}";
+                    // Show toastr success notification
+                    toastr.success('{{ __("Order") }} #' + response.order_id + ' {{ __("has been sent to the kitchen.") }}', '{{ __("Order Sent!") }}', {
+                        timeOut: 3000,
+                        closeButton: true,
+                        progressBar: true
                     });
+
+                    // Redirect after a short delay
+                    setTimeout(function() {
+                        window.location.href = response.redirect || "{{ route('admin.waiter.dashboard') }}";
+                    }, 1500);
                 } else {
                     throw new Error(response.message);
                 }
             },
             error: function(xhr) {
                 const message = xhr.responseJSON?.message || '{{ __("Failed to place order. Please try again.") }}';
-                Swal.fire({
-                    icon: 'error',
-                    title: '{{ __("Error") }}',
-                    text: message
+                toastr.error(message, '{{ __("Error") }}', {
+                    timeOut: 5000,
+                    closeButton: true,
+                    progressBar: true
                 });
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bx bx-send me-2"></i>{{ __("Send to Kitchen") }}';
@@ -1362,17 +1368,11 @@
     }
 
     function toastSuccess(message) {
-        if (typeof Swal !== 'undefined') {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 1500,
-                timerProgressBar: true
-            });
-            Toast.fire({
-                icon: 'success',
-                title: message
+        if (typeof toastr !== 'undefined') {
+            toastr.success(message, '', {
+                timeOut: 1500,
+                positionClass: 'toast-top-right',
+                progressBar: true
             });
         }
     }

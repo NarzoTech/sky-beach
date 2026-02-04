@@ -418,8 +418,11 @@
                             <span class="text-muted">{{ __('Subtotal') }}:</span>
                             <span id="cart-subtotal">{{ currency_icon() }}0.00</span>
                         </div>
+                        @php
+                            $taxRate = optional($posSettings)->pos_tax_rate ?: 15;
+                        @endphp
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%):</span>
+                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $taxRate }}</span>%):</span>
                             <span id="cart-tax">{{ currency_icon() }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
@@ -429,7 +432,7 @@
                         <button class="btn btn-success w-100" onclick="addItemsToOrder()" id="add-items-btn">
                             <i class="fas fa-paper-plane me-2"></i>{{ __('Send to Kitchen') }}
                         </button>
-                        <input type="hidden" id="posTaxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
+                        <input type="hidden" id="posTaxRate" value="{{ $taxRate }}">
                     </div>
                 </div>
             </div>
@@ -1091,10 +1094,9 @@
 
     function addItemsToOrder() {
         if (cart.length === 0 && comboCart.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: '{{ __("No Items") }}',
-                text: '{{ __("Please add items to the cart first.") }}'
+            toastr.warning('{{ __("Please add items to the cart first.") }}', '{{ __("No Items") }}', {
+                timeOut: 3000,
+                closeButton: true
             });
             return;
         }
@@ -1127,24 +1129,26 @@
             },
             success: function(response) {
                 if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '{{ __("Items Added!") }}',
-                        text: response.message,
-                        confirmButtonText: '{{ __("View Order") }}'
-                    }).then(() => {
-                        window.location.href = "{{ route('admin.waiter.order-details', $order->id) }}";
+                    toastr.success(response.message, '{{ __("Items Added!") }}', {
+                        timeOut: 3000,
+                        closeButton: true,
+                        progressBar: true
                     });
+
+                    // Redirect after a short delay
+                    setTimeout(function() {
+                        window.location.href = "{{ route('admin.waiter.order-details', $order->id) }}";
+                    }, 1500);
                 } else {
                     throw new Error(response.message);
                 }
             },
             error: function(xhr) {
                 const message = xhr.responseJSON?.message || '{{ __("Failed to add items. Please try again.") }}';
-                Swal.fire({
-                    icon: 'error',
-                    title: '{{ __("Error") }}',
-                    text: message
+                toastr.error(message, '{{ __("Error") }}', {
+                    timeOut: 5000,
+                    closeButton: true,
+                    progressBar: true
                 });
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>{{ __("Send to Kitchen") }}';
@@ -1153,17 +1157,11 @@
     }
 
     function toastSuccess(message) {
-        if (typeof Swal !== 'undefined') {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 1500,
-                timerProgressBar: true
-            });
-            Toast.fire({
-                icon: 'success',
-                title: message
+        if (typeof toastr !== 'undefined') {
+            toastr.success(message, '', {
+                timeOut: 1500,
+                positionClass: 'toast-top-right',
+                progressBar: true
             });
         }
     }

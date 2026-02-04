@@ -15,7 +15,7 @@
                     <a href="{{ route('admin.waiter.my-orders') }}" class="btn btn-outline-secondary">
                         <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
                     </a>
-                    @if($order->status == 0)
+                    @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
                     <a href="{{ route('admin.waiter.add-to-order', $order->id) }}" class="btn btn-success">
                         <i class="bx bx-plus me-1"></i>{{ __('Add Items') }}
                     </a>
@@ -32,6 +32,7 @@
                         <h5 class="mb-0">{{ __('Order Information') }}</h5>
                     </div>
                     <div class="card-body">
+                        <div class="table-responsive" style="overflow-x: auto;">
                         <table class="table table-borderless mb-0">
                             <tr>
                                 <td><strong>{{ __('Order #') }}</strong></td>
@@ -42,7 +43,7 @@
                                 <td>
                                     @if($order->table)
                                     <span class="badge bg-label-info">{{ $order->table->name }}</span>
-                                    @if($order->status == 0)
+                                    @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
                                     <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="showChangeTableModal()">
                                         <i class="bx bx-transfer"></i>
                                     </button>
@@ -59,12 +60,16 @@
                             <tr>
                                 <td><strong>{{ __('Status') }}</strong></td>
                                 <td>
-                                    @if($order->status == 0)
+                                    @if(in_array($order->status, ['pending', 'confirmed', 'preparing']))
                                     <span class="badge bg-warning">{{ __('Processing') }}</span>
-                                    @elseif($order->status == 1)
+                                    @elseif($order->status == 'ready')
+                                    <span class="badge bg-info">{{ __('Ready') }}</span>
+                                    @elseif(in_array($order->status, ['completed', 'delivered']))
                                     <span class="badge bg-success">{{ __('Completed') }}</span>
-                                    @else
+                                    @elseif($order->status == 'cancelled')
                                     <span class="badge bg-danger">{{ __('Cancelled') }}</span>
+                                    @else
+                                    <span class="badge bg-secondary">{{ ucfirst($order->status) }}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -89,6 +94,7 @@
                             </tr>
                             @endif
                         </table>
+                        </div>
 
                         @if($order->special_instructions)
                         <hr>
@@ -100,7 +106,7 @@
                     </div>
                 </div>
 
-                @if($order->status == 0)
+                @if(in_array($order->status, ['pending', 'confirmed', 'preparing']))
                 <div class="card mt-3">
                     <div class="card-body">
                         <button class="btn btn-danger w-100" onclick="cancelOrder()">

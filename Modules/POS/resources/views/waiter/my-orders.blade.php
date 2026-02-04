@@ -53,12 +53,16 @@
                                 <td>{{ $order->details->count() }} items</td>
                                 <td><strong>{{ number_format($order->total, 2) }}</strong></td>
                                 <td>
-                                    @if($order->status == 0)
+                                    @if($order->status == 'pending' || $order->status == 'confirmed' || $order->status == 'preparing')
                                     <span class="badge bg-warning">{{ __('Processing') }}</span>
-                                    @elseif($order->status == 1)
+                                    @elseif($order->status == 'ready')
+                                    <span class="badge bg-info">{{ __('Ready') }}</span>
+                                    @elseif($order->status == 'completed' || $order->status == 'delivered')
                                     <span class="badge bg-success">{{ __('Completed') }}</span>
-                                    @else
+                                    @elseif($order->status == 'cancelled')
                                     <span class="badge bg-danger">{{ __('Cancelled') }}</span>
+                                    @else
+                                    <span class="badge bg-secondary">{{ ucfirst($order->status) }}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -72,7 +76,7 @@
                                            class="btn btn-outline-primary" title="{{ __('View') }}">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        @if($order->status == 0)
+                                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing']))
                                         <a href="{{ route('admin.waiter.add-to-order', $order->id) }}"
                                            class="btn btn-outline-success" title="{{ __('Add Items') }}">
                                             <i class="fas fa-plus"></i>

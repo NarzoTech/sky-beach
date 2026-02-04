@@ -37,9 +37,9 @@ class WaiterDashboardController extends Controller
         // Get tables
         $tables = RestaurantTable::orderBy('sort_order')->get();
 
-        // Get waiter's active orders
+        // Get waiter's active orders (pending, confirmed, preparing, ready statuses)
         $activeOrders = Sale::where('waiter_id', $employee?->id)
-            ->where('status', 0) // Processing
+            ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
             ->with(['table', 'details.menuItem', 'details.service'])
             ->latest()
             ->get();
@@ -96,8 +96,9 @@ class WaiterDashboardController extends Controller
             ->get();
 
         $posSettings = PosSettings::first();
+        $setting = cache('setting');
 
-        return view('pos::waiter.create-order', compact('table', 'categories', 'combos', 'posSettings'));
+        return view('pos::waiter.create-order', compact('table', 'categories', 'combos', 'posSettings', 'setting'));
     }
 
     /**
@@ -229,7 +230,7 @@ class WaiterDashboardController extends Controller
             'special_instructions' => $validated['special_instructions'] ?? null,
             'subtotal' => $subtotal,
             'total' => $subtotal, // Will be adjusted with tax/discount in service
-            'status' => 0, // Processing
+            'status' => 'pending', // Processing
             'payment_status' => 0, // Unpaid
         ];
 
@@ -305,7 +306,7 @@ class WaiterDashboardController extends Controller
 
         $order = Sale::where('id', $id)
             ->where('waiter_id', $employee?->id)
-            ->where('status', 0)
+            ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
             ->with(['table', 'details.menuItem', 'details.service'])
             ->firstOrFail();
 
@@ -324,7 +325,10 @@ class WaiterDashboardController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pos::waiter.add-to-order', compact('order', 'categories', 'combos'));
+        $posSettings = PosSettings::first();
+        $setting = cache('setting');
+
+        return view('pos::waiter.add-to-order', compact('order', 'categories', 'combos', 'posSettings', 'setting'));
     }
 
     /**
@@ -339,7 +343,7 @@ class WaiterDashboardController extends Controller
 
         $order = Sale::where('id', $id)
             ->where('waiter_id', $employee?->id)
-            ->where('status', 0) // Only processing orders
+            ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -474,7 +478,7 @@ class WaiterDashboardController extends Controller
 
         $order = Sale::where('id', $id)
             ->where('waiter_id', $employee?->id)
-            ->where('status', 0) // Only processing orders
+            ->whereIn('status', ['pending', 'confirmed', 'preparing'])
             ->firstOrFail();
 
         // Release table
@@ -482,7 +486,7 @@ class WaiterDashboardController extends Controller
             $order->table->release($order->guest_count);
         }
 
-        $order->update(['status' => 2]); // Cancelled
+        $order->update(['status' => 'cancelled']);
 
         // Print void ticket
         $this->printService->printVoid($order);
