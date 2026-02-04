@@ -78,7 +78,7 @@
             @adminCan('menu.item.create')
                 <div class="btn-actions-pane-right actions-icon-btn">
                     <a href="{{ route('admin.menu-item.create') }}" class="btn btn-primary">
-                        <i class="fa fa-plus"></i> {{ __('Add Menu Item') }}
+                        <i class="bx bx-plus"></i> {{ __('Add Menu Item') }}
                     </a>
                 </div>
             @endadminCan
@@ -175,37 +175,45 @@
                                         <span class="badge bg-danger">{{ __('Inactive') }}</span>
                                     @endif
                                 </td>
-                                @if (checkAdminHasPermission('menu.item.view') || checkAdminHasPermission('menu.item.edit') || checkAdminHasPermission('menu.item.delete'))
+                                @if (checkAdminHasPermission('menu.item.edit') || checkAdminHasPermission('menu.item.delete'))
                                 <td>
-                                        <div class="btn-group" role="group">
-                                            <button id="btnGroupDrop{{ $item->id }}" type="button"
-                                                class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false">
-                                                Action
-                                            </button>
-                                            <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $item->id }}">
-                                                @adminCan('menu.item.view')
-                                                    <a href="{{ route('admin.menu-item.show', $item->id) }}"
-                                                        class="dropdown-item">{{ __('View') }}</a>
-                                                @endadminCan
-                                                @adminCan('menu.item.edit')
-                                                    <a href="{{ route('admin.menu-item.edit', $item->id) }}"
-                                                        class="dropdown-item">{{ __('Edit') }}</a>
-                                                    <a href="{{ route('admin.menu-item.variants', $item->id) }}"
-                                                        class="dropdown-item">{{ __('Manage Variants') }}</a>
-                                                    <a href="{{ route('admin.menu-item.addons', $item->id) }}"
-                                                        class="dropdown-item">{{ __('Manage Add-ons') }}</a>
-                                                    <a href="{{ route('admin.menu-item.recipe', $item->id) }}"
-                                                        class="dropdown-item">{{ __('Manage Recipe') }}</a>
-                                                @endadminCan
-                                                @adminCan('menu.item.delete')
-                                                    <a href="javascript:void(0)"
-                                                        class="trigger--fire-modal-1 deleteForm dropdown-item"
-                                                        data-url="{{ route('admin.menu-item.destroy', $item->id) }}"
-                                                        data-form="deleteForm">{{ __('Delete') }}</a>
-                                                @endadminCan
-                                            </div>
+                                    <div class="btn-group" role="group">
+                                        <button id="btnGroupDrop{{ $item->id }}" type="button"
+                                            class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                            Action
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $item->id }}">
+                                            @adminCan('menu.item.view')
+                                                <a href="{{ route('admin.menu-item.show', $item->id) }}"
+                                                    class="dropdown-item">{{ __('View') }}</a>
+                                            @endadminCan
+                                            @adminCan('menu.item.edit')
+                                                <a href="{{ route('admin.menu-item.edit', $item->id) }}"
+                                                    class="dropdown-item">{{ __('Edit') }}</a>
+                                                <a href="{{ route('admin.menu-item.variants', $item->id) }}"
+                                                    class="dropdown-item">{{ __('Manage Variants') }}</a>
+                                                <a href="{{ route('admin.menu-item.addons', $item->id) }}"
+                                                    class="dropdown-item">{{ __('Manage Add-ons') }}</a>
+                                                <a href="{{ route('admin.menu-item.recipe', $item->id) }}"
+                                                    class="dropdown-item">{{ __('Manage Recipe') }}</a>
+                                            @endadminCan
+                                            @adminCan('menu.item.delete')
+                                                <a href="javascript:void(0)"
+                                                    class="trigger--fire-modal-1 deleteForm dropdown-item"
+                                                    data-url="{{ route('admin.menu-item.destroy', $item->id) }}"
+                                                    data-form="deleteForm">{{ __('Delete') }}</a>
+                                            @endadminCan
                                         </div>
+                                    </div>
+                                </td>
+                                @elseif (checkAdminHasPermission('menu.item.view'))
+                                <td>
+                                    <a href="{{ route('admin.menu-item.show', $item->id) }}"
+                                        class="btn btn-sm btn-info" data-bs-toggle="tooltip"
+                                        title="{{ __('View') }}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
                                 </td>
                                 @endif
                             </tr>

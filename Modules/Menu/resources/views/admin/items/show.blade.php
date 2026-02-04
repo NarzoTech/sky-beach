@@ -10,11 +10,13 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="section_title">{{ $item->name }}</h4>
                                 <div>
+                                    @adminCan('menu.item.edit')
                                     <a href="{{ route('admin.menu-item.edit', $item->id) }}" class="btn btn-warning">
-                                        <i class="fa fa-edit"></i> {{ __('Edit') }}
+                                        <i class="bx bx-edit"></i> {{ __('Edit') }}
                                     </a>
+                                    @endadminCan
                                     <a href="{{ route('admin.menu-item.index') }}" class="btn btn-primary">
-                                        <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                                        <i class="bx bx-arrow-back"></i> {{ __('Back') }}
                                     </a>
                                 </div>
                             </div>

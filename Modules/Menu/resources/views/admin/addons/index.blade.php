@@ -1,155 +1,188 @@
 @extends('admin.layouts.master')
 @section('title', __('Menu Add-ons'))
 @section('content')
-    <div class="main-content">
-        <section class="section">
-            <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <h4 class="section_title">{{ __('Menu Add-ons') }}</h4>
-                                @adminCan('menu.addon.create')
-                                <div>
-                                    <a href="{{ route('admin.menu-addon.create') }}" class="btn btn-primary">
-                                        <i class="fa fa-plus"></i> {{ __('Add New') }}
-                                    </a>
-                                </div>
-                                @endadminCan
-                            </div>
-                            <div class="card-body">
-                                <!-- Filters -->
-                                <form method="GET" action="{{ route('admin.menu-addon.index') }}" class="mb-4">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <input type="text" name="search" class="form-control" placeholder="{{ __('Search add-ons...') }}" value="{{ $filters['search'] ?? '' }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <select name="status" class="form-control">
-                                                    <option value="">{{ __('All Status') }}</option>
-                                                    <option value="1" {{ isset($filters['status']) && $filters['status'] === '1' ? 'selected' : '' }}>{{ __('Active') }}</option>
-                                                    <option value="0" {{ isset($filters['status']) && $filters['status'] === '0' ? 'selected' : '' }}>{{ __('Inactive') }}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <select name="sort_by" class="form-control">
-                                                    <option value="created_at" {{ ($filters['sort_by'] ?? '') === 'created_at' ? 'selected' : '' }}>{{ __('Date Created') }}</option>
-                                                    <option value="name" {{ ($filters['sort_by'] ?? '') === 'name' ? 'selected' : '' }}>{{ __('Name') }}</option>
-                                                    <option value="price" {{ ($filters['sort_by'] ?? '') === 'price' ? 'selected' : '' }}>{{ __('Price') }}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="submit" class="btn btn-info btn-block">
-                                                <i class="fa fa-search"></i> {{ __('Filter') }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <!-- Bulk Actions -->
-                                @adminCan('menu.addon.delete')
-                                <div class="mb-3">
-                                    <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" disabled>
-                                        <i class="fa fa-trash"></i> {{ __('Delete Selected') }}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body pb-0">
+                    <form action="" method="GET">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group search-wrapper">
+                                    <input type="text" name="keyword" value="{{ request()->get('keyword') }}"
+                                        class="form-control" placeholder="Search..." autocomplete="off">
+                                    <button type="submit">
+                                        <i class='bx bx-search'></i>
                                     </button>
                                 </div>
-                                @endadminCan
-
-                                <!-- Table -->
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead>
-                                            <tr>
-                                                @adminCan('menu.addon.delete')
-                                                <th width="40">
-                                                    <input type="checkbox" id="selectAll">
-                                                </th>
-                                                @endadminCan
-                                                <th width="80">{{ __('Image') }}</th>
-                                                <th>{{ __('Name') }}</th>
-                                                <th>{{ __('Description') }}</th>
-                                                <th width="100">{{ __('Price') }}</th>
-                                                <th width="100">{{ __('Items') }}</th>
-                                                <th width="100">{{ __('Status') }}</th>
-                                                @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
-                                                    <th width="120">{{ __('Action') }}</th>
-                                                @endif
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($addons as $addon)
-                                                <tr>
-                                                    @adminCan('menu.addon.delete')
-                                                    <td>
-                                                        <input type="checkbox" class="addon-checkbox" value="{{ $addon->id }}">
-                                                    </td>
-                                                    @endadminCan
-                                                    <td>
-                                                        @if ($addon->image)
-                                                            <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
-                                                        @else
-                                                            <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
-                                                                <i class="fa fa-image text-muted"></i>
-                                                            </div>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $addon->name }}</td>
-                                                    <td>{{ Str::limit($addon->description, 50) }}</td>
-                                                    <td><strong>{{ number_format($addon->price, 2) }}</strong></td>
-                                                    <td>
-                                                        <span class="badge bg-info">{{ $addon->menu_items_count ?? $addon->menuItems->count() }} {{ __('items') }}</span>
-                                                    </td>
-                                                    <td>
-                                                        <div class="form-check form-switch">
-                                                            <input type="checkbox" class="form-check-input status-toggle" role="switch" id="status{{ $addon->id }}" data-id="{{ $addon->id }}" {{ $addon->status ? 'checked' : '' }} {{ checkAdminHasPermission('menu.addon.edit') ? '' : 'disabled' }}>
-                                                        </div>
-                                                    </td>
-                                                    @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
-                                                    <td>
-                                                        @adminCan('menu.addon.edit')
-                                                        <a href="{{ route('admin.menu-addon.edit', $addon->id) }}" class="btn btn-sm btn-warning" title="{{ __('Edit') }}">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-                                                        @endadminCan
-                                                        @adminCan('menu.addon.delete')
-                                                        <button type="button" class="btn btn-sm btn-danger delete-addon" data-id="{{ $addon->id }}" title="{{ __('Delete') }}">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                        @endadminCan
-                                                    </td>
-                                                    @endif
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="8" class="text-center py-4">
-                                                        <i class="fa fa-plus-circle fa-3x text-muted mb-3"></i>
-                                                        <p class="text-muted">{{ __('No add-ons found') }}</p>
-                                                        <a href="{{ route('admin.menu-addon.create') }}" class="btn btn-primary">
-                                                            <i class="fa fa-plus"></i> {{ __('Create First Add-on') }}
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <div class="form-group">
+                                    <select name="status" class="form-control">
+                                        <option value="">{{ __('All Status') }}</option>
+                                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>
+                                            {{ __('Active') }}
+                                        </option>
+                                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>
+                                            {{ __('Inactive') }}
+                                        </option>
+                                    </select>
                                 </div>
-
-                                <!-- Pagination -->
-                                <div class="mt-3">
-                                    {{ $addons->links() }}
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <div class="form-group">
+                                    <select name="order_by" id="order_by" class="form-control">
+                                        <option value="">{{ __('Order By') }}</option>
+                                        <option value="asc" {{ request('order_by') == 'asc' ? 'selected' : '' }}>
+                                            {{ __('ASC') }}
+                                        </option>
+                                        <option value="desc" {{ request('order_by') == 'desc' ? 'selected' : '' }}>
+                                            {{ __('DESC') }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-6">
+                                <div class="form-group">
+                                    <select name="par-page" id="par-page" class="form-control">
+                                        <option value="">{{ __('Per Page') }}</option>
+                                        <option value="10" {{ '10' == request('par-page') ? 'selected' : '' }}>10</option>
+                                        <option value="50" {{ '50' == request('par-page') ? 'selected' : '' }}>50</option>
+                                        <option value="100" {{ '100' == request('par-page') ? 'selected' : '' }}>100</option>
+                                        <option value="all" {{ 'all' == request('par-page') ? 'selected' : '' }}>{{ __('All') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="form-group">
+                                    <button type="button" class="btn bg-danger form-reset">Reset</button>
+                                    <button type="submit" class="btn bg-primary">Search</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-header-tab card-header">
+            <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
+                <h4 class="section_title">{{ __('Menu Add-ons') }}</h4>
+            </div>
+            @adminCan('menu.addon.create')
+                <div class="btn-actions-pane-right actions-icon-btn">
+                    <a href="{{ route('admin.menu-addon.create') }}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {{ __('Add Add-on') }}
+                    </a>
+                </div>
+            @endadminCan
+        </div>
+        <div class="card-body">
+            @adminCan('menu.addon.delete')
+            <div class="alert alert-danger d-none justify-content-between delete-section danger-bg">
+                <span><span class="number">0 </span> rows selected</span>
+                <button class="btn btn-danger delete-button">Delete</button>
+            </div>
+            @endadminCan
+            <div class="table-responsive">
+                <table style="width: 100%;" class="table">
+                    <thead>
+                        <tr>
+                            @adminCan('menu.addon.delete')
+                            <th>
+                                <div class="custom-checkbox custom-control">
+                                    <input type="checkbox" data-checkboxes="checkgroup" data-checkbox-role="dad"
+                                        class="custom-control-input" id="checkbox-all">
+                                    <label for="checkbox-all" class="custom-control-label">&nbsp;</label>
+                                </div>
+                            </th>
+                            @endadminCan
+                            <th>{{ __('SL.') }}</th>
+                            <th>{{ __('Image') }}</th>
+                            <th>{{ __('Name') }}</th>
+                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Price') }}</th>
+                            <th>{{ __('Items') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
+                                <th>{{ __('Action') }}</th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($addons as $addon)
+                            <tr>
+                                @adminCan('menu.addon.delete')
+                                <td>
+                                    <div class="custom-checkbox custom-control">
+                                        <input type="checkbox" data-checkboxes="checkgroup" class="custom-control-input"
+                                            id="checkbox-{{ $addon->id }}" name="select">
+                                        <label for="checkbox-{{ $addon->id }}" class="custom-control-label">&nbsp;</label>
+                                    </div>
+                                </td>
+                                @endadminCan
+                                <td>{{ $loop->iteration }}</td>
+                                <td>
+                                    @if ($addon->image)
+                                        <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}"
+                                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                    @else
+                                        <div style="width: 50px; height: 50px; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bx bx-image text-muted"></i>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>{{ $addon->name }}</td>
+                                <td>{{ Str::limit($addon->description, 50) }}</td>
+                                <td><strong>{{ number_format($addon->price, 2) }}</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ $addon->menu_items_count ?? $addon->menuItems->count() }} {{ __('items') }}</span>
+                                </td>
+                                <td>
+                                    @if ($addon->status)
+                                        <span class="badge bg-success">{{ __('Active') }}</span>
+                                    @else
+                                        <span class="badge bg-danger">{{ __('Inactive') }}</span>
+                                    @endif
+                                </td>
+                                @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button id="btnGroupDrop{{ $addon->id }}" type="button"
+                                            class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                            Action
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $addon->id }}">
+                                            @adminCan('menu.addon.edit')
+                                                <a href="{{ route('admin.menu-addon.edit', $addon->id) }}"
+                                                    class="dropdown-item" data-bs-toggle="tooltip"
+                                                    title="{{ __('Edit') }}">{{ __('Edit') }}</a>
+                                            @endadminCan
+                                            @adminCan('menu.addon.delete')
+                                                <a href="javascript:void(0)"
+                                                    class="trigger--fire-modal-1 deleteForm dropdown-item"
+                                                    data-bs-toggle="tooltip" title="{{ __('Delete') }}"
+                                                    data-url="{{ route('admin.menu-addon.destroy', $addon->id) }}"
+                                                    data-form="deleteForm">{{ __('Delete') }}</a>
+                                            @endadminCan
+                                        </div>
+                                    </div>
+                                </td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @if (request()->get('par-page') !== 'all')
+                <div class="float-right">
+                    {{ $addons->onEachSide(0)->links() }}
+                </div>
+            @endif
+        </div>
     </div>
 @endsection
 
@@ -157,90 +190,62 @@
     <script>
         $(document).ready(function() {
             'use strict';
-
-            // Select All
-            $('#selectAll').on('change', function() {
-                $('.addon-checkbox').prop('checked', $(this).prop('checked'));
-                updateBulkButton();
+            $('.deleteForm').on('click', function() {
+                var url = $(this).data('url');
+                $('#deleteForm').attr('action', url);
+                $('#deleteModal').modal('show');
             });
 
-            $('.addon-checkbox').on('change', function() {
-                updateBulkButton();
-            });
-
-            function updateBulkButton() {
-                var checked = $('.addon-checkbox:checked').length;
-                $('#bulkDeleteBtn').prop('disabled', checked === 0);
-            }
-
-            // Toggle Status
-            $('.status-toggle').on('change', function() {
-                var id = $(this).data('id');
-                $.ajax({
-                    url: "/admin/menu-addon/" + id + "/toggle-status",
-                    type: 'POST',
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function(response) {
-                        if (response.success) {
-                            toastr.success(response.message);
-                        }
-                    },
-                    error: function() {
-                        toastr.error('Something went wrong');
+            // Check all checkboxes
+            $('#checkbox-all').on('click', function() {
+                var $this = $(this);
+                var check = $this.prop('checked');
+                $('input[name="select"]').each(function() {
+                    $(this).prop('checked', check);
+                    if (check) {
+                        $('.number').text($('input[name="select"]').length);
+                        $('.delete-section').removeClass('d-none');
+                        $('.delete-section').addClass('d-flex');
+                    } else {
+                        $('.number').text(0);
+                        $('.delete-section').addClass('d-none');
+                        $('.delete-section').removeClass('d-flex');
                     }
                 });
             });
 
-            // Delete Single
-            $('.delete-addon').on('click', function() {
-                var id = $(this).data('id');
-                var row = $(this).closest('tr');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'This add-on will be permanently deleted!',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "/admin/menu-addon/" + id,
-                            type: 'DELETE',
-                            data: { _token: "{{ csrf_token() }}" },
-                            success: function(response) {
-                                if (response.success) {
-                                    toastr.success(response.message);
-                                    row.fadeOut(function() { $(this).remove(); });
-                                }
-                            },
-                            error: function(xhr) {
-                                if (xhr.responseJSON && xhr.responseJSON.message) {
-                                    toastr.error(xhr.responseJSON.message);
-                                } else {
-                                    toastr.error('Something went wrong');
-                                }
-                            }
-                        });
-                    }
-                });
+            $('input[name="select"]').on('click', function() {
+                var total = $('input[name="select"]').length;
+                var number = $('input[name="select"]:checked').length;
+                if (total == number) {
+                    $('#checkbox-all').prop('checked', true);
+                } else {
+                    $('#checkbox-all').prop('checked', false);
+                }
+                $('.number').text(number);
+                if (number > 0) {
+                    $('.delete-section').removeClass('d-none');
+                    $('.delete-section').addClass('d-flex');
+                } else {
+                    $('.delete-section').addClass('d-none');
+                    $('.delete-section').removeClass('d-flex');
+                }
             });
 
-            // Bulk Delete
-            $('#bulkDeleteBtn').on('click', function() {
+            // Delete all selected
+            $('.delete-button').on('click', function() {
                 var ids = [];
-                $('.addon-checkbox:checked').each(function() {
-                    ids.push($(this).val());
+                $('input[name="select"]:checked').each(function() {
+                    ids.push($(this).attr('id').split('-')[1]);
                 });
-
-                if (ids.length === 0) return;
 
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: 'Selected add-ons will be permanently deleted!',
+                    text: 'You will not be able to recover this data!',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, delete them!'
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'No, keep it'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
@@ -253,11 +258,12 @@
                             success: function(response) {
                                 if (response.success) {
                                     toastr.success(response.message);
-                                    location.reload();
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1000);
+                                } else {
+                                    toastr.error(response.message);
                                 }
-                            },
-                            error: function() {
-                                toastr.error('Something went wrong');
                             }
                         });
                     }
