@@ -244,12 +244,8 @@
                                 </div>
                                 <div class="mt-2">
                                     <a href="{{ route('admin.waiter.order-details', $order->id) }}"
-                                       class="btn btn-sm btn-outline-primary me-1">
+                                       class="btn btn-sm btn-outline-primary">
                                         <i class="bx bx-show"></i> {{ __('View') }}
-                                    </a>
-                                    <a href="{{ route('admin.waiter.add-to-order', $order->id) }}"
-                                       class="btn btn-sm btn-outline-success">
-                                        <i class="bx bx-plus"></i> {{ __('Add') }}
                                     </a>
                                 </div>
                             </div>

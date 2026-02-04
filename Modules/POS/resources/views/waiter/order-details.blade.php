@@ -15,11 +15,6 @@
                     <a href="{{ route('admin.waiter.my-orders') }}" class="btn btn-outline-secondary">
                         <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
                     </a>
-                    @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
-                    <a href="{{ route('admin.waiter.add-to-order', $order->id) }}" class="btn btn-success">
-                        <i class="bx bx-plus me-1"></i>{{ __('Add Items') }}
-                    </a>
-                    @endif
                 </div>
             </div>
         </div>
