@@ -245,7 +245,7 @@
                         <i class="bx bx-transfer me-1"></i>{{ __('Change Table') }}
                     </button>
                     <button onclick="clearCart()" class="btn btn-outline-light btn-sm ms-1">
-                        <i class="fas fa-trash me-1"></i>{{ __('Clear Cart') }}
+                        <i class="bx bx-trash me-1"></i>{{ __('Clear Cart') }}
                     </button>
                 </div>
             </div>
@@ -260,7 +260,7 @@
                         <div class="row align-items-center g-2">
                             <div class="col-md-6">
                                 <div class="search-box">
-                                    <i class="fas fa-search"></i>
+                                    <i class="bx bx-search"></i>
                                     <input type="text" class="form-control" id="search-items" placeholder="{{ __('Search menu items...') }}" onkeyup="searchItems(this.value)">
                                 </div>
                             </div>
@@ -282,11 +282,11 @@
                 <div class="category-tabs mb-3">
                     <nav class="nav">
                         <a class="nav-link active" href="#" data-category="all" onclick="filterCategory('all', this); return false;">
-                            <i class="fas fa-th me-1"></i>{{ __('All') }}
+                            <i class="bx bx-grid-alt me-1"></i>{{ __('All') }}
                         </a>
                         @if(isset($combos) && $combos->count() > 0)
                         <a class="nav-link" href="#" data-category="combos" onclick="filterCategory('combos', this); return false;">
-                            <i class="fas fa-gift me-1"></i>{{ __('Combos') }}
+                            <i class="bx bx-gift me-1"></i>{{ __('Combos') }}
                             <span class="badge bg-warning text-dark ms-1">{{ $combos->count() }}</span>
                         </a>
                         @endif
@@ -302,13 +302,13 @@
                 <!-- Combos Section -->
                 @if(isset($combos) && $combos->count() > 0)
                 <div class="combo-section menu-item-wrapper" data-category="combos" id="combos-section">
-                    <h5 class="combo-section-title"><i class="fas fa-gift me-2"></i>{{ __('Combo Deals') }} - {{ __('Save More!') }}</h5>
+                    <h5 class="combo-section-title"><i class="bx bx-gift me-2"></i>{{ __('Combo Deals') }} - {{ __('Save More!') }}</h5>
                     <div class="row g-2">
                         @foreach($combos as $combo)
                         <div class="col-lg-4 col-md-6 col-12 combo-item-wrapper" data-name="{{ strtolower($combo->name) }}">
                             <div class="card combo-card h-100" data-combo-id="{{ $combo->id }}" data-combo='@json($combo)' onclick="showComboModal({{ $combo->id }})">
                                 <span class="badge bg-success combo-badge cart-qty-badge" style="display: none;">
-                                    <i class="fas fa-check"></i> <span class="qty-num">0</span>
+                                    <i class="bx bx-check"></i> <span class="qty-num">0</span>
                                 </span>
                                 @if($combo->savings_percentage > 0)
                                 <span class="combo-savings" style="position: absolute; top: 8px; right: 8px;">
@@ -319,7 +319,7 @@
                                 <img src="{{ $combo->image_url }}" class="menu-item-img" alt="{{ $combo->name }}">
                                 @else
                                 <div class="menu-item-img bg-warning bg-opacity-25 d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-gift fa-2x text-warning"></i>
+                                    <i class="bx bx-gift bx-lg text-warning"></i>
                                 </div>
                                 @endif
                                 <div class="card-body p-2">
@@ -338,7 +338,7 @@
                                             <span class="item-price ms-1">{{ $posSettings->currency ?? '$' }}{{ number_format($combo->combo_price, 2) }}</span>
                                         </div>
                                         <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
-                                            <i class="fas fa-plus"></i>
+                                            <i class="bx bx-plus"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -356,13 +356,13 @@
                         <div class="col-lg-3 col-md-4 col-6 menu-item-wrapper" data-category="{{ $category->id }}" data-name="{{ strtolower($item->name) }}">
                             <div class="card menu-item-card h-100" data-item-id="{{ $item->id }}" data-item='@json($item)'>
                                 <span class="badge bg-success cart-qty-badge" style="display: none;">
-                                    <i class="fas fa-check"></i> <span class="qty-num">0</span>
+                                    <i class="bx bx-check"></i> <span class="qty-num">0</span>
                                 </span>
                                 @if($item->image)
                                 <img src="{{ asset($item->image) }}" class="menu-item-img" alt="{{ $item->name }}" onclick="showItemModal({{ $item->id }})">
                                 @else
                                 <div class="menu-item-img bg-light d-flex align-items-center justify-content-center" onclick="showItemModal({{ $item->id }})">
-                                    <i class="fas fa-utensils fa-2x text-muted"></i>
+                                    <i class="bx bx-restaurant text-muted" style="font-size: 2rem;"></i>
                                 </div>
                                 @endif
                                 <div class="card-body p-2" onclick="showItemModal({{ $item->id }})">
@@ -371,11 +371,11 @@
                                 </div>
                                 @if($item->addons->isEmpty())
                                 <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
-                                    <i class="fas fa-plus"></i>
+                                    <i class="bx bx-plus"></i>
                                 </button>
                                 @else
                                 <button class="btn btn-primary quick-add-btn" onclick="event.stopPropagation(); showItemModal({{ $item->id }});" title="{{ __('Customize') }}">
-                                    <i class="fas fa-cog"></i>
+                                    <i class="bx bx-cog"></i>
                                 </button>
                                 @endif
                             </div>
@@ -386,7 +386,7 @@
 
                 @if($categories->isEmpty() || $categories->sum(fn($c) => $c->menuItems->count()) === 0)
                 <div class="text-center py-5">
-                    <i class="fas fa-utensils fa-4x text-muted mb-3"></i>
+                    <i class="bx bx-restaurant text-muted mb-3" style="font-size: 4rem;"></i>
                     <h5 class="text-muted">{{ __('No menu items available') }}</h5>
                 </div>
                 @endif
@@ -395,13 +395,13 @@
             <!-- Cart Section -->
             <div class="col-lg-4">
                 <div class="card cart-panel">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>{{ __('Order') }}</h5>
-                        <span class="badge bg-light text-primary" id="cart-count">0 {{ __('items') }}</span>
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: #696cff; color: #fff;">
+                        <h5 class="mb-0" style="color: #fff;"><i class="bx bx-cart me-2"></i>{{ __('Order') }}</h5>
+                        <span class="badge" style="background: #fff; color: #696cff;" id="cart-count">0 {{ __('items') }}</span>
                     </div>
                     <div class="card-body cart-items-wrapper" id="cart-items">
                         <div class="text-center text-muted py-4" id="empty-cart">
-                            <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                            <i class="bx bx-basket bx-lg mb-3" style="font-size: 3rem;"></i>
                             <p class="mb-1">{{ __('Cart is empty') }}</p>
                             <small>{{ __('Tap items to add') }}</small>
                         </div>
@@ -421,13 +421,13 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
                             <span class="fw-bold">{{ __('Total') }}:</span>
-                            <strong class="text-primary" id="cart-total">{{ currency_icon() }}0.00</strong>
+                            <strong id="cart-total" style="color: #696cff;">{{ currency_icon() }}0.00</strong>
                         </div>
                         <div class="mb-3">
                             <textarea class="form-control form-control-sm" id="special-instructions" rows="2" placeholder="{{ __('Special instructions (optional)...') }}"></textarea>
                         </div>
                         <button class="btn btn-success w-100" onclick="placeOrder()" id="place-order-btn">
-                            <i class="fas fa-paper-plane me-2"></i>{{ __('Send to Kitchen') }}
+                            <i class="bx bx-send me-2"></i>{{ __('Send to Kitchen') }}
                         </button>
                         <input type="hidden" id="posTaxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
                     </div>
@@ -453,18 +453,18 @@
                     <span class="h5 mb-0 text-success" id="itemModalPrice">$0.00</span>
                     <div class="input-group" style="width: 140px;">
                         <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(-1)">
-                            <i class="fas fa-minus"></i>
+                            <i class="bx bx-minus"></i>
                         </button>
                         <input type="number" class="form-control text-center fw-bold" id="item-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(1)">
-                            <i class="fas fa-plus"></i>
+                            <i class="bx bx-plus"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Addons -->
                 <div id="addons-section" style="display: none;">
-                    <label class="form-label fw-bold"><i class="fas fa-plus-circle me-1"></i>{{ __('Add-ons') }}</label>
+                    <label class="form-label fw-bold"><i class="bx bx-plus-circle me-1"></i>{{ __('Add-ons') }}</label>
                     <div id="addons-list"></div>
                 </div>
 
@@ -477,7 +477,7 @@
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                 <button type="button" class="btn btn-success px-4" onclick="addToCart()">
-                    <i class="fas fa-cart-plus me-1"></i>{{ __('Add') }} <span id="modal-total"></span>
+                    <i class="bx bx-cart-add me-1"></i>{{ __('Add') }} <span id="modal-total"></span>
                 </button>
             </div>
         </div>
@@ -490,7 +490,7 @@
         <div class="modal-content">
             <div class="modal-header bg-warning bg-opacity-25 border-0 pb-0">
                 <h5 class="modal-title" id="comboModalTitle">
-                    <i class="fas fa-gift text-warning me-2"></i>Combo Name
+                    <i class="bx bx-gift text-warning me-2"></i>Combo Name
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -500,7 +500,7 @@
 
                 <!-- Combo Items List -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold"><i class="fas fa-list me-1"></i>{{ __('Includes') }}:</label>
+                    <label class="form-label fw-bold"><i class="bx bx-list-ul me-1"></i>{{ __('Includes') }}:</label>
                     <ul class="list-group list-group-flush" id="combo-items-list">
                     </ul>
                 </div>
@@ -514,11 +514,11 @@
                     </div>
                     <div class="input-group" style="width: 140px;">
                         <button class="btn btn-outline-secondary" type="button" onclick="updateComboQty(-1)">
-                            <i class="fas fa-minus"></i>
+                            <i class="bx bx-minus"></i>
                         </button>
                         <input type="number" class="form-control text-center fw-bold" id="combo-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-secondary" type="button" onclick="updateComboQty(1)">
-                            <i class="fas fa-plus"></i>
+                            <i class="bx bx-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -532,7 +532,7 @@
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
                 <button type="button" class="btn btn-warning px-4" onclick="addComboToCart()">
-                    <i class="fas fa-cart-plus me-1"></i>{{ __('Add Combo') }} <span id="combo-modal-total"></span>
+                    <i class="bx bx-cart-add me-1"></i>{{ __('Add Combo') }} <span id="combo-modal-total"></span>
                 </button>
             </div>
         </div>
@@ -727,7 +727,7 @@
             addonsList.innerHTML = item.addons.map(addon => `
                 <div class="addon-item" data-addon-id="${addon.id}" onclick="toggleAddon(${addon.id}, '${addon.name.replace(/'/g, "\\'")}', ${addon.price})">
                     <div>
-                        <i class="fas fa-square addon-check-icon text-muted me-2"></i>
+                        <i class="bx bx-square addon-check-icon text-muted me-2"></i>
                         <span>${addon.name}</span>
                         <span class="text-success ms-2">+${currency}${parseFloat(addon.price).toFixed(2)}</span>
                     </div>
@@ -758,8 +758,8 @@
             // Remove addon
             currentItemData.addons.splice(existingIndex, 1);
             addonItem.classList.remove('selected');
-            icon.classList.remove('fa-check-square', 'text-success');
-            icon.classList.add('fa-square', 'text-muted');
+            icon.classList.remove('bx-checkbox-checked', 'text-success');
+            icon.classList.add('bx-square', 'text-muted');
             qtyControl.style.display = 'none';
         } else {
             // Add addon
@@ -770,8 +770,8 @@
                 qty: 1
             });
             addonItem.classList.add('selected');
-            icon.classList.remove('fa-square', 'text-muted');
-            icon.classList.add('fa-check-square', 'text-success');
+            icon.classList.remove('bx-square', 'text-muted');
+            icon.classList.add('bx-checkbox-checked', 'text-success');
             qtyControl.style.display = 'flex';
         }
 
@@ -892,7 +892,7 @@
 
         currentCombo = combo;
 
-        document.getElementById('comboModalTitle').innerHTML = '<i class="fas fa-gift text-warning me-2"></i>' + combo.name;
+        document.getElementById('comboModalTitle').innerHTML = '<i class="bx bx-gift text-warning me-2"></i>' + combo.name;
         document.getElementById('comboModalPrice').textContent = currency + parseFloat(combo.combo_price).toFixed(2);
         document.getElementById('comboModalOriginalPrice').textContent = currency + parseFloat(combo.original_price).toFixed(2);
         document.getElementById('comboModalSavings').textContent = '{{ __("Save") }} ' + combo.savings_percentage + '%';
@@ -920,7 +920,7 @@
                 }
                 return `
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span><i class="fas fa-check text-success me-2"></i>${name}</span>
+                        <span><i class="bx bx-check text-success me-2"></i>${name}</span>
                         <span class="badge bg-secondary">${item.quantity}x</span>
                     </li>
                 `;
@@ -1012,7 +1012,7 @@
         if (cart.length === 0 && comboCart.length === 0) {
             cartItemsDiv.innerHTML = `
                 <div class="text-center text-muted py-4">
-                    <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                    <i class="bx bx-basket mb-3" style="font-size: 3rem;"></i>
                     <p class="mb-1">{{ __('Cart is empty') }}</p>
                     <small>{{ __('Tap items to add') }}</small>
                 </div>
@@ -1036,14 +1036,14 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1 pe-2">
                             <div class="fw-bold small">
-                                <i class="fas fa-gift text-warning me-1"></i>${combo.name}
+                                <i class="bx bx-gift text-warning me-1"></i>${combo.name}
                                 <span class="badge bg-warning text-dark ms-1">{{ __('Combo') }}</span>
                             </div>
                             <div class="text-muted" style="font-size: 0.75rem;">
                                 <span class="text-decoration-line-through">${currency}${combo.original_price.toFixed(2)}</span>
                                 <span class="text-success ms-1">${currency}${combo.price.toFixed(2)}</span> x ${combo.quantity}
                             </div>
-                            ${combo.note ? `<div class="text-info small mt-1"><i class="fas fa-comment-alt"></i> ${combo.note}</div>` : ''}
+                            ${combo.note ? `<div class="text-info small mt-1"><i class="bx bx-comment-detail"></i> ${combo.note}</div>` : ''}
                         </div>
                         <div class="text-end" style="min-width: 100px;">
                             <div class="fw-bold text-success mb-1">${currency}${combo.subtotal.toFixed(2)}</div>
@@ -1053,7 +1053,7 @@
                                 <button class="btn btn-outline-warning qty-btn" onclick="updateComboCartItemQty(${index}, 1)">+</button>
                             </div>
                             <button class="btn btn-link btn-sm text-danger p-0 ms-1" onclick="removeComboFromCart(${index})" title="{{ __('Remove') }}">
-                                <i class="fas fa-times"></i>
+                                <i class="bx bx-x"></i>
                             </button>
                         </div>
                     </div>
@@ -1075,7 +1075,7 @@
                                     ${item.addons.map(a => `<span class="addon-badge">${a.name}${a.qty > 1 ? ' x' + a.qty : ''}</span>`).join('')}
                                 </div>
                             ` : ''}
-                            ${item.note ? `<div class="text-info small mt-1"><i class="fas fa-comment-alt"></i> ${item.note}</div>` : ''}
+                            ${item.note ? `<div class="text-info small mt-1"><i class="bx bx-comment-detail"></i> ${item.note}</div>` : ''}
                         </div>
                         <div class="text-end" style="min-width: 100px;">
                             <div class="fw-bold text-success mb-1">${currency}${item.subtotal.toFixed(2)}</div>
@@ -1085,7 +1085,7 @@
                                 <button class="btn btn-outline-secondary qty-btn" onclick="updateCartItemQty(${index}, 1)">+</button>
                             </div>
                             <button class="btn btn-link btn-sm text-danger p-0 ms-1" onclick="removeFromCart(${index})" title="{{ __('Remove') }}">
-                                <i class="fas fa-times"></i>
+                                <i class="bx bx-x"></i>
                             </button>
                         </div>
                     </div>
@@ -1238,7 +1238,7 @@
 
         const btn = document.getElementById('place-order-btn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Sending...") }}';
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-2"></i>{{ __("Sending...") }}';
 
         $.ajax({
             url: "{{ route('admin.waiter.store-order') }}",
@@ -1275,7 +1275,7 @@
                     text: message
                 });
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>{{ __("Send to Kitchen") }}';
+                btn.innerHTML = '<i class="bx bx-send me-2"></i>{{ __("Send to Kitchen") }}';
             }
         });
     }
