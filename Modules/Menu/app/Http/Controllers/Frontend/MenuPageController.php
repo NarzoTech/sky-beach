@@ -122,21 +122,8 @@ class MenuPageController extends Controller
      */
     public function comboDetail(string $slug)
     {
-        $combo = $this->comboService->getComboBySlug($slug);
-
-        if (!$combo->status || !$combo->is_active) {
-            abort(404);
-        }
-
-        // Check date validity
-        if ($combo->start_date && $combo->start_date > now()) {
-            abort(404);
-        }
-        if ($combo->end_date && $combo->end_date < now()) {
-            abort(404);
-        }
-
-        return view('menu::frontend.combo-detail', compact('combo'));
+        // Redirect to Website module's combo details page
+        return redirect()->route('website.combo-details', $slug);
     }
 
     /**

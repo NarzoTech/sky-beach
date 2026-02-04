@@ -27,7 +27,7 @@
     <section class="menu_details pt_120 xs_pt_100">
         <div class="container">
             <div class="row">
-                <div class="col-xl-5 col-md-8 col-lg-5 wow fadeInLeft">
+                <div class="col-xl-4 col-md-8 col-lg-5 wow fadeInLeft">
                     <div class="menu_det_slider_area">
                         <div class="row slider-for">
                             <div class="col-12">
@@ -43,79 +43,61 @@
                     </div>
                 </div>
 
-                <div class="col-xl-7 col-md-8 col-lg-7 wow fadeInUp">
+                <div class="col-xl-5 col-md-8 col-lg-7 wow fadeInUp">
                     <div class="menu_det_text">
                         <div class="menu_det_text_area d-flex align-items-center gap-3 flex-wrap mb-2">
                             <h2 class="details_title mb-0">{{ $combo->name }}</h2>
-                            <span class="badge bg-warning text-dark">
-                                <i class="fas fa-gift me-1"></i>{{ __('COMBO') }}
-                            </span>
+                            <span class="badge bg-secondary">{{ __('Combo Pack') }}</span>
                         </div>
 
                         <p class="price" id="displayPrice">
                             @if ($combo->original_price > $combo->combo_price)
-                                <span style="text-decoration: line-through; color: #999; font-size: 18px; margin-right: 8px;">{{ currency($combo->original_price) }}</span>
-                                <span style="color: var(--colorPrimary);">{{ currency($combo->combo_price) }}</span>
+                                <span id="currentPrice" style="color: var(--colorPrimary); font-size: 28px; font-weight: 600;">{{ currency($combo->combo_price) }}</span>
+                                <del style="color: #999; font-size: 16px; margin-left: 10px;">{{ currency($combo->original_price) }}</del>
                                 @if ($combo->savings > 0)
-                                    <span class="badge bg-success ms-2">{{ __('Save') }} {{ currency($combo->savings) }}</span>
+                                    <span class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">{{ __('Save') }} {{ currency($combo->savings) }}</span>
                                 @endif
                             @else
-                                <span>{{ currency($combo->combo_price) }}</span>
+                                <span id="currentPrice" style="font-size: 28px; font-weight: 600;">{{ currency($combo->combo_price) }}</span>
                             @endif
                         </p>
 
                         @if ($combo->description)
-                            <div class="details_short_description mb-3">
+                            <div class="details_short_description">
                                 {!! $combo->description !!}
                             </div>
                         @endif
 
                         <!-- Duration Info -->
                         @if ($combo->start_date || $combo->end_date)
-                            <div class="alert alert-warning mb-3">
-                                <i class="fas fa-calendar me-2"></i>
-                                @if ($combo->start_date && $combo->end_date)
-                                    {{ __('Valid from') }} {{ $combo->start_date->format('M d, Y') }}
-                                    {{ __('to') }} {{ $combo->end_date->format('M d, Y') }}
-                                @elseif ($combo->end_date)
-                                    {{ __('Offer ends') }} {{ $combo->end_date->format('M d, Y') }}
-                                @elseif ($combo->start_date)
-                                    {{ __('Starts') }} {{ $combo->start_date->format('M d, Y') }}
-                                @endif
+                            <div class="dietary_info mb-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>
+                                    @if ($combo->start_date && $combo->end_date)
+                                        {{ __('Valid') }}: {{ $combo->start_date->format('M d') }} - {{ $combo->end_date->format('M d, Y') }}
+                                    @elseif ($combo->end_date)
+                                        {{ __('Ends') }}: {{ $combo->end_date->format('M d, Y') }}
+                                    @elseif ($combo->start_date)
+                                        {{ __('Starts') }}: {{ $combo->start_date->format('M d, Y') }}
+                                    @endif
+                                </span>
                             </div>
                         @endif
 
-                        <!-- Combo Items List -->
-                        <div class="combo_items_list mb-4">
-                            <h5 class="mb-3"><i class="fas fa-list-ul me-2"></i>{{ __("What's Included") }}</h5>
-                            <div class="row g-3">
-                                @foreach ($combo->comboItems as $comboItem)
-                                    <div class="col-md-6">
-                                        <div class="d-flex align-items-center p-3 bg-light rounded">
-                                            @if ($comboItem->menuItem && $comboItem->menuItem->image)
-                                                <img src="{{ $comboItem->menuItem->image_url }}"
-                                                    alt="{{ $comboItem->menuItem->name }}"
-                                                    class="rounded me-3"
-                                                    style="width: 60px; height: 60px; object-fit: cover;">
-                                            @else
-                                                <div class="rounded me-3 bg-secondary d-flex align-items-center justify-content-center"
-                                                    style="width: 60px; height: 60px;">
-                                                    <i class="fas fa-utensils text-white"></i>
-                                                </div>
-                                            @endif
-                                            <div class="flex-1">
-                                                <h6 class="mb-1">{{ $comboItem->menuItem->name ?? __('Item') }}</h6>
-                                                @if ($comboItem->variant)
-                                                    <small class="text-muted">{{ $comboItem->variant->name }}</small>
-                                                @endif
-                                                <div class="text-primary fw-bold">
-                                                    {{ __('Qty') }}: {{ $comboItem->quantity }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                        <!-- Combo Items -->
+                        <div class="details_extra_item">
+                            <h5>{{ __('Includes') }}</h5>
+                            @foreach ($combo->comboItems as $comboItem)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" checked disabled>
+                                    <label class="form-check-label">
+                                        {{ $comboItem->quantity }}x {{ $comboItem->menuItem->name ?? __('Item') }}
+                                        @if ($comboItem->variant)
+                                            <span>({{ $comboItem->variant->name }})</span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
                         </div>
 
                         <!-- Quantity & Total -->
@@ -134,7 +116,7 @@
 
                         <!-- Action Buttons -->
                         <div class="details_cart_btn">
-                            <button type="button" class="common_btn" id="addComboToCartBtn" data-combo-id="{{ $combo->id }}">
+                            <button type="button" class="common_btn" id="addToCartBtn" data-combo-id="{{ $combo->id }}">
                                 <span class="icon">
                                     <img src="{{ asset('website/images/cart_icon_1.png') }}" alt="cart"
                                         class="img-fluid w-100">
@@ -160,7 +142,56 @@
                         </ul>
                     </div>
                 </div>
+
+                <div class="col-xl-3 col-md-8 d-lg-none d-xl-block wow fadeInRight">
+                    <div class="">
+                        @php
+                            $sidebarBanner = cms_banner('sidebar');
+                        @endphp
+                        @if ($sidebarBanner)
+                            <div class="menu_details_banner">
+                                <img src="{{ $sidebarBanner->image ? asset($sidebarBanner->image) : asset('website/images/details_banner_img.png') }}"
+                                    alt="{{ __('offer') }}" class="img-fluid w-100">
+                                <div class="text">
+                                    <h5>{{ $sidebarBanner->subtitle ?? __('Get Up to 50% Off') }}</h5>
+                                    <h3>{{ $sidebarBanner->title ?? __('Combo Pack') }}</h3>
+                                    <a href="{{ $sidebarBanner->button_link ?? route('website.menu') }}">
+                                        <span><img src="{{ asset('website/images/cart_icon_2.png') }}"
+                                                alt="{{ __('cart') }}" class="img-fluid w-100"></span>
+                                        {{ $sidebarBanner->button_text ?? __('Shop Now') }}
+                                        <i class="far fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
+
+            <!-- Description Tab -->
+            @if ($combo->description)
+            <div class="row mt_120 xs_mt_100 wow fadeInUp">
+                <div class="col-12">
+                    <div class="menu_det_content_area">
+                        <nav>
+                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                <button class="nav-link active" id="nav-description-tab" data-bs-toggle="tab"
+                                    data-bs-target="#nav-description" type="button" role="tab"
+                                    aria-controls="nav-description" aria-selected="true">{{ __('Description') }}</button>
+                            </div>
+                        </nav>
+                        <div class="tab-content" id="nav-tabContent">
+                            <div class="tab-pane fade show active" id="nav-description" role="tabpanel"
+                                aria-labelledby="nav-description-tab" tabindex="0">
+                                <div class="menu_det_description">
+                                    {!! $combo->description !!}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </section>
     <!--==========COMBO DETAILS END===========-->
@@ -181,7 +212,6 @@
                 totalPrice.textContent = '{{ currency_icon() }}' + (basePrice * quantity).toFixed(2);
             }
 
-            // Quantity controls
             decreaseBtn.addEventListener('click', function() {
                 if (quantity > 1) {
                     quantity--;
@@ -198,17 +228,15 @@
                 }
             });
 
-            // Add Combo to Cart
-            document.getElementById('addComboToCartBtn').addEventListener('click', function() {
-                addComboToCart(false);
+            document.getElementById('addToCartBtn').addEventListener('click', function() {
+                addToCart(false);
             });
 
-            // Buy Now
             document.getElementById('buyNowBtn').addEventListener('click', function() {
-                addComboToCart(true);
+                addToCart(true);
             });
 
-            function addComboToCart(buyNow) {
+            function addToCart(buyNow) {
                 const comboId = {{ $combo->id }};
 
                 fetch('{{ route('website.cart.add') }}', {
@@ -226,12 +254,8 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Update cart badge in header
-                            const badge = document.querySelector('.cart-badge');
-                            if (badge) {
-                                badge.textContent = data.cart_count;
-                                badge.style.display = data.cart_count > 0 ? 'inline-block' : 'none';
-                            }
+                            updateCartBadge(data.cart_count);
+                            updateMiniCart(data.cart_count, data.cart_total, data.cart_item);
 
                             if (buyNow) {
                                 window.location.href = '{{ route('website.checkout.index') }}';
@@ -248,7 +272,74 @@
                     });
             }
 
-            // Show toast notification
+            function updateCartBadge(count) {
+                const badge = document.querySelector('.cart-badge');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                    badge.classList.add('pulse');
+                    setTimeout(() => badge.classList.remove('pulse'), 300);
+                }
+            }
+
+            function updateMiniCart(count, total, newItem) {
+                const miniCartCount = document.getElementById('mini-cart-count');
+                if (miniCartCount) {
+                    miniCartCount.textContent = '(' + count + ')';
+                }
+
+                const miniCartTotal = document.getElementById('mini-cart-total');
+                if (miniCartTotal) {
+                    miniCartTotal.textContent = '{{ currency_icon() }}' + parseFloat(total).toFixed(2);
+                }
+
+                const miniCartFooter = document.getElementById('mini-cart-footer');
+                if (miniCartFooter && count > 0) {
+                    miniCartFooter.style.display = '';
+                }
+
+                const emptyMessage = document.querySelector('#mini-cart-items .empty-cart-message');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+
+                if (newItem) {
+                    const existingItem = document.querySelector(
+                        `#mini-cart-items li[data-cart-item-id="${newItem.id}"]`);
+
+                    if (existingItem) {
+                        const qtySpan = existingItem.querySelector('.text p span');
+                        if (qtySpan) {
+                            qtySpan.textContent = '{{ __('Qty') }}: ' + newItem.quantity;
+                        }
+                        existingItem.style.backgroundColor = 'rgba(185, 157, 107, 0.1)';
+                        setTimeout(() => existingItem.style.backgroundColor = '', 500);
+                    } else {
+                        const miniCartItems = document.getElementById('mini-cart-items');
+                        if (miniCartItems) {
+                            const itemHtml = `
+                                <li data-cart-item-id="${newItem.id}" style="animation: fadeInSlide 0.4s ease;">
+                                    <div class="img" style="width: 100px; min-width: 100px; height: 100px; margin-right: 15px;">
+                                        <img src="${newItem.image || '{{ asset('website/images/menu_img_1.jpg') }}'}" alt="${newItem.name}" class="img-fluid" style="width: 100px; height: 100px; object-fit: cover; border-radius: 6px;">
+                                    </div>
+                                    <div class="text">
+                                        <h5>${newItem.name}</h5>
+                                        <p>
+                                            {{ currency_icon() }}${parseFloat(newItem.unit_price).toFixed(2)}
+                                            <span>{{ __('Qty') }}: ${newItem.quantity}</span>
+                                        </p>
+                                    </div>
+                                    <span class="close_cart" onclick="removeMiniCartItem(${newItem.id})">
+                                        <i class="far fa-times"></i>
+                                    </span>
+                                </li>
+                            `;
+                            miniCartItems.insertAdjacentHTML('afterbegin', itemHtml);
+                        }
+                    }
+                }
+            }
+
             function showToast(message, type = 'success') {
                 const existingToast = document.querySelector('.toast-notification');
                 if (existingToast) {
@@ -284,6 +375,16 @@
                             from { transform: translateX(0); opacity: 1; }
                             to { transform: translateX(100%); opacity: 0; }
                         }
+                        @keyframes fadeInSlide {
+                            from { opacity: 0; transform: translateY(-10px); background-color: rgba(185, 157, 107, 0.1); }
+                            to { opacity: 1; transform: translateY(0); background-color: transparent; }
+                        }
+                        @keyframes pulse {
+                            0% { transform: scale(1); }
+                            50% { transform: scale(1.2); }
+                            100% { transform: scale(1); }
+                        }
+                        .pulse { animation: pulse 0.3s ease-in-out; }
                     `;
                     document.head.appendChild(style);
                 }

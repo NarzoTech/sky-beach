@@ -7,9 +7,7 @@
     <div class="bg-white border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav class="text-sm">
-                <a href="{{ route('menu.index') }}" class="text-gray-500 hover:text-orange-600">{{ __('Menu') }}</a>
-                <span class="mx-2 text-gray-400">/</span>
-                <a href="{{ route('menu.combos') }}" class="text-gray-500 hover:text-orange-600">{{ __('Combos') }}</a>
+                <a href="{{ route('website.menu') }}" class="text-gray-500 hover:text-orange-600">{{ __('Menu') }}</a>
                 <span class="mx-2 text-gray-400">/</span>
                 <span class="text-gray-800">{{ $combo->name }}</span>
             </nav>
@@ -125,10 +123,10 @@
             </div>
         </div>
 
-        <!-- Back to Combos -->
+        <!-- Back to Menu -->
         <div class="mt-8 text-center">
-            <a href="{{ route('menu.combos') }}" class="inline-block text-orange-600 hover:text-orange-700 font-semibold">
-                <i class="fas fa-arrow-left mr-2"></i> {{ __('Back to All Combos') }}
+            <a href="{{ route('website.menu') }}" class="inline-block text-orange-600 hover:text-orange-700 font-semibold">
+                <i class="fas fa-arrow-left mr-2"></i> {{ __('Back to Menu') }}
             </a>
         </div>
     </div>
