@@ -526,6 +526,7 @@ class SaleService
 
         $sale->order_discount = $saleData['discount'] ?? 0;
         $sale->total_tax = $saleData['tax'] ?? 0;
+        $sale->tax_rate = $saleData['tax_rate'] ?? 0;
 
         // Calculate grand_total - use provided value or calculate from subtotal, discount, and tax
         $grandTotal = $saleData['total'] ?? 0;

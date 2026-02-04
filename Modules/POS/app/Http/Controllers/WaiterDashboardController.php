@@ -221,6 +221,12 @@ class WaiterDashboardController extends Controller
             }
         }
 
+        // Get tax rate from POS settings or default to 15%
+        $posSettings = PosSettings::first();
+        $taxRate = $posSettings->pos_tax_rate ?: 15;
+        $taxAmount = $subtotal * ($taxRate / 100);
+        $grandTotal = $subtotal + $taxAmount;
+
         // Create sale using SaleService
         $saleData = [
             'order_type' => 'dine_in',
@@ -229,7 +235,9 @@ class WaiterDashboardController extends Controller
             'guest_count' => $validated['guest_count'],
             'special_instructions' => $validated['special_instructions'] ?? null,
             'subtotal' => $subtotal,
-            'total' => $subtotal, // Will be adjusted with tax/discount in service
+            'tax_rate' => $taxRate,
+            'tax' => $taxAmount,
+            'total' => $grandTotal,
             'status' => 'pending', // Processing
             'payment_status' => 0, // Unpaid
         ];
@@ -452,9 +460,19 @@ class WaiterDashboardController extends Controller
             }
         }
 
-        // Update order totals
-        $order->total_price = ($order->total_price ?? 0) + $addedTotal;
-        $order->grand_total = ($order->grand_total ?? 0) + $addedTotal;
+        // Update order totals with tax recalculation
+        $posSettings = PosSettings::first();
+        $taxRate = $order->tax_rate ?: ($posSettings->pos_tax_rate ?: 15);
+
+        $newSubtotal = ($order->total_price ?? 0) + $addedTotal;
+        $newTaxAmount = $newSubtotal * ($taxRate / 100);
+        $newGrandTotal = $newSubtotal + $newTaxAmount;
+
+        $order->total_price = $newSubtotal;
+        $order->tax_rate = $taxRate;
+        $order->total_tax = $newTaxAmount;
+        $order->grand_total = $newGrandTotal;
+        $order->due_amount = $newGrandTotal;
         $order->save();
 
         // Print only new items to kitchen
