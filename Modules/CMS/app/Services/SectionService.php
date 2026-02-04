@@ -291,12 +291,22 @@ class SectionService
                 'description' => 'nullable|string|max:1000',
             ],
         ],
-        'reservation_map' => [
-            'label' => 'Map',
-            'fields' => ['title', 'video'], // 'video' field is used for map embed URL
+        'reservation_gallery' => [
+            'label' => 'Gallery Section',
+            'fields' => ['title', 'subtitle', 'quantity'],
             'validation' => [
                 'title' => 'nullable|string|max:255',
-                'video' => 'nullable|string|max:2000', // Google Maps embed URL
+                'subtitle' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:12',
+            ],
+        ],
+        'reservation_blogs' => [
+            'label' => 'Latest Blogs Section',
+            'fields' => ['title', 'subtitle', 'quantity'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'quantity' => 'nullable|integer|min:1|max:6',
             ],
         ],
 
@@ -371,8 +381,8 @@ class SectionService
             'reservation' => [
                 'reservation_breadcrumb',
                 'reservation_form',
-                'reservation_info',
-                'reservation_map',
+                'reservation_gallery',
+                'reservation_blogs',
             ],
             'service' => [
                 'service_breadcrumb',

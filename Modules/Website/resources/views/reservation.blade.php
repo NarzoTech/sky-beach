@@ -6,8 +6,6 @@
     $sections = site_sections('reservation');
     $breadcrumb = $sections['reservation_breadcrumb'] ?? null;
     $formSection = $sections['reservation_form'] ?? null;
-    $infoSection = $sections['reservation_info'] ?? null;
-    $mapSection = $sections['reservation_map'] ?? null;
 @endphp
 
 @section('content')
@@ -168,7 +166,10 @@
 
 
     <!--==========GALLERY START===========-->
-    @if (isset($galleryItems) && $galleryItems->count() > 0)
+    @php
+        $gallerySection = $sections['reservation_gallery'] ?? null;
+    @endphp
+    @if ((!$gallerySection || $gallerySection->section_status) && isset($galleryItems) && $galleryItems->count() > 0)
         <section class="gallery mt_120 xs_mt_100">
             <div class="row gallery_slider">
                 @foreach ($galleryItems as $item)
@@ -190,13 +191,19 @@
 
 
     <!--==========BLOG START===========-->
-    @if (isset($recentBlogs) && $recentBlogs->count() > 0)
+    @php
+        $blogsSection = $sections['reservation_blogs'] ?? null;
+    @endphp
+    @if ((!$blogsSection || $blogsSection->section_status) && isset($recentBlogs) && $recentBlogs->count() > 0)
         <section class="blog pt_110 xs_pt_90">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-8 m-auto wow fadeInUp">
                         <div class="section_heading mb_25">
-                            <h2>{{ __('Our Latest News & Article') }}</h2>
+                            <h2>{{ $blogsSection->title ?? __('Our Latest News & Article') }}</h2>
+                            @if ($blogsSection && $blogsSection->subtitle)
+                                <p>{{ $blogsSection->subtitle }}</p>
+                            @endif
                         </div>
                     </div>
                 </div>

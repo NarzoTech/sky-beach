@@ -22,21 +22,26 @@ class ReservationController extends Controller
         // Pre-fill user data if logged in
         $user = Auth::user();
 
-        // Get gallery items (featured menu items)
+        // Get CMS sections for reservation page
+        $sections = site_sections('reservation');
+        $gallerySection = $sections['reservation_gallery'] ?? null;
+        $blogsSection = $sections['reservation_blogs'] ?? null;
+
+        // Get gallery items (featured menu items) - quantity from CMS
         $galleryItems = MenuItem::with('category')
             ->active()
             ->available()
             ->forWebsite()
             ->featured()
             ->ordered()
-            ->take(6)
+            ->take($gallerySection->quantity ?? 6)
             ->get();
 
-        // Get recent blogs
+        // Get recent blogs - quantity from CMS
         $recentBlogs = Blog::active()
             ->published()
             ->latest()
-            ->take(3)
+            ->take($blogsSection->quantity ?? 3)
             ->get();
 
         return view('website::reservation', compact('tablePreferences', 'timeSlots', 'user', 'galleryItems', 'recentBlogs'));
