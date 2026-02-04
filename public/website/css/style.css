@@ -4721,7 +4721,7 @@ span.flatpickr-weekday {
 
 /* gallery start */
 .gallery_item {
-    height: 670px;
+    height: 290px;
     overflow: hidden;
     position: relative;
 }
@@ -4750,11 +4750,12 @@ span.flatpickr-weekday {
     -moz-transition: all linear .3s;
     -ms-transition: all linear .3s;
     -o-transition: all linear .3s;
+    padding: 30px;
 }
 
 .gallery_item .text a {
     color: var(--colorWhite);
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
     text-transform: uppercase;
     margin-bottom: 10px;
@@ -4767,7 +4768,7 @@ span.flatpickr-weekday {
 
 .gallery_item .text p {
     color: var(--colorWhite);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
     opacity: .7;
 }
