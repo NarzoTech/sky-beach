@@ -9,11 +9,13 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="section_title">{{ __('Combo Deals') }}</h4>
+                                @adminCan('menu.combo.create')
                                 <div>
                                     <a href="{{ route('admin.combo.create') }}" class="btn btn-primary">
                                         <i class="fa fa-plus"></i> {{ __('Add New') }}
                                     </a>
                                 </div>
+                                @endadminCan
                             </div>
                             <div class="card-body">
                                 <!-- Filters -->
@@ -30,15 +32,6 @@
                                                     <option value="">{{ __('All Status') }}</option>
                                                     <option value="1" {{ isset($filters['status']) && $filters['status'] === '1' ? 'selected' : '' }}>{{ __('Active') }}</option>
                                                     <option value="0" {{ isset($filters['status']) && $filters['status'] === '0' ? 'selected' : '' }}>{{ __('Inactive') }}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <select name="is_active" class="form-control">
-                                                    <option value="">{{ __('All Active') }}</option>
-                                                    <option value="1" {{ isset($filters['is_active']) && $filters['is_active'] === '1' ? 'selected' : '' }}>{{ __('Running') }}</option>
-                                                    <option value="0" {{ isset($filters['is_active']) && $filters['is_active'] === '0' ? 'selected' : '' }}>{{ __('Paused') }}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -71,9 +64,10 @@
                                                 <th width="120">{{ __('Combo Price') }}</th>
                                                 <th width="100">{{ __('Savings') }}</th>
                                                 <th width="120">{{ __('Duration') }}</th>
-                                                <th width="80">{{ __('Active') }}</th>
                                                 <th width="80">{{ __('Status') }}</th>
-                                                <th width="120">{{ __('Action') }}</th>
+                                                @if (checkAdminHasPermission('menu.combo.view') || checkAdminHasPermission('menu.combo.edit') || checkAdminHasPermission('menu.combo.delete'))
+                                                    <th width="120">{{ __('Action') }}</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -119,14 +113,10 @@
                                                     </td>
                                                     <td>
                                                         <div class="form-check form-switch">
-                                                            <input type="checkbox" class="form-check-input active-toggle" id="active{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->is_active ? 'checked' : '' }}>
+                                                            <input type="checkbox" class="form-check-input status-toggle" id="status{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->status ? 'checked' : '' }} {{ checkAdminHasPermission('menu.combo.edit') ? '' : 'disabled' }}>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <div class="form-check form-switch">
-                                                            <input type="checkbox" class="form-check-input status-toggle" id="status{{ $combo->id }}" data-id="{{ $combo->id }}" {{ $combo->status ? 'checked' : '' }}>
-                                                        </div>
-                                                    </td>
+                                                    @if (checkAdminHasPermission('menu.combo.view') || checkAdminHasPermission('menu.combo.edit') || checkAdminHasPermission('menu.combo.delete'))
                                                     <td>
                                                         <div class="btn-group" role="group">
                                                             <button id="btnGroupDrop{{ $combo->id }}" type="button"
@@ -135,18 +125,25 @@
                                                                 {{ __('Action') }}
                                                             </button>
                                                             <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $combo->id }}">
+                                                                @adminCan('menu.combo.view')
                                                                 <a href="{{ route('admin.combo.show', $combo->id) }}" class="dropdown-item">
                                                                     <i class="fa fa-eye me-2"></i> {{ __('View') }}
                                                                 </a>
+                                                                @endadminCan
+                                                                @adminCan('menu.combo.edit')
                                                                 <a href="{{ route('admin.combo.edit', $combo->id) }}" class="dropdown-item">
                                                                     <i class="fa fa-edit me-2"></i> {{ __('Edit') }}
                                                                 </a>
+                                                                @endadminCan
+                                                                @adminCan('menu.combo.delete')
                                                                 <a href="javascript:void(0)" class="dropdown-item text-danger delete-combo" data-id="{{ $combo->id }}">
                                                                     <i class="fa fa-trash me-2"></i> {{ __('Delete') }}
                                                                 </a>
+                                                                @endadminCan
                                                             </div>
                                                         </div>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @empty
                                                 <tr>
@@ -186,24 +183,6 @@
                 var id = $(this).data('id');
                 $.ajax({
                     url: "/admin/combo/" + id + "/toggle-status",
-                    type: 'POST',
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function(response) {
-                        if (response.success) {
-                            toastr.success(response.message);
-                        }
-                    },
-                    error: function() {
-                        toastr.error('Something went wrong');
-                    }
-                });
-            });
-
-            // Toggle Active
-            $('.active-toggle').on('change', function() {
-                var id = $(this).data('id');
-                $.ajax({
-                    url: "/admin/combo/" + id + "/toggle-active",
                     type: 'POST',
                     data: { _token: "{{ csrf_token() }}" },
                     success: function(response) {

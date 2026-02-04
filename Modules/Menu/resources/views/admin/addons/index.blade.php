@@ -9,11 +9,13 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="section_title">{{ __('Menu Add-ons') }}</h4>
+                                @adminCan('menu.addon.create')
                                 <div>
                                     <a href="{{ route('admin.menu-addon.create') }}" class="btn btn-primary">
                                         <i class="fa fa-plus"></i> {{ __('Add New') }}
                                     </a>
                                 </div>
+                                @endadminCan
                             </div>
                             <div class="card-body">
                                 <!-- Filters -->
@@ -51,35 +53,43 @@
                                 </form>
 
                                 <!-- Bulk Actions -->
+                                @adminCan('menu.addon.delete')
                                 <div class="mb-3">
                                     <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" disabled>
                                         <i class="fa fa-trash"></i> {{ __('Delete Selected') }}
                                     </button>
                                 </div>
+                                @endadminCan
 
                                 <!-- Table -->
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-hover">
                                         <thead>
                                             <tr>
+                                                @adminCan('menu.addon.delete')
                                                 <th width="40">
                                                     <input type="checkbox" id="selectAll">
                                                 </th>
+                                                @endadminCan
                                                 <th width="80">{{ __('Image') }}</th>
                                                 <th>{{ __('Name') }}</th>
                                                 <th>{{ __('Description') }}</th>
                                                 <th width="100">{{ __('Price') }}</th>
                                                 <th width="100">{{ __('Items') }}</th>
                                                 <th width="100">{{ __('Status') }}</th>
-                                                <th width="120">{{ __('Action') }}</th>
+                                                @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
+                                                    <th width="120">{{ __('Action') }}</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse ($addons as $addon)
                                                 <tr>
+                                                    @adminCan('menu.addon.delete')
                                                     <td>
                                                         <input type="checkbox" class="addon-checkbox" value="{{ $addon->id }}">
                                                     </td>
+                                                    @endadminCan
                                                     <td>
                                                         @if ($addon->image)
                                                             <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
@@ -97,17 +107,23 @@
                                                     </td>
                                                     <td>
                                                         <div class="form-check form-switch">
-                                                            <input type="checkbox" class="form-check-input status-toggle" role="switch" id="status{{ $addon->id }}" data-id="{{ $addon->id }}" {{ $addon->status ? 'checked' : '' }}>
+                                                            <input type="checkbox" class="form-check-input status-toggle" role="switch" id="status{{ $addon->id }}" data-id="{{ $addon->id }}" {{ $addon->status ? 'checked' : '' }} {{ checkAdminHasPermission('menu.addon.edit') ? '' : 'disabled' }}>
                                                         </div>
                                                     </td>
+                                                    @if (checkAdminHasPermission('menu.addon.edit') || checkAdminHasPermission('menu.addon.delete'))
                                                     <td>
+                                                        @adminCan('menu.addon.edit')
                                                         <a href="{{ route('admin.menu-addon.edit', $addon->id) }}" class="btn btn-sm btn-warning" title="{{ __('Edit') }}">
                                                             <i class="fa fa-edit"></i>
                                                         </a>
+                                                        @endadminCan
+                                                        @adminCan('menu.addon.delete')
                                                         <button type="button" class="btn btn-sm btn-danger delete-addon" data-id="{{ $addon->id }}" title="{{ __('Delete') }}">
                                                             <i class="fa fa-trash"></i>
                                                         </button>
+                                                        @endadminCan
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @empty
                                                 <tr>

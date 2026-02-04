@@ -84,16 +84,17 @@
             @endadminCan
         </div>
         <div class="card-body">
+            @adminCan('menu.item.delete')
             <div class="alert alert-danger d-none justify-content-between delete-section danger-bg">
                 <span><span class="number">0 </span> rows selected</span>
-                @adminCan('menu.item.delete')
-                    <button class="btn btn-danger delete-button">Delete</button>
-                @endadminCan
+                <button class="btn btn-danger delete-button">Delete</button>
             </div>
+            @endadminCan
             <div class="table-responsive">
                 <table style="width: 100%;" class="table">
                     <thead>
                         <tr>
+                            @adminCan('menu.item.delete')
                             <th>
                                 <div class="custom-checkbox custom-control">
                                     <input type="checkbox" data-checkboxes="checkgroup" data-checkbox-role="dad"
@@ -101,6 +102,7 @@
                                     <label for="checkbox-all" class="custom-control-label">&nbsp;</label>
                                 </div>
                             </th>
+                            @endadminCan
                             <th>{{ __('SL.') }}</th>
                             <th>{{ __('Image') }}</th>
                             <th>{{ __('Name') }}</th>
@@ -110,12 +112,15 @@
                             <th>{{ __('Available') }}</th>
                             <th>{{ __('Featured') }}</th>
                             <th>{{ __('Status') }}</th>
-                            <th>{{ __('Action') }}</th>
+                            @if (checkAdminHasPermission('menu.item.view') || checkAdminHasPermission('menu.item.edit') || checkAdminHasPermission('menu.item.delete'))
+                                <th>{{ __('Action') }}</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($items as $item)
                             <tr>
+                                @adminCan('menu.item.delete')
                                 <td>
                                     <div class="custom-checkbox custom-control">
                                         <input type="checkbox" data-checkboxes="checkgroup" class="custom-control-input"
@@ -123,6 +128,7 @@
                                         <label for="checkbox-{{ $item->id }}" class="custom-control-label">&nbsp;</label>
                                     </div>
                                 </td>
+                                @endadminCan
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <img src="{{ $item->image_url }}" alt="{{ $item->name }}"
@@ -169,8 +175,8 @@
                                         <span class="badge bg-danger">{{ __('Inactive') }}</span>
                                     @endif
                                 </td>
+                                @if (checkAdminHasPermission('menu.item.view') || checkAdminHasPermission('menu.item.edit') || checkAdminHasPermission('menu.item.delete'))
                                 <td>
-                                    @if (checkAdminHasPermission('menu.item.edit') || checkAdminHasPermission('menu.item.delete'))
                                         <div class="btn-group" role="group">
                                             <button id="btnGroupDrop{{ $item->id }}" type="button"
                                                 class="btn bg-label-primary dropdown-toggle" data-bs-toggle="dropdown"
@@ -200,8 +206,8 @@
                                                 @endadminCan
                                             </div>
                                         </div>
-                                    @endif
                                 </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>

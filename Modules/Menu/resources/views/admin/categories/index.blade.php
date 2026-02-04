@@ -80,16 +80,17 @@
             @endadminCan
         </div>
         <div class="card-body">
+            @adminCan('menu.category.delete')
             <div class="alert alert-danger d-none justify-content-between delete-section danger-bg">
                 <span><span class="number">0 </span> rows selected</span>
-                @adminCan('menu.category.delete')
-                    <button class="btn btn-danger delete-button">Delete</button>
-                @endadminCan
+                <button class="btn btn-danger delete-button">Delete</button>
             </div>
+            @endadminCan
             <div class="table-responsive">
                 <table style="width: 100%;" class="table">
                     <thead>
                         <tr>
+                            @adminCan('menu.category.delete')
                             <th>
                                 <div class="custom-checkbox custom-control">
                                     <input type="checkbox" data-checkboxes="checkgroup" data-checkbox-role="dad"
@@ -97,6 +98,7 @@
                                     <label for="checkbox-all" class="custom-control-label">&nbsp;</label>
                                 </div>
                             </th>
+                            @endadminCan
                             <th>{{ __('SL.') }}</th>
                             <th>{{ __('Image') }}</th>
                             <th>{{ __('Name') }}</th>
@@ -104,12 +106,15 @@
                             <th>{{ __('Order') }}</th>
                             <th>{{ __('Featured') }}</th>
                             <th>{{ __('Status') }}</th>
-                            <th>{{ __('Action') }}</th>
+                            @if (checkAdminHasPermission('menu.category.edit') || checkAdminHasPermission('menu.category.delete'))
+                                <th>{{ __('Action') }}</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($categories as $index => $category)
                             <tr>
+                                @adminCan('menu.category.delete')
                                 <td>
                                     <div class="custom-checkbox custom-control">
                                         <input type="checkbox" data-checkboxes="checkgroup" class="custom-control-input"
@@ -117,6 +122,7 @@
                                         <label for="checkbox-{{ $category->id }}" class="custom-control-label">&nbsp;</label>
                                     </div>
                                 </td>
+                                @endadminCan
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <img src="{{ $category->image_url }}" alt="{{ $category->name }}"

@@ -227,6 +227,83 @@
         font-weight: 600;
         margin-bottom: 10px;
     }
+
+    /* Menu items scrollable container */
+    .menu-items-container {
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    .menu-items-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .menu-items-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    .menu-items-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    .menu-items-container::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+
+    /* Tablet responsive styles */
+    @media (max-width: 1199px) {
+        .cart-panel {
+            position: relative;
+            top: 0;
+            max-height: none;
+            margin-top: 20px;
+        }
+        .cart-items-wrapper {
+            max-height: 300px;
+        }
+        .menu-items-container {
+            max-height: 50vh;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .menu-items-container {
+            max-height: 400px;
+        }
+        .cart-panel {
+            margin-top: 15px;
+        }
+        .cart-header-sticky {
+            position: sticky;
+            top: 60px;
+            z-index: 100;
+        }
+        .table-info-banner {
+            padding: 10px 15px;
+        }
+        .table-info-banner h5 {
+            font-size: 1rem;
+        }
+        .menu-item-img {
+            height: 80px;
+        }
+        .category-tabs .nav-link {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .menu-items-container {
+            max-height: 350px;
+        }
+        .cart-items-wrapper {
+            max-height: 250px;
+        }
+        .table-info-banner .col-md-6.text-end {
+            text-align: left !important;
+            margin-top: 10px;
+        }
+    }
 </style>
 @endpush
 
@@ -299,6 +376,8 @@
                     </nav>
                 </div>
 
+                <!-- Scrollable Menu Container -->
+                <div class="menu-items-container">
                 <!-- Combos Section -->
                 @if(isset($combos) && $combos->count() > 0)
                 <div class="combo-section menu-item-wrapper" data-category="combos" id="combos-section">
@@ -390,12 +469,14 @@
                     <h5 class="text-muted">{{ __('No menu items available') }}</h5>
                 </div>
                 @endif
+                </div>
+                <!-- End Scrollable Menu Container -->
             </div>
 
             <!-- Cart Section -->
-            <div class="col-lg-4">
+            <div class="col-lg-4 mt-3 mt-lg-0">
                 <div class="card cart-panel">
-                    <div class="card-header d-flex justify-content-between align-items-center" style="background: #696cff; color: #fff;">
+                    <div class="card-header d-flex justify-content-between align-items-center cart-header-sticky" style="background: #696cff; color: #fff; border-radius: 8px 8px 0 0;">
                         <h5 class="mb-0" style="color: #fff;"><i class="bx bx-cart me-2"></i>{{ __('Order') }}</h5>
                         <span class="badge" style="background: #fff; color: #696cff;" id="cart-count">0 {{ __('items') }}</span>
                     </div>
