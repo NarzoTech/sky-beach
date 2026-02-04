@@ -1,6 +1,21 @@
 @extends('admin.auth.app')
 @section('title')
     <title>{{ __('Forgot Password') }}</title>
+    <style>
+        .input-group .input-group-text {
+            border-color: #d9dee3;
+            background-color: #fff;
+        }
+        .input-group .form-control {
+            border-color: #d9dee3;
+        }
+        .input-group .form-control:focus {
+            border-color: #696cff;
+        }
+        .input-group:focus-within .input-group-text {
+            border-color: #696cff;
+        }
+    </style>
 @endsection
 @section('content')
     <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg p-sm-12 p-6">
@@ -16,10 +31,10 @@
                         <span class="input-group-text"><i class="bx bx-envelope"></i></span>
                         <input id="security_email" type="email" class="form-control" name="email"
                             placeholder="{{ __('Enter your email') }}" value="{{ old('email') }}" required>
-                        <button type="button" class="btn btn-outline-primary" id="loadQuestionsBtn">
-                            {{ __('Load Questions') }}
-                        </button>
                     </div>
+                    <button type="button" class="btn btn-outline-primary w-100 mt-2" id="loadQuestionsBtn">
+                        {{ __('Load Questions') }}
+                    </button>
                 </div>
 
                 <div id="securityQuestionsContainer" style="display: none;">
