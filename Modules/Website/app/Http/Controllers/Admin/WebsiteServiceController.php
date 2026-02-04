@@ -27,7 +27,7 @@ class WebsiteServiceController extends Controller
             'slug' => 'nullable|string|unique:website_services,slug',
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|max:1024',
             'image' => 'nullable|image|max:2048',
             'price' => 'nullable|numeric|min:0',
             'duration' => 'nullable|integer|min:0',
@@ -37,6 +37,10 @@ class WebsiteServiceController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
+
+        if ($request->hasFile('icon')) {
+            $validated['icon'] = upload_image($request->file('icon'), 'services/icons');
+        }
 
         if ($request->hasFile('image')) {
             $validated['image'] = upload_image($request->file('image'), 'services');
@@ -60,7 +64,7 @@ class WebsiteServiceController extends Controller
             'slug' => 'nullable|string|unique:website_services,slug,' . $websiteService->id,
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|max:1024',
             'image' => 'nullable|image|max:2048',
             'price' => 'nullable|numeric|min:0',
             'duration' => 'nullable|integer|min:0',
@@ -70,6 +74,12 @@ class WebsiteServiceController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
+
+        if ($request->hasFile('icon')) {
+            $validated['icon'] = upload_image($request->file('icon'), 'services/icons', $websiteService->icon);
+        } else {
+            unset($validated['icon']);
+        }
 
         if ($request->hasFile('image')) {
             $validated['image'] = upload_image($request->file('image'), 'services', $websiteService->image);
@@ -83,6 +93,7 @@ class WebsiteServiceController extends Controller
 
     public function destroy(WebsiteService $websiteService)
     {
+        delete_image($websiteService->icon);
         delete_image($websiteService->image);
         $websiteService->delete();
         return redirect()->route('admin.restaurant.website-services.index')

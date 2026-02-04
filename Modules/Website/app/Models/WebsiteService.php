@@ -64,4 +64,12 @@ class WebsiteService extends Model
     {
         return image_url($this->image, 'website/images/service_1.jpg');
     }
+
+    /**
+     * Get the icon URL
+     */
+    public function getIconUrlAttribute()
+    {
+        return image_url($this->icon);
+    }
 }

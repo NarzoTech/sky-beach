@@ -68,12 +68,12 @@
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('Icon') }}</label>
-                                <input type="text" name="icon" class="form-control @error('icon') is-invalid @enderror" value="{{ old('icon', $websiteService->icon) }}" placeholder="{{ __('e.g., bx bx-spa') }}">
+                                <label class="form-label">{{ __('Icon Image') }}</label>
+                                <input type="file" name="icon" class="form-control @error('icon') is-invalid @enderror" accept="image/*">
                                 @error('icon')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                <small class="text-muted">{{ __('BoxIcons class name') }}</small>
+                                <small class="text-muted">{{ __('Small icon image (e.g., 64x64px)') }}</small>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">{{ __('Price') }}</label>
