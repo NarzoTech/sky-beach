@@ -110,16 +110,16 @@
                     <li>
                         <div class="dropdown-divider my-1"></div>
                     </li>
-                    @adminCan(['admin.profile.view', 'admin.profile.edit'])
+                    @if($header_admin->hasRole('Waiter') || checkAdminHasPermission(['admin.profile.view', 'admin.profile.edit']))
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.edit-profile') }}">
-                                <i class="bx bx-user bx-md me-3"></i><span>My Profile</span>
+                                <i class="bx bx-user bx-md me-3"></i><span>{{ __('My Profile') }}</span>
                             </a>
                         </li>
                         <li>
                             <div class="dropdown-divider my-1"></div>
                         </li>
-                    @endadminCan
+                    @endif
                     {{-- <li>
                         <a class="dropdown-item" href="#">
                             <i class="bx bx-cog bx-md me-3"></i><span>Settings</span>

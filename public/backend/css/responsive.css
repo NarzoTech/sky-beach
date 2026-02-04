@@ -14,6 +14,45 @@
    ============================================ */
 
 /* ============================================
+   NAVBAR DROPDOWN FIX
+   ============================================ */
+
+/* Ensure navbar dropdown is visible on all breakpoints */
+.navbar,
+.layout-navbar,
+.layout-navbar-fixed .layout-navbar,
+.navbar-dropdown.dropdown-user {
+    overflow: visible !important;
+}
+
+.navbar-dropdown .dropdown-menu {
+    position: absolute !important;
+    z-index: 9999 !important;
+}
+
+/* Fix dropdown position on smaller screens */
+@media (max-width: 1199px) {
+    .navbar-dropdown .dropdown-menu {
+        right: 0 !important;
+        left: auto !important;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .layout-navbar .navbar-nav,
+    .layout-navbar .navbar {
+        overflow: visible !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-dropdown .dropdown-menu {
+        min-width: 200px;
+        right: -10px !important;
+    }
+}
+
+/* ============================================
    WAITER CREATE ORDER PAGE
    ============================================ */
 
