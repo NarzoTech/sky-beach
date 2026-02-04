@@ -44,13 +44,6 @@
                 </button>
             </li>
 
-            <!-- Real-time Clock -->
-            <li class="nav-item me-2 d-none d-lg-block">
-                <div class="topbar-clock-widget btn btn-sm d-flex align-items-center" style="height: 32px; border-radius: 4px; background: #696cff; color: #fff;">
-                    <i class="bx bx-time-five me-1"></i>
-                    <span class="topbar-clock-time" id="topbarClock" style="font-size: 0.85rem; font-weight: 600; font-family: 'Courier New', monospace;">00:00:00</span>
-                </div>
-            </li>
             @endif
 
             @adminCan('report.view')

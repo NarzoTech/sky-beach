@@ -167,25 +167,8 @@
 
     @include('admin.layouts.javascripts')
 
-    <!-- Global Clock and Calculator Scripts -->
+    <!-- Global Calculator Scripts -->
     <script>
-        // Real-time Clock for Topbar
-        function updateTopbarClock() {
-            const clockElement = document.getElementById('topbarClock');
-            if (clockElement) {
-                const now = new Date();
-                let hours = now.getHours();
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12;
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                clockElement.textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
-            }
-        }
-        updateTopbarClock();
-        setInterval(updateTopbarClock, 1000);
-
         // Calculator Functions
         let calcExpression = '';
 
