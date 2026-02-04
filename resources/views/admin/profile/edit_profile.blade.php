@@ -273,10 +273,12 @@
         color: #71dd37 !important;
     }
     .toggle-password {
-        border-left: 0;
+        border-color: #d9dee3;
     }
-    .toggle-password:hover {
+    .toggle-password:hover,
+    .toggle-password:focus {
         background-color: #f5f5f9;
+        border-color: #d9dee3;
     }
 </style>
 @endpush
@@ -284,6 +286,21 @@
 @push('js')
 <script>
     "use strict";
+
+    // Image preview function
+    function setupImagePreview(inputId, previewId) {
+        $('#' + inputId).on('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#' + previewId).attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     $(document).ready(function() {
         // Image preview
         setupImagePreview('profileImgInput', 'profileImgPreview');
