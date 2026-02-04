@@ -109,7 +109,7 @@
                                                 </span>
                                             </div>
                                             <div class="single_menu_text">
-                                                <a class="title" href="#">
+                                                <a class="title" href="{{ route('website.combo-details', $combo->slug) }}">
                                                     {{ $combo->name }}</a>
                                                 @if ($combo->description)
                                                     <p class="descrption text-muted mb-2" style="font-size: 13px;">

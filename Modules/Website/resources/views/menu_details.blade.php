@@ -86,16 +86,15 @@
                             @endif
                         </div>
 
-                        @if ($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
-                            <p class="price" id="displayPrice">
-                                <span
-                                    style="text-decoration: line-through; color: #999; font-size: 18px; margin-right: 8px;">{{ currency($menuItem->base_price) }}</span>
-                                <span style="color: var(--colorPrimary);">{{ currency($menuItem->final_price) }}</span>
-                                <span class="badge bg-danger ms-2">{{ $menuItem->discount_percentage }}% OFF</span>
-                            </p>
-                        @else
-                            <p class="price" id="displayPrice">{{ currency($menuItem->base_price) }}</p>
-                        @endif
+                        <p class="price" id="displayPrice">
+                            @if ($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
+                                <span id="currentPrice" style="color: var(--colorPrimary); font-size: 28px; font-weight: 600;">{{ currency($menuItem->final_price) }}</span>
+                                <del id="originalPrice" style="color: #999; font-size: 16px; margin-left: 10px;">{{ currency($menuItem->base_price) }}</del>
+                                <span id="discountBadge" class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">{{ $menuItem->discount_percentage }}% OFF</span>
+                            @else
+                                <span id="currentPrice" style="font-size: 28px; font-weight: 600;">{{ currency($menuItem->base_price) }}</span>
+                            @endif
+                        </p>
 
                         @if ($menuItem->short_description)
                             <div class="details_short_description">
@@ -380,7 +379,7 @@
             let quantity = 1;
 
             const quantityInput = document.getElementById('quantity');
-            const displayPrice = document.getElementById('displayPrice');
+            const currentPriceEl = document.getElementById('currentPrice');
             const totalPrice = document.getElementById('totalPrice');
             const decreaseBtn = document.getElementById('decreaseQty');
             const increaseBtn = document.getElementById('increaseQty');
@@ -408,7 +407,9 @@
             }
 
             function updateDisplay() {
-                displayPrice.textContent = '{{ currency_icon() }}' + currentPrice.toFixed(2);
+                if (currentPriceEl) {
+                    currentPriceEl.textContent = '{{ currency_icon() }}' + currentPrice.toFixed(2);
+                }
                 totalPrice.textContent = '{{ currency_icon() }}' + (currentPrice * quantity).toFixed(2);
             }
 

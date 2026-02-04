@@ -32,6 +32,7 @@ Route::group([], function () {
     // Menu Pages
     Route::get('/menu', [WebsiteController::class, 'menu'])->name('website.menu');
     Route::get('/menu/{slug}', [WebsiteController::class, 'menuDetails'])->name('website.menu-details');
+    Route::get('/combo/{slug}', [WebsiteController::class, 'comboDetails'])->name('website.combo-details');
 
     // Blog Pages
     Route::get('/blogs', [WebsiteController::class, 'blogs'])->name('website.blogs');

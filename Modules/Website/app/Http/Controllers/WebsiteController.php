@@ -256,6 +256,28 @@ class WebsiteController extends Controller
     }
 
     /**
+     * Display the combo details page.
+     */
+    public function comboDetails($slug)
+    {
+        $combo = \Modules\Menu\app\Models\Combo::with(['comboItems.menuItem', 'comboItems.variant'])
+            ->where('slug', $slug)
+            ->where('is_active', 1)
+            ->where('status', 1)
+            ->where(function($q) {
+                $q->whereNull('start_date')
+                  ->orWhere('start_date', '<=', now());
+            })
+            ->where(function($q) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', now());
+            })
+            ->firstOrFail();
+
+        return view('website::combo_details', compact('combo'));
+    }
+
+    /**
      * Display the blogs page.
      */
     public function blogs()
