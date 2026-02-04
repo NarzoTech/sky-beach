@@ -98,16 +98,11 @@
         font-size: 0.85rem;
         color: #8592a3;
     }
-    .btn-new-order {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        font-size: 1.25rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        z-index: 1000;
+    /* Tablet only (768px to 1199px) */
+    @media (min-width: 768px) and (max-width: 1199px) {
+        .active-orders-card {
+            margin-top: 1.5rem;
+        }
     }
 </style>
 @endpush
@@ -184,6 +179,14 @@
                             <i class="bx bx-refresh"></i>
                         </button>
                     </div>
+                    <div class="px-3 pt-3">
+                        <div class="d-flex flex-wrap gap-3 small">
+                            <span><span class="badge bg-success">&nbsp;&nbsp;</span> {{ __('Available') }}</span>
+                            <span><span class="badge bg-warning">&nbsp;&nbsp;</span> {{ __('Partial') }}</span>
+                            <span><span class="badge bg-danger">&nbsp;&nbsp;</span> {{ __('Full') }}</span>
+                            <span><span class="badge bg-secondary">&nbsp;&nbsp;</span> {{ __('Other') }}</span>
+                        </div>
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-grid" id="tables-grid">
                             @foreach($tables as $table)
@@ -205,20 +208,12 @@
                             @endforeach
                         </div>
                     </div>
-                    <div class="card-footer">
-                        <div class="d-flex justify-content-around text-center small">
-                            <span><span class="badge bg-success">&nbsp;&nbsp;</span> {{ __('Available') }}</span>
-                            <span><span class="badge bg-warning">&nbsp;&nbsp;</span> {{ __('Partial') }}</span>
-                            <span><span class="badge bg-danger">&nbsp;&nbsp;</span> {{ __('Full') }}</span>
-                            <span><span class="badge bg-secondary">&nbsp;&nbsp;</span> {{ __('Other') }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             <!-- My Active Orders -->
             <div class="col-lg-5">
-                <div class="card">
+                <div class="card active-orders-card border">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">{{ __('My Active Orders') }}</h5>
                         <a href="{{ route('admin.waiter.my-orders') }}" class="btn btn-sm btn-outline-primary">
@@ -272,10 +267,6 @@
     </div>
 </div>
 
-<!-- Floating New Order Button (Mobile) -->
-<a href="{{ route('admin.waiter.select-table') }}" class="btn btn-primary btn-new-order d-lg-none">
-    <i class="bx bx-plus"></i>
-</a>
 @endsection
 
 @push('js')
