@@ -66,36 +66,36 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title text-white">{{ __('Total Tables') }}</h5>
-                    <h2 class="mb-0">{{ $stats['total'] ?? 0 }}</h2>
+    <div class="row g-3 my-3 reservation-stats-row">
+        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+            <div class="card bg-primary h-100">
+                <div class="card-body py-3">
+                    <h6 class="text-white mb-1 small">{{ __('Total Tables') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['total'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title text-white">{{ __('Available') }}</h5>
-                    <h2 class="mb-0">{{ $stats['available'] ?? 0 }}</h2>
+        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+            <div class="card bg-success h-100">
+                <div class="card-body py-3">
+                    <h6 class="text-white mb-1 small">{{ __('Available') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['available'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5 class="card-title text-white">{{ __('Occupied') }}</h5>
-                    <h2 class="mb-0">{{ $stats['occupied'] ?? 0 }}</h2>
+        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+            <div class="card bg-danger h-100">
+                <div class="card-body py-3">
+                    <h6 class="text-white mb-1 small">{{ __('Occupied') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['occupied'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h5 class="card-title text-white">{{ __('Reserved') }}</h5>
-                    <h2 class="mb-0">{{ $stats['reserved'] ?? 0 }}</h2>
+        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6">
+            <div class="card bg-warning h-100">
+                <div class="card-body py-3">
+                    <h6 class="text-white mb-1 small">{{ __('Reserved') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['reserved'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
@@ -109,7 +109,7 @@
             @if(!auth('admin')->user()->hasRole('Waiter'))
             <div class="btn-actions-pane-right actions-icon-btn">
                 <a href="{{ route('admin.tables.create') }}" class="btn btn-primary">
-                    <i class="fa fa-plus"></i> {{ __('Add Table') }}
+                    <i class="bx bx-plus me-1"></i>{{ __('Add Table') }}
                 </a>
             </div>
             @endif

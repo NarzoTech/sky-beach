@@ -69,3 +69,58 @@
         height: 100px;
     }
 }
+
+/* ============================================
+   RESERVATIONS PAGE
+   ============================================ */
+
+/* Stats cards responsive */
+.reservation-stats-row {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.reservation-stats-row .card {
+    border-radius: 8px;
+}
+
+.reservation-stats-row .card-body {
+    padding: 1rem;
+}
+
+.reservation-stats-row h6 {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reservation-stats-row h3 {
+    font-size: 1.5rem;
+}
+
+/* Tablet/Small desktop (768px - 1199px) - 3 cards per row */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .reservation-stats-row .card-body {
+        padding: 0.875rem;
+    }
+
+    .reservation-stats-row h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Mobile (< 768px) - 2 cards per row */
+@media (max-width: 767px) {
+    .reservation-stats-row .card-body {
+        padding: 0.75rem;
+    }
+
+    .reservation-stats-row h6 {
+        font-size: 0.75rem;
+    }
+
+    .reservation-stats-row h3 {
+        font-size: 1.125rem;
+    }
+}

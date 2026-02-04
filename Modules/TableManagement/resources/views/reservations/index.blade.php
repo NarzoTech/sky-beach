@@ -59,52 +59,52 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-2">
-            <div class="card bg-primary text-white">
+    <div class="row g-3 my-3 reservation-stats-row">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-primary h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __("Today's Total") }}</h6>
-                    <h3 class="mb-0">{{ $stats['today_total'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __("Today's Total") }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['today_total'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-warning text-white">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-warning h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __('Pending') }}</h6>
-                    <h3 class="mb-0">{{ $stats['today_pending'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __('Pending') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['today_pending'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-info text-white">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-info h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __('Confirmed') }}</h6>
-                    <h3 class="mb-0">{{ $stats['today_confirmed'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __('Confirmed') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['today_confirmed'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-primary text-white">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-primary h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __('Seated') }}</h6>
-                    <h3 class="mb-0">{{ $stats['today_seated'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __('Seated') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['today_seated'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-success text-white">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-success h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __('Completed') }}</h6>
-                    <h3 class="mb-0">{{ $stats['today_completed'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __('Completed') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['today_completed'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-md-2">
-            <div class="card bg-secondary text-white">
+        <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+            <div class="card bg-secondary h-100">
                 <div class="card-body py-3">
-                    <h6 class="text-white mb-1">{{ __('Upcoming') }}</h6>
-                    <h3 class="mb-0">{{ $stats['upcoming'] ?? 0 }}</h3>
+                    <h6 class="text-white mb-1 small">{{ __('Upcoming') }}</h6>
+                    <h3 class="mb-0 text-white">{{ $stats['upcoming'] ?? 0 }}</h3>
                 </div>
             </div>
         </div>
