@@ -88,11 +88,14 @@
 
                         <p class="price" id="displayPrice">
                             @if ($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
-                                <span id="currentPrice" style="color: var(--colorPrimary); font-size: 28px; font-weight: 600;">{{ currency($menuItem->final_price) }}</span>
-                                <del id="originalPrice" style="color: #999; font-size: 16px; margin-left: 10px;">{{ currency($menuItem->base_price) }}</del>
-                                <span id="discountBadge" class="badge bg-danger ms-2" style="font-size: 12px; vertical-align: middle;">{{ $menuItem->discount_percentage }}% OFF</span>
+                                <span id="currentPrice">{{ currency($menuItem->final_price) }}</span>
+                                <del id="originalPrice">{{ currency($menuItem->base_price) }}</del>
+                                <span id="discountBadge" class="badge bg-danger ms-2"
+                                    style="font-size: 12px; vertical-align: middle;">{{ $menuItem->discount_percentage }}%
+                                    OFF</span>
                             @else
-                                <span id="currentPrice" style="font-size: 28px; font-weight: 600;">{{ currency($menuItem->base_price) }}</span>
+                                <span id="currentPrice"
+                                    style="font-size: 28px; font-weight: 600;">{{ currency($menuItem->base_price) }}</span>
                             @endif
                         </p>
 
