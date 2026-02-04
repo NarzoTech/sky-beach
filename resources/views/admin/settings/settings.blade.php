@@ -154,13 +154,6 @@
                                         </div>
                                         <div class="col-md-6 col-lg-4">
                                             <div class="form-group">
-                                                <label for="">Business Type</label>
-                                                <input type="text" name="type" value="{{ $setting->type }}"
-                                                    class="form-control" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4">
-                                            <div class="form-group">
                                                 <label for="">City</label>
                                                 <input type="text" name="city" value="{{ $setting->city }}"
                                                     class="form-control">
@@ -183,13 +176,6 @@
                                                             {{ $country }}</option>
                                                     @endforeach
                                                 </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4">
-                                            <div class="form-group">
-                                                <label for="">Website</label>
-                                                <input type="text" name="website" value="{{ $setting->website }}"
-                                                    class="form-control">
                                             </div>
                                         </div>
                                         <div class="col-md-6 col-lg-4">
