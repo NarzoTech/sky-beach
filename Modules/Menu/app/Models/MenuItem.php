@@ -87,7 +87,7 @@ class MenuItem extends Model
 
     public function getImageUrlAttribute()
     {
-        return image_url($this->image, 'website/images/menu_img_1.jpg');
+        return image_url($this->image, 'assets/images/placeholder.png');
     }
 
     public function getGalleryUrlsAttribute()

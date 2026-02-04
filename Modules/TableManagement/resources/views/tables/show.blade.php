@@ -117,8 +117,8 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Left Column -->
-                    <div class="col-lg-4">
+                    <!-- Left Column - Status & Actions -->
+                    <div class="col-lg-4 col-md-5 order-md-2 order-lg-1">
                         <!-- Table Status Card -->
                         <div class="card status-card mb-4">
                             <div class="card-body text-center py-4">
@@ -185,8 +185,8 @@
                         </div>
                     </div>
 
-                    <!-- Right Column -->
-                    <div class="col-lg-8">
+                    <!-- Right Column - Information -->
+                    <div class="col-lg-8 col-md-7 order-md-1 order-lg-2">
                         <!-- Table Information -->
                         <div class="card mb-4">
                             <div class="card-header">

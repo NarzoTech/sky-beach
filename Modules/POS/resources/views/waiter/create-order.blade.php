@@ -563,8 +563,8 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div>
-                                            <span class="combo-original-price">{{ $posSettings->currency ?? '$' }}{{ number_format($combo->original_price, 2) }}</span>
-                                            <span class="item-price ms-1">{{ $posSettings->currency ?? '$' }}{{ number_format($combo->combo_price, 2) }}</span>
+                                            <span class="combo-original-price">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($combo->original_price, 2) }}</span>
+                                            <span class="item-price ms-1">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($combo->combo_price, 2) }}</span>
                                         </div>
                                         <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
                                             <i class="bx bx-plus"></i>
@@ -596,7 +596,7 @@
                                 @endif
                                 <div class="card-body p-2" onclick="showItemModal({{ $item->id }})">
                                     <h6 class="mb-1 small" style="line-height: 1.2;">{{ Str::limit($item->name, 25) }}</h6>
-                                    <div class="item-price">{{ $posSettings->currency ?? '$' }}{{ number_format($item->price, 2) }}</div>
+                                    <div class="item-price">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($item->price, 2) }}</div>
                                 </div>
                                 @if($item->addons->isEmpty())
                                 <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
@@ -689,7 +689,7 @@
                         <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(-1)">
                             <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control" id="item-qty" value="1" min="1" readonly>
+                        <input type="number" class="form-control guest-count-input" id="item-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(1)">
                             <i class="bx bx-plus"></i>
                         </button>
@@ -750,7 +750,7 @@
                         <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(-1)">
                             <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control" id="combo-qty" value="1" min="1" readonly>
+                        <input type="number" class="form-control guest-count-input" id="combo-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(1)">
                             <i class="bx bx-plus"></i>
                         </button>
@@ -777,7 +777,7 @@
 @push('js')
 <script>
     const CART_KEY = 'waiter_cart_{{ auth()->id() }}';
-    const currency = '{{ $posSettings->currency ?? "$" }}';
+    const currency = '{{ optional($posSettings)->currency ?? "TK" }}';
     let cart = [];
     let comboCart = [];
     let currentItem = null;
