@@ -32,11 +32,7 @@
                         <div class="row slider-for">
                             <div class="col-12">
                                 <div class="details_large_img">
-                                    @if ($combo->image)
-                                        <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}" class="img-fluid w-100">
-                                    @else
-                                        <img src="{{ asset('website/images/combo_default.jpg') }}" alt="{{ $combo->name }}" class="img-fluid w-100">
-                                    @endif
+                                    <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" class="img-fluid w-100">
                                 </div>
                             </div>
                         </div>

@@ -35,7 +35,7 @@
                     <span class="price">{{ currency($item->price) }}</span>
                 @endif
             </div>
-            <a class="cart_btn" href="#"><i class="far fa-shopping-basket"></i></a>
+            <a class="cart_btn" href="{{ route('website.menu-details', $item->slug) }}">{{ __('Buy Now') }}</a>
         </div>
         
         @if($item->preparation_time)

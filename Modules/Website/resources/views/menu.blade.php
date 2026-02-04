@@ -136,9 +136,8 @@
                                                             <span>{{ currency($combo->original_price) }}</span>
                                                         @endif
                                                     </div>
-                                                    <a class="add_to_cart" href="#"
-                                                        onclick="addComboToCart({{ $combo->id }}, '{{ $combo->name }}'); return false;">
-                                                        {{ __('Add to cart') }}
+                                                    <a class="add_to_cart" href="{{ route('website.combo-details', $combo->slug) }}">
+                                                        {{ __('Buy Now') }}
                                                     </a>
                                                 </div>
                                             </div>
@@ -248,8 +247,7 @@
                                                     <h3>{{ currency($item->base_price) }}</h3>
                                                 @endif
                                             </div>
-                                            <a class="add_to_cart" href="#"
-                                                onclick="quickAddToCart({{ $item->id }}, '{{ $item->name }}'); return false;">{{ __('Add to Cart') }}</a>
+                                            <a class="add_to_cart" href="{{ route('website.menu-details', $item->slug) }}">{{ __('Buy Now') }}</a>
                                         </div>
                                     </div>
                                 </div>

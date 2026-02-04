@@ -358,7 +358,7 @@
                                             @endif
                                         </div>
                                         <a class="add_to_cart"
-                                            href="{{ route('website.menu-details', $item->slug) }}">{{ __('View') }}</a>
+                                            href="{{ route('website.menu-details', $item->slug) }}">{{ __('Buy Now') }}</a>
                                     </div>
                                 </div>
                             </div>
