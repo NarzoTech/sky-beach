@@ -42,6 +42,57 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::get('/', [DashboardController::class, 'dashboard']);
         Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
+        // Storage link route (for servers where symlink() is disabled)
+        Route::get('create-storage-link', function () {
+            try {
+                $target = storage_path('app/public');
+                $link = public_path('storage');
+
+                // Remove existing link/directory if exists
+                if (is_link($link)) {
+                    unlink($link);
+                } elseif (is_dir($link)) {
+                    // If it's a directory (from previous copy), we can keep it or remove it
+                    // For now, let's just return success if it exists
+                    return redirect()->back()->with('success', 'Storage link already exists as directory.');
+                }
+
+                // Try symlink first
+                if (function_exists('symlink')) {
+                    @symlink($target, $link);
+                    if (is_link($link)) {
+                        return redirect()->back()->with('success', 'Storage link created successfully using symlink!');
+                    }
+                }
+
+                // If symlink failed, create directory and copy files
+                if (!is_dir($link)) {
+                    mkdir($link, 0755, true);
+                }
+
+                // Copy all files from storage/app/public to public/storage
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($target, \RecursiveDirectoryIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::SELF_FIRST
+                );
+
+                foreach ($iterator as $item) {
+                    $destPath = $link . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+                    if ($item->isDir()) {
+                        if (!is_dir($destPath)) {
+                            mkdir($destPath, 0755, true);
+                        }
+                    } else {
+                        copy($item, $destPath);
+                    }
+                }
+
+                return redirect()->back()->with('success', 'Storage files copied successfully! Note: New uploads will need manual sync.');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Failed to create storage link: ' . $e->getMessage());
+            }
+        })->name('create-storage-link');
+
         Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
         Route::get('/stock/ledger/{id}', [StockController::class, 'ledger'])->name('stock.ledger');
         Route::put('/stock/reset/{id}', [StockController::class, 'reset'])->name('stock.reset');
