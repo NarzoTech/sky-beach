@@ -14,15 +14,20 @@
 @endphp
 
 <div class="modal fade payment-modal" id="runningOrderPaymentModal" tabindex="-1" aria-labelledby="runningOrderPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header header-dark">
-                <h5 class="modal-title" id="runningOrderPaymentModalLabel">
-                    <i class="bx bx-receipt"></i>
-                    <span>{{ __('Checkout') }}</span>
-                    <span class="badge bg-light text-dark ms-2" id="ropTableBadge">--</span>
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable rop-dialog">
+        <div class="modal-content rop-modal-content">
+            <div class="rop-modal-header">
+                <div class="rop-header-icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+                <div class="rop-header-text">
+                    <h5 class="mb-0">{{ __('Checkout') }}</h5>
+                    <small>{{ __('Complete payment for order') }}</small>
+                </div>
+                <span class="rop-table-badge" id="ropTableBadge">--</span>
+                <button type="button" class="rop-header-close" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <div class="modal-body p-0" id="ropModalBody" style="min-height: 300px;">
@@ -281,13 +286,12 @@
                 <input type="hidden" id="ropIsSplit" value="0">
             </div>
 
-            <div class="modal-footer" id="ropFooter">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                    {{ __('Cancel') }}
+            <div class="modal-footer rop-modal-footer" id="ropFooter">
+                <button type="button" class="btn rop-btn-cancel" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
                 </button>
-                <button type="button" class="btn btn-complete-payment" id="ropCompleteBtn" onclick="completeRunningOrderPayment()">
-                    <i class="bx bx-check-circle me-2"></i>
-                    {{ __('Complete & Release Table') }}
+                <button type="button" class="btn rop-btn-complete" id="ropCompleteBtn" onclick="completeRunningOrderPayment()">
+                    <i class="fas fa-check-circle me-2"></i>{{ __('Complete & Release Table') }}
                 </button>
             </div>
         </div>
@@ -295,6 +299,130 @@
 </div>
 
 <style>
+/* Running Order Payment Modal - Theme Styles */
+.rop-dialog {
+    max-width: 1100px;
+}
+
+.rop-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.rop-modal-header {
+    background: #696cff;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.rop-header-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+}
+
+.rop-header-text h5 {
+    color: #fff;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0;
+}
+
+.rop-header-text small {
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+}
+
+.rop-table-badge {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 40px;
+}
+
+.rop-header-close {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.rop-header-close:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.rop-modal-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.rop-btn-cancel {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    color: #697a8d;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.rop-btn-cancel:hover {
+    background: #f8f9fa;
+    border-color: #d9dee3;
+}
+
+.rop-btn-complete {
+    background: #696cff;
+    border: none;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.rop-btn-complete:hover {
+    background: #5a5ee0;
+    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.4);
+}
+
+.rop-btn-complete:disabled {
+    background: #a5a7ff;
+    cursor: not-allowed;
+}
+
 /* Loading Spinner Styles */
 .payment-loading {
     display: flex;
@@ -340,8 +468,8 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #d4edda;
-    color: #28a745;
+    background: rgba(113, 221, 55, 0.15);
+    color: #71dd37;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -363,15 +491,20 @@
 
 /* Running Order Payment Modal Styles */
 .rop-order-header {
-    background: var(--pm-gray-light);
+    background: #f8f9fa;
     padding: 16px;
-    border-radius: var(--pm-radius);
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
 }
 
 .rop-items-list {
     max-height: 200px;
     overflow-y: auto;
     margin-bottom: 12px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0 12px;
 }
 
 .rop-items-list::-webkit-scrollbar {
@@ -379,7 +512,7 @@
 }
 
 .rop-items-list::-webkit-scrollbar-thumb {
-    background: #ddd;
+    background: #696cff;
     border-radius: 2px;
 }
 
@@ -387,8 +520,8 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--pm-border);
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f1f5;
 }
 
 .rop-item:last-child {
@@ -401,76 +534,89 @@
 
 .rop-item-name {
     font-weight: 600;
-    color: var(--pm-dark);
+    color: #2d3748;
     font-size: 14px;
 }
 
 .rop-item-qty {
     font-size: 12px;
-    color: var(--pm-gray);
+    color: #696cff;
+    font-weight: 600;
+    background: rgba(105, 108, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
 }
 
 .rop-item-addons {
     font-size: 11px;
-    color: var(--pm-info);
-    margin-top: 2px;
+    color: #03c3ec;
+    margin-top: 4px;
 }
 
 .rop-item-price {
-    font-weight: 600;
-    color: var(--pm-dark);
+    font-weight: 700;
+    color: #2d3748;
     white-space: nowrap;
+    font-size: 14px;
 }
 
-.rop-discount-section {
-    background: var(--pm-gray-light);
-    padding: 12px;
-    border-radius: 8px;
+.rop-discount-section,
+.rop-tax-section {
+    background: #f8f9fa;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
 }
 
 .rop-summary {
-    background: var(--pm-gray-light);
-    padding: 12px 16px;
-    border-radius: var(--pm-radius);
+    background: #f8f9fa;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
 }
 
 .rop-summary .summary-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: 8px 0;
     font-size: 14px;
+    color: #697a8d;
 }
 
 .rop-summary .summary-row.summary-total {
     font-size: 18px;
     font-weight: 700;
-    color: var(--pm-dark);
-    padding-top: 12px;
-    margin-top: 8px;
-    border-top: 2px dashed var(--pm-border);
+    color: #696cff;
+    padding-top: 14px;
+    margin-top: 10px;
+    border-top: 2px dashed #e9ecef;
 }
 
 /* Total Display */
 .rop-total-display {
-    background: linear-gradient(135deg, #232333, #1a1a2e);
+    background: #696cff;
     color: white;
-    padding: 24px;
-    border-radius: var(--pm-radius-lg);
+    padding: 28px 24px;
+    border-radius: 16px;
     text-align: center;
+    box-shadow: 0 8px 24px rgba(105, 108, 255, 0.3);
 }
 
 .rop-total-amount {
     font-size: 42px;
-    font-weight: 700;
+    font-weight: 800;
     line-height: 1.2;
 }
 
 .rop-total-label {
     font-size: 12px;
-    opacity: 0.7;
+    opacity: 0.85;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-top: 4px;
+    margin-top: 6px;
+    font-weight: 500;
 }
 
 /* Amount Input */
@@ -490,7 +636,7 @@
     transform: translateY(-50%);
     font-size: 20px;
     font-weight: 600;
-    color: var(--pm-gray);
+    color: #697a8d;
 }
 
 .rop-amount-input {
@@ -499,9 +645,11 @@
     font-size: 32px;
     font-weight: 700;
     text-align: center;
-    border: 2px solid var(--pm-border);
-    border-radius: var(--pm-radius);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
     -moz-appearance: textfield;
+    color: #2d3748;
+    transition: all 0.2s;
 }
 
 .rop-amount-input::-webkit-outer-spin-button,
@@ -510,9 +658,9 @@
 }
 
 .rop-amount-input:focus {
-    border-color: var(--pm-primary);
+    border-color: #696cff;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(105, 108, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(105, 108, 255, 0.15);
 }
 
 /* Quick Amounts */
@@ -526,29 +674,42 @@
     padding: 10px 8px;
     font-size: 14px;
     font-weight: 600;
-    border: 2px solid var(--pm-border);
-    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
     background: white;
     cursor: pointer;
     transition: all 0.2s ease;
+    color: #697a8d;
 }
 
 .rop-quick-btn:hover {
-    border-color: var(--pm-primary);
-    background: var(--pm-primary-light);
-    color: var(--pm-primary);
+    border-color: #696cff;
+    background: rgba(105, 108, 255, 0.08);
+    color: #696cff;
+    transform: translateY(-2px);
 }
 
 .rop-exact-btn {
     padding: 12px 20px;
     font-weight: 700;
+    background: #696cff;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    transition: all 0.2s;
+}
+
+.rop-exact-btn:hover {
+    background: #5a5ee0;
+    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.35);
 }
 
 /* Change Display */
 .rop-change-display {
-    background: var(--pm-success-light);
-    padding: 16px;
-    border-radius: var(--pm-radius);
+    background: rgba(113, 221, 55, 0.1);
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(113, 221, 55, 0.2);
 }
 
 .rop-change-display .change-row {
@@ -558,22 +719,24 @@
 }
 
 .rop-change-display .change-label {
-    font-weight: 500;
-    color: var(--pm-dark);
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 14px;
 }
 
 .rop-change-display .change-amount {
     font-size: 24px;
     font-weight: 700;
-    color: var(--pm-success);
+    color: #71dd37;
 }
 
 .rop-change-display.insufficient {
-    background: var(--pm-danger-light);
+    background: rgba(255, 62, 29, 0.1);
+    border-color: rgba(255, 62, 29, 0.2);
 }
 
 .rop-change-display.insufficient .change-amount {
-    color: var(--pm-danger);
+    color: #ff3e1d;
 }
 
 /* Split Payment Styles */
@@ -707,38 +870,80 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #2c3e50;
+    background: #696cff;
     color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.3);
 }
 
 .split-total-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    opacity: 0.8;
+    opacity: 0.9;
+    font-weight: 500;
 }
 
 .split-remaining {
     font-size: 12px;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .split-remaining.has-remaining {
-    color: #ffc107;
+    color: #ffab00;
 }
 
 .split-remaining.fully-paid {
-    color: #71dd37;
+    color: #b4ffb4;
 }
 
 .split-total-amount {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
 }
 
-/* Responsive */
+/* Responsive - Tablet (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .rop-dialog {
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+
+    .rop-modal-header {
+        padding: 16px 20px;
+    }
+
+    .rop-header-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+
+    .rop-header-text h5 {
+        font-size: 16px;
+    }
+
+    .rop-total-amount {
+        font-size: 36px;
+    }
+
+    .rop-amount-input {
+        font-size: 26px;
+        padding: 14px 14px 14px 45px;
+    }
+
+    .rop-quick-amounts {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    .rop-quick-btn {
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+}
+
+/* Responsive - Small tablets and below */
 @media (max-width: 992px) {
     .rop-total-amount {
         font-size: 32px;
@@ -757,16 +962,111 @@
     }
 }
 
-@media (max-width: 576px) {
-    #runningOrderPaymentModal .modal-body > .row {
+/* Mobile */
+@media (max-width: 767px) {
+    .rop-modal-header {
+        padding: 16px;
+        flex-wrap: wrap;
+    }
+
+    .rop-header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .rop-header-text h5 {
+        font-size: 15px;
+    }
+
+    .rop-header-text small {
+        font-size: 12px;
+    }
+
+    .rop-table-badge {
+        order: 3;
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+        text-align: center;
+    }
+
+    #runningOrderPaymentModal .modal-body > #ropContent > .row {
         flex-direction: column;
     }
 
     #runningOrderPaymentModal .col-lg-5,
     #runningOrderPaymentModal .col-lg-7 {
         border-right: none !important;
-        border-bottom: 1px solid var(--pm-border);
+        border-bottom: 1px solid #e9ecef;
     }
+
+    .rop-total-display {
+        padding: 20px 16px;
+    }
+
+    .rop-total-amount {
+        font-size: 28px;
+    }
+
+    .rop-amount-input {
+        font-size: 20px;
+        padding: 12px 12px 12px 40px;
+    }
+
+    .rop-amount-input-container .currency-prefix {
+        font-size: 16px;
+        left: 12px;
+    }
+
+    .rop-modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rop-btn-cancel,
+    .rop-btn-complete {
+        width: 100%;
+    }
+}
+
+/* Section Titles */
+#runningOrderPaymentModal .pm-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #697a8d;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#runningOrderPaymentModal .pm-section-title i {
+    color: #696cff;
+}
+
+#runningOrderPaymentModal .pm-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 16px 0;
+}
+
+#runningOrderPaymentModal .pm-divider-dashed {
+    height: 0;
+    border-bottom: 2px dashed #e9ecef;
+    margin: 16px 0;
+}
+
+/* Edit Button */
+#runningOrderPaymentModal .btn-outline-primary {
+    border-color: #696cff;
+    color: #696cff;
+}
+
+#runningOrderPaymentModal .btn-outline-primary:hover {
+    background: #696cff;
+    color: #fff;
 }
 </style>
 
