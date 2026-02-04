@@ -270,3 +270,154 @@
         padding: 0.4rem 0.75rem !important;
     }
 }
+
+/* ============================================
+   POS TABLE SELECTION MODAL
+   ============================================ */
+
+/* Tablet/Small Desktop (768px - 1199px) - Larger modal */
+@media (min-width: 768px) and (max-width: 1199px) {
+    #tableSelectionModal .modal-dialog {
+        max-width: 90%;
+        margin: 1.75rem auto;
+    }
+
+    #tableSelectionModal .tables-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        max-height: 50vh;
+    }
+
+    #tableSelectionModal .table-card {
+        padding: 12px;
+    }
+
+    #tableSelectionModal .table-shape {
+        width: 70px;
+        height: 70px;
+        margin: 15px auto 12px;
+    }
+
+    #tableSelectionModal .table-surface {
+        width: 45px !important;
+        height: 45px !important;
+    }
+
+    #tableSelectionModal .table-number {
+        font-size: 10px;
+    }
+
+    #tableSelectionModal .chair {
+        width: 12px;
+        height: 12px;
+    }
+
+    #tableSelectionModal .table-info {
+        padding: 8px 6px 4px;
+        margin: 8px -12px -12px;
+    }
+
+    #tableSelectionModal .table-info strong {
+        font-size: 12px;
+    }
+
+    #tableSelectionModal .table-info small {
+        font-size: 10px;
+    }
+
+    /* Table status legend */
+    #tableSelectionModal .table-status-legend {
+        padding: 10px 15px;
+        gap: 10px 20px;
+    }
+
+    #tableSelectionModal .table-status-legend small {
+        font-size: 12px;
+    }
+}
+
+/* Large tablets (992px - 1199px) - 5 columns */
+@media (min-width: 992px) and (max-width: 1199px) {
+    #tableSelectionModal .tables-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    #tableSelectionModal .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    #tableSelectionModal .tables-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        max-height: 55vh;
+    }
+
+    #tableSelectionModal .table-card {
+        padding: 10px;
+    }
+
+    #tableSelectionModal .table-shape {
+        width: 60px;
+        height: 60px;
+        margin: 12px auto 10px;
+    }
+
+    #tableSelectionModal .table-surface {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    #tableSelectionModal .table-number {
+        font-size: 9px;
+    }
+
+    #tableSelectionModal .chair {
+        width: 10px;
+        height: 10px;
+    }
+
+    #tableSelectionModal .table-info {
+        padding: 6px 5px 3px;
+        margin: 6px -10px -10px;
+    }
+
+    #tableSelectionModal .table-info strong {
+        font-size: 11px;
+    }
+
+    #tableSelectionModal .table-info small {
+        font-size: 9px;
+    }
+
+    /* Stack legend items in 2 columns on mobile */
+    #tableSelectionModal .table-status-legend {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 15px;
+        padding: 10px 15px;
+        width: 100%;
+    }
+
+    #tableSelectionModal .table-status-legend small {
+        font-size: 11px;
+    }
+
+    #tableSelectionModal .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #tableSelectionModal .modal-footer > div {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    #tableSelectionModal .modal-footer .btn {
+        flex: 1;
+    }
+}

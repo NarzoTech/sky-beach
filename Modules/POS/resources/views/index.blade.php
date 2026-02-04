@@ -16,11 +16,27 @@
         }
 
         /* Table Selection Modal Styles */
+        #tableSelectionModal .modal-body {
+            background: #f8f9fa;
+        }
+
+        .table-status-legend {
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 15px 25px;
+            justify-content: center;
+        }
+
         .table-status-dot {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
         .table-status-dot.available { background: linear-gradient(135deg, #28a745, #20c997); }
         .table-status-dot.partial { background: linear-gradient(135deg, #fd7e14, #ffc107); }
@@ -29,9 +45,11 @@
 
         .tables-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 20px;
-            padding: 10px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 18px;
+            padding: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
         }
 
         .table-card {
@@ -41,19 +59,23 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 2px solid transparent;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 2px solid #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .table-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            border-color: #e0e0e0;
         }
         .table-card.selected {
             border-color: #007bff;
             background: linear-gradient(135deg, #e3f2fd, #bbdefb);
             box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
         }
-        .table-card.available { border-left: 4px solid #28a745; }
+        .table-card.available {
+            border-left: 4px solid #28a745;
+            background: linear-gradient(135deg, #f8fff8, #fff);
+        }
         .table-card.partial {
             border-left: 4px solid #fd7e14;
             background: linear-gradient(135deg, #fff9e6, #fff3cd);
@@ -62,11 +84,13 @@
             border-left: 4px solid #dc3545;
             opacity: 0.6;
             cursor: not-allowed;
+            background: linear-gradient(135deg, #fff5f5, #fff);
         }
         .table-card.reserved {
             border-left: 4px solid #6c757d;
             opacity: 0.7;
             cursor: not-allowed;
+            background: linear-gradient(135deg, #f8f9fa, #fff);
         }
         .table-card.disabled {
             opacity: 0.5;
@@ -75,7 +99,7 @@
         }
         .table-card.disabled:hover {
             transform: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         .table-shape {
@@ -189,23 +213,29 @@
 
         .table-info {
             margin-top: 10px;
-            padding: 8px 5px;
+            padding: 10px 8px 5px;
             border-top: 1px solid #eee;
+            background: rgba(0,0,0,0.02);
+            border-radius: 0 0 10px 10px;
+            margin: 10px -15px -15px;
         }
         .table-info strong {
             font-size: 13px;
             color: #333;
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            font-weight: 600;
         }
         .table-info small {
             font-size: 11px;
             display: block;
-            margin-top: 3px;
+            margin-top: 2px;
+            line-height: 1.4;
         }
         .table-info small i,
         .table-info small svg {
             margin-right: 4px;
+            width: 12px;
         }
 
         /* Take Away button checked state */
@@ -445,7 +475,7 @@
                         <div class="card">
                             <div class="card-header pos_sidebar_button">
                                 @if($posSettings->show_customer)
-                                <div class="row w-100">
+                                <div class="row w-100 d-none" id="customerSelectionRow">
                                     <div class="col-md-9 col-lg-10">
                                         <div class="form-group mb-2">
                                             <select name="customer_id" id="customer_id" class="form-control select2">
@@ -945,46 +975,724 @@
     {{-- Running Orders Modal --}}
     <div class="modal fade" id="running-orders-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrdersModal"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header text-white" style="background: #47c363;">
-                    <h4 class="modal-title">
-                        <i class="fas fa-utensils me-2"></i>{{ __('Running Orders') }}
-                    </h4>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-xl running-orders-dialog" role="document">
+            <div class="modal-content running-orders-modal">
+                <div class="running-orders-header">
+                    <div class="header-icon">
+                        <i class="fas fa-concierge-bell"></i>
+                    </div>
+                    <div class="header-text">
+                        <h5 class="mb-0">{{ __('Running Orders') }}</h5>
+                        <small>{{ __('Active dine-in, takeaway & delivery orders') }}</small>
+                    </div>
+                    <button type="button" class="header-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-body" id="running-orders-content">
+                <div class="modal-body p-4" id="running-orders-content">
                     <div class="text-center py-5">
-                        <i class="fas fa-spinner fa-spin fa-3x text-info"></i>
-                        <p class="mt-3">{{ __('Loading running orders...') }}</p>
+                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <p class="mt-3 text-muted">{{ __('Loading running orders...') }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+    /* Running Orders Modal Styles */
+    .running-orders-modal {
+        border-radius: 16px;
+        overflow: hidden;
+        border: none;
+    }
+
+    .running-orders-header {
+        background: #696cff;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+    }
+
+    .running-orders-header .header-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #fff;
+    }
+
+    .running-orders-header .header-text h5 {
+        color: #fff;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .running-orders-header .header-text small {
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+    }
+
+    .running-orders-header .header-close-btn {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .running-orders-header .header-close-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    /* Running Order Card Styles */
+    .running-order-card {
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
+        border: 2px solid transparent !important;
+    }
+
+    .running-order-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(105,108,255,0.15) !important;
+        border-color: #696cff !important;
+    }
+
+    .running-order-card .card-body {
+        padding: 16px !important;
+    }
+
+    .running-order-card .order-badge {
+        background: #696cff;
+        color: #fff;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    .running-order-card .order-badge.dine-in {
+        background: #696cff;
+    }
+
+    .running-order-card .order-badge.take-away {
+        background: #71dd37;
+    }
+
+    .running-order-card .order-badge.delivery {
+        background: #03c3ec;
+    }
+
+    .running-order-card .order-invoice {
+        font-size: 12px;
+        font-weight: 700;
+        color: #697a8d;
+    }
+
+    .running-order-card .order-time {
+        font-size: 12px;
+        color: #a1acb8;
+    }
+
+    .running-order-card .order-meta-badge {
+        background: #f4f5fb;
+        color: #697a8d;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .running-order-card .order-status {
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    .running-order-card .order-status.preparing {
+        background: #ffab00;
+        color: #fff;
+    }
+
+    .running-order-card .order-status.ready {
+        background: #71dd37;
+        color: #fff;
+    }
+
+    .running-order-card .order-items-preview {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px 12px !important;
+        max-height: 72px;
+        overflow: hidden;
+    }
+
+    .running-order-card .order-items-preview .item-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .running-order-card .order-items-preview .item-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .running-order-card .order-items-preview .item-name {
+        color: #566a7f;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .running-order-card .order-items-preview .item-price {
+        font-weight: 600;
+        color: #566a7f;
+    }
+
+    .running-order-card .card-footer {
+        background: #fff !important;
+        border-top: 1px solid #f0f0f0 !important;
+        padding: 12px 16px !important;
+    }
+
+    .running-order-card .order-total {
+        font-size: 18px;
+        font-weight: 700;
+        color: #696cff;
+    }
+
+    .running-order-card .order-customer {
+        font-size: 12px;
+        color: #a1acb8;
+    }
+
+    /* Empty State */
+    .running-orders-empty {
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .running-orders-empty .empty-icon {
+        width: 80px;
+        height: 80px;
+        background: #f4f5fb;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+
+    .running-orders-empty .empty-icon i {
+        font-size: 32px;
+        color: #a1acb8;
+    }
+
+    .running-orders-empty h5 {
+        color: #566a7f;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .running-orders-empty p {
+        color: #a1acb8;
+        font-size: 14px;
+    }
+
+    /* Responsive - Tablet (768px - 1199px) */
+    @media (min-width: 768px) and (max-width: 1199px) {
+        .running-orders-dialog {
+            max-width: 95%;
+            margin: 1rem auto;
+        }
+
+        .running-order-card .card-body {
+            padding: 14px !important;
+        }
+
+        .running-order-card .order-items-preview {
+            max-height: 65px;
+        }
+
+        .running-order-card .order-items-preview .item-name {
+            max-width: 120px;
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 767px) {
+        .running-orders-header {
+            padding: 16px 20px;
+        }
+
+        .running-orders-header .header-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+        }
+
+        .running-orders-header .header-text h5 {
+            font-size: 16px;
+        }
+
+        #running-orders-content {
+            padding: 16px !important;
+        }
+
+        .running-order-card .order-total {
+            font-size: 16px;
+        }
+    }
+    </style>
+
     {{-- Order Details Modal --}}
     <div class="modal fade" id="order-details-modal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModal"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-receipt me-2"></i>{{ __('Order Details') }}
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-xl order-details-dialog" role="document">
+            <div class="modal-content order-details-modal">
+                <div class="order-details-header">
+                    <div class="header-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="header-text">
+                        <h5 class="mb-0">{{ __('Order Details') }}</h5>
+                        <small>{{ __('View and manage order') }}</small>
+                    </div>
+                    <button type="button" class="header-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-body" id="order-details-content">
+                <div class="modal-body p-4" id="order-details-content">
                     <div class="text-center py-5">
                         <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <p class="mt-3 text-muted">{{ __('Loading order details...') }}</p>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+    /* Order Details Modal Styles */
+    .order-details-modal {
+        border-radius: 16px;
+        overflow: hidden;
+        border: none;
+    }
+
+    #order-details-content {
+        max-height: calc(100vh - 150px);
+        overflow-y: auto;
+    }
+
+    .order-details-header {
+        background: #696cff;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+    }
+
+    .order-details-header .header-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #fff;
+    }
+
+    .order-details-header .header-text h5 {
+        color: #fff;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .order-details-header .header-text small {
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+    }
+
+    .order-details-header .header-close-btn {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .order-details-header .header-close-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    /* Order Details Content Styles */
+    .order-details-content .info-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+        border: none;
+        height: 100%;
+    }
+
+    .order-details-content .info-card.primary {
+        background: #f0f1ff;
+        border-left: 4px solid #696cff;
+    }
+
+    .order-details-content .info-card .info-icon {
+        width: 48px;
+        height: 48px;
+        background: #fff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .order-details-content .info-card .info-icon i {
+        font-size: 20px;
+        color: #696cff;
+    }
+
+    .order-details-content .info-card .info-label {
+        font-size: 12px;
+        color: #697a8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .order-details-content .info-card .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #566a7f;
+    }
+
+    .order-details-content .info-card .info-value.primary {
+        color: #696cff;
+    }
+
+    .order-details-content .duration-card {
+        background: #fff;
+        border: 2px solid #696cff;
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+
+    .order-details-content .duration-display {
+        font-family: 'Courier New', monospace;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #696cff;
+    }
+
+    .order-details-content .status-badge {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .order-details-content .progress-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .order-details-content .progress-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .order-details-content .progress-icon.ready {
+        background: #d4edda;
+        color: #28a745;
+    }
+
+    .order-details-content .progress-icon.cooking {
+        background: #fff3cd;
+        color: #ffc107;
+    }
+
+    .order-details-content .staff-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8f9fa;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    .order-details-content .staff-badge i {
+        color: #696cff;
+    }
+
+    .order-details-content .items-card {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .order-details-content .items-card .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 12px 16px;
+    }
+
+    .order-details-content .items-table {
+        margin-bottom: 0;
+    }
+
+    .order-details-content .items-table thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #697a8d;
+        padding: 12px 16px;
+    }
+
+    .order-details-content .items-table tbody td {
+        padding: 12px 16px;
+        vertical-align: middle;
+    }
+
+    .order-details-content .items-table tfoot td {
+        padding: 12px 16px;
+        background: #f8f9fa;
+    }
+
+    .order-details-content .qty-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 4px;
+    }
+
+    .order-details-content .qty-control .qty-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: #fff;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #697a8d;
+    }
+
+    .order-details-content .qty-control .qty-btn:hover {
+        background: #696cff;
+        color: #fff;
+    }
+
+    .order-details-content .qty-control .qty-input {
+        width: 40px;
+        height: 28px;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .order-details-content .remove-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: #fff5f5;
+        border-radius: 6px;
+        color: #dc3545;
+        cursor: pointer;
+        transition: all 0.2s;
+        opacity: 0.6;
+    }
+
+    .order-details-content .order-item-row:hover .remove-btn {
+        opacity: 1;
+    }
+
+    .order-details-content .remove-btn:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+
+    .order-details-content .total-row {
+        font-size: 18px;
+    }
+
+    .order-details-content .total-amount {
+        color: #696cff;
+        font-weight: 700;
+    }
+
+    .order-details-content .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px;
+        margin: 16px -24px -24px;
+        border-top: 1px solid #e9ecef;
+        position: sticky;
+        bottom: -24px;
+        background: #fff;
+        z-index: 10;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+    }
+
+    .order-details-content .action-buttons .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .order-details-content .action-buttons .btn-back {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        color: #697a8d;
+    }
+
+    .order-details-content .action-buttons .btn-back:hover {
+        background: #e9ecef;
+    }
+
+    .order-details-content .action-buttons .btn-cancel {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        background: transparent;
+    }
+
+    .order-details-content .action-buttons .btn-cancel:hover {
+        background: #dc3545;
+        color: #fff;
+    }
+
+    .order-details-content .action-buttons .btn-add {
+        background: #ffab00;
+        border: none;
+        color: #fff;
+    }
+
+    .order-details-content .action-buttons .btn-add:hover {
+        background: #ff9500;
+    }
+
+    .order-details-content .action-buttons .btn-pay {
+        background: #696cff;
+        border: none;
+        color: #fff;
+    }
+
+    .order-details-content .action-buttons .btn-pay:hover {
+        background: #5a5ee0;
+    }
+
+    /* Responsive - Tablet (768px - 1199px) */
+    @media (min-width: 768px) and (max-width: 1199px) {
+        .order-details-dialog {
+            max-width: 95%;
+            margin: 1rem auto;
+        }
+
+        .order-details-content .info-card {
+            padding: 12px;
+        }
+
+        .order-details-content .duration-display {
+            font-size: 24px;
+        }
+
+        .order-details-content .items-table thead th,
+        .order-details-content .items-table tbody td {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        .order-details-content .action-buttons {
+            flex-wrap: wrap;
+        }
+
+        .order-details-content .action-buttons .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 767px) {
+        .order-details-header {
+            padding: 16px 20px;
+        }
+
+        .order-details-header .header-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+        }
+
+        #order-details-content {
+            padding: 16px !important;
+        }
+
+        .order-details-content .duration-display {
+            font-size: 20px;
+        }
+
+        .order-details-content .action-buttons {
+            flex-direction: column;
+            margin: 16px -16px -16px;
+            bottom: -16px;
+            padding: 12px 16px;
+        }
+
+        .order-details-content .action-buttons > div {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .order-details-content .action-buttons .btn {
+            flex: 1;
+        }
+    }
+    </style>
 
     {{-- Running Order Payment Modal --}}
     <div class="modal fade" id="running-order-payment-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrderPaymentModal"
@@ -1170,23 +1878,25 @@
                 </div>
                 <div class="modal-body p-4">
                     <!-- Table Status Legend -->
-                    <div class="d-flex justify-content-center gap-4 mb-4">
-                        <span class="d-flex align-items-center">
-                            <span class="table-status-dot available me-2"></span>
-                            <small>{{ __('Available') }}</small>
-                        </span>
-                        <span class="d-flex align-items-center">
-                            <span class="table-status-dot partial me-2"></span>
-                            <small>{{ __('Partially Occupied') }}</small>
-                        </span>
-                        <span class="d-flex align-items-center">
-                            <span class="table-status-dot occupied me-2"></span>
-                            <small>{{ __('Fully Occupied') }}</small>
-                        </span>
-                        <span class="d-flex align-items-center">
-                            <span class="table-status-dot reserved me-2"></span>
-                            <small>{{ __('Reserved') }}</small>
-                        </span>
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="table-status-legend">
+                            <span class="d-flex align-items-center">
+                                <span class="table-status-dot available me-2"></span>
+                                <small class="text-muted">{{ __('Available') }}</small>
+                            </span>
+                            <span class="d-flex align-items-center">
+                                <span class="table-status-dot partial me-2"></span>
+                                <small class="text-muted">{{ __('Partially Occupied') }}</small>
+                            </span>
+                            <span class="d-flex align-items-center">
+                                <span class="table-status-dot occupied me-2"></span>
+                                <small class="text-muted">{{ __('Fully Occupied') }}</small>
+                            </span>
+                            <span class="d-flex align-items-center">
+                                <span class="table-status-dot reserved me-2"></span>
+                                <small class="text-muted">{{ __('Reserved') }}</small>
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Tables Grid -->
@@ -1348,84 +2058,438 @@
     <!-- Start Dine-In Order Modal -->
     <div class="modal fade" id="startDineInModal" tabindex="-1" role="dialog" aria-labelledby="startDineInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom">
-                    <h5 class="modal-title" id="startDineInModalLabel">
-                        <i class="fas fa-utensils me-2 text-primary"></i>{{ __('Start Dine-In Order') }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Selected Table Info -->
-                    <div class="border rounded p-3 mb-3 bg-light">
-                        <div class="d-flex align-items-center">
-                            <div class="table-icon me-3">
-                                <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                                    <i class="fas fa-chair fa-lg text-primary"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <h6 class="mb-1 fw-bold" id="dineInTableName">Table Name</h6>
-                                <small class="text-muted">
-                                    <i class="fas fa-users me-1"></i>
-                                    <span id="dineInTableCapacity">0</span> {{ __('seats') }}
-                                    <span class="ms-2" id="dineInAvailableSeats"></span>
-                                </small>
-                            </div>
-                        </div>
+            <div class="modal-content border-0 shadow-lg dine-in-modal">
+                <!-- Header with gradient -->
+                <div class="dine-in-modal-header">
+                    <div class="dine-in-header-icon">
+                        <i class="fas fa-utensils"></i>
                     </div>
-
-                    <!-- Guest Count -->
-                    <div class="mb-3">
-                        <label for="dineInGuestCount" class="form-label fw-bold">
-                            <i class="fas fa-users me-1 text-muted"></i>{{ __('Number of Guests') }} <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <button type="button" class="btn btn-outline-primary" onclick="adjustGuestCount(-1)">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="number" class="form-control text-center fw-bold" id="dineInGuestCount" value="1" min="1" max="20">
-                            <button type="button" class="btn btn-outline-primary" onclick="adjustGuestCount(1)">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <small class="text-muted" id="guestCountHint"></small>
+                    <div class="dine-in-header-text">
+                        <h5 class="mb-0">{{ __('Start Dine-In Order') }}</h5>
+                        <small>{{ __('Configure your table order') }}</small>
                     </div>
-
-                    <!-- Waiter Selection -->
-                    <div class="mb-3">
-                        <label for="dineInWaiter" class="form-label fw-bold">
-                            <i class="fas fa-user-tie me-1 text-muted"></i>{{ __('Assign Waiter') }}
-                        </label>
-                        <select class="form-control select2" id="dineInWaiter">
-                            <option value="">{{ __('-- Select Waiter --') }}</option>
-                            @foreach($waiters as $waiter)
-                                <option value="{{ $waiter->id }}" data-image="{{ $waiter->image ? asset($waiter->image) : '' }}">
-                                    {{ $waiter->name }} @if($waiter->designation) ({{ $waiter->designation }}) @endif
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Order Note (Optional) -->
-                    <div class="mb-3">
-                        <label for="dineInNote" class="form-label fw-bold">
-                            <i class="fas fa-sticky-note me-1 text-muted"></i>{{ __('Order Note') }} <small class="text-muted">({{ __('Optional') }})</small>
-                        </label>
-                        <textarea class="form-control" id="dineInNote" rows="2" placeholder="{{ __('Any special instructions...') }}"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
+                    <button type="button" class="dine-in-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button type="button" class="btn btn-primary" id="confirmStartDineIn">
-                        <i class="fas fa-check me-1"></i>{{ __('Start Order') }}
+                </div>
+
+                <div class="modal-body p-0">
+                    <!-- Selected Table Card -->
+                    <div class="dine-in-table-card">
+                        <div class="table-visual-mini" id="dineInTableVisual">
+                            <span id="dineInTableNumber">T1</span>
+                        </div>
+                        <div class="table-details">
+                            <h6 id="dineInTableName">Table Name</h6>
+                            <div class="table-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-chair"></i>
+                                    <span id="dineInTableCapacity">0</span> {{ __('seats') }}
+                                </span>
+                                <span class="meta-item" id="dineInAvailableSeats">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    {{ __('Available') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Content -->
+                    <div class="dine-in-form-content">
+                        <!-- Guest Count -->
+                        <div class="form-section">
+                            <label class="section-label">
+                                <i class="fas fa-users"></i>
+                                {{ __('Number of Guests') }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="guest-count-selector">
+                                <button type="button" class="guest-btn minus" onclick="adjustGuestCount(-1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <div class="guest-count-display">
+                                    <input type="number" id="dineInGuestCount" value="1" min="1" max="20" readonly>
+                                    <small>{{ __('guests') }}</small>
+                                </div>
+                                <button type="button" class="guest-btn plus" onclick="adjustGuestCount(1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block text-center mt-2" id="guestCountHint"></small>
+                        </div>
+
+                        <!-- Waiter Selection -->
+                        <div class="form-section">
+                            <label class="section-label">
+                                <i class="fas fa-user-tie"></i>
+                                {{ __('Assign Waiter') }}
+                                <span class="text-muted fw-normal">({{ __('Optional') }})</span>
+                            </label>
+                            <select class="form-control select2" id="dineInWaiter">
+                                <option value="">{{ __('-- Select Waiter --') }}</option>
+                                @foreach($waiters as $waiter)
+                                    <option value="{{ $waiter->id }}" data-image="{{ $waiter->image ? asset($waiter->image) : '' }}">
+                                        {{ $waiter->name }} @if($waiter->designation) ({{ $waiter->designation }}) @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Order Note -->
+                        <div class="form-section">
+                            <label class="section-label">
+                                <i class="fas fa-comment-alt"></i>
+                                {{ __('Order Note') }}
+                                <span class="text-muted fw-normal">({{ __('Optional') }})</span>
+                            </label>
+                            <textarea class="form-control" id="dineInNote" rows="2" placeholder="{{ __('Any special instructions or requests...') }}"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="dine-in-modal-footer">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+                        {{ __('Cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-start-order" id="confirmStartDineIn">
+                        <i class="fas fa-play-circle me-2"></i>
+                        {{ __('Start Order') }}
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+    /* Dine-In Modal Styles */
+    .dine-in-modal {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .dine-in-modal-header {
+        background: linear-gradient(135deg, #696cff 0%, #5a5ee0 100%);
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+    }
+
+    .dine-in-header-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #fff;
+    }
+
+    .dine-in-header-text h5 {
+        color: #fff;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .dine-in-header-text small {
+        color: rgba(255,255,255,0.8);
+        font-size: 13px;
+    }
+
+    .dine-in-close-btn {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgba(255,255,255,0.2);
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .dine-in-close-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    /* Table Card */
+    .dine-in-table-card {
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f1ff 100%);
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .table-visual-mini {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(145deg, #8B4513, #A0522D);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+
+    .table-visual-mini span {
+        color: #fff;
+        font-weight: 700;
+        font-size: 16px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .table-details h6 {
+        margin: 0 0 6px 0;
+        font-weight: 700;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .table-meta {
+        display: flex;
+        gap: 16px;
+    }
+
+    .table-meta .meta-item {
+        font-size: 13px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .table-meta .meta-item i {
+        font-size: 12px;
+    }
+
+    /* Form Content */
+    .dine-in-form-content {
+        padding: 24px;
+    }
+
+    .form-section {
+        margin-bottom: 24px;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 12px;
+    }
+
+    .section-label i {
+        color: #696cff;
+        font-size: 14px;
+    }
+
+    /* Guest Count Selector */
+    .guest-count-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .guest-btn {
+        width: 48px;
+        height: 48px;
+        border: 2px solid #e0e0e0;
+        background: #fff;
+        border-radius: 12px;
+        font-size: 18px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .guest-btn:hover {
+        border-color: #696cff;
+        color: #696cff;
+        background: #f8f9ff;
+    }
+
+    .guest-btn:active {
+        transform: scale(0.95);
+    }
+
+    .guest-btn.minus:hover {
+        border-color: #dc3545;
+        color: #dc3545;
+        background: #fff5f5;
+    }
+
+    .guest-btn.plus:hover {
+        border-color: #28a745;
+        color: #28a745;
+        background: #f5fff5;
+    }
+
+    .guest-count-display {
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .guest-count-display input {
+        width: 60px;
+        height: 50px;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: #333;
+        padding: 0;
+    }
+
+    .guest-count-display input:focus {
+        outline: none;
+    }
+
+    .guest-count-display small {
+        display: block;
+        color: #888;
+        font-size: 12px;
+        margin-top: -5px;
+    }
+
+    /* Select2 styling for this modal */
+    #startDineInModal .select2-container--default .select2-selection--single {
+        height: 46px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 8px 12px;
+    }
+
+    #startDineInModal .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px;
+        padding-left: 0;
+    }
+
+    #startDineInModal .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 44px;
+    }
+
+    #startDineInModal textarea.form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px;
+        resize: none;
+    }
+
+    #startDineInModal textarea.form-control:focus {
+        border-color: #696cff;
+        box-shadow: 0 0 0 3px rgba(105,108,255,0.1);
+    }
+
+    /* Footer */
+    .dine-in-modal-footer {
+        padding: 16px 24px;
+        background: #f8f9fa;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .dine-in-modal-footer .btn-cancel {
+        padding: 12px 24px;
+        border: 2px solid #e0e0e0;
+        background: #fff;
+        color: #666;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .dine-in-modal-footer .btn-cancel:hover {
+        border-color: #ccc;
+        background: #f5f5f5;
+    }
+
+    .dine-in-modal-footer .btn-start-order {
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #696cff 0%, #5a5ee0 100%);
+        border: none;
+        color: #fff;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .dine-in-modal-footer .btn-start-order:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(105,108,255,0.4);
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .dine-in-modal-header {
+            padding: 16px 20px;
+        }
+
+        .dine-in-header-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+        }
+
+        .dine-in-table-card {
+            padding: 16px 20px;
+        }
+
+        .table-visual-mini {
+            width: 50px;
+            height: 50px;
+        }
+
+        .dine-in-form-content {
+            padding: 20px;
+        }
+
+        .guest-count-selector {
+            gap: 15px;
+            padding: 12px;
+        }
+
+        .guest-btn {
+            width: 42px;
+            height: 42px;
+        }
+
+        .guest-count-display input {
+            font-size: 28px;
+        }
+
+        .dine-in-modal-footer {
+            padding: 16px 20px;
+        }
+
+        .dine-in-modal-footer .btn {
+            flex: 1;
+        }
+    }
+    </style>
 
     <!-- POS Receipt Modal -->
     <div class="modal fade" id="posReceiptModal" tabindex="-1" role="dialog" aria-labelledby="posReceiptModalLabel" aria-hidden="true">
@@ -1644,13 +2708,19 @@
                     if (orderType === 'dine_in') {
                         $('#tableSelectionRow').removeClass('d-none');
                         $('#deliveryInfoRow').addClass('d-none');
+                        $('#customerSelectionRow').addClass('d-none');
+                        $('#customerLoyaltyRow').addClass('d-none');
+                        // Reset customer to walk-in for dine-in
+                        $('#customer_id').val('walk-in-customer').trigger('change');
                     } else if (orderType === 'delivery') {
                         $('#tableSelectionRow').addClass('d-none');
                         $('#deliveryInfoRow').removeClass('d-none');
+                        $('#customerSelectionRow').removeClass('d-none');
                         clearTableSelection();
                     } else { // take_away
                         $('#tableSelectionRow').addClass('d-none');
                         $('#deliveryInfoRow').addClass('d-none');
+                        $('#customerSelectionRow').removeClass('d-none');
                         clearTableSelection();
                     }
                     updatePaymentButtonState();
@@ -1681,6 +2751,9 @@
                 // Initialize payment button state on page load
                 updatePaymentButtonState();
 
+                // Initialize customer selection visibility based on order type
+                $('input[name="order_type_radio"]:checked').trigger('change');
+
                 // Table Selection Modal
                 $('#openTableModal').on('click', function() {
                     $('#tableSelectionModal').modal('show');
@@ -1694,11 +2767,15 @@
                         $('#dineInTableName').text(selectedTableData.name);
                         $('#dineInTableCapacity').text(selectedTableData.capacity);
 
+                        // Update table number visual
+                        const tableNumber = selectedCard.find('.table-number').text() || 'T' + selectedTableData.id;
+                        $('#dineInTableNumber').text(tableNumber);
+
                         // Show available seats if partially occupied
                         if (selectedTableData.occupiedSeats > 0) {
-                            $('#dineInAvailableSeats').html('<span class="badge bg-warning text-dark">' + selectedTableData.availableSeats + ' {{ __("available") }}</span>');
+                            $('#dineInAvailableSeats').html('<i class="fas fa-exclamation-circle text-warning"></i> ' + selectedTableData.availableSeats + ' {{ __("available") }}');
                         } else {
-                            $('#dineInAvailableSeats').html('<span class="badge bg-success">{{ __("All available") }}</span>');
+                            $('#dineInAvailableSeats').html('<i class="fas fa-check-circle text-success"></i> {{ __("All available") }}');
                         }
 
                         // Set max guest count based on available seats
@@ -4328,11 +5405,22 @@
             $('#dineInTableName').text(tableName);
             $('#dineInTableCapacity').text(tableSeats);
 
+            // Update table number visual - extract short name
+            let tableNumber = tableName.replace(/[^A-Za-z0-9]/g, '').substring(0, 4).toUpperCase();
+            if (tableName.toLowerCase().includes('table')) {
+                tableNumber = 'T' + tableName.replace(/\D/g, '');
+            } else if (tableName.toLowerCase().includes('patio')) {
+                tableNumber = 'P' + tableName.replace(/\D/g, '');
+            } else if (tableName.toLowerCase().includes('vip')) {
+                tableNumber = 'VIP' + tableName.replace(/\D/g, '');
+            }
+            $('#dineInTableNumber').text(tableNumber || 'T1');
+
             // Show available seats if partially occupied
             if (occupiedSeats > 0) {
-                $('#dineInAvailableSeats').html('<span class="badge bg-warning text-dark">' + availableSeats + ' {{ __("available") }}</span>');
+                $('#dineInAvailableSeats').html('<i class="fas fa-exclamation-circle text-warning"></i> ' + availableSeats + ' {{ __("available") }}');
             } else {
-                $('#dineInAvailableSeats').html('<span class="badge bg-success">{{ __("All available") }}</span>');
+                $('#dineInAvailableSeats').html('<i class="fas fa-check-circle text-success"></i> {{ __("All available") }}');
             }
 
             // Set max guest count based on available seats
