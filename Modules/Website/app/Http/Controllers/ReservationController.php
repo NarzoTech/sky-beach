@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Website\app\Models\Booking;
+use Modules\Website\app\Models\Blog;
+use Modules\Menu\app\Models\MenuItem;
 
 class ReservationController extends Controller
 {
@@ -20,7 +22,24 @@ class ReservationController extends Controller
         // Pre-fill user data if logged in
         $user = Auth::user();
 
-        return view('website::reservation', compact('tablePreferences', 'timeSlots', 'user'));
+        // Get gallery items (featured menu items)
+        $galleryItems = MenuItem::with('category')
+            ->active()
+            ->available()
+            ->forWebsite()
+            ->featured()
+            ->ordered()
+            ->take(6)
+            ->get();
+
+        // Get recent blogs
+        $recentBlogs = Blog::active()
+            ->published()
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return view('website::reservation', compact('tablePreferences', 'timeSlots', 'user', 'galleryItems', 'recentBlogs'));
     }
 
     /**

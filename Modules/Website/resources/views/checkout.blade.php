@@ -168,8 +168,11 @@
                                     <div class="order_item">
                                         <div class="d-flex justify-content-between">
                                             <div class="item_info">
-                                                <strong>{{ $item->menuItem->name ?? 'Item' }}</strong>
+                                                <strong>{{ $item->item_name }}</strong>
                                                 <span class="quantity">x{{ $item->quantity }}</span>
+                                                @if($item->is_combo && $item->combo)
+                                                    <small class="d-block text-muted">{{ __('Combo Pack') }}</small>
+                                                @endif
                                                 @if($item->variant_name)
                                                     <small class="d-block text-muted">{{ $item->variant_name }}</small>
                                                 @endif

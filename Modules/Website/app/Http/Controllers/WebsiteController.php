@@ -372,7 +372,24 @@ class WebsiteController extends Controller
      */
     public function reservation()
     {
-        return view('website::reservation');
+        // Get gallery items (featured menu items)
+        $galleryItems = MenuItem::with('category')
+            ->active()
+            ->available()
+            ->forWebsite()
+            ->featured()
+            ->ordered()
+            ->take(6)
+            ->get();
+
+        // Get recent blogs
+        $recentBlogs = Blog::active()
+            ->published()
+            ->latest()
+            ->take(3)
+            ->get();
+
+        return view('website::reservation', compact('galleryItems', 'recentBlogs'));
     }
 
     /**
