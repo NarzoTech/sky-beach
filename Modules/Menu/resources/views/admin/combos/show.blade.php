@@ -141,17 +141,17 @@
                                                 </tbody>
                                                 <tfoot>
                                                     <tr class="table-secondary">
-                                                        <th colspan="4">{{ __('Total Original Price') }}</th>
-                                                        <th>{{ number_format($totalOriginal, 2) }}</th>
+                                                        <th colspan="4" class="text-end">{{ __('Total Original Price') }}</th>
+                                                        <th class="text-end">{{ number_format($totalOriginal, 2) }}</th>
                                                     </tr>
                                                     <tr class="table-success">
-                                                        <th colspan="4">{{ __('Combo Price') }}</th>
-                                                        <th>{{ number_format($combo->combo_price, 2) }}</th>
+                                                        <th colspan="4" class="text-end">{{ __('Combo Price') }}</th>
+                                                        <th class="text-end">{{ number_format($combo->combo_price, 2) }}</th>
                                                     </tr>
                                                     @if ($combo->savings > 0)
                                                         <tr class="table-info">
-                                                            <th colspan="4">{{ __('Customer Saves') }}</th>
-                                                            <th>{{ number_format($combo->savings, 2) }}</th>
+                                                            <th colspan="4" class="text-end">{{ __('Customer Saves') }}</th>
+                                                            <th class="text-end">{{ number_format($combo->savings, 2) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tfoot>

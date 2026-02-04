@@ -38,7 +38,7 @@
                                             @endif
                                         </div>
 
-                                        <div class="mt-3">
+                                        <div class="mt-3 mb-3">
                                             <h5>{{ __('Dietary Info') }}</h5>
                                             @if ($item->is_vegetarian)
                                                 <span class="badge bg-success">{{ __('Vegetarian') }}</span>
