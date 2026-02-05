@@ -2,7 +2,7 @@
 @section('title', __('Update Role'))
 @section('content')
 
-    <div class="card">
+    <div class="card mb-3 page-title-card">
         <div class="card-header d-flex justify-content-between">
             <h4 class="section_title">{{ __('Update Role') }}</h4>
             <div>
@@ -12,6 +12,8 @@
                 @endadminCan
             </div>
         </div>
+    </div>
+    <div class="card">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">

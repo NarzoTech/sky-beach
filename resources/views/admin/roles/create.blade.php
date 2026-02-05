@@ -3,19 +3,19 @@
 @section('content')
 
     <div class="section-body">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between">
-                        <h4 class="section_title">{{ __('Create Role') }}</h4>
-                        <div>
-                            @adminCan('role.view')
-                                <a href="{{ route('admin.role.index') }}" class="btn btn-primary"><i class="fa fa-arrow-left"></i>
-                                    {{ __('Back') }}</a>
-                            @endadminCan
-                        </div>
-                    </div>
-                    <div class="card-body">
+        <div class="card mb-3 page-title-card">
+            <div class="card-header d-flex justify-content-between">
+                <h4 class="section_title">{{ __('Create Role') }}</h4>
+                <div>
+                    @adminCan('role.view')
+                        <a href="{{ route('admin.role.index') }}" class="btn btn-primary"><i class="fa fa-arrow-left"></i>
+                            {{ __('Back') }}</a>
+                    @endadminCan
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
                                 <form role="form" action="{{ route('admin.role.store') }}" method="POST">
@@ -96,8 +96,6 @@
                                 </form>
                             </div>
                         </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

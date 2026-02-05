@@ -628,6 +628,10 @@ img.mr-3.ml-3.rounded-circle {
     justify-content: space-between;
 }
 
+.page-title-card .card-header {
+    margin-bottom: 0;
+}
+
 .form-group,
 .form-group .nice-select {
     margin-bottom: 20px;

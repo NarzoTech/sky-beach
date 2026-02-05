@@ -6,19 +6,13 @@
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="fw-bold mb-0">{{ __('Edit Service') }}</h4>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.restaurant.website-services.index') }}">{{ __('Services') }}</a></li>
-                    <li class="breadcrumb-item active">{{ Str::limit($websiteService->title, 30) }}</li>
-                </ol>
-            </nav>
+    <div class="card mb-3 page-title-card">
+        <div class="card-header d-flex justify-content-between">
+            <h4 class="section_title">{{ __('Edit Service') }}</h4>
+            <a href="{{ route('admin.restaurant.website-services.index') }}" class="btn btn-primary">
+                <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+            </a>
         </div>
-        <a href="{{ route('admin.restaurant.website-services.index') }}" class="btn btn-outline-secondary">
-            <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
-        </a>
     </div>
 
     <form action="{{ route('admin.restaurant.website-services.update', $websiteService) }}" method="POST" enctype="multipart/form-data">

@@ -4,20 +4,16 @@
     <div class="main-content">
         <section class="section">
             <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <h4 class="section_title">{{ __('Add Menu Add-on') }}</h4>
-                                <div>
-                                    <a href="{{ route('admin.menu-addon.index') }}" class="btn btn-primary">
-                                        <i class="fa fa-arrow-left"></i> {{ __('Back') }}
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="{{ route('admin.menu-addon.store') }}" method="post" enctype="multipart/form-data">
-                                    @csrf
+                <div class="card mb-3 page-title-card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h4 class="section_title">{{ __('Add Menu Add-on') }}</h4>
+                        <a href="{{ route('admin.menu-addon.index') }}" class="btn btn-primary">
+                            <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                        </a>
+                    </div>
+                </div>
+                <form action="{{ route('admin.menu-addon.store') }}" method="post" enctype="multipart/form-data">
+                    @csrf
                                     <div class="row">
                                         <div class="col-lg-8">
                                             <div class="card">
@@ -97,10 +93,6 @@
                                         </div>
                                     </div>
                                 </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>

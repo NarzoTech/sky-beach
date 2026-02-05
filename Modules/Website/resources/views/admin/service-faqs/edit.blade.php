@@ -6,11 +6,13 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold">{{ __('Edit Service FAQ') }}</h4>
-            <a href="{{ route('admin.restaurant.service-faqs.index') }}" class="btn btn-secondary">
-                <i class="bx bx-arrow-back"></i> {{ __('Back') }}
-            </a>
+        <div class="card mb-3 page-title-card">
+            <div class="card-header d-flex justify-content-between">
+                <h4 class="section_title">{{ __('Edit Service FAQ') }}</h4>
+                <a href="{{ route('admin.restaurant.service-faqs.index') }}" class="btn btn-primary">
+                    <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                </a>
+            </div>
         </div>
 
         <form action="{{ route('admin.restaurant.service-faqs.update', $serviceFaq) }}" method="POST">

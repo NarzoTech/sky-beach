@@ -6,11 +6,13 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold">{{ __('Edit Page Section') }}</h4>
-            <a href="{{ route('admin.cms.page-sections.index') }}" class="btn btn-secondary">
-                <i class="bx bx-arrow-back"></i> {{ __('Back') }}
-            </a>
+        <div class="card mb-3 page-title-card">
+            <div class="card-header d-flex justify-content-between">
+                <h4 class="section_title">{{ __('Edit Page Section') }}</h4>
+                <a href="{{ route('admin.cms.page-sections.index') }}" class="btn btn-primary">
+                    <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                </a>
+            </div>
         </div>
 
         <div class="card">

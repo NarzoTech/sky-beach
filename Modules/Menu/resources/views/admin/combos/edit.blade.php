@@ -4,21 +4,17 @@
     <div class="main-content">
         <section class="section">
             <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <h4 class="section_title">{{ __('Edit Combo Deal') }}: {{ $combo->name }}</h4>
-                                <div>
-                                    <a href="{{ route('admin.combo.index') }}" class="btn btn-primary">
-                                        <i class="fa fa-arrow-left"></i> {{ __('Back') }}
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <form action="{{ route('admin.combo.update', $combo->id) }}" method="post" enctype="multipart/form-data">
-                                    @csrf
-                                    @method('PUT')
+                <div class="card mb-3 page-title-card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h4 class="section_title">{{ __('Edit Combo Deal') }}: {{ $combo->name }}</h4>
+                        <a href="{{ route('admin.combo.index') }}" class="btn btn-primary">
+                            <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                        </a>
+                    </div>
+                </div>
+                <form action="{{ route('admin.combo.update', $combo->id) }}" method="post" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
                                     <div class="row">
                                         <div class="col-lg-8">
                                             <!-- Basic Information -->
@@ -285,10 +281,6 @@
                                         </div>
                                     </div>
                                 </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>

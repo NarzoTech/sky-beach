@@ -4,28 +4,19 @@
 @section('content')
     <div class="main-content">
         <section class="section">
-            <div class="section-header">
-
-
-                <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active">
-                        <a href="{{ route('admin.dashboard') }}">{{ __('Dashboard') }}</a>
-                    </div>
-
-                </div>
-            </div>
             <div class="section-body">
-                <div class="row">
-                    <div class="col-md-12">
-
-                        <form method="POST" action="{{ route('admin.notice.store') }}" enctype="multipart/form-data">
-                            @csrf
-                            <div class="card">
-                                <div class="card-header">
-                                    <div class="card-title">{{ __('Create Notice') }}</div>
-                                </div>
-
-                                <div class="card-body">
+                <div class="card mb-3 page-title-card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h4 class="section_title">{{ __('Create Notice') }}</h4>
+                        <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">
+                            <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                        </a>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('admin.notice.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="card">
+                        <div class="card-body">
 
                                     <div class="form-group row">
                                         <div class="col-md-6">
@@ -54,8 +45,6 @@
 
                         </form>
 
-                    </div>
-                </div>
             </div>
         </section>
     </div>

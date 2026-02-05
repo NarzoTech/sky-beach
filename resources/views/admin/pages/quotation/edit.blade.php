@@ -5,21 +5,20 @@
     <div class="main-content">
         <section class="section">
             <div class="section-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <form method="POST" action="{{ route('admin.quotation.update', $quotation->id) }}"
-                            enctype="multipart/form-data">
-                            @csrf
-                            @method('PUT')
-                            <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div class="section_title">{{ __('Edit Quotation') }} #{{ $quotation->quotation_no }}</div>
-                                    <a href="{{ route('admin.quotation.index') }}" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-arrow-left me-1"></i>{{ __('Back') }}
-                                    </a>
-                                </div>
-
-                                <div class="card-body">
+                <div class="card mb-3 page-title-card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h4 class="section_title">{{ __('Edit Quotation') }} #{{ $quotation->quotation_no }}</h4>
+                        <a href="{{ route('admin.quotation.index') }}" class="btn btn-primary">
+                            <i class="fa fa-arrow-left"></i> {{ __('Back') }}
+                        </a>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('admin.quotation.update', $quotation->id) }}"
+                    enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="card">
+                        <div class="card-body">
                                     <div class="row">
                                         <!-- Customer Selection with Add New Option -->
                                         <div class="col-md-6">
@@ -189,8 +188,6 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
             </div>
         </section>
     </div>
