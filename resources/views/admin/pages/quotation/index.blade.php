@@ -68,16 +68,6 @@
             <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
                 <h4 class="section_title"> {{ __('Quotation List') }}</h4>
             </div>
-            <div class="btn-actions-pane-right actions-icon-btn">
-                @adminCan('quotation.excel.download')
-                    <button type="button" class="btn bg-label-success export"><i class="fa fa-file-excel"></i>
-                        {{ __('Excel') }}</button>
-                @endadminCan
-                @adminCan('quotation.pdf.download')
-                    <button type="button" class="btn bg-label-warning export-pdf"><i class="fa fa-file-pdf"></i>
-                        {{ __('PDF') }}</button>
-                @endadminCan
-            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive list_table">
@@ -104,8 +94,7 @@
                                 <td>
                                     @if (checkAdminHasPermission('quotation.delete') ||
                                             checkAdminHasPermission('quotation.edit') ||
-                                            checkAdminHasPermission('quotation.view') ||
-                                            checkAdminHasPermission('pos.view'))
+                                            checkAdminHasPermission('quotation.view'))
                                         <div class="btn-group" role="group">
                                             <button id="btnGroupDrop{{ $quotation->id }}" type="button"
                                                 class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
@@ -121,10 +110,6 @@
                                                     <a href="{{ route('admin.quotation.edit', $quotation->id) }}"
                                                         class="dropdown-item">{{ __('Edit') }}</a>
                                                 @endadminCan
-                                                @adminCan('pos.view')
-                                                    <a href="{{ route('admin.pos') }}?quotation_id={{ $quotation->id }}"
-                                                        class="dropdown-item">{{ __('Sale') }}</a>
-                                                @endadminCan
                                                 @adminCan('quotation.delete')
                                                     <a href="javascript:;" class="dropdown-item"
                                                         onclick="deleteData({{ $quotation->id }})">{{ __('Delete') }}</a>
@@ -135,15 +120,6 @@
                                 </td>
                             </tr>
                         @endforeach
-                        <tr>
-                            <td colspan="4" class="text-center">
-                                <b> {{ __('Total') }}</b>
-                            </td>
-                            <td colspan="1">
-                                <b>{{ currency($data['total']) }}</b>
-                            </td>
-
-                        </tr>
                     </tbody>
                 </table>
             </div>
