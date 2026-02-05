@@ -263,6 +263,28 @@ class SectionService
             ],
         ],
 
+        // ============ MENU DETAIL PAGE SECTIONS ============
+        'menu_detail_featured_offer' => [
+            'label' => 'Featured Offer',
+            'fields' => ['title', 'description', 'button_text'],
+            'validation' => [
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string|max:1000',
+                'button_text' => 'nullable|string|max:50',
+            ],
+        ],
+        'menu_detail_sidebar_banner' => [
+            'label' => 'Sidebar Banner',
+            'fields' => ['title', 'subtitle', 'image', 'button_text', 'button_link'],
+            'validation' => [
+                'title' => 'nullable|string|max:255',
+                'subtitle' => 'nullable|string|max:255',
+                'image' => 'nullable|image|max:2048',
+                'button_text' => 'nullable|string|max:50',
+                'button_link' => 'nullable|string|max:255',
+            ],
+        ],
+
         // ============ RESERVATION PAGE SECTIONS ============
         'reservation_breadcrumb' => [
             'label' => 'Reservation Breadcrumb',
@@ -377,6 +399,10 @@ class SectionService
             'menu' => [
                 'menu_breadcrumb',
                 'menu_filters',
+            ],
+            'menu_detail' => [
+                'menu_detail_featured_offer',
+                'menu_detail_sidebar_banner',
             ],
             'reservation' => [
                 'reservation_breadcrumb',

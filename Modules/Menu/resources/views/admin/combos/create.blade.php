@@ -159,13 +159,30 @@
                                                     <h5>{{ __('Image') }}</h5>
                                                 </div>
                                                 <div class="card-body">
+                                                    <div id="image-preview" class="mb-3"></div>
                                                     <div class="form-group">
                                                         <input type="file" name="image" class="form-control" id="image" accept="image/*">
                                                         @error('image')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
-                                                    <div id="image-preview" class="mt-2"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Gallery Images -->
+                                            <div class="card mt-3">
+                                                <div class="card-header">
+                                                    <h5>{{ __('Gallery Images') }}</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="form-group">
+                                                        <input type="file" name="gallery[]" class="form-control" id="gallery" accept="image/*" multiple>
+                                                        <small class="text-muted">{{ __('Additional images for detail page (max 5)') }}</small>
+                                                        @error('gallery.*')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <div id="gallery-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
                                                 </div>
                                             </div>
 
@@ -255,6 +272,24 @@
                         $('#image-preview').html('<img src="' + e.target.result + '" style="max-width: 100%; max-height: 200px; border-radius: 5px;">');
                     }
                     reader.readAsDataURL(file);
+                }
+            });
+
+            // Gallery preview
+            $('#gallery').on('change', function() {
+                var files = this.files;
+                $('#gallery-preview').html('');
+                if (files.length > 5) {
+                    alert('{{ __("Maximum 5 gallery images allowed") }}');
+                    this.value = '';
+                    return;
+                }
+                for (var i = 0; i < files.length; i++) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#gallery-preview').append('<img src="' + e.target.result + '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">');
+                    }
+                    reader.readAsDataURL(files[i]);
                 }
             });
 

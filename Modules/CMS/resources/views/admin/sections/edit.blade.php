@@ -9,14 +9,36 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold mb-1">{{ __('Edit') }} {{ $config['label'] ?? ucwords(str_replace('_', ' ', $section)) }}</h4>
+            @php
+                $backRoutes = [
+                    'home' => 'admin.cms.sections.homepage',
+                    'about' => 'admin.cms.sections.about',
+                    'contact' => 'admin.cms.sections.contact',
+                    'menu' => 'admin.cms.sections.menu',
+                    'menu_detail' => 'admin.cms.sections.menu-detail',
+                    'reservation' => 'admin.cms.sections.reservation',
+                    'service' => 'admin.cms.sections.service',
+                ];
+                $backRoute = $backRoutes[$pageName] ?? 'admin.cms.sections.homepage';
+                $pageLabels = [
+                    'home' => 'Homepage',
+                    'about' => 'About Page',
+                    'contact' => 'Contact Page',
+                    'menu' => 'Menu Page',
+                    'menu_detail' => 'Menu Detail Page',
+                    'reservation' => 'Reservation Page',
+                    'service' => 'Service Page',
+                ];
+                $pageLabel = $pageLabels[$pageName] ?? 'Homepage';
+            @endphp
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.cms.sections.homepage') }}">{{ __('Homepage') }}</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route($backRoute) }}">{{ __($pageLabel) }}</a></li>
                     <li class="breadcrumb-item active">{{ $config['label'] ?? $section }}</li>
                 </ol>
             </nav>
         </div>
-        <a href="{{ route('admin.cms.sections.homepage') }}" class="btn btn-outline-secondary">
+        <a href="{{ route($backRoute) }}" class="btn btn-outline-secondary">
             <i class="bx bx-arrow-back me-1"></i> {{ __('Back to Sections') }}
         </a>
     </div>

@@ -197,6 +197,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::get('sections/about', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'aboutPage'])->name('sections.about');
         Route::get('sections/contact', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'contactPage'])->name('sections.contact');
         Route::get('sections/menu', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'menuPage'])->name('sections.menu');
+        Route::get('sections/menu-detail', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'menuDetailPage'])->name('sections.menu-detail');
         Route::get('sections/reservation', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'reservationPage'])->name('sections.reservation');
         Route::get('sections/service', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'servicePage'])->name('sections.service');
         Route::get('sections/{section}/edit', [\Modules\CMS\app\Http\Controllers\SectionController::class, 'editSection'])->name('sections.edit');

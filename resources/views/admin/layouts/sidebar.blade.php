@@ -210,9 +210,14 @@
                             <i class='bx bx-envelope me-2'></i>{{ __('Contact Page') }}
                         </a>
                     </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/menu*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu') ? 'active' : '' }}">
+                    <li class="menu-item {{ request()->is('admin/cms/sections/menu') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu') ? 'active' : '' }}">
                         <a class="menu-link" href="{{ route('admin.cms.sections.menu') }}">
                             <i class='bx bx-food-menu me-2'></i>{{ __('Menu Page') }}
+                        </a>
+                    </li>
+                    <li class="menu-item {{ request()->is('admin/cms/sections/menu-detail*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu_detail') ? 'active' : '' }}">
+                        <a class="menu-link" href="{{ route('admin.cms.sections.menu-detail') }}">
+                            <i class='bx bx-detail me-2'></i>{{ __('Menu Detail Page') }}
                         </a>
                     </li>
                     <li class="menu-item {{ request()->is('admin/cms/sections/reservation*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'reservation') ? 'active' : '' }}">

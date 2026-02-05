@@ -3,7 +3,6 @@
 namespace Modules\Menu\app\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\Menu\app\Models\Combo;
 use Modules\Menu\app\Models\ComboItem;
@@ -89,7 +88,18 @@ class ComboService
 
         // Handle image upload
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
-            $data['image'] = $this->uploadImage($data['image']);
+            $data['image'] = file_upload($data['image'], 'uploads/combos/');
+        }
+
+        // Handle gallery upload
+        if (isset($data['gallery']) && is_array($data['gallery'])) {
+            $gallery = [];
+            foreach ($data['gallery'] as $image) {
+                if ($image instanceof UploadedFile) {
+                    $gallery[] = file_upload($image, 'uploads/combos/');
+                }
+            }
+            $data['gallery'] = $gallery;
         }
 
         // Calculate original price if items are provided
@@ -116,11 +126,24 @@ class ComboService
 
         // Handle image upload
         if (isset($data['image']) && $data['image'] instanceof UploadedFile) {
-            // Delete old image
-            if ($combo->image) {
-                Storage::disk('public')->delete($combo->image);
+            $data['image'] = file_upload($data['image'], 'uploads/combos/', $combo->image);
+        }
+
+        // Handle gallery upload
+        if (isset($data['gallery']) && is_array($data['gallery'])) {
+            // Delete old gallery images
+            if ($combo->gallery && is_array($combo->gallery)) {
+                foreach ($combo->gallery as $oldImage) {
+                    delete_file($oldImage);
+                }
             }
-            $data['image'] = $this->uploadImage($data['image']);
+            $gallery = [];
+            foreach ($data['gallery'] as $image) {
+                if ($image instanceof UploadedFile) {
+                    $gallery[] = file_upload($image, 'uploads/combos/');
+                }
+            }
+            $data['gallery'] = $gallery;
         }
 
         $combo->update($data);
@@ -141,7 +164,14 @@ class ComboService
     {
         // Delete image
         if ($combo->image) {
-            Storage::disk('public')->delete($combo->image);
+            delete_file($combo->image);
+        }
+
+        // Delete gallery images
+        if ($combo->gallery && is_array($combo->gallery)) {
+            foreach ($combo->gallery as $image) {
+                delete_file($image);
+            }
         }
 
         // Delete items
@@ -224,15 +254,6 @@ class ComboService
         $combo->update(['original_price' => $originalPrice]);
 
         return $combo->fresh();
-    }
-
-    /**
-     * Upload combo image
-     */
-    protected function uploadImage(UploadedFile $file): string
-    {
-        $filename = 'combo_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        return $file->storeAs('menu/combos', $filename, 'public');
     }
 
     /**

@@ -17,6 +17,7 @@ class Combo extends Model
         'slug',
         'description',
         'image',
+        'gallery',
         'combo_price',
         'original_price',
         'discount_type',
@@ -25,6 +26,7 @@ class Combo extends Model
         'end_date',
         'is_active',
         'status',
+        'display_order',
     ];
 
     protected $casts = [
@@ -35,9 +37,10 @@ class Combo extends Model
         'end_date' => 'date',
         'is_active' => 'boolean',
         'status' => 'boolean',
+        'gallery' => 'array',
     ];
 
-    protected $appends = ['image_url', 'savings', 'savings_percentage', 'is_currently_available'];
+    protected $appends = ['image_url', 'gallery_urls', 'savings', 'savings_percentage', 'is_currently_available'];
 
     protected static function boot()
     {
@@ -59,6 +62,14 @@ class Combo extends Model
     public function getImageUrlAttribute()
     {
         return image_url($this->image, 'assets/images/placeholder.png');
+    }
+
+    public function getGalleryUrlsAttribute()
+    {
+        if ($this->gallery && is_array($this->gallery)) {
+            return array_map(fn($img) => image_url($img), $this->gallery);
+        }
+        return [];
     }
 
     public function getSavingsAttribute()

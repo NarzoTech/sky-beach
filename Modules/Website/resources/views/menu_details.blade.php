@@ -229,7 +229,7 @@
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-8 d-lg-none d-xl-block wow fadeInRight">
+                <div class="col-xl-3 col-md-8 d-lg-none d-xl-block wow fadeInRight" style="visibility: visible; animation-name: fadeInRight;">
                     <div class="">
                         <!-- Allergen Info -->
                         @if ($menuItem->allergens && count($menuItem->allergens) > 0)
@@ -241,10 +241,30 @@
                             </div>
                         @endif
 
+                        <!-- Featured Offer -->
                         @php
-                            $sidebarBanner = cms_banner('sidebar');
+                            $featuredOffer = site_section('menu_detail_featured_offer', 'menu_detail');
                         @endphp
-                        @if ($sidebarBanner)
+                        @if ($featuredOffer && $featuredOffer->section_status)
+                            <div class="menu_details_offer">
+                                <p>{{ $featuredOffer->title }}</p>
+                                @if ($featuredOffer->description)
+                                    <a tabindex="0" data-bs-placement="bottom" data-bs-toggle="popover"
+                                        data-bs-trigger="focus" data-bs-custom-class="custom-popover"
+                                        data-bs-title="{{ $featuredOffer->title }}"
+                                        data-bs-content="{{ strip_tags($featuredOffer->description) }}">
+                                        {{ $featuredOffer->button_text ?? __('learn more') }}
+                                        <i class="far fa-chevron-down" aria-hidden="true"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
+
+                        <!-- Sidebar Banner -->
+                        @php
+                            $sidebarBanner = site_section('menu_detail_sidebar_banner', 'menu_detail');
+                        @endphp
+                        @if ($sidebarBanner && $sidebarBanner->section_status)
                             <div class="menu_details_banner">
                                 <img src="{{ $sidebarBanner->image ? asset($sidebarBanner->image) : asset('website/images/details_banner_img.png') }}"
                                     alt="{{ __('offer') }}" class="img-fluid w-100">
@@ -259,6 +279,27 @@
                                     </a>
                                 </div>
                             </div>
+                        @else
+                            {{-- Fallback to promotional banner system --}}
+                            @php
+                                $cmsBanner = cms_banner('sidebar');
+                            @endphp
+                            @if ($cmsBanner)
+                                <div class="menu_details_banner">
+                                    <img src="{{ $cmsBanner->image ? asset($cmsBanner->image) : asset('website/images/details_banner_img.png') }}"
+                                        alt="{{ __('offer') }}" class="img-fluid w-100">
+                                    <div class="text">
+                                        <h5>{{ $cmsBanner->subtitle ?? __('Get Up to 50% Off') }}</h5>
+                                        <h3>{{ $cmsBanner->title ?? __('Combo Pack') }}</h3>
+                                        <a href="{{ $cmsBanner->button_link ?? route('website.menu') }}">
+                                            <span><img src="{{ asset('website/images/cart_icon_2.png') }}"
+                                                    alt="{{ __('cart') }}" class="img-fluid w-100"></span>
+                                            {{ $cmsBanner->button_text ?? __('Shop Now') }}
+                                            <i class="far fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>

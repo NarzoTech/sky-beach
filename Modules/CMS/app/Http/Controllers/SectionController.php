@@ -162,6 +162,25 @@ class SectionController extends Controller
     }
 
     /**
+     * Menu detail page sections
+     */
+    public function menuDetailPage(Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('cms.settings.view');
+
+        $sections = SectionService::getPageSections('menu_detail');
+        $sectionData = SiteSection::with('translation')
+            ->where('page_name', 'menu_detail')
+            ->get()
+            ->keyBy('section_name');
+
+        $activeSection = $request->get('section', 'menu_detail_featured_offer');
+        $langCode = $request->get('lang', 'en');
+
+        return view('cms::admin.sections.menu-detail', compact('sections', 'sectionData', 'activeSection', 'langCode'));
+    }
+
+    /**
      * Reservation page sections
      */
     public function reservationPage(Request $request)
