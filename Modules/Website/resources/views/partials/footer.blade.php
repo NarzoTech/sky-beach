@@ -128,13 +128,21 @@
                 <div class="col-12">
                     <div class="footer_copyright">
                         @if (!empty($setting->copyright_text ?? null))
-                            <p>{{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }}
-                                {{ date('Y') }}. {{ $setting->copyright_text }} Developed by <a
-                                    href="https://narzotech.com/"><b>NarzoTech</b></a></p>
+                            <p>
+                                {{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }}
+                                {{ date('Y') }}. {{ $setting->copyright_text }}
+                                <span>
+                                    Developed by <a target="_blank" href="https://narzotech.com/"><b>NarzoTech</b></a>
+                                </span>
+                            </p>
                         @else
-                            <p>{{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }}
-                                {{ date('Y') }}. {{ __('All Rights Reserved') }} Developed by <a
-                                    href="https://narzotech.com/"><b>NarzoTech</b></a></p>
+                            <p>
+                                {{ __('Copyright') }} © {{ $setting->app_name ?? config('app.name') }}
+                                {{ date('Y') }}. {{ __('All Rights Reserved') }}
+                                <span>
+                                    Developed by <a target="_blank" href="https://narzotech.com/"><b>NarzoTech</b></a>
+                                </span>
+                            </p>
                         @endif
                     </div>
                 </div>

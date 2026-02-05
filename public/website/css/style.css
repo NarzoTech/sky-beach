@@ -2760,7 +2760,21 @@ footer .footer_info ul li a:hover {
     font-weight: 400;
     text-align: center;
     padding: 20px 0px;
-    opacity: .8;
+}
+
+.footer_copyright p span {
+    color: var(--colorBlack);
+    font-size: 12px;
+    font-weight: 400;
+    text-align: center;
+    background: var(--colorYellow);
+    padding: 6px 15px;
+    border-radius: 30px;
+    margin-left: 15px;
+}
+
+.footer_copyright p span a b {
+    color: var(--colorBlack);
 }
 
 /* footer end */
