@@ -25,8 +25,8 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>{{ __('Customer') }} <span class="text-danger">*</span></label>
-                                                <div class="input-group">
-                                                    <select class="form-control select2" name="customer_id" id="customer_id" required>
+                                                <div class="d-flex">
+                                                    <select class="form-control select2 flex-grow-1" name="customer_id" id="customer_id" required style="width: calc(100% - 46px) !important;">
                                                         <option value="">{{ __('Select Customer') }}</option>
                                                         @foreach ($customers as $customer)
                                                             <option value="{{ $customer->id }}" @selected($quotation->customer_id == $customer->id)>
@@ -34,7 +34,7 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal" style="border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px;">
                                                         <i class="fas fa-plus"></i>
                                                     </button>
                                                 </div>
@@ -63,9 +63,10 @@
                                                 <table class="table table-bordered" id="quotation_items_table">
                                                     <thead class="table-light">
                                                         <tr>
-                                                            <th style="width: 50%">{{ __('Description') }}</th>
+                                                            <th style="width: 50px" class="text-center">{{ __('SL') }}</th>
+                                                            <th style="width: 45%">{{ __('Description') }}</th>
                                                             <th style="width: 15%" class="text-center">{{ __('Quantity') }}</th>
-                                                            <th style="width: 20%" class="text-end">{{ __('Price') }}</th>
+                                                            <th style="width: 15%" class="text-end">{{ __('Price') }}</th>
                                                             <th style="width: 15%" class="text-end">{{ __('Total') }}</th>
                                                             <th style="width: 50px" class="text-center"></th>
                                                         </tr>
@@ -73,6 +74,7 @@
                                                     <tbody id="quotation_table">
                                                         @foreach ($quotation->details as $index => $detail)
                                                             <tr>
+                                                                <td class="text-center serial-number">{{ $index + 1 }}</td>
                                                                 <td>
                                                                     <input type="text" class="form-control" name="description[]"
                                                                         value="{{ $detail->description ?? ($detail->ingredient->name ?? '') }}"
@@ -99,6 +101,7 @@
                                                         @endforeach
                                                         @if($quotation->details->isEmpty())
                                                             <tr>
+                                                                <td class="text-center serial-number">1</td>
                                                                 <td>
                                                                     <input type="text" class="form-control" name="description[]" placeholder="{{ __('Item description') }}" required>
                                                                 </td>
@@ -231,6 +234,24 @@
     </div>
 @endsection
 
+@push('css')
+    <style>
+        #customer_id + .select2-container .select2-selection {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            height: 38px;
+            display: flex;
+            align-items: center;
+        }
+        #customer_id + .select2-container {
+            flex-grow: 1;
+        }
+        .form-group .d-flex > .btn {
+            height: 38px;
+        }
+    </style>
+@endpush
+
 @push('js')
     <script>
         'use strict';
@@ -270,8 +291,10 @@
         });
 
         function addNewRow() {
+            const rowCount = $('#quotation_table tr').length + 1;
             const row = `
                 <tr>
+                    <td class="text-center serial-number">${rowCount}</td>
                     <td>
                         <input type="text" class="form-control" name="description[]" placeholder="{{ __('Item description') }}" required>
                     </td>
@@ -302,6 +325,10 @@
             } else {
                 rows.find('.remove-row').prop('disabled', false);
             }
+            // Update serial numbers
+            rows.each(function(index) {
+                $(this).find('.serial-number').text(index + 1);
+            });
         }
 
         function calculateRowTotal(row) {
