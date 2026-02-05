@@ -198,15 +198,14 @@
                                                     <h5>{{ __('Image') }}</h5>
                                                 </div>
                                                 <div class="card-body">
-                                                    @if ($combo->image)
-                                                        <div class="mb-3">
+                                                    <div id="image-preview" class="mb-3">
+                                                        @if ($combo->image)
                                                             <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
-                                                        </div>
-                                                    @endif
+                                                        @endif
+                                                    </div>
                                                     <div class="form-group">
                                                         <input type="file" name="image" class="form-control" id="image" accept="image/*">
                                                     </div>
-                                                    <div id="image-preview" class="mt-2"></div>
                                                 </div>
                                             </div>
 

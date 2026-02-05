@@ -590,23 +590,21 @@ if (! function_exists('formatDate')) {
 }
 
 /**
- * Upload image to storage/app/public directory
+ * Upload image using file_upload helper
  *
  * @param \Illuminate\Http\UploadedFile $file The uploaded file
- * @param string $folder The folder name inside storage/app/public
+ * @param string $folder The folder name inside uploads/
  * @param string|null $oldImage The old image path to delete (optional)
  * @return string The stored file path
  */
 if (!function_exists('upload_image')) {
     function upload_image($file, string $folder, ?string $oldImage = null): string
     {
-        // Delete old image if exists
-        if ($oldImage) {
-            delete_image($oldImage);
-        }
+        // Build the path with uploads/ prefix
+        $path = 'uploads/' . trim($folder, '/') . '/';
 
-        // Store new image
-        return $file->store($folder, 'public');
+        // Use file_upload helper which handles old file deletion
+        return file_upload($file, $path, $oldImage);
     }
 }
 
