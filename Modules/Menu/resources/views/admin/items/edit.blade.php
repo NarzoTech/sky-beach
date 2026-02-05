@@ -290,11 +290,11 @@
                                                     <h5>{{ __('Thumbnail Image') }}</h5>
                                                 </div>
                                                 <div class="card-body">
-                                                    @if ($item->image)
-                                                        <div class="mb-3">
+                                                    <div id="image-preview" class="mb-3">
+                                                        @if ($item->image)
                                                             <img src="{{ $item->image_url }}" alt="{{ $item->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
-                                                        </div>
-                                                    @endif
+                                                        @endif
+                                                    </div>
                                                     <div class="form-group">
                                                         <input type="file" name="image" class="form-control" id="image" accept="image/*">
                                                         @error('image')
@@ -302,7 +302,6 @@
                                                         @enderror
                                                         <small class="text-muted">{{ __('Main display image for listings') }}</small>
                                                     </div>
-                                                    <div id="image-preview" class="mt-2"></div>
                                                 </div>
                                             </div>
 
@@ -324,7 +323,7 @@
                                                         @error('gallery.*')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
-                                                        <small class="text-muted">{{ __('Additional images for detail page (max 5). Uploading new images will replace existing.') }}</small>
+                                                        <small class="text-muted">{{ __('Additional images for detail page (max 6). Uploading new images will replace existing.') }}</small>
                                                     </div>
                                                     <div id="gallery-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
                                                 </div>
@@ -491,8 +490,8 @@
                 $('#gallery').on('change', function() {
                     var files = this.files;
                     $('#gallery-preview').html('');
-                    if (files.length > 5) {
-                        alert('{{ __("Maximum 5 gallery images allowed") }}');
+                    if (files.length > 6) {
+                        alert('{{ __("Maximum 6 gallery images allowed") }}');
                         this.value = '';
                         return;
                     }

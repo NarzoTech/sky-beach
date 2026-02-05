@@ -67,11 +67,12 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">{{ __('Photo') }}</label>
-                                <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
-                                <small class="text-muted">Recommended: 100x100px</small>
+                                <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                                <small class="text-muted">{{ __('Recommended: 100x100px, Max 2MB') }}</small>
                                 @error('image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <div id="image-preview" class="mt-2"></div>
                             </div>
 
                             <div class="mb-3">
@@ -107,3 +108,20 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    $('#image').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image-preview').html('<img src="' + e.target.result + '" class="img-thumbnail" style="max-height: 150px;">');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            $('#image-preview').html('');
+        }
+    });
+</script>
+@endpush

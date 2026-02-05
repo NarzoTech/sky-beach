@@ -26,7 +26,7 @@ class ComboRequest extends FormRequest
             'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:2000',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'gallery' => 'nullable|array|max:5',
+            'gallery' => 'nullable|array|max:6',
             'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'combo_price' => 'required|numeric|min:0',
             'discount_type' => 'nullable|in:percentage,fixed',

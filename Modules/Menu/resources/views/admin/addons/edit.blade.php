@@ -106,18 +106,17 @@
                                                     <h5>{{ __('Image') }}</h5>
                                                 </div>
                                                 <div class="card-body">
-                                                    @if ($addon->image)
-                                                        <div class="mb-3">
+                                                    <div id="image-preview" class="mb-3">
+                                                        @if ($addon->image)
                                                             <img src="{{ asset($addon->image) }}" alt="{{ $addon->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
-                                                        </div>
-                                                    @endif
+                                                        @endif
+                                                    </div>
                                                     <div class="form-group">
                                                         <input type="file" name="image" class="form-control" id="image" accept="image/*">
                                                         @error('image')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
-                                                    <div id="image-preview" class="mt-2"></div>
                                                 </div>
                                             </div>
 

@@ -224,7 +224,7 @@
                                                     @endif
                                                     <div class="form-group">
                                                         <input type="file" name="gallery[]" class="form-control" id="gallery" accept="image/*" multiple>
-                                                        <small class="text-muted">{{ __('Additional images for detail page (max 5). Uploading new images will replace existing ones.') }}</small>
+                                                        <small class="text-muted">{{ __('Additional images for detail page (max 6). Uploading new images will replace existing ones.') }}</small>
                                                         @error('gallery.*')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
@@ -318,8 +318,8 @@
             $('#gallery').on('change', function() {
                 var files = this.files;
                 $('#gallery-preview').html('');
-                if (files.length > 5) {
-                    alert('{{ __("Maximum 5 gallery images allowed") }}');
+                if (files.length > 6) {
+                    alert('{{ __("Maximum 6 gallery images allowed") }}');
                     this.value = '';
                     return;
                 }

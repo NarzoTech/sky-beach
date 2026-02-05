@@ -102,11 +102,7 @@
                                     @foreach($relatedBlogs as $relatedBlog)
                                     <li>
                                         <div class="img">
-                                            @if($relatedBlog->image)
-                                                <img src="{{ asset($relatedBlog->image) }}" alt="{{ $relatedBlog->title }}" class="img-fluid w-100">
-                                            @else
-                                                <img src="{{ asset('website/images/sidebar_post_img_1.jpg') }}" alt="{{ $relatedBlog->title }}" class="img-fluid w-100">
-                                            @endif
+                                            <img src="{{ $relatedBlog->image_url }}" alt="{{ $relatedBlog->title }}" class="img-fluid w-100">
                                         </div>
                                         <div class="text">
                                             <p><i class="far fa-calendar-alt"></i> {{ $relatedBlog->published_at ? $relatedBlog->published_at->format('M d, Y') : $relatedBlog->created_at->format('M d, Y') }}</p>

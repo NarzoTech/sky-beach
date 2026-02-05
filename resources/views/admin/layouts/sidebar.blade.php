@@ -185,154 +185,147 @@
             @include('attendance::sidebar')
         @endif
 
-        {{-- CMS Management Menu (hidden for waiters) --}}
+        {{-- Website Management Menu (hidden for waiters) --}}
         @if(!auth('admin')->user()->hasRole('Waiter'))
-        @if (Module::isEnabled('CMS'))
-            <li class="menu-item {{ request()->is('admin/cms/*') ? 'active open' : '' }}">
+        @if (Module::isEnabled('CMS') || Module::isEnabled('Website'))
+            <li class="menu-item {{ request()->is('admin/cms/*') || request()->is('admin/restaurant/*') ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class='menu-icon tf-icons bx bx-layout'></i>
-                    <div class="text-truncate" data-i18n="{{ __('CMS') }}">{{ __('CMS') }}</div>
+                    <i class='menu-icon tf-icons bx bx-globe'></i>
+                    <div class="text-truncate" data-i18n="{{ __('Website') }}">{{ __('Website') }}</div>
                 </a>
                 <ul class="menu-sub">
-                    {{-- Page Sections --}}
-                    <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'home') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.homepage') }}">
-                            <i class='bx bx-home-alt me-2'></i>{{ __('Homepage') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/about*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'about') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.about') }}">
-                            <i class='bx bx-info-circle me-2'></i>{{ __('About Page') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/contact*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'contact') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.contact') }}">
-                            <i class='bx bx-envelope me-2'></i>{{ __('Contact Page') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/menu') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.menu') }}">
-                            <i class='bx bx-food-menu me-2'></i>{{ __('Menu Page') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/menu-detail*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu_detail') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.menu-detail') }}">
-                            <i class='bx bx-detail me-2'></i>{{ __('Menu Detail Page') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/reservation*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'reservation') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.reservation') }}">
-                            <i class='bx bx-calendar-check me-2'></i>{{ __('Reservation Page') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/sections/service*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'service') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.sections.service') }}">
-                            <i class='bx bx-wrench me-2'></i>{{ __('Service Page') }}
-                        </a>
-                    </li>
-                    {{-- Data Management --}}
-                    <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Data') }}</span></li>
-                    <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
-                            <i class='bx bx-message-square-dots me-2'></i>{{ __('Testimonials') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/counters*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.counters.index') }}">
-                            <i class='bx bx-bar-chart me-2'></i>{{ __('Counters') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/gallery*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.gallery.index') }}">
-                            <i class='bx bx-images me-2'></i>{{ __('Gallery') }}
-                        </a>
-                    </li>
-                    <li class="menu-item {{ request()->is('admin/cms/legal-pages*') ? 'active' : '' }}">
-                        <a class="menu-link" href="{{ route('admin.cms.legal-pages.index') }}">
-                            <i class='bx bx-file me-2'></i>{{ __('Legal Pages') }}
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        @endif
-        @endif
+                    @if (Module::isEnabled('CMS'))
+                        {{-- Page Sections --}}
+                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Pages') }}</span></li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'home') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.homepage') }}">
+                                <i class='bx bx-home-alt me-2'></i>{{ __('Homepage') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/about*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'about') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.about') }}">
+                                <i class='bx bx-info-circle me-2'></i>{{ __('About Page') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/contact*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'contact') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.contact') }}">
+                                <i class='bx bx-envelope me-2'></i>{{ __('Contact Page') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/menu') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.menu') }}">
+                                <i class='bx bx-food-menu me-2'></i>{{ __('Menu Page') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/menu-detail*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'menu_detail') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.menu-detail') }}">
+                                <i class='bx bx-detail me-2'></i>{{ __('Menu Detail Page') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/reservation*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'reservation') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.reservation') }}">
+                                <i class='bx bx-calendar-check me-2'></i>{{ __('Reservation Page') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/sections/service*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'service') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.sections.service') }}">
+                                <i class='bx bx-wrench me-2'></i>{{ __('Service Page') }}
+                            </a>
+                        </li>
 
-        {{-- Restaurant/Website Management Menu --}}
-        @if (Module::isEnabled('Website'))
-            @if (checkAdminHasPermission('restaurant.blog.view') ||
-                    checkAdminHasPermission('restaurant.chef.view') ||
-                    checkAdminHasPermission('restaurant.service.view') ||
-                    checkAdminHasPermission('restaurant.booking.view') ||
-                    checkAdminHasPermission('restaurant.cms.view') ||
-                    checkAdminHasPermission('restaurant.faq.view') ||
-                    checkAdminHasPermission('restaurant.menu_item.view'))
-                <li class="menu-item {{ request()->is('admin/restaurant/*') ? 'active open' : '' }}">
-                    <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class='menu-icon tf-icons bx bx-restaurant'></i>
-                        <div class="text-truncate" data-i18n="{{ __('Restaurant') }}">{{ __('Restaurant') }}</div>
-                    </a>
-                    <ul class="menu-sub">
+                        {{-- Data Management --}}
+                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Data') }}</span></li>
+                        <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
+                                <i class='bx bx-message-square-dots me-2'></i>{{ __('Testimonials') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/counters*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.counters.index') }}">
+                                <i class='bx bx-bar-chart me-2'></i>{{ __('Counters') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/gallery*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.gallery.index') }}">
+                                <i class='bx bx-images me-2'></i>{{ __('Gallery') }}
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->is('admin/cms/legal-pages*') ? 'active' : '' }}">
+                            <a class="menu-link" href="{{ route('admin.cms.legal-pages.index') }}">
+                                <i class='bx bx-file me-2'></i>{{ __('Legal Pages') }}
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (Module::isEnabled('Website'))
+                        {{-- Content --}}
+                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Content') }}</span></li>
                         @adminCan('restaurant.blog.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/blogs*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.blogs.index') }}">
-                                    {{ __('Blogs') }}
+                                    <i class='bx bx-news me-2'></i>{{ __('Blogs') }}
                                 </a>
                             </li>
                         @endadminCan
                         @adminCan('restaurant.chef.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/chefs*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.chefs.index') }}">
-                                    {{ __('Chefs') }}
+                                    <i class='bx bx-user-pin me-2'></i>{{ __('Chefs') }}
                                 </a>
                             </li>
                         @endadminCan
                         @adminCan('restaurant.service.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/website-services*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.website-services.index') }}">
-                                    {{ __('Services') }}
-                                </a>
-                            </li>
-                        @endadminCan
-                        @adminCan('restaurant.booking.view')
-                            <li class="menu-item {{ request()->is('admin/restaurant/bookings*') ? 'active' : '' }}">
-                                <a class="menu-link" href="{{ route('admin.restaurant.bookings.index') }}">
-                                    {{ __('Bookings') }}
+                                    <i class='bx bx-server me-2'></i>{{ __('Services') }}
                                 </a>
                             </li>
                         @endadminCan
                         @adminCan('restaurant.faq.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/faqs*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.faqs.index') }}">
-                                    {{ __('FAQs') }}
+                                    <i class='bx bx-help-circle me-2'></i>{{ __('FAQs') }}
                                 </a>
                             </li>
                         @endadminCan
                         @adminCan('restaurant.service.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/service-faqs*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.service-faqs.index') }}">
-                                    {{ __('Service FAQs') }}
+                                    <i class='bx bx-question-mark me-2'></i>{{ __('Service FAQs') }}
                                 </a>
                             </li>
+                        @endadminCan
+
+                        {{-- Messages & Orders --}}
+                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Messages & Orders') }}</span></li>
+                        @adminCan('restaurant.booking.view')
+                            <li class="menu-item {{ request()->is('admin/restaurant/bookings*') ? 'active' : '' }}">
+                                <a class="menu-link" href="{{ route('admin.restaurant.bookings.index') }}">
+                                    <i class='bx bx-calendar-event me-2'></i>{{ __('Bookings') }}
+                                </a>
+                            </li>
+                        @endadminCan
+                        @adminCan('restaurant.service.view')
                             <li class="menu-item {{ request()->is('admin/restaurant/service-contacts*') ? 'active' : '' }}">
                                 <a class="menu-link" href="{{ route('admin.restaurant.service-contacts.index') }}">
-                                    {{ __('Service Inquiries') }}
+                                    <i class='bx bx-support me-2'></i>{{ __('Service Inquiries') }}
                                 </a>
                             </li>
                         @endadminCan
                         <li class="menu-item {{ request()->is('admin/restaurant/contact-messages*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.contact-messages.index') }}">
-                                {{ __('Contact Messages') }}
+                                <i class='bx bx-message-dots me-2'></i>{{ __('Contact Messages') }}
                             </a>
                         </li>
-                        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Orders') }}</span></li>
                         <li class="menu-item {{ request()->is('admin/restaurant/website-orders*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.website-orders.index') }}">
                                 <i class='bx bx-cart me-2'></i>{{ __('Website Orders') }}
                             </a>
                         </li>
-                    </ul>
-                </li>
-            @endif
+                    @endif
+                </ul>
+            </li>
+        @endif
         @endif
 
         @if (checkAdminHasPermission('setting.view') ||

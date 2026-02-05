@@ -29,6 +29,7 @@ class MenuItemRequest extends FormRequest
             'category_id' => 'nullable|exists:menu_categories,id',
             'cuisine_type' => 'nullable|string|max:100',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'gallery' => 'nullable|array|max:6',
             'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'base_price' => 'required|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',

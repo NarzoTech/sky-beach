@@ -118,6 +118,12 @@ class TestimonialController extends Controller
                     Storage::disk('public')->delete(str_replace('storage/', '', $testimonial->image));
                 }
                 $data['image'] = 'storage/' . $request->file('image')->store('cms/testimonials', 'public');
+            } elseif ($request->boolean('remove_image')) {
+                // Remove existing image
+                if ($testimonial->image && Storage::disk('public')->exists(str_replace('storage/', '', $testimonial->image))) {
+                    Storage::disk('public')->delete(str_replace('storage/', '', $testimonial->image));
+                }
+                $data['image'] = null;
             }
 
             $testimonial->update($data);

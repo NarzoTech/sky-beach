@@ -29,13 +29,46 @@
             <div class="row">
                 <div class="col-xl-4 col-md-8 col-lg-5 wow fadeInLeft">
                     <div class="menu_det_slider_area">
-                        <div class="row slider-for">
-                            <div class="col-12">
-                                <div class="details_large_img">
-                                    <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" class="img-fluid w-100">
+                        @php
+                            $galleryImages = [];
+                            if ($combo->gallery && is_array($combo->gallery)) {
+                                foreach ($combo->gallery as $img) {
+                                    $galleryImages[] = asset($img);
+                                }
+                            }
+                        @endphp
+
+                        @if (count($galleryImages) > 0)
+                            <div class="row slider-for">
+                                @foreach ($galleryImages as $image)
+                                    <div class="col-12">
+                                        <div class="details_large_img">
+                                            <img src="{{ $image }}" alt="{{ $combo->name }}" class="img-fluid w-100">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @if (count($galleryImages) > 1)
+                                <div class="row slider-nav">
+                                    @foreach ($galleryImages as $image)
+                                        <div class="col-xl-3">
+                                            <div class="details_small_img">
+                                                <img src="{{ $image }}" alt="{{ $combo->name }}" class="img-fluid w-100">
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <div class="row slider-for">
+                                <div class="col-12">
+                                    <div class="details_large_img">
+                                        <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" class="img-fluid w-100">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
 

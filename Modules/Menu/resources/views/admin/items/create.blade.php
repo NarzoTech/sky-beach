@@ -274,7 +274,7 @@
                                                         @error('gallery.*')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
-                                                        <small class="text-muted">{{ __('Additional images for detail page (max 5)') }}</small>
+                                                        <small class="text-muted">{{ __('Additional images for detail page (max 6)') }}</small>
                                                     </div>
                                                     <div id="gallery-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
                                                 </div>
@@ -426,8 +426,8 @@
                 $('#gallery').on('change', function() {
                     var files = this.files;
                     $('#gallery-preview').html('');
-                    if (files.length > 5) {
-                        alert('{{ __("Maximum 5 gallery images allowed") }}');
+                    if (files.length > 6) {
+                        alert('{{ __("Maximum 6 gallery images allowed") }}');
                         this.value = '';
                         return;
                     }
