@@ -200,7 +200,7 @@
                                                 <div class="card-body">
                                                     @if ($combo->image)
                                                         <div class="mb-3">
-                                                            <img src="{{ asset($combo->image) }}" alt="{{ $combo->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                                                            <img src="{{ $combo->image_url }}" alt="{{ $combo->name }}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
                                                         </div>
                                                     @endif
                                                     <div class="form-group">

@@ -2,11 +2,9 @@
 @if (checkAdminHasPermission('menu.category.view') ||
         checkAdminHasPermission('menu.item.view') ||
         checkAdminHasPermission('menu.addon.view') ||
-        checkAdminHasPermission('menu.combo.view') ||
-        checkAdminHasPermission('menu.branch.pricing') ||
-        checkAdminHasPermission('menu.branch.availability'))
+        checkAdminHasPermission('menu.combo.view'))
     <li
-        class="menu-item {{ Route::is('admin.menu-category*') || Route::is('admin.menu-item*') || Route::is('admin.menu-addon*') || Route::is('admin.combo*') || Route::is('admin.branch-menu*') ? 'active open' : '' }}">
+        class="menu-item {{ Route::is('admin.menu-category*') || Route::is('admin.menu-item*') || Route::is('admin.menu-addon*') || Route::is('admin.combo*') ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-food-menu'></i>
             <div class="text-truncate" data-i18n="{{ __('Menu Management') }}">{{ __('Menu Management') }}</div>
@@ -45,21 +43,6 @@
                 </li>
             @endadminCan
 
-            @adminCan('menu.branch.pricing')
-                <li class="menu-item {{ Route::is('admin.branch-menu.pricing*') ? 'active' : '' }}">
-                    <a class="menu-link" href="{{ route('admin.branch-menu.pricing') }}">
-                        {{ __('Branch Pricing') }}
-                    </a>
-                </li>
-            @endadminCan
-
-            @adminCan('menu.branch.availability')
-                <li class="menu-item {{ Route::is('admin.branch-menu.availability*') ? 'active' : '' }}">
-                    <a class="menu-link" href="{{ route('admin.branch-menu.availability') }}">
-                        {{ __('Branch Availability') }}
-                    </a>
-                </li>
-            @endadminCan
         </ul>
     </li>
 @endif
