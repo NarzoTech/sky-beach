@@ -1,13 +1,10 @@
 @if (checkAdminHasPermission('pos.view') ||
         checkAdminHasPermission('pos.settings.view') ||
-        checkAdminHasPermission('waiter.manage.view') ||
         checkAdminHasPermission('printer.view') ||
-        checkAdminHasPermission('kitchen.view') ||
         checkAdminHasPermission('table.view') ||
-        checkAdminHasPermission('reservation.view') ||
-        checkAdminHasPermission('waiter.dashboard'))
+        checkAdminHasPermission('reservation.view'))
     @php
-        $posMenuActive = request()->is('admin/pos*') || request()->is('admin/tables*') || request()->is('admin/reservations*') || request()->is('admin/kitchen*');
+        $posMenuActive = request()->is('admin/pos*') || request()->is('admin/tables*') || request()->is('admin/reservations*');
         // For non-waiter users, also activate on waiter pages
         if (!auth('admin')->user()->hasRole('Waiter')) {
             $posMenuActive = $posMenuActive || request()->is('admin/waiter*');
@@ -29,25 +26,7 @@
                 </li>
             @endadminCan
 
-            {{-- Waiter Dashboard (hidden for waiter users as they have it in main sidebar) --}}
-            @if(!auth('admin')->user()->hasRole('Waiter'))
-            @adminCan('waiter.dashboard')
-                <li class="menu-item {{ Route::is('admin.waiter.dashboard') ? 'active' : '' }}">
-                    <a class="menu-link" href="{{ route('admin.waiter.dashboard') }}">
-                        <div class="text-truncate">{{ __('Waiter Dashboard') }}</div>
-                    </a>
-                </li>
-            @endadminCan
-            @endif
 
-            {{-- Kitchen Display --}}
-            @adminCan('kitchen.view')
-                <li class="menu-item {{ Route::is('admin.kitchen*') ? 'active' : '' }}">
-                    <a class="menu-link" href="{{ route('admin.kitchen.index') }}">
-                        <div class="text-truncate">{{ __('Kitchen Display') }}</div>
-                    </a>
-                </li>
-            @endadminCan
 
             {{-- POS Settings --}}
             @adminCan('pos.settings.view')
@@ -58,14 +37,6 @@
                 </li>
             @endadminCan
 
-            {{-- Waiter Management --}}
-            @adminCan('waiter.manage.view')
-                <li class="menu-item {{ Route::is('admin.pos.waiters*') ? 'active' : '' }}">
-                    <a class="menu-link" href="{{ route('admin.pos.waiters.index') }}">
-                        <div class="text-truncate">{{ __('Waiters') }}</div>
-                    </a>
-                </li>
-            @endadminCan
 
             {{-- Printer Management --}}
             @adminCan('printer.view')

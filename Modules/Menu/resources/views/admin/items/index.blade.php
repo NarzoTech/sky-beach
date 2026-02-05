@@ -136,12 +136,6 @@
                                 </td>
                                 <td>
                                     {{ $item->name }}
-                                    @if ($item->is_vegetarian)
-                                        <span class="badge bg-success" title="Vegetarian">V</span>
-                                    @endif
-                                    @if ($item->is_spicy)
-                                        <span class="badge bg-danger" title="Spicy">🌶</span>
-                                    @endif
                                     @if ($item->is_new)
                                         <span class="badge bg-info" title="New">{{ __('New') }}</span>
                                     @endif

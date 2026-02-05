@@ -119,6 +119,22 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-group">
+                                                        <label for="is_popular">{{ __('Popular') }}</label>
+                                                        <select name="is_popular" id="is_popular" class="form-control">
+                                                            <option value="0" {{ old('is_popular', 0) == 0 ? 'selected' : '' }}>
+                                                                {{ __('No') }}
+                                                            </option>
+                                                            <option value="1" {{ old('is_popular') == 1 ? 'selected' : '' }}>
+                                                                {{ __('Yes') }}
+                                                            </option>
+                                                        </select>
+                                                        @error('is_popular')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                                 <div class="col-12 text-center mt-3">
                                                     <x-admin.save-button :text="__('Save')"></x-admin.save-button>
                                                 </div>

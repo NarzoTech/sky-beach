@@ -21,11 +21,13 @@ class MenuCategory extends Model
         'display_order',
         'status',
         'is_featured',
+        'is_popular',
     ];
 
     protected $casts = [
         'status' => 'boolean',
         'is_featured' => 'boolean',
+        'is_popular' => 'boolean',
     ];
 
     protected $appends = ['image_url'];
@@ -105,6 +107,11 @@ class MenuCategory extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', 1);
+    }
+
+    public function scopePopular($query)
+    {
+        return $query->where('is_popular', 1);
     }
 
     public function scopeParentCategories($query)

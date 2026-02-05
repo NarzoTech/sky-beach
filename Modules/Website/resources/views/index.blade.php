@@ -20,7 +20,9 @@
     // Get dynamic data
     $testimonials = cms_testimonials();
     $counters = cms_counters();
+    // Get popular categories for the category slider
     $menuCategories = \Modules\Menu\app\Models\MenuCategory::active()
+        ->popular()
         ->ordered()
         ->take($popularCategories->quantity ?? 6)
         ->get();
@@ -137,14 +139,14 @@
 
     @if (!$featuredMenu || $featuredMenu->section_status)
         @php
-            // Get categories with their featured menu items
+            // Get featured categories with their menu items (max 8 categories)
             $menuCategoriesWithItems = \Modules\Menu\app\Models\MenuCategory::active()
+                ->featured()
                 ->ordered()
                 ->whereHas('menuItems', function ($query) {
                     $query
                         ->where('status', 1)
                         ->where('is_available', 1)
-                        ->where('is_featured', 1)
                         ->where(function ($q) {
                             $q->where('available_in_website', 1)->orWhereNull('available_in_website');
                         });
@@ -154,22 +156,22 @@
                         $query
                             ->where('status', 1)
                             ->where('is_available', 1)
-                            ->where('is_featured', 1)
                             ->where(function ($q) {
                                 $q->where('available_in_website', 1)->orWhereNull('available_in_website');
                             })
                             ->orderBy('display_order');
                     },
                 ])
+                ->take(8)
                 ->get();
         @endphp
         <!--==========MENU ITEM START===========-->
         <section class="menu_item pt_125 xs_pt_85">
             <div class="container">
                 <div class="row">
-                    <div class="col-xl-8 m-auto wow fadeInUp">
+                    <div class="col-xl-8 m-auto">
                         <div class="section_heading mb_45 xs_mb_50">
-                            <h2 class="wow bounceIn">{{ $featuredMenu->title ?? 'Delicious Menu' }}</h2>
+                            <h2>{{ $featuredMenu->title ?? 'Delicious Menu' }}</h2>
                             @if ($featuredMenu && $featuredMenu->subtitle)
                                 <p>{{ $featuredMenu->subtitle }}</p>
                             @endif
@@ -180,7 +182,7 @@
                 @if ($menuCategoriesWithItems->count() > 0)
                     <div id="schedule">
                         <div class="colorful-tab-wrapper" id="filter_area">
-                            <div class="row mb_15 wow fadeInUp">
+                            <div class="row mb_15">
                                 <div class="col-xxl-10 col-lg-11 m-auto">
                                     <ul class="filter_btn_area">
                                         @foreach ($menuCategoriesWithItems as $index => $cat)
