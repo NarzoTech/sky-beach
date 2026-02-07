@@ -31,31 +31,6 @@
                     <div class="row">
                         <div class="col-lg-8 wow fadeInLeft">
                             <div class="checkout_area">
-                                <!-- Order Type Selection -->
-                                <h2>{{ __('Order Type') }}</h2>
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="order-type-card" data-type="delivery">
-                                            <input type="radio" name="order_type" value="delivery" id="type_delivery" checked>
-                                            <label for="type_delivery">
-                                                <i class="fas fa-motorcycle fa-2x mb-2"></i>
-                                                <span>{{ __('Delivery') }}</span>
-                                                <small>{{ __('Get it delivered to your door') }}</small>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="order-type-card" data-type="take_away">
-                                            <input type="radio" name="order_type" value="take_away" id="type_takeaway">
-                                            <label for="type_takeaway">
-                                                <i class="fas fa-shopping-bag fa-2x mb-2"></i>
-                                                <span>{{ __('Take Away') }}</span>
-                                                <small>{{ __('Pick up from our location') }}</small>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <h2>{{ __('Contact Details') }}</h2>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -94,42 +69,6 @@
                                             @error('email')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Delivery Address Section -->
-                                <div id="delivery-address-section">
-                                    <h2>{{ __('Delivery Address') }}</h2>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <input type="text" name="address" id="address" placeholder="{{ __('Street Address') }} *"
-                                                    value="{{ old('address', $savedCheckoutData['address'] ?? '') }}">
-                                                @error('address')
-                                                    <span class="text-danger small">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <input type="text" name="city" id="city" placeholder="{{ __('City') }} *"
-                                                    value="{{ old('city', $savedCheckoutData['city'] ?? '') }}">
-                                                @error('city')
-                                                    <span class="text-danger small">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <input type="text" name="postal_code" placeholder="{{ __('Postal Code') }}"
-                                                    value="{{ old('postal_code', $savedCheckoutData['postal_code'] ?? '') }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <textarea name="delivery_notes" rows="3" placeholder="{{ __('Delivery Instructions (Optional)') }}">{{ old('delivery_notes') }}</textarea>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -191,26 +130,10 @@
                                 <div class="cart_summery">
                                     <h6>{{ __('Order Summary') }}</h6>
                                     <p>{{ __('Subtotal') }}: <span>{{ currency($cartTotal) }}</span></p>
-                                    <p id="delivery-fee-row" style="{{ $deliveryFeeEnabled ? '' : 'display:none;' }}">
-                                        {{ __('Delivery Fee') }}:
-                                        <span id="delivery-fee">
-                                            @if($freeDeliveryThreshold > 0 && $cartTotal >= $freeDeliveryThreshold)
-                                                <span class="text-success">{{ __('FREE') }}</span>
-                                            @else
-                                                {{ currency($calculatedDeliveryFee) }}
-                                            @endif
-                                        </span>
-                                    </p>
                                     @if($taxEnabled)
                                     <p>{{ __('Tax') }} ({{ $taxRate }}%): <span id="tax-amount">{{ currency($calculatedTax) }}</span></p>
                                     @endif
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal + $calculatedDeliveryFee + $calculatedTax) }}</span></p>
-                                    @if($freeDeliveryThreshold > 0 && $cartTotal < $freeDeliveryThreshold)
-                                    <p class="text-info small" id="free-delivery-hint">
-                                        <i class="fas fa-info-circle"></i>
-                                        {{ __('Add') }} {{ currency($freeDeliveryThreshold - $cartTotal) }} {{ __('more for free delivery!') }}
-                                    </p>
-                                    @endif
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal + $calculatedTax) }}</span></p>
 
                                     <button type="submit" class="common_btn w-100" id="place-order-btn">
                                         <i class="fas fa-check-circle me-2"></i>{{ __('Place Order') }}
@@ -231,7 +154,6 @@
 
 @push('styles')
 <style>
-    .order-type-card,
     .payment-method-card {
         border: 2px solid #e0e0e0;
         border-radius: 10px;
@@ -242,7 +164,6 @@
         margin-bottom: 15px;
     }
 
-    .order-type-card:hover,
     .payment-method-card:hover {
         border-color: var(--colorPrimary, #AB162C);
     }
@@ -279,22 +200,14 @@
         font-weight: 600;
     }
 
-    .order-type-card input,
     .payment-method-card input {
         display: none;
     }
 
-    .order-type-card input:checked + label,
     .payment-method-card input:checked + label {
         color: var(--colorPrimary, #AB162C);
     }
 
-    .order-type-card:has(input:checked) {
-        border-color: var(--colorPrimary, #AB162C);
-        background-color: rgba(171, 22, 44, 0.05);
-    }
-
-    .order-type-card label,
     .payment-method-card label {
         display: flex;
         flex-direction: column;
@@ -303,15 +216,9 @@
         margin: 0;
     }
 
-    .order-type-card label span,
     .payment-method-card label span {
         font-weight: 600;
         margin-top: 5px;
-    }
-
-    .order-type-card label small {
-        color: #888;
-        font-size: 12px;
     }
 
     .payment-method-card label {
@@ -446,13 +353,6 @@
         color: var(--colorYellow);
     }
 
-    .cart_summery .text-info {
-        color: var(--colorPrimary) !important;
-        background: rgba(171, 22, 44, 0.1);
-        padding: 8px 12px;
-        border-radius: 5px;
-        margin-top: 10px;
-    }
 </style>
 @endpush
 
@@ -486,60 +386,6 @@
                 phoneInput.value = value;
             }
         }
-
-        const orderTypeRadios = document.querySelectorAll('input[name="order_type"]');
-        const deliverySection = document.getElementById('delivery-address-section');
-        const deliveryFeeRow = document.getElementById('delivery-fee-row');
-        const addressInput = document.getElementById('address');
-        const cityInput = document.getElementById('city');
-
-        // Pricing variables from server
-        const subtotal = {{ $cartTotal }};
-        const deliveryFeeAmount = {{ $calculatedDeliveryFee }};
-        const taxAmount = {{ $calculatedTax }};
-        const deliveryFeeEnabled = {{ $deliveryFeeEnabled ? 'true' : 'false' }};
-        const freeDeliveryThreshold = {{ $freeDeliveryThreshold }};
-        const isFreeDelivery = freeDeliveryThreshold > 0 && subtotal >= freeDeliveryThreshold;
-
-        // Function to update totals
-        function updateTotals(isDelivery) {
-            let currentDeliveryFee = 0;
-            if (isDelivery && deliveryFeeEnabled && !isFreeDelivery) {
-                currentDeliveryFee = deliveryFeeAmount;
-            }
-            const total = subtotal + currentDeliveryFee + taxAmount;
-            document.getElementById('order-total').textContent = '{{ currency_icon() }}' + total.toFixed(2);
-        }
-
-        // Toggle delivery address section based on order type
-        orderTypeRadios.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'delivery') {
-                    deliverySection.style.display = 'block';
-                    if (deliveryFeeEnabled) {
-                        deliveryFeeRow.style.display = 'block';
-                    }
-                    addressInput.setAttribute('required', '');
-                    cityInput.setAttribute('required', '');
-                    updateTotals(true);
-                } else {
-                    deliverySection.style.display = 'none';
-                    deliveryFeeRow.style.display = 'none';
-                    addressInput.removeAttribute('required');
-                    cityInput.removeAttribute('required');
-                    updateTotals(false);
-                }
-            });
-        });
-
-        // Make order type cards clickable
-        document.querySelectorAll('.order-type-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const radio = this.querySelector('input[type="radio"]');
-                radio.checked = true;
-                radio.dispatchEvent(new Event('change'));
-            });
-        });
 
         // Make payment method cards clickable
         document.querySelectorAll('.payment-method-card').forEach(card => {

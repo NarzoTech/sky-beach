@@ -52,11 +52,7 @@
                                         <div class="info_item">
                                             <label>{{ __('Order Type') }}</label>
                                             <strong>
-                                                @if($order->order_type === 'delivery')
-                                                    <i class="fas fa-motorcycle me-1"></i>{{ __('Delivery') }}
-                                                @else
-                                                    <i class="fas fa-shopping-bag me-1"></i>{{ __('Take Away') }}
-                                                @endif
+                                                <i class="fas fa-shopping-bag me-1"></i>{{ __('Take Away') }}
                                             </strong>
                                         </div>
                                     </div>
@@ -89,16 +85,6 @@
                                     @endif
                                 </div>
                             </div>
-
-                            @if($order->delivery_address)
-                            <div class="delivery_info mt-4">
-                                <h5><i class="fas fa-map-marker-alt me-2"></i>{{ __('Delivery Address') }}</h5>
-                                <p>{{ $order->delivery_address }}</p>
-                                @if($order->delivery_notes)
-                                    <p class="text-muted"><small>{{ __('Instructions') }}: {{ $order->delivery_notes }}</small></p>
-                                @endif
-                            </div>
-                            @endif
 
                             <div class="order_items_list mt-4">
                                 <h5><i class="fas fa-utensils me-2"></i>{{ __('Order Items') }}</h5>
@@ -135,12 +121,6 @@
                                                 <td colspan="2" class="text-end"><strong>{{ __('Subtotal') }}:</strong></td>
                                                 <td><strong>{{ currency($order->total_price) }}</strong></td>
                                             </tr>
-                                            @if($order->shipping_cost > 0)
-                                            <tr>
-                                                <td colspan="2" class="text-end">{{ __('Delivery Fee') }}:</td>
-                                                <td>{{ currency($order->shipping_cost) }}</td>
-                                            </tr>
-                                            @endif
                                             @if($order->total_tax > 0)
                                             <tr>
                                                 <td colspan="2" class="text-end">{{ __('Tax') }}:</td>
@@ -171,16 +151,6 @@
                                         <div class="timeline_icon"><i class="fas fa-fire"></i></div>
                                         <div class="timeline_text">{{ __('Preparing') }}</div>
                                     </div>
-                                    @if($order->order_type === 'delivery')
-                                    <div class="timeline_item {{ in_array($order->status, ['out_for_delivery', 'delivered']) ? 'active' : '' }}">
-                                        <div class="timeline_icon"><i class="fas fa-motorcycle"></i></div>
-                                        <div class="timeline_text">{{ __('On The Way') }}</div>
-                                    </div>
-                                    <div class="timeline_item {{ $order->status === 'delivered' ? 'active' : '' }}">
-                                        <div class="timeline_icon"><i class="fas fa-home"></i></div>
-                                        <div class="timeline_text">{{ __('Delivered') }}</div>
-                                    </div>
-                                    @else
                                     <div class="timeline_item {{ in_array($order->status, ['ready', 'completed']) ? 'active' : '' }}">
                                         <div class="timeline_icon"><i class="fas fa-box"></i></div>
                                         <div class="timeline_text">{{ __('Ready') }}</div>
@@ -189,7 +159,6 @@
                                         <div class="timeline_icon"><i class="fas fa-smile"></i></div>
                                         <div class="timeline_text">{{ __('Picked Up') }}</div>
                                     </div>
-                                    @endif
                                 </div>
                             </div>
 
@@ -280,18 +249,6 @@
     .info_item strong {
         color: #333;
         font-size: 16px;
-    }
-
-    .delivery_info {
-        background: rgba(171, 22, 44, 0.05);
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 4px solid var(--colorPrimary, #AB162C);
-    }
-
-    .delivery_info h5 {
-        color: var(--colorPrimary, #AB162C);
-        margin-bottom: 10px;
     }
 
     .order_items_list {

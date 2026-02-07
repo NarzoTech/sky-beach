@@ -31,15 +31,10 @@ class BkashController extends Controller
     public function createPayment(Request $request)
     {
         $request->validate([
-            'order_type' => 'required|in:delivery,take_away',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
-            'address' => 'required_if:order_type,delivery|nullable|string|max:500',
-            'city' => 'required_if:order_type,delivery|nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'delivery_notes' => 'nullable|string|max:500',
         ]);
 
         $cartItems = WebsiteCart::getCart();
@@ -53,9 +48,8 @@ class BkashController extends Controller
 
         // Calculate totals
         $subtotal = $cartItems->sum('subtotal');
-        $deliveryFee = $request->order_type === 'delivery' ? $this->calculateDeliveryFee($subtotal) : 0;
         $tax = $this->calculateTax($subtotal);
-        $grandTotal = $subtotal + $deliveryFee + $tax;
+        $grandTotal = $subtotal + $tax;
 
         // Generate temporary invoice number for payment reference
         $invoiceNumber = 'WEB' . now()->format('YmdHis') . rand(100, 999);
@@ -63,17 +57,11 @@ class BkashController extends Controller
         // Store checkout data in session for later use
         session([
             'bkash_checkout_data' => [
-                'order_type' => $request->order_type,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'address' => $request->address,
-                'city' => $request->city,
-                'postal_code' => $request->postal_code,
-                'delivery_notes' => $request->delivery_notes,
                 'subtotal' => $subtotal,
-                'delivery_fee' => $deliveryFee,
                 'tax' => $tax,
                 'grand_total' => $grandTotal,
                 'invoice_number' => $invoiceNumber,
@@ -187,7 +175,7 @@ class BkashController extends Controller
                 'warehouse_id' => $this->getDefaultWarehouse(),
                 'quantity' => $cartItems->sum('quantity'),
                 'total_price' => $checkoutData['subtotal'],
-                'order_type' => $checkoutData['order_type'],
+                'order_type' => 'take_away',
                 'status' => 'pending',
                 'payment_status' => 'success',
                 'payment_method' => ['bkash'],
@@ -200,15 +188,13 @@ class BkashController extends Controller
                     'payment_execute_time' => $paymentResult['data']['paymentExecuteTime'] ?? null,
                 ]),
                 'total_tax' => $checkoutData['tax'],
-                'shipping_cost' => $checkoutData['delivery_fee'],
+                'shipping_cost' => 0,
                 'grand_total' => $checkoutData['grand_total'],
                 'order_date' => now(),
                 'invoice' => $invoice,
-                'delivery_address' => $checkoutData['order_type'] === 'delivery'
-                    ? $checkoutData['address'] . ', ' . $checkoutData['city'] . ($checkoutData['postal_code'] ? ', ' . $checkoutData['postal_code'] : '')
-                    : null,
+                'delivery_address' => null,
                 'delivery_phone' => $checkoutData['phone'],
-                'delivery_notes' => $checkoutData['delivery_notes'],
+                'delivery_notes' => null,
                 'sale_note' => 'Website Order (bKash) - ' . $checkoutData['first_name'] . ' ' . $checkoutData['last_name'],
                 'notes' => json_encode([
                     'customer_name' => $checkoutData['first_name'] . ' ' . $checkoutData['last_name'],

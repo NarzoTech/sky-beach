@@ -44,22 +44,13 @@ class CheckoutController extends Controller
         // Get saved checkout data from cookies
         $savedCheckoutData = $this->getSavedCheckoutData();
 
-        // Get settings for tax and delivery
+        // Get settings for tax
         $setting = Cache::get('setting');
         $taxEnabled = ($setting->website_tax_enabled ?? '1') == '1';
         $taxRate = $setting->website_tax_rate ?? 15;
-        $deliveryFeeEnabled = ($setting->website_delivery_fee_enabled ?? '1') == '1';
-        $deliveryFee = $setting->website_delivery_fee ?? 50;
-        $freeDeliveryThreshold = $setting->website_free_delivery_threshold ?? 0;
 
-        // Calculate tax and delivery for display
+        // Calculate tax for display
         $calculatedTax = $taxEnabled ? round($cartTotal * ($taxRate / 100), 2) : 0;
-        $calculatedDeliveryFee = $deliveryFeeEnabled ? $deliveryFee : 0;
-
-        // Check free delivery threshold
-        if ($freeDeliveryThreshold > 0 && $cartTotal >= $freeDeliveryThreshold) {
-            $calculatedDeliveryFee = 0;
-        }
 
         return view('website::checkout', compact(
             'cartItems',
@@ -70,10 +61,7 @@ class CheckoutController extends Controller
             'savedCheckoutData',
             'taxEnabled',
             'taxRate',
-            'calculatedTax',
-            'deliveryFeeEnabled',
-            'calculatedDeliveryFee',
-            'freeDeliveryThreshold'
+            'calculatedTax'
         ));
     }
 
@@ -83,15 +71,10 @@ class CheckoutController extends Controller
     public function processOrder(Request $request)
     {
         $request->validate([
-            'order_type' => 'required|in:delivery,take_away',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
-            'address' => 'required_if:order_type,delivery|nullable|string|max:500',
-            'city' => 'required_if:order_type,delivery|nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'delivery_notes' => 'nullable|string|max:500',
             'payment_method' => 'required|in:cash,card',
         ]);
 
@@ -109,9 +92,8 @@ class CheckoutController extends Controller
         try {
             // Calculate totals
             $subtotal = $cartItems->sum('subtotal');
-            $deliveryFee = $request->order_type === 'delivery' ? $this->calculateDeliveryFee($subtotal) : 0;
             $tax = $this->calculateTax($subtotal);
-            $grandTotal = $subtotal + $deliveryFee + $tax;
+            $grandTotal = $subtotal + $tax;
 
             // Generate invoice number and UID
             $invoice = $this->generateInvoiceNumber();
@@ -125,20 +107,18 @@ class CheckoutController extends Controller
                 'warehouse_id' => $this->getDefaultWarehouse(),
                 'quantity' => $cartItems->sum('quantity'),
                 'total_price' => $subtotal,
-                'order_type' => $request->order_type,
+                'order_type' => 'take_away',
                 'status' => 'pending',
                 'payment_status' => $request->payment_method === 'cash' ? 'unpaid' : 'pending',
                 'payment_method' => [$request->payment_method],
                 'total_tax' => $tax,
-                'shipping_cost' => $deliveryFee,
+                'shipping_cost' => 0,
                 'grand_total' => $grandTotal,
                 'order_date' => now(),
                 'invoice' => $invoice,
-                'delivery_address' => $request->order_type === 'delivery'
-                    ? $request->address . ', ' . $request->city . ($request->postal_code ? ', ' . $request->postal_code : '')
-                    : null,
+                'delivery_address' => null,
                 'delivery_phone' => $request->phone,
-                'delivery_notes' => $request->delivery_notes,
+                'delivery_notes' => null,
                 'sale_note' => 'Website Order - ' . $request->first_name . ' ' . $request->last_name,
                 'notes' => json_encode([
                     'customer_name' => $request->first_name . ' ' . $request->last_name,
@@ -362,9 +342,6 @@ class CheckoutController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'address' => $request->address,
-            'city' => $request->city,
-            'postal_code' => $request->postal_code,
         ];
 
         // Cookie expires in 1 year (525600 minutes)

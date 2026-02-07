@@ -330,7 +330,7 @@
                             if (buyNow) {
                                 window.location.href = '{{ route('website.checkout.index') }}';
                             } else {
-                                showToast('{{ $combo->name }} {{ __('added to cart!') }}', 'success');
+                                showToast({!! json_encode($combo->name . ' ' . __('added to cart!')) !!}, 'success');
                             }
                         } else {
                             showToast(data.message || '{{ __('Failed to add combo to cart.') }}', 'error');

@@ -536,7 +536,7 @@
                                 window.location.href = '{{ route('website.checkout.index') }}';
                             } else {
                                 // Show success toast
-                                showToast('{{ $menuItem->name }} {{ __('added to cart!') }}', 'success');
+                                showToast({!! json_encode($menuItem->name . ' ' . __('added to cart!')) !!}, 'success');
                             }
                         } else {
                             showToast(data.message || '{{ __('Failed to add item to cart.') }}', 'error');
