@@ -172,9 +172,11 @@
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
+                                    @adminCan('reservation.create')
                                     <a href="{{ route('admin.reservations.create') }}?table_id={{ $table->id }}" class="btn btn-outline-info quick-action-btn">
                                         <i class="bx bx-calendar-plus"></i>{{ __('Create Reservation') }}
                                     </a>
+                                    @endadminCan
                                     @if ($table->isOccupied())
                                     <button class="btn btn-outline-warning quick-action-btn release-table" data-id="{{ $table->id }}">
                                         <i class="bx bx-log-out"></i>{{ __('Release Table') }}
@@ -325,9 +327,11 @@
                                         </div>
                                         <h6 class="text-muted mb-1">{{ __('No Reservations Today') }}</h6>
                                         <p class="text-muted small mb-3">{{ __('This table is free for walk-in guests') }}</p>
+                                        @adminCan('reservation.create')
                                         <a href="{{ route('admin.reservations.create') }}?table_id={{ $table->id }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bx bx-plus me-1"></i>{{ __('Add Reservation') }}
                                         </a>
+                                        @endadminCan
                                     </div>
                                 @endif
                             </div>

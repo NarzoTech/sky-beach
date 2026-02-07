@@ -10,9 +10,11 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="section_title">{{ $reservation->reservation_number }}</h4>
                                 <div>
+                                    @adminCan('reservation.edit')
                                     <a href="{{ route('admin.reservations.edit', $reservation->id) }}" class="btn btn-warning">
                                         <i class="fa fa-edit"></i> {{ __('Edit') }}
                                     </a>
+                                    @endadminCan
                                     <a href="{{ route('admin.reservations.index') }}" class="btn btn-primary">
                                         <i class="fa fa-arrow-left"></i> {{ __('Back') }}
                                     </a>
@@ -139,6 +141,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
+                                    @adminCan('reservation.status')
                                     @if ($reservation->status == 'pending')
                                         <button class="btn btn-info action-btn" data-action="confirm">
                                             <i class="fas fa-check"></i> {{ __('Confirm Reservation') }}
@@ -160,6 +163,7 @@
                                             <i class="fas fa-check-double"></i> {{ __('Complete') }}
                                         </button>
                                     @endif
+                                    @endadminCan
                                 </div>
                             </div>
                         </div>

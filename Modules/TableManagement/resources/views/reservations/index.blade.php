@@ -122,9 +122,11 @@
                 <a href="{{ route('admin.reservations.calendar') }}" class="btn btn-secondary mr-2">
                     <i class="fa fa-calendar"></i> {{ __('Calendar') }}
                 </a>
+                @adminCan('reservation.create')
                 <a href="{{ route('admin.reservations.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ __('New Reservation') }}
                 </a>
+                @endadminCan
             </div>
         </div>
         <div class="card-body">
@@ -176,9 +178,12 @@
                                         <div class="dropdown-menu" aria-labelledby="btnGroupDrop{{ $reservation->id }}">
                                             <a href="{{ route('admin.reservations.show', $reservation->id) }}"
                                                 class="dropdown-item">{{ __('View') }}</a>
+                                            @adminCan('reservation.edit')
                                             <a href="{{ route('admin.reservations.edit', $reservation->id) }}"
                                                 class="dropdown-item">{{ __('Edit') }}</a>
+                                            @endadminCan
                                             <div class="dropdown-divider"></div>
+                                            @adminCan('reservation.status')
                                             @if ($reservation->status == 'pending')
                                                 <a href="javascript:void(0)" class="dropdown-item action-btn"
                                                     data-action="confirm" data-id="{{ $reservation->id }}">
@@ -207,11 +212,14 @@
                                                     <i class="fas fa-user-slash text-dark"></i> {{ __('No Show') }}
                                                 </a>
                                             @endif
+                                            @endadminCan
+                                            @adminCan('reservation.delete')
                                             <div class="dropdown-divider"></div>
                                             <a href="javascript:void(0)"
                                                 class="trigger--fire-modal-1 deleteForm dropdown-item"
                                                 data-url="{{ route('admin.reservations.destroy', $reservation->id) }}"
                                                 data-form="deleteForm">{{ __('Delete') }}</a>
+                                            @endadminCan
                                         </div>
                                     </div>
                                 </td>

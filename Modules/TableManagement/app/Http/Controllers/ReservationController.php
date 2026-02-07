@@ -18,6 +18,11 @@ class ReservationController extends Controller
         private TableService $tableService
     ) {
         $this->middleware('auth:admin');
+        $this->middleware('permission:reservation.view,admin')->only(['index', 'show', 'today', 'calendar', 'getAvailableTimeslots', 'checkAvailability']);
+        $this->middleware('permission:reservation.create,admin')->only(['create', 'store']);
+        $this->middleware('permission:reservation.edit,admin')->only(['edit', 'update']);
+        $this->middleware('permission:reservation.delete,admin')->only(['destroy']);
+        $this->middleware('permission:reservation.status,admin')->only(['confirm', 'seat', 'complete', 'cancel', 'markNoShow']);
     }
 
     public function index()

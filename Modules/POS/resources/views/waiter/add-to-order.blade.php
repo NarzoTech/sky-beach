@@ -33,6 +33,8 @@
         height: 100%;
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
     .menu-item-card:hover {
         border-color: #696cff;
@@ -101,16 +103,37 @@
         border-radius: 8px;
         padding: 12px 20px;
     }
+    .menu-item-card .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 6px 8px !important;
+    }
+    .menu-item-card .card-body h6 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.4em;
+    }
+    .menu-item-card .card-body .item-price-row {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+    }
     .quick-add-btn {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
         border-radius: 6px;
         padding: 0;
-        font-size: 16px;
-        z-index: 10;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
     }
     .cart-qty-badge {
         position: absolute;
@@ -356,19 +379,21 @@
                                     <i class="fas fa-utensils fa-2x text-muted"></i>
                                 </div>
                                 @endif
-                                <div class="card-body p-2" onclick="showItemModal({{ $item->id }})">
+                                <div class="card-body" onclick="showItemModal({{ $item->id }})">
                                     <h6 class="mb-1 small" style="line-height: 1.2;">{{ Str::limit($item->name, 25) }}</h6>
-                                    <div class="item-price">${{ number_format($item->price, 2) }}</div>
+                                    <div class="item-price-row">
+                                        <div class="item-price mb-0">${{ number_format($item->price, 2) }}</div>
+                                        @if($item->addons->isEmpty())
+                                        <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        @else
+                                        <button class="btn btn-primary quick-add-btn" onclick="event.stopPropagation(); showItemModal({{ $item->id }});" title="{{ __('Customize') }}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        @endif
+                                    </div>
                                 </div>
-                                @if($item->addons->isEmpty())
-                                <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                                @else
-                                <button class="btn btn-primary quick-add-btn" onclick="event.stopPropagation(); showItemModal({{ $item->id }});" title="{{ __('Customize') }}">
-                                    <i class="fas fa-cog"></i>
-                                </button>
-                                @endif
                             </div>
                         </div>
                         @endforeach
