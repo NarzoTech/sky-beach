@@ -156,17 +156,7 @@
             text-align: right;
         }
 
-        .delivery-info {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 5px;
-        }
 
-        .delivery-info h3 {
-            font-size: 12px;
-            margin-bottom: 5px;
-        }
 
         .notes {
             margin-bottom: 15px;
@@ -199,8 +189,7 @@
         .status-confirmed { background: #17a2b8; color: #fff; }
         .status-preparing { background: #007bff; color: #fff; }
         .status-ready { background: #28a745; color: #fff; }
-        .status-out_for_delivery { background: #17a2b8; color: #fff; }
-        .status-delivered, .status-completed { background: #28a745; color: #fff; }
+        .status-completed { background: #28a745; color: #fff; }
         .status-cancelled { background: #dc3545; color: #fff; }
 
         @media print {
@@ -239,7 +228,7 @@
                 <td class="label">{{ __('Type') }}:</td>
                 <td>
                     <span class="order-type">
-                        {{ $order->order_type === 'delivery' ? __('DELIVERY') : __('TAKE AWAY') }}
+                        {{ __('TAKE AWAY') }}
                     </span>
                 </td>
             </tr>
@@ -261,23 +250,13 @@
     <div class="customer-info">
         <h3>{{ __('Customer') }}</h3>
         <p><strong>{{ $notes['customer_name'] ?? ($order->customer->name ?? 'Guest') }}</strong></p>
-        @if(isset($notes['customer_phone']) || $order->delivery_phone)
-            <p>{{ $notes['customer_phone'] ?? $order->delivery_phone }}</p>
+        @if(isset($notes['customer_phone']))
+            <p>{{ $notes['customer_phone'] }}</p>
         @endif
         @if(isset($notes['customer_email']))
             <p>{{ $notes['customer_email'] }}</p>
         @endif
     </div>
-
-    @if($order->order_type === 'delivery' && $order->delivery_address)
-        <div class="delivery-info">
-            <h3>{{ __('Delivery Address') }}</h3>
-            <p>{{ $order->delivery_address }}</p>
-            @if($order->delivery_notes)
-                <p><em>{{ $order->delivery_notes }}</em></p>
-            @endif
-        </div>
-    @endif
 
     <div class="items">
         <h3>{{ __('Order Items') }}</h3>
@@ -315,12 +294,6 @@
                 <td>{{ __('Subtotal') }}:</td>
                 <td class="text-right">{{ currency($order->total_price) }}</td>
             </tr>
-            @if($order->shipping_cost > 0)
-                <tr>
-                    <td>{{ __('Delivery Fee') }}:</td>
-                    <td class="text-right">{{ currency($order->shipping_cost) }}</td>
-                </tr>
-            @endif
             @if($order->total_tax > 0)
                 <tr>
                     <td>{{ __('Tax') }}:</td>

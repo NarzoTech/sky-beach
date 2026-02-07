@@ -1208,8 +1208,7 @@ function populateRunningOrderModal(order) {
     // Order type badge
     const orderTypeLabels = {
         'dine_in': '{{ __("Dine-In") }}',
-        'take_away': '{{ __("Take-Away") }}',
-        'delivery': '{{ __("Delivery") }}'
+        'take_away': '{{ __("Take-Away") }}'
     };
     document.getElementById('ropOrderType').textContent = orderTypeLabels[order.order_type] || order.order_type;
 

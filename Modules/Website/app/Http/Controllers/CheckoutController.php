@@ -269,27 +269,6 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Calculate delivery fee based on settings
-     */
-    private function calculateDeliveryFee($subtotal = 0)
-    {
-        $setting = Cache::get('setting');
-
-        // Check if delivery fee is enabled
-        if (($setting->website_delivery_fee_enabled ?? '1') != '1') {
-            return 0;
-        }
-
-        // Check free delivery threshold
-        $threshold = $setting->website_free_delivery_threshold ?? 0;
-        if ($threshold > 0 && $subtotal >= $threshold) {
-            return 0;
-        }
-
-        return floatval($setting->website_delivery_fee ?? 50);
-    }
-
-    /**
      * Calculate tax based on settings
      */
     private function calculateTax($subtotal)

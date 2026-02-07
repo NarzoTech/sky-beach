@@ -71,13 +71,11 @@ class Sale extends Model
 
     const ORDER_TYPE_DINE_IN = 'dine_in';
     const ORDER_TYPE_TAKE_AWAY = 'take_away';
-    const ORDER_TYPE_DELIVERY = 'delivery';
     const ORDER_TYPE_WEBSITE = 'website';
 
     const ORDER_TYPES = [
         self::ORDER_TYPE_DINE_IN => 'Dine In',
         self::ORDER_TYPE_TAKE_AWAY => 'Take Away',
-        self::ORDER_TYPE_DELIVERY => 'Delivery',
         self::ORDER_TYPE_WEBSITE => 'Website',
     ];
 
@@ -86,8 +84,6 @@ class Sale extends Model
         'confirmed' => 'Confirmed',
         'preparing' => 'Preparing',
         'ready' => 'Ready',
-        'out_for_delivery' => 'Out for Delivery',
-        'delivered' => 'Delivered',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled',
     ];
@@ -231,11 +227,6 @@ class Sale extends Model
         return $this->order_type === self::ORDER_TYPE_TAKE_AWAY;
     }
 
-    public function isDelivery(): bool
-    {
-        return $this->order_type === self::ORDER_TYPE_DELIVERY;
-    }
-
     public function isWebsite(): bool
     {
         return $this->order_type === self::ORDER_TYPE_WEBSITE;
@@ -259,8 +250,7 @@ class Sale extends Model
             'confirmed' => 'bg-info',
             'preparing' => 'bg-primary',
             'ready' => 'bg-success',
-            'out_for_delivery' => 'bg-info',
-            'delivered', 'completed' => 'bg-success',
+            'completed' => 'bg-success',
             'cancelled' => 'bg-danger',
             default => 'bg-secondary',
         };

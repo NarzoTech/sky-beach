@@ -6,7 +6,7 @@
 
     Data required:
     - $total: Order total amount
-    - $orderType: 'dine_in', 'take_away', or 'delivery'
+    - $orderType: 'dine_in' or 'take_away'
     - $items: Collection of cart items (optional)
 --}}
 
@@ -530,7 +530,7 @@ function initPaymentModal(options) {
     console.log('initPaymentModal called with orderType:', currentOrderType, 'total:', currentTotal);
 
     // Hide previous setup modal if open
-    const setupModals = ['dineInSetupModal', 'takeawaySetupModal', 'deliverySetupModal'];
+    const setupModals = ['dineInSetupModal', 'takeawaySetupModal'];
     setupModals.forEach(modalId => {
         const modalEl = document.getElementById(modalId);
         if (modalEl) {
@@ -648,10 +648,6 @@ function updateOrderTypeBadge(orderType) {
             badge.classList.add('badge-takeaway');
             badge.textContent = '{{ __("Take-Away") }}';
             break;
-        case 'delivery':
-            badge.classList.add('badge-delivery');
-            badge.textContent = '{{ __("Delivery") }}';
-            break;
         default:
             badge.textContent = orderType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
@@ -679,37 +675,16 @@ function proceedToPayment(orderType) {
         const mainCustomerPhone = document.querySelector('input#customer_phone, input[name="customer_phone"]:not(#takeawaySetupForm input)');
         if (mainCustomerName) mainCustomerName.value = customerName;
         if (mainCustomerPhone) mainCustomerPhone.value = customerPhone;
-    } else if (orderType === 'delivery') {
-        if (!validateDeliveryForm()) {
-            return;
-        }
-        // Store delivery info
-        const deliveryPhone = document.querySelector('#deliverySetupForm input[name="delivery_phone"]')?.value || '';
-        const deliveryName = document.querySelector('#deliverySetupForm input[name="delivery_name"]')?.value || '';
-        const deliveryAddress = document.querySelector('#deliverySetupForm textarea[name="delivery_address"]')?.value || '';
-
-        if (document.getElementById('delivery_phone')) {
-            document.getElementById('delivery_phone').value = deliveryPhone;
-        }
-        if (document.getElementById('delivery_address')) {
-            document.getElementById('delivery_address').value = deliveryAddress;
-        }
     }
 
     // Get current cart total from finalTotal (which includes any discounts)
     const total = parseFloat(document.getElementById('finalTotal')?.textContent.replace(/[^0-9.]/g, '')) || 0;
     const itemCount = parseInt(document.getElementById('titems')?.textContent) || 0;
 
-    // Add delivery fee if applicable
     let finalTotal = total;
-    if (orderType === 'delivery') {
-        const deliveryFee = parseFloat(document.getElementById('deliveryFeeInput')?.value) || 0;
-        finalTotal += deliveryFee;
-    }
 
     // Close setup modal
-    const setupModalId = orderType === 'dine_in' ? 'dineInSetupModal' :
-                         orderType === 'take_away' ? 'takeawaySetupModal' : 'deliverySetupModal';
+    const setupModalId = orderType === 'dine_in' ? 'dineInSetupModal' : 'takeawaySetupModal';
     const setupModal = bootstrap.Modal.getInstance(document.getElementById(setupModalId));
     if (setupModal) {
         setupModal.hide();
@@ -984,11 +959,6 @@ function completePayment() {
         Object.keys(takeawayData).forEach(key => {
             formData.append(key, takeawayData[key]);
         });
-    } else if (currentOrderType === 'delivery') {
-        const deliveryData = getDeliveryFormData();
-        Object.keys(deliveryData).forEach(key => {
-            formData.append(key, deliveryData[key]);
-        });
     }
 
     // Handle payments - Backend expects arrays: payment_type[], paying_amount[], account_id[]
@@ -1112,15 +1082,6 @@ function awardLoyaltyPointsForOrder(orderId, orderTotal) {
     if (customerSelect && customerSelect.value && customerSelect.value !== 'walk-in-customer') {
         const selectedOption = customerSelect.options[customerSelect.selectedIndex];
         customerPhone = selectedOption?.dataset?.phone;
-    }
-
-    // Try from delivery form
-    if (!customerPhone) {
-        const deliveryPhone = document.getElementById('delivery_phone')?.value ||
-                              document.querySelector('#deliverySetupForm input[name="delivery_phone"]')?.value;
-        if (deliveryPhone && deliveryPhone.trim()) {
-            customerPhone = deliveryPhone.trim();
-        }
     }
 
     // If no phone, skip awarding points

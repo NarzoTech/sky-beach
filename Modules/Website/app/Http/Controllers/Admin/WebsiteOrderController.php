@@ -91,7 +91,7 @@ class WebsiteOrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,completed,cancelled',
+            'status' => 'required|in:pending,confirmed,preparing,ready,completed,cancelled',
             'staff_note' => 'nullable|string|max:500',
         ]);
 
@@ -119,7 +119,7 @@ class WebsiteOrderController extends Controller
         }
 
         // Reverse stock deduction if order is cancelled (and was in preparing or later stage)
-        if ($request->status === 'cancelled' && in_array($previousStatus, ['preparing', 'ready', 'out_for_delivery'])) {
+        if ($request->status === 'cancelled' && in_array($previousStatus, ['preparing', 'ready'])) {
             $this->reverseStockForOrder($order);
         }
 
@@ -271,7 +271,7 @@ class WebsiteOrderController extends Controller
         $request->validate([
             'order_ids' => 'required|array',
             'order_ids.*' => 'exists:sales,id',
-            'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered,completed,cancelled',
+            'status' => 'required|in:pending,confirmed,preparing,ready,completed,cancelled',
         ]);
 
         $newStatus = $request->status;
@@ -292,7 +292,7 @@ class WebsiteOrderController extends Controller
             }
 
             // Reverse stock deduction if order is cancelled
-            if ($newStatus === 'cancelled' && in_array($previousStatus, ['preparing', 'ready', 'out_for_delivery'])) {
+            if ($newStatus === 'cancelled' && in_array($previousStatus, ['preparing', 'ready'])) {
                 $this->reverseStockForOrder($order);
             }
         }

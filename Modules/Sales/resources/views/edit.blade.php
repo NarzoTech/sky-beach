@@ -199,7 +199,7 @@
                                         }
                                         // Calculate totals - use POS settings tax rate, fallback to sale tax rate
                                         $discount = $sale->order_discount ?? 0;
-                                        $taxRate = $posSettings->pos_tax_rate ?? $sale->tax_rate ?? 0;
+                                        $taxRate = optional($posSettings)->pos_tax_rate ?? $sale->tax_rate ?? 0;
                                         $afterDiscount = $cumalitive_sub_total - $discount;
                                         $taxAmount = $afterDiscount * ($taxRate / 100);
                                         $grandTotal = $afterDiscount + $taxAmount;

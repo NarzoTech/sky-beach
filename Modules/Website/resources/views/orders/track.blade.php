@@ -32,21 +32,11 @@
                             <!-- Order Info Header -->
                             <div class="tracking_header">
                                 <div class="order_icon">
-                                    @if($order->order_type === 'delivery')
-                                        <i class="fas fa-motorcycle"></i>
-                                    @else
-                                        <i class="fas fa-shopping-bag"></i>
-                                    @endif
+                                    <i class="fas fa-shopping-bag"></i>
                                 </div>
                                 <div class="order_info">
                                     <h4>{{ __('Order') }} #{{ $order->invoice }}</h4>
-                                    <p class="mb-0">
-                                        @if($order->order_type === 'delivery')
-                                            {{ __('Delivery Order') }}
-                                        @else
-                                            {{ __('Take Away Order') }}
-                                        @endif
-                                    </p>
+                                    <p class="mb-0">{{ __('Take Away Order') }}</p>
                                 </div>
                                 <div class="order_status">
                                     <span class="badge {{ $order->status_badge_class }}" id="statusBadge">
@@ -63,10 +53,10 @@
                                         <h5>{{ __('Order Cancelled') }}</h5>
                                         <p>{{ __('This order has been cancelled.') }}</p>
                                     </div>
-                                @elseif(in_array($order->status, ['delivered', 'completed']))
+                                @elseif($order->status === 'completed')
                                     <div class="status_completed">
                                         <i class="fas fa-check-circle"></i>
-                                        <h5>{{ $order->status === 'delivered' ? __('Order Delivered') : __('Order Completed') }}</h5>
+                                        <h5>{{ __('Order Completed') }}</h5>
                                         <p>{{ __('Thank you for your order!') }}</p>
                                     </div>
                                 @else
@@ -88,9 +78,6 @@
                                                 @case('ready')
                                                     {{ __('Order is Ready') }}
                                                     @break
-                                                @case('out_for_delivery')
-                                                    {{ __('On The Way') }}
-                                                    @break
                                             @endswitch
                                         </h5>
                                         <p id="statusDescription">
@@ -105,14 +92,7 @@
                                                     {{ __('Our kitchen is preparing your delicious food.') }}
                                                     @break
                                                 @case('ready')
-                                                    @if($order->order_type === 'delivery')
-                                                        {{ __('Your order is ready and waiting for a delivery rider.') }}
-                                                    @else
-                                                        {{ __('Your order is ready for pickup!') }}
-                                                    @endif
-                                                    @break
-                                                @case('out_for_delivery')
-                                                    {{ __('Your order is on its way to you.') }}
+                                                    {{ __('Your order is ready for pickup!') }}
                                                     @break
                                             @endswitch
                                         </p>
@@ -130,12 +110,7 @@
                                         'ready' => ['icon' => 'fas fa-box', 'label' => __('Ready')],
                                     ];
 
-                                    if ($order->order_type === 'delivery') {
-                                        $allStatuses['out_for_delivery'] = ['icon' => 'fas fa-motorcycle', 'label' => __('On The Way')];
-                                        $allStatuses['delivered'] = ['icon' => 'fas fa-home', 'label' => __('Delivered')];
-                                    } else {
-                                        $allStatuses['completed'] = ['icon' => 'fas fa-smile', 'label' => __('Picked Up')];
-                                    }
+                                    $allStatuses['completed'] = ['icon' => 'fas fa-smile', 'label' => __('Picked Up')];
 
                                     $statusKeys = array_keys($allStatuses);
                                     $currentIndex = array_search($order->status, $statusKeys);
@@ -156,7 +131,7 @@
                                             </div>
                                             <div class="step_content">
                                                 <h6>{{ $status['label'] }}</h6>
-                                                @if($isCurrent && !in_array($order->status, ['delivered', 'completed', 'cancelled']))
+                                                @if($isCurrent && !in_array($order->status, ['completed', 'cancelled']))
                                                     <span class="step_time">{{ __('In Progress') }}</span>
                                                 @elseif($isActive)
                                                     <span class="step_time">{{ __('Completed') }}</span>
@@ -175,12 +150,6 @@
                                             <label>{{ __('Order Date') }}</label>
                                             <span>{{ $order->created_at->format('M d, Y h:i A') }}</span>
                                         </div>
-                                        @if($order->order_type === 'delivery' && $order->delivery_address)
-                                            <div class="detail_item">
-                                                <label>{{ __('Delivery Address') }}</label>
-                                                <span>{{ $order->delivery_address }}</span>
-                                            </div>
-                                        @endif
                                     </div>
                                     <div class="col-md-6">
                                         <div class="detail_item">
@@ -485,7 +454,7 @@
 @push('scripts')
 <script>
     // Poll for status updates every 30 seconds
-    @if(!in_array($order->status, ['delivered', 'completed', 'cancelled']))
+    @if(!in_array($order->status, ['completed', 'cancelled']))
     setInterval(function() {
         fetch(`/order/{{ $order->id }}/status`, {
             headers: {

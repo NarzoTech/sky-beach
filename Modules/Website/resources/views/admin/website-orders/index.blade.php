@@ -103,7 +103,6 @@
                         <label class="form-label">{{ __('Order Type') }}</label>
                         <select name="order_type" class="form-select">
                             <option value="">{{ __('All Types') }}</option>
-                            <option value="delivery" {{ request('order_type') == 'delivery' ? 'selected' : '' }}>{{ __('Delivery') }}</option>
                             <option value="take_away" {{ request('order_type') == 'take_away' ? 'selected' : '' }}>{{ __('Take Away') }}</option>
                         </select>
                     </div>
@@ -176,10 +175,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if($order->order_type === 'delivery')
-                                            <span class="badge bg-info"><i class="bx bx-car me-1"></i>{{ __('Delivery') }}</span>
-                                        @else
-                                            <span class="badge bg-secondary"><i class="bx bx-shopping-bag me-1"></i>{{ __('Take Away') }}</span>
+                                        <span class="badge bg-secondary"><i class="bx bx-shopping-bag me-1"></i>{{ __('Take Away') }}</span>
                                         @endif
                                     </td>
                                     <td>{{ $order->details->sum('quantity') }} {{ __('items') }}</td>

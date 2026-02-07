@@ -223,7 +223,7 @@ class WaiterDashboardController extends Controller
 
         // Get tax rate from POS settings or default to 15%
         $posSettings = PosSettings::first();
-        $taxRate = $posSettings->pos_tax_rate ?: 15;
+        $taxRate = optional($posSettings)->pos_tax_rate ?: 15;
         $taxAmount = $subtotal * ($taxRate / 100);
         $grandTotal = $subtotal + $taxAmount;
 
@@ -462,7 +462,7 @@ class WaiterDashboardController extends Controller
 
         // Update order totals with tax recalculation
         $posSettings = PosSettings::first();
-        $taxRate = $order->tax_rate ?: ($posSettings->pos_tax_rate ?: 15);
+        $taxRate = $order->tax_rate ?: (optional($posSettings)->pos_tax_rate ?: 15);
 
         $newSubtotal = ($order->total_price ?? 0) + $addedTotal;
         $newTaxAmount = $newSubtotal * ($taxRate / 100);

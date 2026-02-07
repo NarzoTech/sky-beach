@@ -5,7 +5,6 @@
         $orderTypeConfig = match($order->order_type) {
             'dine_in' => ['icon' => 'fa-chair', 'class' => 'dine-in', 'label' => __('Dine-in')],
             'take_away' => ['icon' => 'fa-shopping-bag', 'class' => 'take-away', 'label' => __('Take Away')],
-            'delivery' => ['icon' => 'fa-motorcycle', 'class' => 'delivery', 'label' => __('Delivery')],
             default => ['icon' => 'fa-receipt', 'class' => 'dine-in', 'label' => __('Order')]
         };
 
@@ -156,6 +155,6 @@
         <i class="fas fa-concierge-bell"></i>
     </div>
     <h5>{{ __('No Running Orders') }}</h5>
-    <p>{{ __('Active dine-in, takeaway & delivery orders will appear here') }}</p>
+    <p>{{ __('Active dine-in & takeaway orders will appear here') }}</p>
 </div>
 @endif

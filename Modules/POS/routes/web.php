@@ -45,7 +45,6 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         // New Payment Modal Routes (aliases for unified payment flow)
         Route::post('/checkout', [POSController::class, 'place_order'])->name('pos.checkout');
         Route::post('/start-dine-in-order', [POSController::class, 'place_order'])->name('pos.start-dine-in-order');
-        Route::post('/create-delivery-order', [POSController::class, 'place_order'])->name('pos.create-delivery-order');
 
         Route::get('/check-cart-restaurant/{id}', [POSController::class, 'check_cart_restaurant'])->name('check-cart-restaurant');
         Route::get('/modal-cart-clear', [POSController::class, 'modalClearCart'])->name('modal-cart-clear');

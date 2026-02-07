@@ -2,7 +2,6 @@
     $orderTypeConfig = match($order->order_type) {
         'dine_in' => ['icon' => 'fa-chair', 'color' => 'primary', 'label' => __('Dine-in')],
         'take_away' => ['icon' => 'fa-shopping-bag', 'color' => 'success', 'label' => __('Take Away')],
-        'delivery' => ['icon' => 'fa-motorcycle', 'color' => 'info', 'label' => __('Delivery')],
         default => ['icon' => 'fa-receipt', 'color' => 'secondary', 'label' => __('Order')]
     };
 

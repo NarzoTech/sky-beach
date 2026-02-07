@@ -524,11 +524,6 @@
                                             <label class="btn flex-fill" style="border: 1px solid #47c363; color: #47c363;" for="orderTypeTakeAway">
                                                 <i class="fas fa-shopping-bag me-2"></i>{{ __('Take Away') }}
                                             </label>
-
-                                            <input type="radio" class="btn-check" name="order_type_radio" id="orderTypeDelivery" value="delivery">
-                                            <label class="btn btn-outline-info flex-fill" for="orderTypeDelivery">
-                                                <i class="fas fa-motorcycle me-2"></i>{{ __('Delivery') }}
-                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -580,7 +575,7 @@
                                                 <td class="text-end text-success" id="discountDisplay">- {{ currency_icon() }}0.00</td>
                                             </tr>
                                             <tr id="taxRow">
-                                                <td>{{ __('Tax') }} (<span id="taxRateDisplay">{{ $posSettings->pos_tax_rate ?? 0 }}</span>%)</td>
+                                                <td>{{ __('Tax') }} (<span id="taxRateDisplay">{{ optional($posSettings)->pos_tax_rate ?? 0 }}</span>%)</td>
                                                 <td class="text-end" id="taxDisplay">{{ currency_icon() }}0.00</td>
                                             </tr>
                                             <tr class="pay-row">
@@ -596,7 +591,7 @@
                                     <input type="hidden" id="tds" value="0">
                                     <input type="hidden" id="gtotal" value="{{ $cumalitive_sub_total }}">
                                     <input type="hidden" id="totalVat" value="0">
-                                    <input type="hidden" id="taxRate" value="{{ $posSettings->pos_tax_rate ?? 0 }}">
+                                    <input type="hidden" id="taxRate" value="{{ optional($posSettings)->pos_tax_rate ?? 0 }}">
                                     <input type="hidden" id="taxAmount" value="0">
                                     <input type="hidden" id="business_vat" value="0">
                                     <input type="hidden" id="discount_total_amount" value="0">
@@ -719,9 +714,6 @@
                     <input type="hidden" name="guest_count" id="guest_count" value="1">
                     <input type="hidden" name="waiter_id" id="waiter_id" value="">
                     <input type="hidden" name="sale_note" id="sale_note" value="">
-                    <input type="hidden" name="delivery_address" id="order_delivery_address" value="">
-                    <input type="hidden" name="delivery_phone" id="order_delivery_phone" value="">
-                    <input type="hidden" name="delivery_notes" id="order_delivery_notes" value="">
                     <input type="hidden" name="sub_total" value="" autocomplete="off">
                     <input type="hidden" name="total_amount" value="0" id="total_amount_modal_input" autocomplete="off">
                     <input type="hidden" name="discount_amount" value="0" autocomplete="off">
@@ -983,7 +975,7 @@
                     </div>
                     <div class="header-text">
                         <h5 class="mb-0">{{ __('Running Orders') }}</h5>
-                        <small>{{ __('Active dine-in, takeaway & delivery orders') }}</small>
+                        <small>{{ __('Active dine-in & takeaway orders') }}</small>
                     </div>
                     <button type="button" class="header-close-btn" data-bs-dismiss="modal" aria-label="Close">
                         <i class="fas fa-times"></i>
@@ -1089,10 +1081,6 @@
 
     .running-order-card .order-badge.take-away {
         background: #71dd37;
-    }
-
-    .running-order-card .order-badge.delivery {
-        background: #03c3ec;
     }
 
     .running-order-card .order-invoice {
@@ -2524,7 +2512,6 @@
     {{-- New Payment System Modals --}}
     @include('pos::modals.dine-in-setup')
     @include('pos::modals.takeaway-setup')
-    @include('pos::modals.delivery-setup')
     @include('pos::modals.payment', ['accounts' => $accounts ?? collect(), 'setting' => $setting ?? null])
     @include('pos::modals.running-order-payment', ['accounts' => $accounts ?? collect(), 'setting' => $setting ?? null])
 
@@ -2707,19 +2694,12 @@
                     var orderType = $(this).val();
                     if (orderType === 'dine_in') {
                         $('#tableSelectionRow').removeClass('d-none');
-                        $('#deliveryInfoRow').addClass('d-none');
                         $('#customerSelectionRow').addClass('d-none');
                         $('#customerLoyaltyRow').addClass('d-none');
                         // Reset customer to walk-in for dine-in
                         $('#customer_id').val('walk-in-customer').trigger('change');
-                    } else if (orderType === 'delivery') {
-                        $('#tableSelectionRow').addClass('d-none');
-                        $('#deliveryInfoRow').removeClass('d-none');
-                        $('#customerSelectionRow').removeClass('d-none');
-                        clearTableSelection();
                     } else { // take_away
                         $('#tableSelectionRow').addClass('d-none');
-                        $('#deliveryInfoRow').addClass('d-none');
                         $('#customerSelectionRow').removeClass('d-none');
                         clearTableSelection();
                     }
@@ -3581,7 +3561,6 @@
                 subTotal = subTotal.replace(/,/g, '');
             }
             subTotal = parseFloat(subTotal);
-            let deliveryFee = parseFloat($('#delivery_fee').val()) || 0;
 
             let tax = parseFloat($('#tax_fee').val()) || 0;
             let discount = parseFloat($('#discount').val()) || 0;
@@ -3594,13 +3573,12 @@
             }
 
             // Calculate the total
-            total = subTotal + deliveryFee + tax - discount;
+            total = subTotal + tax - discount;
 
             // Update the total field with the calculated value
             $('#total_fee').val(total.toFixed(2));
 
             $('[name="order_sub_total"]').val(subTotal);
-            $('[name="order_delivery_fee"]').val(deliveryFee);
             $('[name="order_tax"]').val(tax);
             $('[name="order_discount"]').val(discount.toFixed(2));
             $('[name="order_total_fee"]').val(total.toFixed(2));
@@ -3678,10 +3656,6 @@
                 case 'take_away':
                     initTakeawaySetupModal(grandTotal, itemCount);
                     break;
-                case 'delivery':
-                    let deliveryFee = parseFloat($('#delivery_fee').val()) || 0;
-                    initDeliverySetupModal(grandTotal, itemCount, deliveryFee);
-                    break;
                 default:
                     // Fallback to direct payment modal for unknown types
                     openDirectPaymentModal(grandTotal, itemCount, subTotal, discountAmount);
@@ -3709,8 +3683,6 @@
             let orderType = $('input[name="order_type_radio"]:checked').val();
             $('#order_type').val(orderType);
             $('#order_table_id').val($('#table_id').val());
-            $('#order_delivery_address').val($('#delivery_address').val());
-            $('#order_delivery_phone').val($('#delivery_phone').val());
 
             // Update order type badge
             updateOrderTypeBadge();
@@ -3849,14 +3821,6 @@
 
         function numberFormat(n) {
             return Number(n).toFixed(2)
-        }
-
-        function showDeliveryInfo(show = false) {
-            if (show) {
-                $('.add_delivery_info').removeClass('d-none');
-            } else {
-                $('.add_delivery_info').addClass('d-none');
-            }
         }
 
         function discountExist() {
@@ -4099,10 +4063,6 @@
                     break;
                 case 'take_away':
                     badge.text("{{ __('Take Away') }}").removeClass('bg-primary bg-info').addClass('bg-success');
-                    startBtn.show();
-                    break;
-                case 'delivery':
-                    badge.text("{{ __('Delivery') }}").removeClass('bg-primary bg-success').addClass('bg-info');
                     startBtn.show();
                     break;
                 default:
@@ -5374,7 +5334,7 @@
                 return;
             }
 
-            // For take-away or delivery, open normal payment modal
+            // For take-away, open normal payment modal
             originalOpenPaymentModal();
             updatePointsRedemption();
         };

@@ -53,12 +53,7 @@
                             <h5 class="card_title"><i class="fas fa-truck me-2"></i>{{ __('Order Status') }}</h5>
                             <div class="status_timeline">
                                 @php
-                                    $statuses = ['pending', 'confirmed', 'preparing', 'ready'];
-                                    if ($order->order_type === 'delivery') {
-                                        $statuses = array_merge($statuses, ['out_for_delivery', 'delivered']);
-                                    } else {
-                                        $statuses[] = 'completed';
-                                    }
+                                    $statuses = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
                                     $currentIndex = array_search($order->status, $statuses);
                                     if ($order->status === 'cancelled') $currentIndex = -1;
                                 @endphp
@@ -73,8 +68,6 @@
                                                 'confirmed' => __('Confirmed'),
                                                 'preparing' => __('Preparing'),
                                                 'ready' => __('Ready'),
-                                                'out_for_delivery' => __('On The Way'),
-                                                'delivered' => __('Delivered'),
                                                 'completed' => __('Completed'),
                                             ];
                                             $statusIcons = [
@@ -82,8 +75,6 @@
                                                 'confirmed' => 'fas fa-clipboard-check',
                                                 'preparing' => 'fas fa-fire',
                                                 'ready' => 'fas fa-box',
-                                                'out_for_delivery' => 'fas fa-motorcycle',
-                                                'delivered' => 'fas fa-home',
                                                 'completed' => 'fas fa-smile',
                                             ];
                                         @endphp
@@ -140,21 +131,6 @@
                             </div>
                         </div>
 
-                        <!-- Delivery Info (if delivery order) -->
-                        @if($order->order_type === 'delivery' && $order->delivery_address)
-                            <div class="order_detail_card wow fadeInUp mb-4">
-                                <h5 class="card_title"><i class="fas fa-map-marker-alt me-2"></i>{{ __('Delivery Information') }}</h5>
-                                <div class="delivery_info">
-                                    <p class="mb-2"><strong>{{ __('Address') }}:</strong> {{ $order->delivery_address }}</p>
-                                    @if($order->delivery_phone)
-                                        <p class="mb-2"><strong>{{ __('Phone') }}:</strong> {{ $order->delivery_phone }}</p>
-                                    @endif
-                                    @if($order->delivery_notes)
-                                        <p class="mb-0"><strong>{{ __('Instructions') }}:</strong> {{ $order->delivery_notes }}</p>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
                     </div>
 
                     <div class="col-lg-4">
@@ -165,11 +141,7 @@
                                 <div class="summary_row">
                                     <span>{{ __('Order Type') }}</span>
                                     <span>
-                                        @if($order->order_type === 'delivery')
-                                            <i class="fas fa-motorcycle me-1"></i>{{ __('Delivery') }}
-                                        @else
-                                            <i class="fas fa-shopping-bag me-1"></i>{{ __('Take Away') }}
-                                        @endif
+                                        <i class="fas fa-shopping-bag me-1"></i>{{ __('Take Away') }}
                                     </span>
                                 </div>
                                 <div class="summary_row">
@@ -193,12 +165,6 @@
                                     <span>{{ __('Subtotal') }}</span>
                                     <span>${{ number_format($order->total_price, 2) }}</span>
                                 </div>
-                                @if($order->shipping_cost > 0)
-                                    <div class="summary_row">
-                                        <span>{{ __('Delivery Fee') }}</span>
-                                        <span>${{ number_format($order->shipping_cost, 2) }}</span>
-                                    </div>
-                                @endif
                                 @if($order->total_tax > 0)
                                     <div class="summary_row">
                                         <span>{{ __('Tax') }}</span>
@@ -431,12 +397,6 @@
     .item_price {
         font-weight: 700;
         color: #ff6b35;
-    }
-
-    .delivery_info {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
     }
 
     .order_summary_card {

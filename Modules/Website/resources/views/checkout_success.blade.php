@@ -143,11 +143,11 @@
                                         <div class="timeline_icon"><i class="fas fa-check"></i></div>
                                         <div class="timeline_text">{{ __('Order Placed') }}</div>
                                     </div>
-                                    <div class="timeline_item {{ in_array($order->status, ['confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'completed']) ? 'active' : '' }}">
+                                    <div class="timeline_item {{ in_array($order->status, ['confirmed', 'preparing', 'ready', 'completed']) ? 'active' : '' }}">
                                         <div class="timeline_icon"><i class="fas fa-clipboard-check"></i></div>
                                         <div class="timeline_text">{{ __('Confirmed') }}</div>
                                     </div>
-                                    <div class="timeline_item {{ in_array($order->status, ['preparing', 'ready', 'out_for_delivery', 'delivered', 'completed']) ? 'active' : '' }}">
+                                    <div class="timeline_item {{ in_array($order->status, ['preparing', 'ready', 'completed']) ? 'active' : '' }}">
                                         <div class="timeline_icon"><i class="fas fa-fire"></i></div>
                                         <div class="timeline_text">{{ __('Preparing') }}</div>
                                     </div>

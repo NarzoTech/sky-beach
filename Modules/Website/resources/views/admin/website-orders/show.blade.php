@@ -63,12 +63,7 @@
                             <h6 class="mb-3">{{ __('Order Progress') }}</h6>
                             @php
                                 $orderStatus = (string)$order->status;
-                                $allStatuses = ['pending', 'confirmed', 'preparing', 'ready'];
-                                if ($order->order_type === 'delivery') {
-                                    $allStatuses = array_merge($allStatuses, ['out_for_delivery', 'delivered']);
-                                } else {
-                                    $allStatuses[] = 'completed';
-                                }
+                                $allStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
                                 $currentIndex = array_search($orderStatus, $allStatuses, true);
                                 // Handle case where status is not in array (e.g., cancelled)
                                 if ($currentIndex === false) {
@@ -78,7 +73,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 @php
                                     // Terminal statuses should show checkmark, not spinner
-                                    $terminalStatuses = ['completed', 'delivered'];
+                                    $terminalStatuses = ['completed'];
                                     $isTerminalStatus = in_array($orderStatus, $terminalStatuses);
                                 @endphp
                                 @foreach($allStatuses as $index => $status)
@@ -179,12 +174,6 @@
                                         <td colspan="3" class="text-end">{{ __('Subtotal') }}:</td>
                                         <td class="text-end">{{ currency($order->total_price) }}</td>
                                     </tr>
-                                    @if($order->shipping_cost > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end">{{ __('Delivery Fee') }}:</td>
-                                            <td class="text-end">{{ currency($order->shipping_cost) }}</td>
-                                        </tr>
-                                    @endif
                                     @if($order->total_tax > 0)
                                         <tr>
                                             <td colspan="3" class="text-end">{{ __('Tax') }}:</td>
@@ -237,7 +226,7 @@
                         </div>
                         <div class="mb-2">
                             <i class="bx bx-phone text-muted me-2"></i>
-                            {{ $notes['customer_phone'] ?? $order->delivery_phone ?? 'N/A' }}
+                            {{ $notes['customer_phone'] ?? 'N/A' }}
                         </div>
                     </div>
                 </div>
@@ -252,11 +241,7 @@
                             <li class="d-flex justify-content-between py-2 border-bottom">
                                 <span class="text-muted">{{ __('Order Type') }}</span>
                                 <span>
-                                    @if($order->order_type === 'delivery')
-                                        <span class="badge bg-info"><i class="bx bx-car me-1"></i>{{ __('Delivery') }}</span>
-                                    @else
-                                        <span class="badge bg-secondary"><i class="bx bx-shopping-bag me-1"></i>{{ __('Take Away') }}</span>
-                                    @endif
+                                    <span class="badge bg-secondary"><i class="bx bx-shopping-bag me-1"></i>{{ __('Take Away') }}</span>
                                 </span>
                             </li>
                             <li class="d-flex justify-content-between py-2 border-bottom">
@@ -284,27 +269,6 @@
                         </ul>
                     </div>
                 </div>
-
-                <!-- Delivery Info (if delivery) -->
-                @if($order->order_type === 'delivery')
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0"><i class="bx bx-map me-2"></i>{{ __('Delivery Information') }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="mb-2">
-                                <strong>{{ __('Address') }}:</strong><br>
-                                {{ $order->delivery_address ?? 'N/A' }}
-                            </p>
-                            @if($order->delivery_notes)
-                                <p class="mb-0">
-                                    <strong>{{ __('Delivery Instructions') }}:</strong><br>
-                                    <span class="text-muted">{{ $order->delivery_notes }}</span>
-                                </p>
-                            @endif
-                        </div>
-                    </div>
-                @endif
 
                 <!-- Notes -->
                 @if($order->sale_note || $order->staff_note || $order->special_instructions)

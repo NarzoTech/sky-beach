@@ -59,47 +59,6 @@
                 </div>
             </div>
 
-            <!-- Delivery Fee Settings -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bx bx-car me-2"></i>{{ __('Delivery Fee Settings') }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <div class="form-check form-switch mb-2">
-                                <input type="checkbox" class="form-check-input" id="website_delivery_fee_enabled"
-                                    name="website_delivery_fee_enabled" value="1"
-                                    {{ ($setting->website_delivery_fee_enabled ?? '1') == '1' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="website_delivery_fee_enabled">
-                                    {{ __('Enable Delivery Fee') }}
-                                </label>
-                            </div>
-                            <small class="text-muted">{{ __('When enabled, delivery fee will be charged on delivery orders') }}</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="website_delivery_fee">{{ __('Delivery Fee Amount') }} <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">{{ currency_icon() }}</span>
-                                <input type="number" class="form-control" id="website_delivery_fee"
-                                    name="website_delivery_fee" step="0.01" min="0"
-                                    value="{{ $setting->website_delivery_fee ?? '50' }}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="website_free_delivery_threshold">{{ __('Free Delivery Above') }}</label>
-                            <div class="input-group">
-                                <span class="input-group-text">{{ currency_icon() }}</span>
-                                <input type="number" class="form-control" id="website_free_delivery_threshold"
-                                    name="website_free_delivery_threshold" step="0.01" min="0"
-                                    value="{{ $setting->website_free_delivery_threshold ?? '0' }}">
-                            </div>
-                            <small class="text-muted">{{ __('Set 0 to disable free delivery threshold') }}</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Loyalty Points Settings -->
             <div class="card mb-4">
                 <div class="card-header">

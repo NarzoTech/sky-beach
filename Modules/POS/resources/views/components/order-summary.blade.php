@@ -7,7 +7,6 @@
         'subtotal' => 2340,
         'discount' => 0,
         'tax' => 117,
-        'deliveryFee' => 0,
         'total' => 2457,
         'showItems' => true,
         'editable' => false
@@ -19,8 +18,7 @@
     $subtotal = $subtotal ?? 0;
     $discount = $discount ?? 0;
     $tax = $tax ?? 0;
-    $deliveryFee = $deliveryFee ?? 0;
-    $total = $total ?? ($subtotal - $discount + $tax + $deliveryFee);
+    $total = $total ?? ($subtotal - $discount + $tax);
     $showItems = $showItems ?? true;
     $editable = $editable ?? false;
     $currency = currency_icon();
@@ -81,13 +79,6 @@
             <span>{{ __('Tax') }} @if(isset($taxRate) && $taxRate > 0)({{ $taxRate }}%)@endif</span>
             <span id="summaryTax">{{ $currency }} {{ number_format($tax, 2) }}</span>
         </div>
-
-        @if($deliveryFee > 0)
-        <div class="summary-row summary-delivery">
-            <span>{{ __('Delivery Fee') }}</span>
-            <span id="summaryDelivery">{{ $currency }} {{ number_format($deliveryFee, 2) }}</span>
-        </div>
-        @endif
 
         <div class="summary-row summary-total">
             <span>{{ __('Total') }}</span>
@@ -227,8 +218,7 @@
     color: #71dd37;
 }
 
-.summary-row.summary-tax,
-.summary-row.summary-delivery {
+.summary-row.summary-tax {
     color: #697a8d;
 }
 
@@ -288,14 +278,6 @@ function updateOrderSummary(data) {
         const taxEl = document.getElementById('summaryTax');
         if (taxEl) {
             taxEl.textContent = currency + ' ' + parseFloat(data.tax).toFixed(2);
-        }
-    }
-
-    if (data.deliveryFee !== undefined) {
-        const deliveryEl = document.getElementById('summaryDelivery');
-        if (deliveryEl) {
-            deliveryEl.textContent = currency + ' ' + parseFloat(data.deliveryFee).toFixed(2);
-            deliveryEl.closest('.summary-row').style.display = data.deliveryFee > 0 ? 'flex' : 'none';
         }
     }
 

@@ -1014,7 +1014,7 @@ class POSController extends Controller
             DB::commit();
 
             // Check if this is a deferred payment (running order)
-            // Deferred payment applies to: Dine-in, Take Away, and Delivery when payment_status is 0
+            // Deferred payment applies to: Dine-in and Take Away when payment_status is 0
             $isDeferredPayment = $request->defer_payment || $sale->payment_status == 0;
 
             // Trigger printing to both printers (kitchen & cash counter)
@@ -1029,7 +1029,6 @@ class POSController extends Controller
                 $orderTypeLabel = match($sale->order_type) {
                     Sale::ORDER_TYPE_DINE_IN => __('Dine-in'),
                     Sale::ORDER_TYPE_TAKE_AWAY => __('Take Away'),
-                    Sale::ORDER_TYPE_DELIVERY => __('Delivery'),
                     default => __('Order')
                 };
 
@@ -1263,7 +1262,7 @@ class POSController extends Controller
     }
 
     /**
-     * Get running orders (active orders - Dine-in, Take Away, Delivery)
+     * Get running orders (active orders - Dine-in, Take Away)
      */
     public function getRunningOrders(Request $request)
     {
@@ -1272,9 +1271,9 @@ class POSController extends Controller
             $perPage = 9;
 
             // Note: status column is integer - 0 = processing/pending, 1 = completed
-            // Include all order types: Dine-in, Take Away, Delivery
+            // Include all order types: Dine-in, Take Away
             $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
-                ->whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY, Sale::ORDER_TYPE_DELIVERY])
+                ->whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY])
                 ->where('status', 0) // 0 = processing/pending
                 ->orderBy('created_at', 'desc')
                 ->paginate($perPage, ['*'], 'page', $page);
@@ -1305,8 +1304,8 @@ class POSController extends Controller
     {
         try {
             // Note: status column is integer - 0 = processing/pending, 1 = completed
-            // Include all order types: Dine-in, Take Away, Delivery
-            $count = Sale::whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY, Sale::ORDER_TYPE_DELIVERY])
+            // Include all order types: Dine-in, Take Away
+            $count = Sale::whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY])
                 ->where('status', 0) // 0 = processing/pending
                 ->count();
 
@@ -1696,7 +1695,7 @@ class POSController extends Controller
                 $order->table->release();
                 Log::info('Table released', ['table_id' => $order->table->id, 'new_status' => $order->table->status, 'occupied_seats' => $order->table->occupied_seats]);
             } else {
-                Log::info('No table to release (Take Away/Delivery order)', ['order_id' => $order->id, 'order_type' => $order->order_type]);
+                Log::info('No table to release (Take Away order)', ['order_id' => $order->id, 'order_type' => $order->order_type]);
             }
 
             // Create CustomerPayment records (optional - log errors but don't fail)
