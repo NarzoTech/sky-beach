@@ -12,7 +12,7 @@
         body {
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            width: {{ $printer->paper_width ?? 80 }}mm;
+            width: {{ optional($printer)->paper_width ?? 80 }}mm;
             padding: 3mm;
         }
         .header {
@@ -110,11 +110,11 @@
         }
         @media print {
             body {
-                width: {{ $printer->paper_width ?? 80 }}mm;
+                width: {{ optional($printer)->paper_width ?? 80 }}mm;
             }
             @page {
                 margin: 0;
-                size: {{ $printer->paper_width ?? 80 }}mm auto;
+                size: {{ optional($printer)->paper_width ?? 80 }}mm auto;
             }
         }
     </style>

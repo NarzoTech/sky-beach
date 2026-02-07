@@ -4,15 +4,21 @@
     <meta charset="utf-8">
     <title>Order Slip #{{ $sale->id }}</title>
     <style>
+        @page {
+            margin: 0;
+            size: {{ optional($printer)->paper_width ?? 80 }}mm auto;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
+        html, body {
+            width: 100%;
+            max-width: {{ optional($printer)->paper_width ?? 80 }}mm;
+            margin: 0;
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            width: {{ $printer->paper_width ?? 80 }}mm;
             padding: 3mm;
         }
         .header {
@@ -92,13 +98,31 @@
             margin-top: 8px;
             font-size: 10px;
         }
+        .no-print {
+            text-align: center;
+            padding: 8px 0;
+            border-top: 1px dashed #ccc;
+            margin-top: 10px;
+        }
+        .no-print button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 6px 20px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .no-print button:hover {
+            background: #000;
+        }
         @media print {
-            body {
-                width: {{ $printer->paper_width ?? 80 }}mm;
-            }
-            @page {
-                margin: 0;
-                size: {{ $printer->paper_width ?? 80 }}mm auto;
+            .no-print { display: none; }
+            html, body {
+                width: {{ optional($printer)->paper_width ?? 80 }}mm;
+                max-width: {{ optional($printer)->paper_width ?? 80 }}mm;
+                padding: 2mm;
             }
         }
     </style>
@@ -143,16 +167,16 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th class="qty">Qty</th>
                 <th>Item</th>
+                <th class="qty">Qty</th>
                 <th class="price">Amount</th>
             </tr>
         </thead>
         <tbody>
             @foreach($sale->details as $detail)
             <tr>
-                <td class="qty">{{ $detail->quantity }}</td>
                 <td>{{ $detail->menuItem->name ?? $detail->service->name ?? 'Item' }}</td>
+                <td class="qty">{{ $detail->quantity }}</td>
                 <td class="price">{{ number_format($detail->price * $detail->quantity, 2) }}</td>
             </tr>
             @if($detail->addons)
@@ -160,8 +184,8 @@
                 @if(is_array($addons))
                     @foreach($addons as $addon)
                     <tr class="addon-row">
-                        <td class="qty">{{ $addon['qty'] ?? 1 }}</td>
                         <td>+ {{ $addon['name'] }}</td>
+                        <td class="qty">{{ $addon['qty'] ?? 1 }}</td>
                         <td class="price">{{ number_format(($addon['price'] ?? 0) * ($addon['qty'] ?? 1), 2) }}</td>
                     </tr>
                     @endforeach
@@ -204,10 +228,8 @@
         <div>Thank you for dining with us!</div>
     </div>
 
-    <script>
-        window.onload = function() {
-            window.print();
-        }
-    </script>
+    <div class="no-print">
+        <button onclick="window.print()">&#x1F5A8; Print</button>
+    </div>
 </body>
 </html>

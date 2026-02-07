@@ -351,7 +351,7 @@
                                             <span class="combo-original-price">${{ number_format($combo->original_price, 2) }}</span>
                                             <span class="item-price ms-1">${{ number_format($combo->combo_price, 2) }}</span>
                                         </div>
-                                        <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
+                                        <button class="btn btn-warning quick-add-btn" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>

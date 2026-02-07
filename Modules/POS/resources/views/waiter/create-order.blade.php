@@ -26,6 +26,10 @@
         background: #696cff;
         color: #fff;
     }
+    .menu-item-card,
+    .combo-card {
+        min-height: unset !important;
+    }
     .menu-item-card {
         cursor: pointer;
         transition: all 0.2s;
@@ -107,7 +111,7 @@
         color: #71dd37;
         white-space: nowrap;
         flex-shrink: 0;
-        min-width: 55px;
+        min-width: 80px;
         text-align: right;
     }
     .cart-item-remove {
@@ -165,10 +169,8 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 2.4em;
     }
     .menu-item-card .card-body .item-price-row {
-        margin-top: auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -273,11 +275,11 @@
         font-weight: 600;
     }
     .modal-header .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
+        filter: invert(1) grayscale(100%) brightness(200%);
+        opacity: 1;
     }
     .modal-header .btn-close:hover {
-        opacity: 1;
+        opacity: 0.8;
     }
     .modal-body {
         padding: 1.5rem;
@@ -1535,20 +1537,16 @@
                 if (response.success) {
                     clearCartStorage();
 
-                    // Print kitchen ticket and cash slip
-                    printOrderReceipts(response.order_id);
-
                     // Show toastr success notification
                     toastr.success('{{ __("Order") }} #' + response.order_id + ' {{ __("has been sent to the kitchen.") }}', '{{ __("Order Sent!") }}', {
-                        timeOut: 3000,
+                        timeOut: 5000,
                         closeButton: true,
                         progressBar: true
                     });
 
-                    // Redirect after a short delay
-                    setTimeout(function() {
-                        window.location.href = response.redirect || "{{ route('admin.waiter.dashboard') }}";
-                    }, 1500);
+                    // Print kitchen ticket and cash slip, then redirect
+                    const redirectUrl = response.redirect || "{{ route('admin.waiter.dashboard') }}";
+                    printOrderReceipts(response.order_id, redirectUrl);
                 } else {
                     throw new Error(response.message);
                 }
@@ -1576,16 +1574,42 @@
         }
     }
 
-    function printOrderReceipts(orderId) {
-        // Print kitchen ticket
+    function printOrderReceipts(orderId, redirectUrl) {
         const kitchenUrl = "{{ url('admin/waiter/print/kitchen') }}/" + orderId;
-        const kitchenWindow = window.open(kitchenUrl, 'kitchen_ticket_' + orderId, 'width=400,height=600');
+        const cashUrl = "{{ url('admin/waiter/print/cash') }}/" + orderId;
 
-        // Print cash slip after a short delay to allow first print dialog
+        // 80mm ≈ 302px at 96dpi, add ~20px for scrollbar/border
+        const receiptWidth = 322;
+        const receiptHeight = 600;
+        const screenLeft = window.screenLeft || window.screenX;
+        const screenTop = window.screenTop || window.screenY;
+
+        // Open kitchen ticket window (centered on screen)
+        const kitchenLeft = screenLeft + 50;
+        const kitchenTop = screenTop + 50;
+        const kitchenWin = window.open(
+            kitchenUrl,
+            'kitchen_' + orderId,
+            `width=${receiptWidth},height=${receiptHeight},left=${kitchenLeft},top=${kitchenTop},scrollbars=yes,resizable=no`
+        );
+
+        // Open cash slip window (offset slightly)
         setTimeout(function() {
-            const cashUrl = "{{ url('admin/waiter/print/cash') }}/" + orderId;
-            window.open(cashUrl, 'cash_slip_' + orderId, 'width=400,height=600');
-        }, 2000);
+            const cashLeft = kitchenLeft + receiptWidth + 10;
+            const cashTop = kitchenTop;
+            window.open(
+                cashUrl,
+                'cash_' + orderId,
+                `width=${receiptWidth},height=${receiptHeight},left=${cashLeft},top=${cashTop},scrollbars=yes,resizable=no`
+            );
+        }, 1000);
+
+        // Redirect after delay
+        if (redirectUrl) {
+            setTimeout(function() {
+                window.location.href = redirectUrl;
+            }, 3000);
+        }
     }
 </script>
 @endpush

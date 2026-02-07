@@ -4,15 +4,21 @@
     <meta charset="utf-8">
     <title>Kitchen Order #{{ $sale->id }}</title>
     <style>
+        @page {
+            margin: 0;
+            size: {{ optional($printer)->paper_width ?? 80 }}mm auto;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        body {
+        html, body {
+            width: 100%;
+            max-width: {{ optional($printer)->paper_width ?? 80 }}mm;
+            margin: 0;
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            width: {{ $printer->paper_width ?? 80 }}mm;
             padding: 5mm;
         }
         .header {
@@ -22,7 +28,7 @@
             margin-bottom: 8px;
         }
         .title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
         .order-info {
@@ -86,13 +92,31 @@
             font-size: 14px;
             font-weight: bold;
         }
+        .no-print {
+            text-align: center;
+            padding: 8px 0;
+            border-top: 1px dashed #ccc;
+            margin-top: 10px;
+        }
+        .no-print button {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 6px 20px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .no-print button:hover {
+            background: #000;
+        }
         @media print {
-            body {
-                width: {{ $printer->paper_width ?? 80 }}mm;
-            }
-            @page {
-                margin: 0;
-                size: {{ $printer->paper_width ?? 80 }}mm auto;
+            .no-print { display: none; }
+            html, body {
+                width: {{ optional($printer)->paper_width ?? 80 }}mm;
+                max-width: {{ optional($printer)->paper_width ?? 80 }}mm;
+                padding: 2mm;
             }
         }
     </style>
@@ -122,15 +146,15 @@
     <div class="divider"></div>
 
     <div class="items-header">
-        <span>QTY</span>
         <span>ITEM</span>
+        <span>QTY</span>
     </div>
 
     @foreach($sale->details as $detail)
     <div class="item">
-        <div style="display: flex; gap: 10px;">
-            <span class="item-qty">{{ $detail->quantity }}x</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <span class="item-name">{{ $detail->menuItem->name ?? $detail->service->name ?? 'Item' }}</span>
+            <span class="item-qty">{{ $detail->quantity }}x</span>
         </div>
 
         @if($detail->addons)
@@ -163,10 +187,8 @@
         <strong>Total Items: {{ $sale->details->sum('quantity') }}</strong>
     </div>
 
-    <script>
-        window.onload = function() {
-            window.print();
-        }
-    </script>
+    <div class="no-print">
+        <button onclick="window.print()">&#x1F5A8; Print</button>
+    </div>
 </body>
 </html>

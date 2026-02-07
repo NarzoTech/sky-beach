@@ -35,18 +35,9 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <input type="text" name="first_name" placeholder="{{ __('First Name') }} *"
-                                                value="{{ old('first_name', $user->first_name ?? $savedCheckoutData['first_name'] ?? '') }}" required>
-                                            @error('first_name')
-                                                <span class="text-danger small">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <input type="text" name="last_name" placeholder="{{ __('Last Name') }} *"
-                                                value="{{ old('last_name', $user->last_name ?? $savedCheckoutData['last_name'] ?? '') }}" required>
-                                            @error('last_name')
+                                            <input type="text" name="name" placeholder="{{ __('Name') }} *"
+                                                value="{{ old('name', trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($savedCheckoutData['name'] ?? '')) }}" required>
+                                            @error('name')
                                                 <span class="text-danger small">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -62,7 +53,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <input type="email" name="email" placeholder="{{ __('Email (Optional)') }}"
                                                 value="{{ old('email', $user->email ?? $savedCheckoutData['email'] ?? '') }}">
@@ -71,9 +62,18 @@
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <textarea name="note" rows="3" placeholder="{{ __('Note (Optional)') }}">{{ old('note', $savedCheckoutData['note'] ?? '') }}</textarea>
+                                            @error('note')
+                                                <span class="text-danger small">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Payment Method -->
+                                <!-- Payment Method (hidden) -->
+                                <div style="display: none;">
                                 <h2>{{ __('Payment Method') }}</h2>
                                 <div class="row mb-4">
                                     <div class="col-md-6">
@@ -95,6 +95,7 @@
                                             </label>
                                         </div>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         </div>
