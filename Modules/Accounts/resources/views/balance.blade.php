@@ -63,24 +63,24 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="">Balance Type</label>
+                                                        <label>{{ __('Balance Type') }}</label>
                                                         <select name="balance_type" class="form-control" required>
-                                                            <option value="deposit">Deposit</option>
-                                                            <option value="withdraw">Withdraw</option>
+                                                            <option value="deposit">{{ __('Deposit') }}</option>
+                                                            <option value="withdraw">{{ __('Withdraw') }}</option>
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="">Date</label>
+                                                        <label>{{ __('Date') }}</label>
                                                         <input type="date" class="form-control" name="date"
                                                             value="{{ formatDate(now(), 'Y-m-d') }}" required>
                                                     </div>
                                                 </div>
                                                 <div class="col-12">
                                                     <div class="form-group">
-                                                        <label for="">Account Type</label>
-                                                        <select name="payment_type" id="" class="form-control">
+                                                        <label>{{ __('Account Type') }}</label>
+                                                        <select name="payment_type" class="form-control" required>
                                                             <option value="">{{ __('Payment Type') }}</option>
                                                             @foreach (accountList() as $key => $list)
                                                                 <option value="{{ $key }}">
@@ -97,20 +97,20 @@
                                                 </div>
                                                 <div class="col-12">
                                                     <div class="form-group">
-                                                        <label for="">Amount</label>
-                                                        <input type="text" class="form-control" name="amount" required
-                                                            placeholder="Amount" autocomplete="off">
+                                                        <label>{{ __('Amount') }}</label>
+                                                        <input type="number" step="0.01" min="0.01" class="form-control" name="amount" required
+                                                            placeholder="{{ __('Amount') }}" autocomplete="off">
                                                     </div>
                                                 </div>
                                                 <div class="col-12">
                                                     <div class="form-group">
-                                                        <label for="">Remark</label>
-                                                        <textarea name="note" rows="2" class="form-control" placeholder="Note"></textarea>
+                                                        <label>{{ __('Remark') }}</label>
+                                                        <textarea name="note" rows="2" class="form-control" placeholder="{{ __('Note') }}"></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="col-12">
                                                     <div class="text-right">
-                                                        <button class="btn btn-primary" type="submit">Save</button>
+                                                        <button class="btn btn-primary" type="submit">{{ __('Save') }}</button>
                                                     </div>
                                                 </div>
                                             </div>

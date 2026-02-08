@@ -8,7 +8,6 @@ use App\Models\Balance;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounts\app\Models\Account;
@@ -327,11 +326,10 @@ class BalanceController extends Controller
             'to_account' => 'required_unless:to_account_type,cash',
         ]);
 
-        $data = $request->except('_token');
+        $data = $request->except('_token', '_method');
 
         $data['date'] = now()->parse($request->date);
-        $balance = BalanceTransfer::find($id);
-
+        $balance = BalanceTransfer::findOrFail($id);
 
         // from account
 
@@ -381,7 +379,7 @@ class BalanceController extends Controller
     public function transferDestroy($id)
     {
         checkAdminHasPermissionAndThrowException('balance.transfer.delete');
-        $balance = BalanceTransfer::find($id);
+        $balance = BalanceTransfer::findOrFail($id);
         $balance->delete();
         return back()->with(['messege' => 'Balance transfer deleted successfully.', 'alert-type' => 'success']);
     }

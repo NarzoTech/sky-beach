@@ -403,11 +403,13 @@
     </div>
 
     <script>
-        // Auto-print on page load
+        // Auto-print only when opened directly (not in iframe)
         window.onload = function() {
-            setTimeout(function() {
-                window.print();
-            }, 300);
+            if (window.self === window.top) {
+                setTimeout(function() {
+                    window.print();
+                }, 300);
+            }
         }
     </script>
 </body>

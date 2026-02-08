@@ -52,8 +52,8 @@
                             </div>
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group">
-                                    <button type="button" class="btn bg-danger form-reset">Reset</button>
-                                    <button type="submit" class="btn bg-primary">Search</button>
+                                    <button type="button" class="btn bg-danger form-reset">{{ __('Reset') }}</button>
+                                    <button type="submit" class="btn bg-primary">{{ __('Search') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -125,7 +125,7 @@
                                 <td>{{ $key + 1 }}</td>
                                 <td>{{ $fromLabel }}</td>
                                 <td>{{ $toLabel }}</td>
-                                <td>{{ number_format($balanceTransfer->amount, 2) }}</td>
+                                <td>{{ currency($balanceTransfer->amount) }}</td>
                                 <td>{{ $balanceTransfer->createdBy->name ?? '-' }}</td>
                                 <td>{{ formatDate($balanceTransfer->date) }}</td>
                                 <td>{{ $balanceTransfer->note }}</td>
@@ -185,13 +185,13 @@
                                 <div class="form-group">
                                     <label for="date">{{ __('Date') }}</label>
                                     <input type="text" class="form-control datepicker" id="date" name="date"
-                                        autocomplete="off">
+                                        autocomplete="off" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="amount">{{ __('Amount') }}</label>
-                                    <input type="text" class="form-control" id="amount" name="amount">
+                                    <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -250,8 +250,8 @@
 
                 <!-- Modal footer -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" form="add-transfer-form">Save</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="submit" class="btn btn-primary" form="add-transfer-form">{{ __('Save') }}</button>
                 </div>
 
             </div>
@@ -280,16 +280,16 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="date">{{ __('Date') }}</label>
-                                        <input type="text" class="form-control datepicker" id="date"
-                                            name="date" value="{{ formatDate($transfer->date) }}" autocomplete="off">
+                                        <label for="date_{{ $transfer->id }}">{{ __('Date') }}</label>
+                                        <input type="text" class="form-control datepicker" id="date_{{ $transfer->id }}"
+                                            name="date" value="{{ formatDate($transfer->date) }}" autocomplete="off" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="amount">{{ __('Amount') }}</label>
-                                        <input type="text" class="form-control" id="amount" name="amount"
-                                            value="{{ $transfer->amount }}">
+                                        <label for="amount_{{ $transfer->id }}">{{ __('Amount') }}</label>
+                                        <input type="number" step="0.01" min="0.01" class="form-control" id="amount_{{ $transfer->id }}" name="amount"
+                                            value="{{ $transfer->amount }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -342,8 +342,8 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label for="remark">{{ __('Remark') }}</label>
-                                        <textarea name="note" id="remark" class="form-control height-80px" rows="3">{{ $transfer->note }}</textarea>
+                                        <label for="remark_{{ $transfer->id }}">{{ __('Remark') }}</label>
+                                        <textarea name="note" id="remark_{{ $transfer->id }}" class="form-control height-80px" rows="3">{{ $transfer->note }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -352,9 +352,9 @@
 
                     <!-- Modal footer -->
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('Close') }}</button>
                         <button type="submit" class="btn btn-primary"
-                            form="edit-transfer-form{{ $transfer->id }}">Save</button>
+                            form="edit-transfer-form{{ $transfer->id }}">{{ __('Save') }}</button>
                     </div>
                 </div>
             </div>

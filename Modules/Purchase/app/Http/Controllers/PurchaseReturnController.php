@@ -78,6 +78,7 @@ class PurchaseReturnController extends Controller
         $request->validate([
             'supplier_id' => 'required',
             'return_date' => 'required',
+            'received_amount' => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -125,7 +126,7 @@ class PurchaseReturnController extends Controller
             $this->purchaseService->updateReturn($request, $id);
 
             DB::commit();
-            return $this->redirectWithMessage(RedirectType::CREATE->value, 'admin.purchase.return.index', [], ['messege' => 'Purchase Return Created Successfully', 'alert-type' => 'success']);
+            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.purchase.return.index', [], ['messege' => 'Purchase Return Updated Successfully', 'alert-type' => 'success']);
         } catch (Exception $ex) {
 
             DB::rollBack();
@@ -140,11 +141,16 @@ class PurchaseReturnController extends Controller
     public function destroy($id)
     {
         checkAdminHasPermissionAndThrowException('purchase.return.delete');
-        // delete ledger
+        DB::beginTransaction();
+        try {
+            $this->purchaseService->deleteReturn($id);
 
-        $this->purchaseService->deleteReturn($id);
-
-
-        return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.purchase.return.index', [], ['messege' => 'Purchase Return Deleted Successfully', 'alert-type' => 'success']);
+            DB::commit();
+            return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.purchase.return.index', [], ['messege' => 'Purchase Return Deleted Successfully', 'alert-type' => 'success']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.purchase.return.index', [], ['messege' => 'Something Went Wrong', 'alert-type' => 'error']);
+        }
     }
 }

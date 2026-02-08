@@ -58,10 +58,14 @@ class PurchaseService
         if (request('from_date') && request('to_date')) {
             $purchase = $purchase->whereBetween('purchase_date', [now()->parse(request('from_date')), now()->parse(request('to_date'))]);
         }
-        if (request()->ingredient_id) {
-            $purchase = $purchase->whereHas('purchaseDetails', function ($q) {
-                $q->where('ingredient_id', request('ingredient_id'));
+        if (request()->ingredient_id || request()->product_id) {
+            $ingredientId = request('ingredient_id') ?? request('product_id');
+            $purchase = $purchase->whereHas('purchaseDetails', function ($q) use ($ingredientId) {
+                $q->where('ingredient_id', $ingredientId);
             });
+        }
+        if (request('order_by')) {
+            $purchase = $purchase->reorder('purchase_date', request('order_by'));
         }
         return $purchase;
     }
@@ -253,7 +257,7 @@ class PurchaseService
         $purchase->total_amount   = $request->total_amount;
         $purchase->paid_amount    = $paidAmount;
         $purchase->due_amount     = $request->due_amount;
-        $purchase->payment_status = $request->paid_amount == $request->total_amount ? 'paid' : 'due';
+        $purchase->payment_status = $paidAmount == $request->total_amount ? 'paid' : 'due';
         $purchase->payment_type   = $request->payment_type;
         $purchase->note           = $request->note;
         $purchase->updated_by     = Auth::id();
@@ -275,9 +279,9 @@ class PurchaseService
             }
         }
 
-        // Delete old purchase details
+        // Delete old purchase details (only delete 'purchase' type payments, preserve due_pay records)
         $purchase->purchaseDetails()->delete();
-        $purchase->payments()->delete();
+        $purchase->payments()->where('payment_type', 'purchase')->delete();
         $purchase->stock()->delete();
 
         // Store new purchase details with unit conversion
@@ -438,14 +442,10 @@ class PurchaseService
         Stock::where('purchase_id', $id)?->delete();
         SupplierPayment::where('purchase_id', $id)?->delete();
 
-        // Delete ledger
-        $ledger = Ledger::where('invoice_type', 'purchase')->orWhere('invoice_type', 'purchase payment')
+        // Delete ledger entries for this purchase
+        Ledger::whereIn('invoice_type', ['purchase', 'purchase payment'])
             ->where('invoice_no', $purchase->invoice_number)
-            ->get();
-
-        foreach ($ledger as $item) {
-            $item->delete();
-        }
+            ->delete();
 
         return $purchase->delete();
     }
@@ -463,10 +463,17 @@ class PurchaseService
         if ($purchase) {
             $purchaseInvoice = $purchase->invoice_number;
 
-            // Split the invoice number
-            $split_invoice  = explode('-', $purchaseInvoice);
-            $invoice_number = (int) $split_invoice[1] + 1;
-            $invoice_number = $prefix . $invoice_number;
+            // Extract numeric suffix after the prefix
+            if (str_starts_with($purchaseInvoice, $prefix)) {
+                $numericPart = substr($purchaseInvoice, strlen($prefix));
+                $invoice_number = $prefix . ((int) $numericPart + 1);
+            } else {
+                // Fallback: get last numeric portion
+                preg_match('/(\d+)$/', $purchaseInvoice, $matches);
+                if (!empty($matches[1])) {
+                    $invoice_number = $prefix . ((int) $matches[1] + 1);
+                }
+            }
         }
 
         return $invoice_number;
@@ -674,9 +681,13 @@ class PurchaseService
             }
         }
 
-        // Delete old purchase details
+        // Delete old purchase details, payment, ledger, and stock
         $return->purchaseDetails()->delete();
         $return->payment()?->delete();
+        // Delete old ledger entries for this return
+        Ledger::where('invoice_type', 'purchase return')
+            ->where('invoice_no', $return->purchase->invoice_number ?? '')
+            ->delete();
         Stock::where('purchase_return_id', $return->id)?->delete();
 
         // Store new return details (similar to storeReturn)
@@ -734,6 +745,37 @@ class PurchaseService
                 'sku'                => $ingredient->sku,
                 'created_by'         => auth('admin')->user()->id,
             ]);
+        }
+
+        // Recreate payment and ledger for the updated return
+        if ($request->received_amount) {
+            if ($request->payment_type == 'cash') {
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $account = Account::where('account_type', $request->payment_type)
+                    ->where('id', $request->account_id)->first();
+            }
+
+            if ($account) {
+                // Create ledger entry for the return
+                $ledger = $this->purchaseReturnLedger($request, $return->id, $request->received_amount, 'purchase return', 0);
+
+                SupplierPayment::create([
+                    'payment_type'       => 'purchase_receive',
+                    'purchase_return_id' => $return->id,
+                    'supplier_id'        => $return->supplier_id,
+                    'account_id'         => $account->id,
+                    'is_received'        => 1,
+                    'account_type'       => accountList()[$request->payment_type],
+                    'amount'             => $request->received_amount,
+                    'payment_date'       => now(),
+                    'created_by'         => auth()->user()->id,
+                    'ledger_id'          => $ledger->id,
+                ]);
+            }
         }
 
         return $return;
@@ -857,6 +899,10 @@ class PurchaseService
 
         Stock::where('purchase_return_id', $return->id)?->delete();
         $return->payment()?->delete();
+        // Delete ledger entries for this return
+        Ledger::where('invoice_type', 'purchase return')
+            ->where('invoice_no', $return->purchase->invoice_number ?? '')
+            ->delete();
         $return->purchaseDetails()->delete();
         $return->delete();
     }

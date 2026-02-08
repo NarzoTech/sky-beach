@@ -204,14 +204,14 @@
         </div>
     </div>
 
-    {{-- Show customer --}}
+    {{-- Show Purchase Details --}}
     @foreach ($purchases as $index => $purchase)
         <div class="modal fade" id="showCustomer{{ $purchase->id }}">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <!-- Modal Header -->
                     <div class="modal-header">
-                        <h4 class="modal-title">{{ __('Customer') }}</h4>
+                        <h4 class="modal-title">{{ __('Purchase Details') }}</h4>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
@@ -223,33 +223,57 @@
                                 <div class="table-responsive">
                                     <table class="table">
                                         <tr>
-                                            <th>{{ __('Name') }}</th>
-                                            <td>{{ $purchase->name }}</td>
+                                            <th>{{ __('Invoice') }}</th>
+                                            <td>{{ $purchase->invoice_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('Date') }}</th>
+                                            <td>{{ formatDate($purchase->purchase_date) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('Supplier Name') }}</th>
+                                            <td>{{ $purchase->supplier?->name ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{{ __('Company') }}</th>
+                                            <td>{{ $purchase->supplier?->company ?? '-' }}</td>
                                         </tr>
                                         <tr>
                                             <th>{{ __('Phone') }}</th>
-                                            <td>{{ $purchase->phone }}</td>
+                                            <td>{{ $purchase->supplier?->phone ?? '-' }}</td>
                                         </tr>
                                         <tr>
                                             <th>{{ __('Email') }}</th>
-                                            <td>{{ $purchase->email }}</td>
+                                            <td>{{ $purchase->supplier?->email ?? '-' }}</td>
                                         </tr>
                                         <tr>
-                                            <th>{{ __('City') }}</th>
-                                            <td>{{ $purchase->city }}</td>
+                                            <th>{{ __('Total Amount') }}</th>
+                                            <td>{{ currency($purchase->total_amount) }}</td>
                                         </tr>
                                         <tr>
-                                            <th>{{ __('Tax Number') }}</th>
-                                            <td>{{ $purchase->tax_number }}</td>
+                                            <th>{{ __('Paid Amount') }}</th>
+                                            <td>{{ currency($purchase->paid_amount) }}</td>
                                         </tr>
                                         <tr>
-                                            <th>{{ __('Status') }}</th>
-                                            <td>{{ $purchase->status == 1 ? 'Active' : 'Inactive' }}</td>
+                                            <th>{{ __('Due Amount') }}</th>
+                                            <td>{{ currency($purchase->due_amount) }}</td>
                                         </tr>
                                         <tr>
-                                            <th>{{ __('Address') }}</th>
-                                            <td>{{ $purchase->address }}</td>
+                                            <th>{{ __('Payment Status') }}</th>
+                                            <td>
+                                                @if($purchase->payment_status == 'paid')
+                                                    <span class="badge bg-success">{{ __('Paid') }}</span>
+                                                @else
+                                                    <span class="badge bg-danger">{{ __('Due') }}</span>
+                                                @endif
+                                            </td>
                                         </tr>
+                                        @if($purchase->note)
+                                        <tr>
+                                            <th>{{ __('Note') }}</th>
+                                            <td>{{ $purchase->note }}</td>
+                                        </tr>
+                                        @endif
                                     </table>
                                 </div>
                             </div>
@@ -258,7 +282,7 @@
 
                     <!-- Modal footer -->
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('Close') }}</button>
                     </div>
 
                 </div>

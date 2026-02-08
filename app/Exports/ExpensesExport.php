@@ -8,17 +8,23 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
-class ExpensesExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
+class ExpensesExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
 {
-    private $index;
+    private $index = 0;
     private $totalAmount = 0;
+    private $totalPaid = 0;
+    private $totalDue = 0;
 
     public function __construct(private $expenses)
     {
         $this->totalAmount = $expenses->sum('amount');
+        $this->totalPaid = $expenses->sum('paid_amount');
+        $this->totalDue = $expenses->sum('due_amount');
     }
 
     /**
@@ -28,42 +34,58 @@ class ExpensesExport implements FromCollection, WithHeadings, WithMapping, WithS
     {
         return $this->expenses;
     }
+
     public function headings(): array
     {
         $setting = cache('setting');
         return [
-            [$setting->app_name],  // Title rows
+            [$setting->app_name],
             ['Expenses Report'],
             ['Time: ' . now()],
             [
                 __('SN'),
+                __('Invoice'),
                 __('Date'),
-                __('Created By'),
+                __('Supplier'),
                 __('Type'),
                 __('Amount'),
-                __('Payment Type')
+                __('Paid'),
+                __('Due'),
+                __('Status'),
+                __('Note'),
+                __('Memo'),
             ],
         ];
     }
+
     public function map($expense): array
     {
-        // Map the data to match your format
+        $status = $expense->payment_status_label;
+        $statusLabel = $status == 'paid' ? __('Paid') : ($status == 'partial' ? __('Partial') : __('Due'));
+
         return [
             ++$this->index,
+            $expense->invoice ?? '-',
             $expense->date,
-            $expense->createdBy->name,
+            $expense->expenseSupplier->name ?? '-',
             $expense->expenseType->name,
             $expense->amount,
-            ucfirst($expense->payment_type),
+            $expense->paid_amount,
+            $expense->due_amount,
+            $statusLabel,
+            $expense->note,
+            $expense->memo,
         ];
     }
+
     public function styles(Worksheet $sheet)
     {
-        // Merge cells for title and subtitle
-        $sheet->mergeCells('A1:F1');  // Title
-        $sheet->mergeCells('A2:F2');  // Subtitle
-        $sheet->mergeCells('A3:F3');  // Time
+        $lastCol = 'K';
 
+        // Merge cells for title and subtitle
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->mergeCells("A2:{$lastCol}2");
+        $sheet->mergeCells("A3:{$lastCol}3");
 
         // Apply styles to title and subtitle
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
@@ -71,48 +93,66 @@ class ExpensesExport implements FromCollection, WithHeadings, WithMapping, WithS
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10);
 
         // Apply borders and center alignment to header rows
-        $sheet->getStyle('A4:F' . $sheet->getHighestRow())
+        $sheet->getStyle("A4:{$lastCol}" . $sheet->getHighestRow())
             ->getBorders()
             ->getAllBorders()
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // Column Widths (Optional)
-        $sheet->getColumnDimension('A')->setWidth(5);
-        $sheet->getColumnDimension('B')->setWidth(25);
-        $sheet->getColumnDimension('C')->setWidth(25);
-        $sheet->getColumnDimension('D')->setWidth(25);
-        $sheet->getColumnDimension('E')->setWidth(25);
-        $sheet->getColumnDimension('F')->setWidth(25);
+        // Column Widths
+        $sheet->getColumnDimension('A')->setWidth(5);   // SN
+        $sheet->getColumnDimension('B')->setWidth(15);  // Invoice
+        $sheet->getColumnDimension('C')->setWidth(15);  // Date
+        $sheet->getColumnDimension('D')->setWidth(20);  // Supplier
+        $sheet->getColumnDimension('E')->setWidth(20);  // Type
+        $sheet->getColumnDimension('F')->setWidth(12);  // Amount
+        $sheet->getColumnDimension('G')->setWidth(12);  // Paid
+        $sheet->getColumnDimension('H')->setWidth(12);  // Due
+        $sheet->getColumnDimension('I')->setWidth(12);  // Status
+        $sheet->getColumnDimension('J')->setWidth(25);  // Note
+        $sheet->getColumnDimension('K')->setWidth(25);  // Memo
 
+        // Center align title rows
+        $sheet->getStyle("A1:{$lastCol}1")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A2:{$lastCol}2")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A3:{$lastCol}3")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-
-        // a1 to j1 will be center aligned
-        $sheet->getStyle('A1:F1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        // a2 to j2, a3 to j3  will be center aligned
-        $sheet->getStyle('A2:F2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('A3:F3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        // Add total row
-        $highestRow = $sheet->getHighestRow();
-        $totalRow = $highestRow + 1;
-        $sheet->setCellValue('A' . $totalRow, '');
-        $sheet->setCellValue('B' . $totalRow, '');
-        $sheet->setCellValue('C' . $totalRow, '');
-        $sheet->setCellValue('D' . $totalRow, __('Total'));
-        $sheet->setCellValue('E' . $totalRow, $this->totalAmount);
-        $sheet->setCellValue('F' . $totalRow, '');
-
-        // Style the total row
-        $sheet->getStyle('A' . $totalRow . ':F' . $totalRow)->getFont()->setBold(true);
-        $sheet->getStyle('A' . $totalRow . ':F' . $totalRow)
-            ->getBorders()
-            ->getAllBorders()
-            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // Bold the header row
+        $sheet->getStyle("A4:{$lastCol}4")->getFont()->setBold(true);
     }
 
     public function title(): string
     {
         return 'Expenses Report';
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $highestRow = $sheet->getHighestRow();
+                $totalRow = $highestRow + 1;
+
+                // Add total row
+                $sheet->setCellValue('A' . $totalRow, '');
+                $sheet->setCellValue('B' . $totalRow, '');
+                $sheet->setCellValue('C' . $totalRow, '');
+                $sheet->setCellValue('D' . $totalRow, '');
+                $sheet->setCellValue('E' . $totalRow, __('Total'));
+                $sheet->setCellValue('F' . $totalRow, $this->totalAmount);
+                $sheet->setCellValue('G' . $totalRow, $this->totalPaid);
+                $sheet->setCellValue('H' . $totalRow, $this->totalDue);
+                $sheet->setCellValue('I' . $totalRow, '');
+                $sheet->setCellValue('J' . $totalRow, '');
+                $sheet->setCellValue('K' . $totalRow, '');
+
+                // Style the total row
+                $sheet->getStyle('A' . $totalRow . ':K' . $totalRow)->getFont()->setBold(true);
+                $sheet->getStyle('A' . $totalRow . ':K' . $totalRow)
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            },
+        ];
     }
 }

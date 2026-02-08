@@ -36,7 +36,9 @@ class ExpenseController extends Controller
             $keyword  = request('keyword');
             $expenses = $expenses->where(function ($query) use ($keyword) {
                 $query->where('amount', 'like', "%{$keyword}%")
+                    ->orWhere('invoice', 'like', "%{$keyword}%")
                     ->orWhere('note', 'like', "%{$keyword}%")
+                    ->orWhere('memo', 'like', "%{$keyword}%")
                     ->orWhereHas('expenseType', function ($q) use ($keyword) {
                         $q->where('name', 'like', "%{$keyword}%");
                     })
@@ -79,27 +81,42 @@ class ExpenseController extends Controller
             $expenses = $expenses->where('expense_supplier_id', request('expense_supplier_id'));
         }
 
-        $sort = request()->order_by ? request()->order_by : 'desc';
-
-        if (request('order_type')) {
-            $expenses = $expenses->orderBy(request('order_type'), $sort);
-        } else {
-            $expenses = $expenses->orderBy('date', $sort);
+        // Filter by expense type
+        if (request('expense_type_id')) {
+            $expenses = $expenses->where('expense_type_id', request('expense_type_id'));
         }
+
+        // Validate order_type against whitelist
+        $allowedOrderTypes = ['id', 'date', 'amount'];
+        $orderType = in_array(request('order_type'), $allowedOrderTypes) ? request('order_type') : 'id';
+        $sort = request()->order_by === 'asc' ? 'asc' : 'desc';
+
+        $expenses = $expenses->orderBy($orderType, $sort);
+
         if (request('from_date') && request('to_date')) {
             $from     = now()->parse(request('from_date'));
             $to       = now()->parse(request('to_date'));
             $expenses = $expenses->whereBetween('date', [$from, $to]);
         }
 
-        if (request('export')) {
-            $fileName = 'expenses-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-            return Excel::download(new ExpensesExport($expenses->get()), $fileName);
-        }
+        // Calculate totals from all matching records (before pagination)
         $totalAmount = $expenses->sum('amount');
         $totalPaid = $expenses->sum('paid_amount');
         $totalDue = $expenses->sum('due_amount');
 
+        // Handle exports BEFORE pagination (exports ALL matching data)
+        if (checkAdminHasPermission('expense.excel.download') && request('export')) {
+            $fileName = 'expenses-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+            return Excel::download(new ExpensesExport($expenses->get()), $fileName);
+        }
+
+        if (checkAdminHasPermission('expense.pdf.download') && request('export_pdf')) {
+            return view('expense::pdf.expense', [
+                'expenses' => $expenses->get(),
+            ]);
+        }
+
+        // Apply pagination AFTER exports
         if (request('par-page')) {
             $parpage = request('par-page') == 'all' ? null : request('par-page');
         } else {
@@ -110,21 +127,6 @@ class ExpenseController extends Controller
         } else {
             $expenses = $expenses->paginate($parpage);
             $expenses->appends(request()->query());
-        }
-
-        if (checkAdminHasPermission('expense.excel.download')) {
-            if (request('export')) {
-                $fileName = 'expense-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new ExpensesExport($expenses), $fileName);
-            }
-        }
-        if (checkAdminHasPermission('expense.pdf.download')) {
-            if (request('export_pdf')) {
-
-                return view('expense::pdf.expense', [
-                    'expenses' => $expenses,
-                ]);
-            }
         }
 
         $types    = ExpenseType::all();
@@ -151,7 +153,7 @@ class ExpenseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function update(ExpenseRequest $request, $id): RedirectResponse
     {
         checkAdminHasPermissionAndThrowException('expense.edit');
         try {

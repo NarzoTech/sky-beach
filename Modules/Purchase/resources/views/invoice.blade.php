@@ -88,11 +88,12 @@
                                     {{ $index + 1 }}
                                 </td>
                                 <td>
-                                    {{ $details->product->name }}({{ $details->product->barcode }})
+                                    {{ $details->ingredient->name ?? '-' }}
+                                    @if($details->ingredient?->sku)({{ $details->ingredient->sku }})@endif
                                 </td>
-                                <td class="qty" id="qty1" data-qty="">
+                                <td class="qty">
                                     @php
-                                        $unitName = $details->product->unit->name;
+                                        $unitName = $details->unit->name ?? $details->ingredient?->unit?->name ?? '';
                                         $unitQty = isset($unit[$unitName]) ? $unit[$unitName] : 0;
                                         $newQty = $details->quantity + $unitQty;
                                         $unit[$unitName] = $newQty;
@@ -102,24 +103,26 @@
                                     {{ $details->quantity }} {{ $unitName }}
                                 </td>
                                 <td>
-                                    {{ $details->purchase_price }}
+                                    {{ number_format($details->purchase_price, 2) }}
                                 </td>
-                                <td id="totalPriceInvoice1">
-                                    {{ $details->sub_total }}
+                                <td>
+                                    {{ number_format($details->sub_total, 2) }}
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
-                        <td></td>
-                        <td></td>
-                        <td class="qty">
-                            {{ array_sum(array_values($unit)) }}
-                            @foreach ($unit as $key => $value)
-                                {{ $key }} {{ $value }}
-                            @endforeach
-                        <td></td>
-                        <td></td>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td class="qty">
+                                @foreach ($unit as $key => $value)
+                                    {{ $value }} {{ $key }}@if(!$loop->last), @endif
+                                @endforeach
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
                     </tfoot>
                 </table>
 
@@ -130,8 +133,7 @@
                                 <b>Subtotal:</b>
                             </td>
                             <td>
-                                <b> TK
-                                    {{ $subTotal }}</b>
+                                <b>{{ currency($subTotal) }}</b>
                             </td>
                         </tr>
                         <tr>
@@ -139,21 +141,21 @@
                                 <b>Total:</b>
                             </td>
                             <td>
-                                <b>TK {{ $subTotal }}</b>
+                                <b>{{ currency($purchase->total_amount) }}</b>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 Paid:</td>
                             <td>
-                                TK {{ $purchase->paid_amount }}</td>
+                                {{ currency($purchase->paid_amount) }}</td>
                         </tr>
                         <tr>
                             <td>
                                 Due:
                             </td>
                             <td>
-                                TK {{ $purchase->due_amount }}</td>
+                                {{ currency($purchase->due_amount) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -174,11 +176,11 @@
                                 @foreach ($purchase->payments as $index => $payment)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ ucfirst($payment->account->account_type) }}</td>
+                                        <td>{{ ucfirst($payment->account->account_type ?? '-') }}</td>
                                         <td>
-                                            -
+                                            {{ $payment->account->bank_account_name ?? '-' }}
                                         </td>
-                                        <td>TK.{{ $payment->amount }}</td>
+                                        <td>{{ currency($payment->amount) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

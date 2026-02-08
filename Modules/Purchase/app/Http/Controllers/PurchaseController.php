@@ -30,31 +30,24 @@ class PurchaseController extends Controller
     public function index()
     {
         checkAdminHasPermissionAndThrowException('purchase.view');
-        $purchases = $this->purchaseService->all();
+        $purchaseQuery = $this->purchaseService->all();
 
-
-        $data['total_amount'] = 0;
-        $data['paid_amount'] = 0;
-        $data['due_amount'] = 0;
-
-        foreach ($purchases->get() as $purchase) {
-
-            $data['total_amount'] += $purchase->total_amount;
-            $data['paid_amount'] += $purchase->paid_amount;
-            $data['due_amount'] += $purchase->due_amount;
-        }
+        // Calculate totals using aggregate query (single query instead of fetching all rows)
+        $data['total_amount'] = (clone $purchaseQuery)->sum('total_amount');
+        $data['paid_amount'] = (clone $purchaseQuery)->sum('paid_amount');
+        $data['due_amount'] = (clone $purchaseQuery)->sum('due_amount');
 
         if (checkAdminHasPermission('purchase.excel.download')) {
             if (request('export')) {
                 $fileName = 'purchase-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new PurchaseExport($purchases->get()), $fileName);
+                return Excel::download(new PurchaseExport($purchaseQuery->get()), $fileName);
             }
         }
 
         if (checkAdminHasPermission('purchase.pdf.download')) {
             if (request('export_pdf')) {
                 return view('purchase::pdf.purchase', [
-                    'purchases' => $purchases->get(),
+                    'purchases' => $purchaseQuery->get(),
                 ]);
             }
         }
@@ -65,9 +58,9 @@ class PurchaseController extends Controller
             $parpage = 20;
         }
         if ($parpage === null) {
-            $purchases = $purchases->get();
+            $purchases = $purchaseQuery->get();
         } else {
-            $purchases = $purchases->paginate($parpage);
+            $purchases = $purchaseQuery->paginate($parpage);
             $purchases->appends(request()->query());
         }
 
@@ -158,6 +151,7 @@ class PurchaseController extends Controller
     public function destroy($id)
     {
         checkAdminHasPermissionAndThrowException('purchase.delete');
+        DB::beginTransaction();
         try {
             $this->purchaseService->destroy($id);
 

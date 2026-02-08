@@ -15,7 +15,7 @@
                                         <i class='bx bx-dollar'></i>
                                     </div>
                                 </div>
-                                <h5 class="mb-1">Current Balance</h5>
+                                <h5 class="mb-1">{{ __('Current Balance') }}</h5>
                                 <h4 class="card-title text-primary fw-medium"> {{ currency($accountBalance) }}</h4>
                             </div>
                         </div>
@@ -28,7 +28,7 @@
                                         <i class='bx bx-dollar'></i>
                                     </div>
                                 </div>
-                                <h5 class="mb-1">Total Deposit</h5>
+                                <h5 class="mb-1">{{ __('Total Deposit') }}</h5>
                                 <h4 class="card-title text-primary fw-medium">{{ currency($totalDeposits) }}</h4>
                             </div>
                         </div>
@@ -41,7 +41,7 @@
                                         <i class='bx bx-dollar'></i>
                                     </div>
                                 </div>
-                                <h5 class="mb-1">Total Withdraw</h5>
+                                <h5 class="mb-1">{{ __('Total Withdraw') }}</h5>
                                 <h4 class="card-title text-primary fw-medium">{{ currency($totalWithdraws) }}</h4>
                             </div>
                         </div>
@@ -53,7 +53,7 @@
                         <div class="card-box">
                             <div class="card card-statistic-1">
                                 <div class="card-header">
-                                    <h4 class="section_title">Balance</h4>
+                                    <h4 class="section_title">{{ __('Balance') }}</h4>
                                 </div>
                                 <div class="card-body">
                                     <form method="POST" action="{{ route('admin.opening-balance.update', $balance->id) }}"
@@ -63,30 +63,30 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="">Balance Type</label>
+                                                    <label>{{ __('Balance Type') }}</label>
                                                     <select name="balance_type" class="form-control" required>
                                                         <option value="deposit"
                                                             {{ $balance->balance_type == 'deposit' ? 'selected' : '' }}>
-                                                            Deposit
+                                                            {{ __('Deposit') }}
                                                         </option>
                                                         <option value="withdraw"
                                                             {{ $balance->balance_type == 'withdraw' ? 'selected' : '' }}>
-                                                            Withdraw
+                                                            {{ __('Withdraw') }}
                                                         </option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="">Date</label>
+                                                    <label>{{ __('Date') }}</label>
                                                     <input type="date" class="form-control" name="date"
                                                         value="{{ formatDate($balance->date, 'Y-m-d') }}" required>
                                                 </div>
                                             </div>
                                             <div class="col-12">
                                                 <div class="form-group">
-                                                    <label for="">Account Type</label>
-                                                    <select name="payment_type" id="" class="form-control">
+                                                    <label>{{ __('Account Type') }}</label>
+                                                    <select name="payment_type" class="form-control" required>
                                                         <option value="">{{ __('Payment Type') }}</option>
                                                         @foreach (accountList() as $key => $list)
                                                             <option value="{{ $key }}"
@@ -105,21 +105,21 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="form-group">
-                                                    <label for="">Amount</label>
-                                                    <input type="text" class="form-control" name="amount" required
-                                                        placeholder="Amount" autocomplete="off"
+                                                    <label>{{ __('Amount') }}</label>
+                                                    <input type="number" step="0.01" min="0.01" class="form-control" name="amount" required
+                                                        placeholder="{{ __('Amount') }}" autocomplete="off"
                                                         value="{{ $balance->amount }}">
                                                 </div>
                                             </div>
                                             <div class="col-12">
                                                 <div class="form-group">
-                                                    <label for="">Remark</label>
-                                                    <textarea name="note" rows="2" class="form-control" placeholder="Note">{{ $balance->note }}</textarea>
+                                                    <label>{{ __('Remark') }}</label>
+                                                    <textarea name="note" rows="2" class="form-control" placeholder="{{ __('Note') }}">{{ $balance->note }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-12">
                                                 <div class="text-right">
-                                                    <button class="btn btn-primary" type="submit">Save</button>
+                                                    <button class="btn btn-primary" type="submit">{{ __('Save') }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -133,15 +133,14 @@
                             <div class="card-header">
                                 <ul class="nav nav-tabs gap-2 pb-1">
                                     <li class="nav-item">
-                                        <a href="#home1" class="btn btn-success" data-bs-toggle="tab" aria-expanded="false"
-                                            class="nav-link active">
-                                            Deposit
+                                        <a href="#home1" class="btn btn-success nav-link active" data-bs-toggle="tab" aria-expanded="false">
+                                            {{ __('Deposit') }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a href="#profile1" class="btn btn-primary ml-2" data-bs-toggle="tab"
-                                            aria-expanded="true" class="nav-link">
-                                            Withdraw
+                                        <a href="#profile1" class="btn btn-primary ml-2 nav-link" data-bs-toggle="tab"
+                                            aria-expanded="true">
+                                            {{ __('Withdraw') }}
                                         </a>
                                     </li>
                                 </ul>
@@ -150,7 +149,7 @@
                                 <div class="tab-content p-0">
                                     <div role="tabpanel" class="tab-pane fade active show" id="home1">
                                         <div class="card-box">
-                                            <h4 class="section_title mb-3">Deposit History</h4>
+                                            <h4 class="section_title mb-3">{{ __('Deposit History') }}</h4>
                                             <div class="table-responsive table-invoice table_x_scroll">
                                                 <table class="table common_table">
                                                     <thead>
@@ -193,7 +192,7 @@
                                     </div>
                                     <div role="tabpanel" class="tab-pane fade" id="profile1">
                                         <div class="card-box">
-                                            <h4 class="section_title mb-3">Withdraw History</h4>
+                                            <h4 class="section_title mb-3">{{ __('Withdraw History') }}</h4>
                                             <div class="table-responsive table-invoice table_x_scroll">
                                                 <table class="table common_table">
                                                     <thead>
@@ -214,7 +213,7 @@
                                                                 <td>{{ currency($withdraw->amount) }}</td>
                                                                 <td>
                                                                     <div class="d-flex gap-2">
-                                                                        <a href="{{ route('admin.opening-balance.edit', $deposit->id) }}"
+                                                                        <a href="{{ route('admin.opening-balance.edit', $withdraw->id) }}"
                                                                             class="btn btn-primary btn-sm">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>

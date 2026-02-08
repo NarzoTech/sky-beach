@@ -3,6 +3,7 @@ namespace Modules\Expense\app\Services;
 
 use App\Models\Ledger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Accounts\app\Models\Account;
 use Modules\Expense\app\Models\Expense;
 use Modules\Expense\app\Models\ExpenseSupplierPayment;
@@ -24,6 +25,7 @@ class ExpenseService
 
     public function store(Request $request)
     {
+        return DB::transaction(function () use ($request) {
         $amount = $request->amount;
 
         // Calculate total paid from multiple payments
@@ -41,7 +43,7 @@ class ExpenseService
             $paidAmount = $amount;
         }
 
-        $dueAmount = $amount - $paidAmount;
+        $dueAmount = max(0, $amount - $paidAmount);
 
         // Get the first payment account for the expense record
         $firstPaymentType = $paymentTypes[0] ?? 'cash';
@@ -143,10 +145,12 @@ class ExpenseService
         }
 
         return $expense;
+        }); // end DB::transaction
     }
 
     public function update(Request $request, $id)
     {
+        return DB::transaction(function () use ($request, $id) {
         $expense = $this->expense->find($id);
 
         // Delete old payment records
@@ -174,7 +178,12 @@ class ExpenseService
             $paidAmount += floatval($amt);
         }
 
-        $dueAmount = $amount - $paidAmount;
+        // If no supplier, paid amount = full amount (immediate payment)
+        if (!$request->expense_supplier_id) {
+            $paidAmount = $amount;
+        }
+
+        $dueAmount = max(0, $amount - $paidAmount);
 
         // Get the first payment account for the expense record
         $firstPaymentType = $paymentTypes[0] ?? 'cash';
@@ -272,6 +281,7 @@ class ExpenseService
         }
 
         return $expense;
+        }); // end DB::transaction
     }
 
     public function destroy($id)
@@ -293,41 +303,33 @@ class ExpenseService
 
     public function genInvoiceNumber()
     {
-        $number = 001;
         $prefix = 'ESP-';
-        $invoice_number = $prefix . $number;
 
-        $payment = ExpenseSupplierPayment::latest()->first();
+        $payment = ExpenseSupplierPayment::lockForUpdate()->latest()->first();
 
-        if ($payment) {
-            $paymentInvoice = $payment->invoice;
-
-            if ($paymentInvoice) {
-                $split_invoice = explode('-', $paymentInvoice);
-                $invoice_number = (int) $split_invoice[1] + 1;
-                $invoice_number = $prefix . $invoice_number;
+        if ($payment && $payment->invoice) {
+            $split_invoice = explode('-', $payment->invoice);
+            if (count($split_invoice) > 1) {
+                return $prefix . ((int) $split_invoice[1] + 1);
             }
         }
 
-        return $invoice_number;
+        return $prefix . '1';
     }
 
     public function genExpenseInvoiceNumber()
     {
-        $number = 001;
         $prefix = 'EXP-';
-        $invoice_number = $prefix . $number;
 
-        $expense = Expense::latest()->first();
+        $expense = Expense::lockForUpdate()->latest()->first();
 
         if ($expense && $expense->invoice) {
             $split_invoice = explode('-', $expense->invoice);
             if (count($split_invoice) > 1) {
-                $invoice_number = (int) $split_invoice[1] + 1;
-                $invoice_number = $prefix . $invoice_number;
+                return $prefix . ((int) $split_invoice[1] + 1);
             }
         }
 
-        return $invoice_number;
+        return $prefix . '1';
     }
 }

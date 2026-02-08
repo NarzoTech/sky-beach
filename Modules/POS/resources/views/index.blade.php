@@ -973,6 +973,12 @@
                     <h5 class="modal-title">
                         <i class="bx bx-food-menu me-2"></i>{{ __('Running Orders') }}
                     </h5>
+                    <div class="running-orders-search ms-auto me-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-0"><i class="bx bx-search"></i></span>
+                            <input type="text" id="running-orders-search" class="form-control border-0" placeholder="{{ __('Search invoice, table, customer...') }}" autocomplete="off">
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="running-orders-content">
@@ -986,6 +992,30 @@
     </div>
 
     <style>
+    /* Running Orders Search */
+    .running-orders-search .input-group {
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 250px;
+    }
+    .running-orders-search .input-group-text {
+        color: #696cff;
+        padding: 4px 8px 4px 12px;
+    }
+    .running-orders-search .form-control {
+        font-size: 13px;
+        padding: 6px 12px 6px 0;
+        box-shadow: none !important;
+    }
+    .running-orders-search .form-control::placeholder {
+        color: #a1acb8;
+    }
+    @media (max-width: 575px) {
+        .running-orders-search { min-width: 0; flex: 1; }
+        .running-orders-search .input-group { min-width: 0; }
+    }
+
     /* Running Order Card Styles */
     .running-order-card {
         border-radius: var(--pm-radius) !important;
@@ -1213,6 +1243,7 @@
 
     .order-details-dialog {
         margin-top: 2rem;
+        margin-bottom: calc(var(--pos-footer-height, 70px) + 1rem);
     }
 
     .order-details-modal {
@@ -1221,7 +1252,7 @@
     }
 
     #order-details-content {
-        max-height: calc(100vh - 150px);
+        max-height: calc(100vh - 150px - var(--pos-footer-height, 70px));
         overflow-x: hidden;
         overflow-y: auto;
     }
@@ -4820,31 +4851,43 @@
                 return;
             }
 
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
+            // Use a hidden iframe to print without leaving the page
+            let printFrame = document.getElementById('pos-print-frame');
+            if (!printFrame) {
+                printFrame = document.createElement('iframe');
+                printFrame.id = 'pos-print-frame';
+                printFrame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:80mm;height:0;border:none;';
+                document.body.appendChild(printFrame);
+            }
+
+            const doc = printFrame.contentDocument || printFrame.contentWindow.document;
+            doc.open();
+            doc.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <title>POS Receipt</title>
                     <style>
-                        body { margin: 0; padding: 10px; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { font-family: 'Courier New', monospace; width: 80mm; padding: 3mm; }
                         @media print {
-                            body { margin: 0; }
+                            body { width: 80mm; padding: 0 3mm; }
+                            @page { margin: 0; size: 80mm auto; }
                         }
                     </style>
                 </head>
                 <body>
                     ${receiptContent.outerHTML}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.onafterprint = function() { window.close(); };
-                        };
-                    <\/script>
                 </body>
                 </html>
             `);
-            printWindow.document.close();
+            doc.close();
+
+            // Wait for content to render then print
+            printFrame.onload = function() {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+            };
         }
 
         // Print receipt for dine-in/running order
@@ -4854,14 +4897,30 @@
                 return;
             }
 
-            // Open POS receipt in print-friendly window (80mm thermal printer format)
-            const printUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId) + '?auto=1';
-            const printWindow = window.open(printUrl, 'pos_receipt', 'width=350,height=600,scrollbars=yes,resizable=yes');
+            // Fetch receipt HTML via AJAX and print using hidden iframe
+            const receiptUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
 
-            // Focus on print window
-            if (printWindow) {
-                printWindow.focus();
-            }
+            $.get(receiptUrl, function(html) {
+                let printFrame = document.getElementById('pos-print-frame');
+                if (!printFrame) {
+                    printFrame = document.createElement('iframe');
+                    printFrame.id = 'pos-print-frame';
+                    printFrame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:80mm;height:0;border:none;';
+                    document.body.appendChild(printFrame);
+                }
+
+                const doc = printFrame.contentDocument || printFrame.contentWindow.document;
+                doc.open();
+                doc.write(html);
+                doc.close();
+
+                printFrame.onload = function() {
+                    printFrame.contentWindow.focus();
+                    printFrame.contentWindow.print();
+                };
+            }).fail(function() {
+                toastr.error("{{ __('Failed to load receipt') }}");
+            });
         }
 
         // Print receipt for an already-paid order

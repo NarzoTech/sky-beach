@@ -44,7 +44,22 @@
                             </div>
                             <div class="col-xxl-2 col-md-6 col-lg-4">
                                 <div class="form-group">
+                                    <select name="expense_type_id" id="expense_type_filter" class="form-control">
+                                        <option value="">{{ __('All Types') }}</option>
+                                        @foreach ($types as $type)
+                                            @if ($type->parent_id)
+                                                @continue
+                                            @endif
+                                            <option value="{{ $type->id }}" {{ request('expense_type_id') == $type->id ? 'selected' : '' }}>
+                                                {{ $type->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-xxl-2 col-md-6 col-lg-4">
+                                <div class="form-group">
                                     <select name="order_type" id="order_type" class="form-control">
+                                        <option value="">{{ __('Sort By') }}</option>
                                         <option value="id" {{ request('order_type') == 'id' ? 'selected' : '' }}>
                                             {{ __('Serial') }}</option>
 
@@ -112,10 +127,10 @@
                 </div>
             </div>
 
-            <div class="card mt-5">
+            <div class="card mt-3">
                 <div class="card-header">
                     <div class="card-header-title">
-                        <h4 class="section_title"> Expenses List</h4>
+                        <h4 class="section_title">{{ __('Expenses List') }}</h4>
                     </div>
                     <div class="btn-actions-pane-right actions-icon-btn">
                         @adminCan('expense.create')
@@ -230,7 +245,7 @@
                         </table>
                     </div>
                     @if (request()->get('par-page') !== 'all')
-                        <div class="float-right">
+                        <div class="float-end">
                             {{ $expenses->onEachSide(0)->links() }}
                         </div>
                     @endif
@@ -250,7 +265,7 @@
                 </div>
                 <!-- Modal body -->
                 <div class="modal-body py-0">
-                    <form action="{{ route('admin.expense.store') }}" method="POST" id="add-bank-form" enctype="multipart/form-data">
+                    <form action="{{ route('admin.expense.store') }}" method="POST" id="add-expense-form" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">
@@ -367,7 +382,7 @@
                 <!-- Modal footer -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('Close') }}</button>
-                    <button type="submit" class="btn btn-primary" form="add-bank-form">{{ __('Save') }}</button>
+                    <button type="submit" class="btn btn-primary" form="add-expense-form">{{ __('Save') }}</button>
                 </div>
 
             </div>
