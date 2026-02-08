@@ -156,7 +156,7 @@
                                                 <tbody>
                                                     @foreach ($deposits as $deposit)
                                                         <tr>
-                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $deposits->firstItem() + $loop->index }}</td>
                                                             <td>{{ formatDate($deposit->date) }}</td>
                                                             <td>{{ ucfirst(str_replace('_', ' ', $deposit->account->account_type ?? 'N/A')) }}</td>
                                                             <td>{{ $deposit->note }}</td>
@@ -227,7 +227,7 @@
                                                 <tbody>
                                                     @foreach ($withdraws as $withdraw)
                                                         <tr>
-                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $withdraws->firstItem() + $loop->index }}</td>
                                                             <td>{{ formatDate($withdraw->date) }}</td>
                                                             <td>{{ ucfirst(str_replace('_', ' ', $withdraw->account->account_type ?? 'N/A')) }}</td>
                                                             <td>{{ $withdraw->note }}</td>
@@ -297,7 +297,6 @@
             let accounts = @json($accounts);
             $('select[name="payment_type"]').on('change', function() {
                 const paymentType = $(this).val();
-                console.log(paymentType);
                 let html = `<label for="account_id">{{ __('Select Account') }}<span class="text-danger">*</span></label>
                     <select name="account_id" id="" class="form-control form-group" required>`;
                 const filterAccount = accounts.filter(account => account.account_type === paymentType);

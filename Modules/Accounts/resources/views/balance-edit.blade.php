@@ -164,16 +164,20 @@
                                                     <tbody>
                                                         @foreach ($deposits as $deposit)
                                                             <tr>
-                                                                <td>{{ $loop->iteration }}</td>
+                                                                <td>{{ $deposits->firstItem() + $loop->index }}</td>
                                                                 <td>{{ formatDate($deposit->date) }}</td>
                                                                 <td>{{ $deposit->note }}</td>
                                                                 <td>{{ currency($deposit->amount) }}</td>
                                                                 <td>
+                                                                    @if (checkAdminHasPermission('deposit.withdraw.edit') || checkAdminHasPermission('deposit.withdraw.delete'))
                                                                     <div class="d-flex gap-2">
+                                                                        @adminCan('deposit.withdraw.edit')
                                                                         <a href="{{ route('admin.opening-balance.edit', $deposit->id) }}"
                                                                             class="btn btn-primary btn-sm">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
+                                                                        @endadminCan
+                                                                        @adminCan('deposit.withdraw.delete')
                                                                         <a href="javascript:void(0)"
                                                                             onclick="deleteData({{ $deposit->id }})"
                                                                             class="btn btn-danger btn-sm"
@@ -181,12 +185,17 @@
                                                                             data-bs-target="#deleteModal">
                                                                             <i class="fas fa-trash"></i>
                                                                         </a>
+                                                                        @endadminCan
                                                                     </div>
+                                                                    @endif
                                                                 </td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
+                                            </div>
+                                            <div class="float-right">
+                                                {{ $deposits->onEachSide(0)->links() }}
                                             </div>
                                         </div>
                                     </div>
@@ -207,27 +216,38 @@
                                                     <tbody>
                                                         @foreach ($withdraws as $withdraw)
                                                             <tr>
-                                                                <td>{{ $loop->iteration }}</td>
+                                                                <td>{{ $withdraws->firstItem() + $loop->index }}</td>
                                                                 <td>{{ formatDate($withdraw->date) }}</td>
                                                                 <td>{{ $withdraw->note }}</td>
                                                                 <td>{{ currency($withdraw->amount) }}</td>
                                                                 <td>
+                                                                    @if (checkAdminHasPermission('deposit.withdraw.edit') || checkAdminHasPermission('deposit.withdraw.delete'))
                                                                     <div class="d-flex gap-2">
+                                                                        @adminCan('deposit.withdraw.edit')
                                                                         <a href="{{ route('admin.opening-balance.edit', $withdraw->id) }}"
                                                                             class="btn btn-primary btn-sm">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
+                                                                        @endadminCan
+                                                                        @adminCan('deposit.withdraw.delete')
                                                                         <a href="javascript:void(0)"
                                                                             onclick="deleteData({{ $withdraw->id }})"
-                                                                            class="btn btn-danger btn-sm">
+                                                                            class="btn btn-danger btn-sm"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#deleteModal">
                                                                             <i class="fas fa-trash"></i>
                                                                         </a>
+                                                                        @endadminCan
                                                                     </div>
+                                                                    @endif
                                                                 </td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
+                                            </div>
+                                            <div class="float-right">
+                                                {{ $withdraws->onEachSide(0)->links() }}
                                             </div>
                                         </div>
                                     </div>
@@ -248,7 +268,6 @@
             let accounts = @json($accounts);
             $('select[name="payment_type"]').on('change', function() {
                 const paymentType = $(this).val();
-                console.log(paymentType);
                 let html = `<label for="account_id">{{ __('Select Account') }}<span class="text-danger">*</span></label>
                     <select name="account_id" id="" class="form-control form-group" required>`;
                 const filterAccount = accounts.filter(account => account.account_type === paymentType);

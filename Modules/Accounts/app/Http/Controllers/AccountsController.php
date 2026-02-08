@@ -8,8 +8,6 @@ use App\Models\Balance;
 use App\Traits\RedirectHelperTrait;
 use Exception;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Modules\Accounts\app\Http\Requests\AccountRequest;
 use Modules\Accounts\app\Models\BalanceTransfer;
@@ -35,13 +33,10 @@ class AccountsController extends Controller
     public function index()
     {
         checkAdminHasPermissionAndThrowException('account.view');
-        $accounts = $this->accountsService->all()->paginate(20);
-        $accounts->appends(request()->query());
         $bankAccounts = $this->accountsService->all()->where('account_type', 'bank')->with('payments')->get();
         $cashAccount = $this->accountsService->all()->where('account_type', 'cash')->with('payments')->first();
         $mobileAccounts = $this->accountsService->all()->where('account_type', 'mobile_banking')->with('payments')->get();
         $cardAccounts = $this->accountsService->all()->where('account_type', 'card')->with('payments')->get();
-        $advanceAccounts = $this->accountsService->all()->where('account_type', 'advance')->with('payments')->get();
 
         $totalAccounts = $this->accountsService->all()->get();
 
@@ -50,8 +45,7 @@ class AccountsController extends Controller
             $accountBalance += $account->getBalanceBetween();
         });
 
-
-        return view('accounts::index', compact('accounts', 'bankAccounts', 'cashAccount', 'mobileAccounts', 'cardAccounts', 'advanceAccounts', 'accountBalance'));
+        return view('accounts::index', compact('bankAccounts', 'cashAccount', 'mobileAccounts', 'cardAccounts', 'accountBalance'));
     }
 
     /**
@@ -107,10 +101,10 @@ class AccountsController extends Controller
         try {
             $account = $this->accountsService->find($id);
             $this->accountsService->update($account, $request->except('_token'));
-            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.accounts.edit', ['account' => $id], ['messege' => 'Account updated successfully', 'alert-type' => 'success']);
+            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.accounts.edit', ['account' => $id], ['messege' => __('Account updated successfully'), 'alert-type' => 'success']);
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.accounts.edit', ['account' => $id], ['messege' => 'Something went wrong', 'alert-type' => 'error']);
+            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.accounts.edit', ['account' => $id], ['messege' => __('Something went wrong'), 'alert-type' => 'error']);
         }
     }
 
@@ -122,7 +116,7 @@ class AccountsController extends Controller
         checkAdminHasPermissionAndThrowException('account.delete');
         $account = $this->accountsService->find($id);
         $this->accountsService->delete($account);
-        return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.accounts.index', [], ['messege' => 'Account deleted successfully', 'alert-type' => 'success']);
+        return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.accounts.index', [], ['messege' => __('Account deleted successfully'), 'alert-type' => 'success']);
     }
 
     public function cashflow()

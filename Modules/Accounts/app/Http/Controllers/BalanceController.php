@@ -71,7 +71,7 @@ class BalanceController extends Controller
             } else {
                 $account = $this->account->find($request->account_id);
                 if (!$account) {
-                    return back()->withInput()->with(['messege' => 'Selected account not found.', 'alert-type' => 'error']);
+                    return back()->withInput()->with(['messege' => __('Selected account not found.'), 'alert-type' => 'error']);
                 }
             }
 
@@ -85,11 +85,12 @@ class BalanceController extends Controller
                 'created_by' => auth('admin')->id(),
             ]);
 
-            return back()->with(['messege' => ucfirst($request->balance_type) . " created successfully.", 'alert-type' => 'success']);
+            $message = $request->balance_type == 'deposit' ? __('Deposit created successfully.') : __('Withdraw created successfully.');
+            return back()->with(['messege' => $message, 'alert-type' => 'success']);
         } catch (Exception $ex) {
             Log::error($ex->getMessage());
 
-            return back()->withInput()->with(['messege' => 'Something went wrong.', 'alert-type' => 'error']);
+            return back()->withInput()->with(['messege' => __('Something went wrong.'), 'alert-type' => 'error']);
         }
     }
 
@@ -142,26 +143,31 @@ class BalanceController extends Controller
             'note' => 'nullable|string|max:500',
         ]);
 
-        if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
-            $account = Account::firstOrCreate(
-                ['account_type' => 'cash'],
-                ['bank_account_name' => 'Cash Register']
-            );
-        } else {
-            $account = $this->account->find($request->account_id);
-            if (!$account) {
-                return back()->withInput()->with(['messege' => 'Selected account not found.', 'alert-type' => 'error']);
+        try {
+            if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $account = $this->account->find($request->account_id);
+                if (!$account) {
+                    return back()->withInput()->with(['messege' => __('Selected account not found.'), 'alert-type' => 'error']);
+                }
             }
+
+            $balance = Balance::findOrFail($id);
+
+            $data = $request->except('_token', '_method');
+            $data['updated_by'] = auth('admin')->id();
+            $data['account_id'] = $account->id;
+            $data['date'] = now()->parse($request->date);
+            $balance->update($data);
+            return to_route('admin.opening-balance')->with(['messege' => __('Balance updated successfully.'), 'alert-type' => 'success']);
+        } catch (Exception $ex) {
+            Log::error($ex->getMessage());
+            return back()->withInput()->with(['messege' => __('Something went wrong.'), 'alert-type' => 'error']);
         }
-
-        $balance = Balance::findOrFail($id);
-
-        $data = $request->except('_token', '_method');
-        $data['updated_by'] = auth('admin')->id();
-        $data['account_id'] = $account->id;
-        $data['date'] = now()->parse($request->date);
-        $balance->update($data);
-        return to_route('admin.opening-balance')->with(['messege' => 'Balance updated successfully.', 'alert-type' => 'success']);
     }
 
 
@@ -174,7 +180,7 @@ class BalanceController extends Controller
         checkAdminHasPermissionAndThrowException('deposit.withdraw.delete');
         $balance = Balance::findOrFail($id);
         $balance->delete();
-        return back()->with(['messege' => 'Balance deleted successfully.', 'alert-type' => 'success']);
+        return back()->with(['messege' => __('Balance deleted successfully.'), 'alert-type' => 'success']);
     }
 
     public function transfer()
@@ -262,54 +268,56 @@ class BalanceController extends Controller
             'to_account' => 'required_unless:to_account_type,cash',
         ]);
 
-        $data = $request->except('_token');
-        $data['created_by'] = auth('admin')->id();
-        $data['date'] = now()->parse($request->date);
+        try {
+            $data = $request->except('_token');
+            $data['created_by'] = auth('admin')->id();
+            $data['date'] = now()->parse($request->date);
 
+            // from account
+            if ($request->from_account_type == 'cash') {
+                $fromAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $fromAccount = Account::where('account_type', $request->from_account_type)
+                    ->where('id', $request->from_account)->first();
+            }
 
-        // from account
+            if (!$fromAccount) {
+                return back()->with(['messege' => __('From account not found.'), 'alert-type' => 'error']);
+            }
 
-        if ($request->from_account_type == 'cash') {
-            $fromAccount = Account::firstOrCreate(
-                ['account_type' => 'cash'],
-                ['bank_account_name' => 'Cash Register']
-            );
-        } else {
-            $fromAccount = Account::where('account_type', $request->from_account_type)
-                ->where('id', $request->from_account)->first();
+            $data['from_account_id'] = $fromAccount->id;
+
+            // to account
+            if ($request->to_account_type == 'cash') {
+                $toAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $toAccount = Account::where('account_type', $request->to_account_type)
+                    ->where('id', $request->to_account)->first();
+            }
+
+            if (!$toAccount) {
+                return back()->with(['messege' => __('To account not found. Please make sure the account exists.'), 'alert-type' => 'error']);
+            }
+
+            $data['to_account_id'] = $toAccount->id;
+
+            // Prevent transfer to the same account
+            if ($fromAccount->id === $toAccount->id) {
+                return back()->with(['messege' => __('Cannot transfer to the same account.'), 'alert-type' => 'error']);
+            }
+
+            BalanceTransfer::create($data);
+            return back()->with(['messege' => __('Balance transfer created successfully.'), 'alert-type' => 'success']);
+        } catch (Exception $ex) {
+            Log::error($ex->getMessage());
+            return back()->withInput()->with(['messege' => __('Something went wrong.'), 'alert-type' => 'error']);
         }
-
-        if (!$fromAccount) {
-            return back()->with(['messege' => 'From account not found.', 'alert-type' => 'error']);
-        }
-
-        $data['from_account_id'] = $fromAccount->id;
-
-        // to account
-
-        if ($request->to_account_type == 'cash') {
-            $toAccount = Account::firstOrCreate(
-                ['account_type' => 'cash'],
-                ['bank_account_name' => 'Cash Register']
-            );
-        } else {
-            $toAccount = Account::where('account_type', $request->to_account_type)
-                ->where('id', $request->to_account)->first();
-        }
-
-        if (!$toAccount) {
-            return back()->with(['messege' => 'To account not found. Please make sure the account exists.', 'alert-type' => 'error']);
-        }
-
-        $data['to_account_id'] = $toAccount->id;
-
-        // Prevent transfer to the same account
-        if ($fromAccount->id === $toAccount->id) {
-            return back()->with(['messege' => 'Cannot transfer to the same account.', 'alert-type' => 'error']);
-        }
-
-        BalanceTransfer::create($data);
-        return back()->with(['messege' => 'Balance transfer created successfully.', 'alert-type' => 'success']);
     }
 
     public function transferUpdate(Request $request, $id)
@@ -326,53 +334,55 @@ class BalanceController extends Controller
             'to_account' => 'required_unless:to_account_type,cash',
         ]);
 
-        $data = $request->except('_token', '_method');
+        try {
+            $data = $request->except('_token', '_method');
+            $data['date'] = now()->parse($request->date);
+            $balance = BalanceTransfer::findOrFail($id);
 
-        $data['date'] = now()->parse($request->date);
-        $balance = BalanceTransfer::findOrFail($id);
+            // from account
+            if ($request->from_account_type == 'cash') {
+                $fromAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $fromAccount = Account::where('account_type', $request->from_account_type)
+                    ->where('id', $request->from_account)->first();
+            }
 
-        // from account
+            if (!$fromAccount) {
+                return back()->with(['messege' => __('From account not found.'), 'alert-type' => 'error']);
+            }
 
-        if ($request->from_account_type == 'cash') {
-            $fromAccount = Account::firstOrCreate(
-                ['account_type' => 'cash'],
-                ['bank_account_name' => 'Cash Register']
-            );
-        } else {
-            $fromAccount = Account::where('account_type', $request->from_account_type)
-                ->where('id', $request->from_account)->first();
+            $data['from_account_id'] = $fromAccount->id;
+
+            if ($request->to_account_type == 'cash') {
+                $toAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+            } else {
+                $toAccount = Account::where('account_type', $request->to_account_type)
+                    ->where('id', $request->to_account)->first();
+            }
+
+            if (!$toAccount) {
+                return back()->with(['messege' => __('To account not found. Please make sure the account exists.'), 'alert-type' => 'error']);
+            }
+
+            $data['to_account_id'] = $toAccount->id;
+
+            // Prevent transfer to the same account
+            if ($fromAccount->id === $toAccount->id) {
+                return back()->with(['messege' => __('Cannot transfer to the same account.'), 'alert-type' => 'error']);
+            }
+
+            $balance->update($data);
+            return back()->with(['messege' => __('Balance transfer updated successfully.'), 'alert-type' => 'success']);
+        } catch (Exception $ex) {
+            Log::error($ex->getMessage());
+            return back()->withInput()->with(['messege' => __('Something went wrong.'), 'alert-type' => 'error']);
         }
-
-        if (!$fromAccount) {
-            return back()->with(['messege' => 'From account not found.', 'alert-type' => 'error']);
-        }
-
-        $data['from_account_id'] = $fromAccount->id;
-
-
-        if ($request->to_account_type == 'cash') {
-            $toAccount = Account::firstOrCreate(
-                ['account_type' => 'cash'],
-                ['bank_account_name' => 'Cash Register']
-            );
-        } else {
-            $toAccount = Account::where('account_type', $request->to_account_type)
-                ->where('id', $request->to_account)->first();
-        }
-
-        if (!$toAccount) {
-            return back()->with(['messege' => 'To account not found. Please make sure the account exists.', 'alert-type' => 'error']);
-        }
-
-        $data['to_account_id'] = $toAccount->id;
-
-        // Prevent transfer to the same account
-        if ($fromAccount->id === $toAccount->id) {
-            return back()->with(['messege' => 'Cannot transfer to the same account.', 'alert-type' => 'error']);
-        }
-
-        $balance->update($data);
-        return back()->with(['messege' => 'Balance transfer updated successfully.', 'alert-type' => 'success']);
     }
 
 
@@ -381,6 +391,6 @@ class BalanceController extends Controller
         checkAdminHasPermissionAndThrowException('balance.transfer.delete');
         $balance = BalanceTransfer::findOrFail($id);
         $balance->delete();
-        return back()->with(['messege' => 'Balance transfer deleted successfully.', 'alert-type' => 'success']);
+        return back()->with(['messege' => __('Balance transfer deleted successfully.'), 'alert-type' => 'success']);
     }
 }

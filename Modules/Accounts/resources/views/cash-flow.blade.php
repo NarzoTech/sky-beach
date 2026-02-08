@@ -11,19 +11,19 @@
                             <div class="col-xl-9 col-lg-6">
                                 <div class="form-group">
                                     <div class="input-group input-daterange" id="bs-datepicker-daterange">
-                                        <input type="text" id="dateRangePicker" placeholder="From Date"
+                                        <input type="text" id="dateRangePicker" placeholder="{{ __('From Date') }}"
                                             class="form-control datepicker" name="from_date"
                                             value="{{ request()->get('from_date') }}" autocomplete="off">
-                                        <span class="input-group-text">to</span>
-                                        <input type="text" placeholder="To Date" class="form-control datepicker"
+                                        <span class="input-group-text">{{ __('to') }}</span>
+                                        <input type="text" placeholder="{{ __('To Date') }}" class="form-control datepicker"
                                             name="to_date" value="{{ request()->get('to_date') }}" autocomplete="off">
                                     </div>
                                 </div>
                             </div>
                             <div class="col-xl-3 col-lg-6">
                                 <div class="form-group">
-                                    <button type="button" class="btn bg-danger form-reset">Reset</button>
-                                    <button type="submit" class="btn bg-primary">Search</button>
+                                    <button type="button" class="btn bg-danger form-reset">{{ __('Reset') }}</button>
+                                    <button type="submit" class="btn bg-primary">{{ __('Search') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -36,7 +36,7 @@
     <div class="card mt-5">
         <div class="card-header">
             <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
-                <h4 class="section_title"> Cash Flow
+                <h4 class="section_title"> {{ __('Cash Flow') }}
                     @if (!isset($hasDateFilter) || !$hasDateFilter)
                         <span class="badge bg-info">{{ __('All Time') }}</span>
                     @else
@@ -51,24 +51,24 @@
                     <thead>
                         <tr>
                             <td colspan="2" class="text-center bg-primary">
-                                <h5 class="mb-0 text-white">Cash In</h5>
+                                <h5 class="mb-0 text-white">{{ __('Cash In') }}</h5>
                             </td>
                             <td colspan="2" class="text-center bg-warning">
-                                <h5 class="mb-0 text-white">Cash Out</h5>
+                                <h5 class="mb-0 text-white">{{ __('Cash Out') }}</h5>
                             </td>
                         </tr>
                         <tr>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Description</th>
-                            <th>Amount</th>
+                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Amount') }}</th>
+                            <th>{{ __('Description') }}</th>
+                            <th>{{ __('Amount') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/1.png') }}" class="icon-img" />
-                                Product Sale
+                                {{ __('Product Sale') }}
                             </td>
                             <td>
                                 <span>
@@ -77,7 +77,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/12.png') }}" class="icon-img" />
-                                Sale Return
+                                {{ __('Sale Return') }}
                             </td>
                             <td>
                                 <span>
@@ -88,7 +88,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/4.png') }}" class="icon-img" />
-                                Balance Deposit
+                                {{ __('Balance Deposit') }}
                             </td>
                             <td>
                                 <span>
@@ -97,7 +97,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/13.png') }}" class="icon-img" />
-                                Balance Withdraw
+                                {{ __('Balance Withdraw') }}
                             </td>
                             <td>
                                 <span>
@@ -109,7 +109,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/3.png') }}" class="icon-img" />
-                                Customer Due
+                                {{ __('Customer Due') }}
                             </td>
                             <td>
                                 <span>
@@ -118,11 +118,11 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/3.png') }}" class="icon-img" />
-                                Customer Due Send
+                                {{ __('Customer Due Send') }}
                             </td>
                             <td>
                                 <span>
-                                    TK 0.00
+                                    {{ currency(0) }}
                                 </span>
                             </td>
                         </tr>
@@ -130,7 +130,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
-                                Customer Advance
+                                {{ __('Customer Advance') }}
                             </td>
                             <td>
                                 <span>
@@ -139,7 +139,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
-                                Customer Advance Refund
+                                {{ __('Customer Advance Refund') }}
                             </td>
                             <td>
                                 <span>
@@ -151,16 +151,16 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/10.png') }}" class="icon-img" />
-                                Supplier Due Receive
+                                {{ __('Supplier Due Receive') }}
                             </td>
                             <td>
                                 <span>
-                                    TK 0.00
+                                    {{ currency(0) }}
                                 </span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/10.png') }}" class="icon-img" />
-                                Supplier Due Pay
+                                {{ __('Supplier Due Pay') }}
                             </td>
                             <td>
                                 <span>
@@ -172,7 +172,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
-                                Supplier Advance Refund
+                                {{ __('Supplier Advance Refund') }}
                             </td>
                             <td>
                                 <span>
@@ -181,7 +181,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
-                                Supplier Advance
+                                {{ __('Supplier Advance') }}
                             </td>
                             <td>
                                 <span>
@@ -193,7 +193,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
-                                Purchase Return
+                                {{ __('Purchase Return') }}
                             </td>
                             <td>
                                 <span>
@@ -202,7 +202,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
-                                Purchase
+                                {{ __('Purchase') }}
                             </td>
                             <td>
                                 <span>
@@ -214,7 +214,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/7.png') }}" class="icon-img" />
-                                Service
+                                {{ __('Service') }}
                             </td>
                             <td>
                                 <span>
@@ -223,7 +223,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/11.png') }}" class="icon-img" />
-                                Expense
+                                {{ __('Expense') }}
                             </td>
                             <td>
                                 <span>
@@ -235,16 +235,16 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/1.png') }}" class="icon-img" />
-                                Installment
+                                {{ __('Installment') }}
                             </td>
                             <td>
                                 <span>
-                                    TK 0.00
+                                    {{ currency(0) }}
                                 </span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/14.png') }}" class="icon-img" />
-                                Salary
+                                {{ __('Salary') }}
                             </td>
                             <td>
                                 <span>
@@ -256,7 +256,7 @@
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/8.png') }}" class="icon-img" />
-                                Balance Transfer (In)
+                                {{ __('Balance Transfer (In)') }}
                             </td>
                             <td>
                                 <span>
@@ -265,7 +265,7 @@
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/17.png') }}" class="icon-img" />
-                                Balance Transfer (Out)
+                                {{ __('Balance Transfer (Out)') }}
                             </td>
                             <td>
                                 <span>
@@ -330,15 +330,15 @@
                     <tfoot>
                         <tr>
                             <td></td>
-                            <td colspan="" class="text-left">
+                            <td class="text-left">
                                 <b>
-                                    Total : {{ currency($data['totalReceive']) }}
+                                    {{ __('Total') }} : {{ currency($data['totalReceive']) }}
                                 </b>
                             </td>
                             <td></td>
-                            <td colspan="" class="text-left">
+                            <td class="text-left">
                                 <b>
-                                    Total : {{ currency($data['totalPay']) }}
+                                    {{ __('Total') }} : {{ currency($data['totalPay']) }}
                                 </b>
                             </td>
                         </tr>
@@ -346,10 +346,10 @@
                         <tr>
                             <td colspan="3" class="text-end">
                                 <h5 class="m-0">
-                                    <b>Opening Balance =</b>
+                                    <b>{{ __('Opening Balance') }} =</b>
                                 </h5>
                             </td>
-                            <td colspan="" class="text-left">
+                            <td class="text-left">
                                 <h5 class="m-0">
                                     <b>{{ currency($openingBalance) }}</b>
                                 </h5>

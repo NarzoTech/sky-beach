@@ -23,7 +23,7 @@
                                 <div class="form-group">
                                     <label for="account_type">{{ __('Account Type') }}<span
                                             class="text-danger">*</span></label>
-                                    <select name="account_type" id="account_type" class="form-control">
+                                    <select name="account_type" id="account_type" class="form-control" required>
                                         <option value="">{{ __('Select Account Type') }}</option>
                                         @foreach (accountList() as $key => $list)
                                             <option value="{{ $key }}"
@@ -65,7 +65,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label for="service_charge">{{ __('Service Charge') }}(%)</label>
-                                        <input type="text" name="service_charge" id="service_charge" class="form-control"
+                                        <input type="number" step="any" min="0" name="service_charge" id="service_charge" class="form-control"
                                             placeholder="{{ __('Service Charge') }}" disabled
                                             value="{{ $account->service_charge }}">
                                     </div>
@@ -80,7 +80,7 @@
                                         <label for="card_type">{{ __('Card Type') }}<span
                                                 class="text-danger">*</span></label>
                                         <select name="card_type" id="card_type" class="form-control" disabled>
-                                            <option value="">{{ __('Select Mobile Bank Name') }}</option>
+                                            <option value="">{{ __('Select Card Type') }}</option>
                                             @foreach (cardTypeList() as $key => $list)
                                                 <option value="{{ $key }}"
                                                     {{ $key == $account->card_type ? 'selected' : '' }}>
@@ -126,7 +126,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label for="service_charge">{{ __('Service Charge') }}(%)</label>
-                                        <input type="text" name="service_charge" id="service_charge" class="form-control"
+                                        <input type="number" step="any" min="0" name="service_charge" id="service_charge" class="form-control"
                                             placeholder="{{ __('Service Charge') }}" disabled
                                             value="{{ $account->service_charge }}">
                                     </div>
@@ -156,7 +156,7 @@
                                         <label for="bank_account_type">{{ __('Bank Account Type') }}<span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="bank_account_type" id="bank_account_type"
-                                            class="form-control" placeholder="{{ __('Bank Account Type') }}"disabled
+                                            class="form-control" placeholder="{{ __('Bank Account Type') }}" disabled
                                             value="{{ $account->bank_account_type }}">
                                     </div>
                                 </div>
@@ -190,7 +190,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="form-group">
                                         <label for="service_charge">{{ __('Service Charge') }}(%)</label>
-                                        <input type="text" name="service_charge" id="service_charge"
+                                        <input type="number" step="any" min="0" name="service_charge" id="service_charge"
                                             class="form-control" placeholder="{{ __('Service Charge') }}" disabled
                                             value="{{ $account->service_charge }}">
                                     </div>

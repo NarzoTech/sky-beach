@@ -12,7 +12,7 @@
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group search-wrapper">
                                     <input type="text" name="keyword" value="{{ request()->get('keyword') }}"
-                                        class="form-control" placeholder="Search..." autocomplete="off">
+                                        class="form-control" placeholder="{{ __('Search') }}..." autocomplete="off">
                                     <button type="submit">
                                         <i class='bx bx-search'></i>
                                     </button>
@@ -88,14 +88,16 @@
             <div class="table-responsive list_table">
                 <table style="width: 100%;" class="table">
                     <thead>
-                        <th> # </th>
-                        <th>{{ __('From Account') }}</th>
-                        <th>{{ __('To Account') }}</th>
-                        <th>{{ __('Amount') }}</th>
-                        <th>{{ __('Added By') }}</th>
-                        <th>{{ __('Date') }}</th>
-                        <th>{{ __('Remark') }}</th>
-                        <th>{{ __('Action') }}</th>
+                        <tr>
+                            <th> # </th>
+                            <th>{{ __('From Account') }}</th>
+                            <th>{{ __('To Account') }}</th>
+                            <th>{{ __('Amount') }}</th>
+                            <th>{{ __('Added By') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Remark') }}</th>
+                            <th>{{ __('Action') }}</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach ($transfers as $key => $balanceTransfer)
@@ -122,13 +124,13 @@
                                 }
                             @endphp
                             <tr>
-                                <td>{{ $key + 1 }}</td>
+                                <td>{{ (method_exists($transfers, 'firstItem') ? $transfers->firstItem() : 1) + $loop->index }}</td>
                                 <td>{{ $fromLabel }}</td>
                                 <td>{{ $toLabel }}</td>
                                 <td>{{ currency($balanceTransfer->amount) }}</td>
                                 <td>{{ $balanceTransfer->createdBy->name ?? '-' }}</td>
                                 <td>{{ formatDate($balanceTransfer->date) }}</td>
-                                <td>{{ $balanceTransfer->note }}</td>
+                                <td>{{ $balanceTransfer->note ?? '-' }}</td>
                                 <td>
                                     @if (checkAdminHasPermission('balance.transfer.edit') || checkAdminHasPermission('balance.transfer.delete'))
                                         <div class="btn-group" role="group">

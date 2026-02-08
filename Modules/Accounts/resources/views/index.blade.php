@@ -119,11 +119,11 @@
                                 <div class="form-group">
                                     <label class="form-label text-muted small">{{ __('Date Range') }}</label>
                                     <div class="input-group input-daterange" id="bs-datepicker-daterange">
-                                        <input type="text" id="dateRangePicker" placeholder="From Date"
+                                        <input type="text" id="dateRangePicker" placeholder="{{ __('From Date') }}"
                                             class="form-control datepicker" name="from_date"
                                             value="{{ request()->get('from_date') }}" autocomplete="off">
-                                        <span class="input-group-text bg-light">to</span>
-                                        <input type="text" placeholder="To Date" class="form-control datepicker"
+                                        <span class="input-group-text bg-light">{{ __('to') }}</span>
+                                        <input type="text" placeholder="{{ __('To Date') }}" class="form-control datepicker"
                                             name="to_date" value="{{ request()->get('to_date') }}" autocomplete="off">
                                     </div>
                                 </div>

@@ -71,7 +71,7 @@ class AccountRequest extends FormRequest
                 }
 
                 if ($query->exists()) {
-                    $validator->errors()->add('account_type', 'A cash account already exists. Only one cash account is allowed.');
+                    $validator->errors()->add('account_type', __('A cash account already exists. Only one cash account is allowed.'));
                 }
             }
         });
@@ -84,32 +84,24 @@ class AccountRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'bank_id.required' => 'Bank Name is required',
-            'bank_id.integer' => 'Bank must be an integer',
-            'bank_account_type.required' => 'Bank account type is required',
-            'bank_account_type.string' => 'Bank account type must be a string',
-            'bank_account_name.required' => 'Bank account name is required',
-            'bank_account_name.string' => 'Bank account name must be a string',
-            'bank_account_number.required' => 'Bank account number is required',
-            'bank_account_number.string' => 'Bank account number must be a string',
-            'bank_account_branch.required' => 'Bank account branch is required',
-            'bank_account_branch.string' => 'Bank account branch must be a string',
-            'card_type.required' => 'Card type is required',
-            'card_type.string' => 'Card type must be a string',
-            'card_holder_name.required' => 'Card holder name is required',
-            'card_holder_name.string' => 'Card holder name must be a string',
-            'card_number.required' => 'Card number is required',
-            'card_number.numeric' => 'Card number must be a number',
-            'bank_account_type.required' => 'Bank account type is required',
-            'bank_account_type.string' => 'Bank account type must be a string',
-            'bank_account_name.required' => 'Bank account name is required',
-            'bank_account_name.string' => 'Bank account name must be a string',
-            'bank_account_number.required' => 'Bank account number is required',
-            'bank_account_branch.required' => 'Bank account branch is required',
-            'bank_account_branch.string' => 'Bank account branch must be a string',
-            'mobile_bank_name.required' => 'Mobile bank name is required',
-            'mobile_bank_name.string' => 'Mobile bank name must be a string',
-            'mobile_number.required' => 'Mobile number is required'
+            'bank_id.required' => __('Bank Name is required'),
+            'bank_id.integer' => __('Bank must be a valid selection'),
+            'bank_account_type.required' => __('Bank account type is required'),
+            'bank_account_type.string' => __('Bank account type must be a string'),
+            'bank_account_name.required' => __('Bank account name is required'),
+            'bank_account_name.string' => __('Bank account name must be a string'),
+            'bank_account_number.required' => __('Bank account number is required'),
+            'bank_account_number.string' => __('Bank account number must be a string'),
+            'bank_account_branch.required' => __('Bank account branch is required'),
+            'bank_account_branch.string' => __('Bank account branch must be a string'),
+            'card_type.required' => __('Card type is required'),
+            'card_type.string' => __('Card type must be a string'),
+            'card_holder_name.required' => __('Card holder name is required'),
+            'card_holder_name.string' => __('Card holder name must be a string'),
+            'card_number.required' => __('Card number is required'),
+            'mobile_bank_name.required' => __('Mobile bank name is required'),
+            'mobile_bank_name.string' => __('Mobile bank name must be a string'),
+            'mobile_number.required' => __('Mobile number is required'),
         ];
     }
 }
