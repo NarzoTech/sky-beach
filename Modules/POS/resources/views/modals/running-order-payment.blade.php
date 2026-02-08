@@ -16,18 +16,12 @@
 <div class="modal fade payment-modal" id="runningOrderPaymentModal" tabindex="-1" aria-labelledby="runningOrderPaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable rop-dialog">
         <div class="modal-content rop-modal-content">
-            <div class="rop-modal-header">
-                <div class="rop-header-icon">
-                    <i class="fas fa-cash-register"></i>
-                </div>
-                <div class="rop-header-text">
-                    <h5 class="mb-0">{{ __('Checkout') }}</h5>
-                    <small>{{ __('Complete payment for order') }}</small>
-                </div>
-                <span class="rop-table-badge" id="ropTableBadge">--</span>
-                <button type="button" class="rop-header-close" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bx bx-credit-card me-2"></i>{{ __('Checkout') }}
+                    <span class="badge bg-white bg-opacity-25 ms-2 fw-normal" id="ropTableBadge" style="font-size: 12px;">--</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body p-0" id="ropModalBody" style="min-height: 300px;">
@@ -309,74 +303,6 @@
     overflow: hidden;
     border: none;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.rop-modal-header {
-    background: #696cff;
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    position: relative;
-}
-
-.rop-header-icon {
-    width: 50px;
-    height: 50px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #fff;
-}
-
-.rop-header-text h5 {
-    color: #fff;
-    font-weight: 600;
-    font-size: 18px;
-    margin: 0;
-}
-
-.rop-header-text small {
-    color: rgba(255,255,255,0.8);
-    font-size: 13px;
-}
-
-.rop-table-badge {
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-left: auto;
-    margin-right: 40px;
-}
-
-.rop-header-close {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.rop-header-close:hover {
-    background: rgba(255,255,255,0.3);
-    transform: translateY(-50%) scale(1.1);
 }
 
 .rop-modal-footer {
@@ -910,20 +836,6 @@
         margin: 1rem auto;
     }
 
-    .rop-modal-header {
-        padding: 16px 20px;
-    }
-
-    .rop-header-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-
-    .rop-header-text h5 {
-        font-size: 16px;
-    }
-
     .rop-total-amount {
         font-size: 36px;
     }
@@ -964,33 +876,6 @@
 
 /* Mobile */
 @media (max-width: 767px) {
-    .rop-modal-header {
-        padding: 16px;
-        flex-wrap: wrap;
-    }
-
-    .rop-header-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-
-    .rop-header-text h5 {
-        font-size: 15px;
-    }
-
-    .rop-header-text small {
-        font-size: 12px;
-    }
-
-    .rop-table-badge {
-        order: 3;
-        margin-left: 0;
-        margin-top: 10px;
-        width: 100%;
-        text-align: center;
-    }
-
     #runningOrderPaymentModal .modal-body > #ropContent > .row {
         flex-direction: column;
     }

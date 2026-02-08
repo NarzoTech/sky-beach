@@ -19,9 +19,9 @@
 <div class="modal fade payment-modal" id="unifiedPaymentModal" tabindex="-1" aria-labelledby="unifiedPaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white" id="paymentModalHeader">
+            <div class="modal-header bg-primary text-white" id="paymentModalHeader">
                 <h5 class="modal-title" id="unifiedPaymentModalLabel">
-                    {{ __('Payment') }}
+                    <i class="bx bx-credit-card me-2"></i>{{ __('Payment') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -178,8 +178,8 @@
             </div>
 
             <div class="modal-footer" id="paymentModalFooter">
-                <button type="button" class="btn btn-success btn-lg w-100" id="completePaymentBtn" onclick="completePayment()">
-                    {{ __('Complete Payment') }}
+                <button type="button" class="btn btn-complete-payment btn-lg w-100" id="completePaymentBtn" onclick="completePayment()">
+                    <i class="bx bx-check-circle me-1"></i>{{ __('Complete Payment') }}
                 </button>
             </div>
         </div>
@@ -203,10 +203,10 @@
 }
 
 .payment-total-card {
-    background: #2c3e50;
+    background: var(--pm-primary, #696cff);
     color: white;
     padding: 30px;
-    border-radius: 12px;
+    border-radius: var(--pm-radius, 12px);
     text-align: center;
 }
 
@@ -411,10 +411,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #2c3e50;
+    background: var(--pm-primary, #696cff);
     color: white;
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: var(--pm-radius, 12px);
 }
 
 .split-total-label {

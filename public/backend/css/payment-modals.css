@@ -32,7 +32,6 @@
 .payment-modal .modal-content {
     border: none;
     border-radius: var(--pm-radius-lg);
-    overflow: hidden;
     box-shadow: var(--pm-shadow-lg);
 }
 
@@ -51,27 +50,6 @@
     background: var(--pm-gray-light);
 }
 
-/* Modal Header Variants */
-.payment-modal .modal-header.header-dine-in {
-    background: linear-gradient(135deg, var(--pm-primary), #5f61e6);
-    color: var(--pm-white);
-}
-
-.payment-modal .modal-header.header-takeaway {
-    background: linear-gradient(135deg, var(--pm-success), #5cb82f);
-    color: var(--pm-white);
-}
-
-.payment-modal .modal-header.header-delivery {
-    background: linear-gradient(135deg, var(--pm-info), #02a8cc);
-    color: var(--pm-white);
-}
-
-.payment-modal .modal-header.header-dark {
-    background: linear-gradient(135deg, var(--pm-dark), #1a1a2e);
-    color: var(--pm-white);
-}
-
 .payment-modal .modal-title {
     font-weight: 700;
     display: flex;
@@ -81,15 +59,6 @@
 
 .payment-modal .modal-title i {
     font-size: 24px;
-}
-
-.payment-modal .btn-close-white {
-    filter: brightness(0) invert(1);
-    opacity: 0.8;
-}
-
-.payment-modal .btn-close-white:hover {
-    opacity: 1;
 }
 
 /* ================================================
@@ -230,7 +199,7 @@
    ================================================ */
 
 .btn-complete-payment {
-    background: linear-gradient(135deg, var(--pm-success), #5cb82f);
+    background: var(--pm-success);
     border: none;
     color: var(--pm-white);
     padding: 16px 32px;
@@ -244,24 +213,21 @@
 }
 
 .btn-complete-payment:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(113, 221, 55, 0.4);
+    background: #5cb82f;
     color: var(--pm-white);
 }
 
 .btn-complete-payment:active {
-    transform: translateY(0);
+    background: #4da828;
 }
 
 .btn-complete-payment:disabled {
     background: var(--pm-gray);
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
 }
 
 .btn-start-order {
-    background: linear-gradient(135deg, var(--pm-primary), #5f61e6);
+    background: var(--pm-primary);
     border: none;
     color: var(--pm-white);
     padding: 16px 32px;
@@ -272,8 +238,7 @@
 }
 
 .btn-start-order:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(105, 108, 255, 0.4);
+    background: #5f61e6;
     color: var(--pm-white);
 }
 
@@ -290,8 +255,6 @@
 
 .btn-cod:hover {
     background: #e69a00;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 171, 0, 0.4);
 }
 
 /* ================================================
@@ -353,7 +316,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    background: var(--pm-dark);
+    background: var(--pm-primary);
     color: var(--pm-white);
     border-radius: var(--pm-radius);
     margin-top: 16px;

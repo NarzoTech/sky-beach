@@ -3,9 +3,9 @@
     @foreach($runningOrders as $order)
     @php
         $orderTypeConfig = match($order->order_type) {
-            'dine_in' => ['icon' => 'fa-chair', 'class' => 'dine-in', 'label' => __('Dine-in')],
-            'take_away' => ['icon' => 'fa-shopping-bag', 'class' => 'take-away', 'label' => __('Take Away')],
-            default => ['icon' => 'fa-receipt', 'class' => 'dine-in', 'label' => __('Order')]
+            'dine_in' => ['icon' => 'bx-chair', 'class' => 'dine-in', 'label' => __('Dine-in')],
+            'take_away' => ['icon' => 'bx-shopping-bag', 'class' => 'take-away', 'label' => __('Take Away')],
+            default => ['icon' => 'bx-receipt', 'class' => 'dine-in', 'label' => __('Order')]
         };
 
         // Calculate grand_total if it's 0 or null
@@ -40,7 +40,7 @@
                 {{-- Header Row --}}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="order-badge {{ $orderTypeConfig['class'] }}">
-                        <i class="fas {{ $orderTypeConfig['icon'] }} me-1"></i>
+                        <i class="bx {{ $orderTypeConfig['icon'] }}"></i>
                         @if($order->order_type == 'dine_in' && $order->table)
                             {{ $order->table->name }}
                         @else
@@ -53,14 +53,14 @@
                 {{-- Info Row --}}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="order-time">
-                        <i class="fas fa-clock me-1"></i>{{ $order->created_at->diffForHumans() }}
+                        <i class="bx bx-time-five"></i>{{ $order->created_at->diffForHumans() }}
                     </span>
                     <div class="d-flex gap-2">
                         <span class="order-meta-badge" title="{{ __('Guests') }}">
-                            <i class="fas fa-users me-1"></i>{{ $order->guest_count ?? 1 }}
+                            <i class="bx bx-group"></i>{{ $order->guest_count ?? 1 }}
                         </span>
                         <span class="order-meta-badge" title="{{ __('Items') }}">
-                            <i class="fas fa-utensils me-1"></i>{{ $order->details->sum('quantity') }}
+                            <i class="bx bx-food-menu"></i>{{ $order->details->sum('quantity') }}
                         </span>
                     </div>
                 </div>
@@ -70,12 +70,12 @@
                 <div class="mb-3">
                     @if($isOverdue)
                         <span class="order-status ready w-100 d-block text-center">
-                            <i class="fas fa-check-circle me-1"></i>{{ __('Ready') }}
+                            <i class="bx bx-check-circle"></i> {{ __('Ready') }}
                             <small class="opacity-75 ms-1">(+{{ $overdueMinutes }} min)</small>
                         </span>
                     @else
                         <span class="order-status preparing w-100 d-block text-center">
-                            <i class="fas fa-fire me-1"></i>{{ $remainingMinutes }} {{ __('min remaining') }}
+                            <i class="bx bx-loader-alt bx-spin"></i> {{ $remainingMinutes }} {{ __('min remaining') }}
                         </span>
                     @endif
                 </div>
@@ -100,11 +100,11 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="order-customer">
-                            <i class="fas fa-user me-1"></i>{{ $order->customer->name ?? __('Guest') }}
+                            <i class="bx bx-user"></i>{{ $order->customer->name ?? __('Guest') }}
                         </div>
                         @if($order->waiter)
                         <div class="order-customer">
-                            <i class="fas fa-user-tie me-1"></i>{{ $order->waiter->name }}
+                            <i class="bx bx-user-check"></i>{{ $order->waiter->name }}
                         </div>
                         @endif
                     </div>
@@ -123,7 +123,7 @@
             {{-- Previous Page --}}
             <li class="page-item {{ $runningOrders->onFirstPage() ? 'disabled' : '' }}">
                 <a class="page-link" href="javascript:void(0)" onclick="loadRunningOrdersPage({{ $runningOrders->currentPage() - 1 }})" aria-label="Previous">
-                    <i class="fas fa-chevron-left"></i>
+                    <i class="bx bx-chevron-left"></i>
                 </a>
             </li>
 
@@ -137,7 +137,7 @@
             {{-- Next Page --}}
             <li class="page-item {{ !$runningOrders->hasMorePages() ? 'disabled' : '' }}">
                 <a class="page-link" href="javascript:void(0)" onclick="loadRunningOrdersPage({{ $runningOrders->currentPage() + 1 }})" aria-label="Next">
-                    <i class="fas fa-chevron-right"></i>
+                    <i class="bx bx-chevron-right"></i>
                 </a>
             </li>
         </ul>
@@ -152,7 +152,7 @@
 @else
 <div class="running-orders-empty">
     <div class="empty-icon">
-        <i class="fas fa-concierge-bell"></i>
+        <i class="bx bx-food-menu"></i>
     </div>
     <h5>{{ __('No Running Orders') }}</h5>
     <p>{{ __('Active dine-in & takeaway orders will appear here') }}</p>

@@ -665,9 +665,9 @@
     <div class="modal fade" id="cartAddonModal" tabindex="-1" role="dialog" aria-labelledby="cartAddonModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="cartAddonModalLabel">
-                        <i class="fas fa-plus-circle me-2"></i>{{ __('Select Add-ons') }}
+                        <i class="bx bx-plus-circle me-2"></i>{{ __('Select Add-ons') }}
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -722,12 +722,12 @@
                     <input type="hidden" name="sale_date" value="{{ formatDate(now()) }}" autocomplete="off">
 
                     <!-- Modal Header -->
-                    <div class="modal-header py-2">
+                    <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title">
-                            <i class="fas fa-cash-register me-2"></i>{{ __('Checkout') }}
-                            <span class="badge bg-secondary ms-2" id="orderTypeBadge">{{ __('Dine-in') }}</span>
+                            <i class="bx bx-credit-card me-2"></i>{{ __('Checkout') }}
+                            <span class="badge bg-white bg-opacity-25 ms-2 fw-normal" id="orderTypeBadge">{{ __('Dine-in') }}</span>
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
                     <div class="modal-body">
@@ -892,21 +892,21 @@
     <div class="modal fade" id="hold-modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content hold-modal">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    <h4 class="section_title">Hold Sale</h4>
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bx bx-pause-circle me-2"></i>{{ __('Hold Sale') }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body pt-0">
+                <div class="modal-body">
                     <form action="javascript:;" id="hold-sale-form" method="post">
                         @csrf
                         <div class="form-group">
-                            <label for="">Note</label>
+                            <label for="">{{ __('Note') }}</label>
                             <input type="text" class="form-control hold-sale-note" name="note">
                             <input type="hidden" class="form-control" name="user_id">
                         </div>
-                        <div class="text-end mt-1">
-                            <button class="btn bg-label-primary" type="submit">Hold</button>
+                        <div class="text-end mt-3">
+                            <button class="btn btn-primary" type="submit">{{ __('Hold') }}</button>
                         </div>
                     </form>
                 </div>
@@ -919,12 +919,12 @@
     <div class="modal fade" id="hold-list-modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content hold-modal">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    <h4 class="section_title">Hold Sale List</h4>
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="bx bx-list-ul me-2"></i>{{ __('Hold Sale List') }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body pt-0">
+                <div class="modal-body">
                     <div class="table-responsive">
                         <table class="table table-bordered m-0">
                             <thead>
@@ -965,25 +965,19 @@
     </div>
 
     {{-- Running Orders Modal --}}
-    <div class="modal fade" id="running-orders-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrdersModal"
+    <div class="modal fade payment-modal" id="running-orders-modal" tabindex="-1" role="dialog" aria-labelledby="runningOrdersModal"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl running-orders-dialog" role="document">
-            <div class="modal-content running-orders-modal">
-                <div class="running-orders-header">
-                    <div class="header-icon">
-                        <i class="fas fa-concierge-bell"></i>
-                    </div>
-                    <div class="header-text">
-                        <h5 class="mb-0">{{ __('Running Orders') }}</h5>
-                        <small>{{ __('Active dine-in & takeaway orders') }}</small>
-                    </div>
-                    <button type="button" class="header-close-btn" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div class="modal-dialog modal-xl running-orders-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bx bx-food-menu me-2"></i>{{ __('Running Orders') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4" id="running-orders-content">
+                <div class="modal-body" id="running-orders-content">
                     <div class="text-center py-5">
-                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <div class="spinner-border text-primary" role="status"></div>
                         <p class="mt-3 text-muted">{{ __('Loading running orders...') }}</p>
                     </div>
                 </div>
@@ -992,74 +986,18 @@
     </div>
 
     <style>
-    /* Running Orders Modal Styles */
-    .running-orders-modal {
-        border-radius: 16px;
-        overflow: hidden;
-        border: none;
-    }
-
-    .running-orders-header {
-        background: #696cff;
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-    }
-
-    .running-orders-header .header-icon {
-        width: 50px;
-        height: 50px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        color: #fff;
-    }
-
-    .running-orders-header .header-text h5 {
-        color: #fff;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .running-orders-header .header-text small {
-        color: rgba(255,255,255,0.8);
-        font-size: 13px;
-    }
-
-    .running-orders-header .header-close-btn {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .running-orders-header .header-close-btn:hover {
-        background: rgba(255,255,255,0.3);
-    }
-
     /* Running Order Card Styles */
     .running-order-card {
-        border-radius: 12px !important;
+        border-radius: var(--pm-radius) !important;
         transition: all 0.3s ease;
         border: 2px solid transparent !important;
+        cursor: pointer;
     }
 
     .running-order-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(105,108,255,0.15) !important;
-        border-color: #696cff !important;
+        border-color: var(--pm-primary) !important;
     }
 
     .running-order-card .card-body {
@@ -1067,40 +1005,48 @@
     }
 
     .running-order-card .order-badge {
-        background: #696cff;
-        color: #fff;
+        color: var(--pm-white);
         font-size: 12px;
         padding: 6px 12px;
         border-radius: 6px;
         font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .running-order-card .order-badge.dine-in {
-        background: #696cff;
+        background: var(--pm-primary);
     }
 
     .running-order-card .order-badge.take-away {
-        background: #71dd37;
+        background: var(--pm-success);
     }
 
     .running-order-card .order-invoice {
         font-size: 12px;
         font-weight: 700;
-        color: #697a8d;
+        color: var(--pm-gray);
     }
 
     .running-order-card .order-time {
         font-size: 12px;
         color: #a1acb8;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .running-order-card .order-meta-badge {
-        background: #f4f5fb;
-        color: #697a8d;
+        background: var(--pm-gray-light);
+        color: var(--pm-gray);
         font-size: 11px;
         padding: 4px 8px;
         border-radius: 4px;
         font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .running-order-card .order-status {
@@ -1111,17 +1057,17 @@
     }
 
     .running-order-card .order-status.preparing {
-        background: #ffab00;
-        color: #fff;
+        background: var(--pm-warning);
+        color: var(--pm-white);
     }
 
     .running-order-card .order-status.ready {
-        background: #71dd37;
-        color: #fff;
+        background: var(--pm-success);
+        color: var(--pm-white);
     }
 
     .running-order-card .order-items-preview {
-        background: #f8f9fa;
+        background: var(--pm-gray-light);
         border-radius: 8px;
         padding: 10px 12px !important;
         max-height: 72px;
@@ -1140,7 +1086,7 @@
     }
 
     .running-order-card .order-items-preview .item-name {
-        color: #566a7f;
+        color: var(--pm-dark);
         max-width: 150px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1149,24 +1095,27 @@
 
     .running-order-card .order-items-preview .item-price {
         font-weight: 600;
-        color: #566a7f;
+        color: var(--pm-dark);
     }
 
     .running-order-card .card-footer {
-        background: #fff !important;
-        border-top: 1px solid #f0f0f0 !important;
+        background: var(--pm-white) !important;
+        border-top: 1px solid var(--pm-border) !important;
         padding: 12px 16px !important;
     }
 
     .running-order-card .order-total {
         font-size: 18px;
         font-weight: 700;
-        color: #696cff;
+        color: var(--pm-primary);
     }
 
     .running-order-card .order-customer {
         font-size: 12px;
         color: #a1acb8;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     /* Empty State */
@@ -1178,7 +1127,7 @@
     .running-orders-empty .empty-icon {
         width: 80px;
         height: 80px;
-        background: #f4f5fb;
+        background: var(--pm-gray-light);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -1192,13 +1141,13 @@
     }
 
     .running-orders-empty h5 {
-        color: #566a7f;
+        color: var(--pm-dark);
         font-weight: 600;
         margin-bottom: 8px;
     }
 
     .running-orders-empty p {
-        color: #a1acb8;
+        color: var(--pm-gray);
         font-size: 14px;
     }
 
@@ -1224,20 +1173,6 @@
 
     /* Mobile */
     @media (max-width: 767px) {
-        .running-orders-header {
-            padding: 16px 20px;
-        }
-
-        .running-orders-header .header-icon {
-            width: 44px;
-            height: 44px;
-            font-size: 18px;
-        }
-
-        .running-orders-header .header-text h5 {
-            font-size: 16px;
-        }
-
         #running-orders-content {
             padding: 16px !important;
         }
@@ -1251,23 +1186,17 @@
     {{-- Order Details Modal --}}
     <div class="modal fade" id="order-details-modal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModal"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl order-details-dialog" role="document">
+        <div class="modal-dialog modal-xl order-details-dialog modal-dialog-centered" role="document">
             <div class="modal-content order-details-modal">
-                <div class="order-details-header">
-                    <div class="header-icon">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                    <div class="header-text">
-                        <h5 class="mb-0">{{ __('Order Details') }}</h5>
-                        <small>{{ __('View and manage order') }}</small>
-                    </div>
-                    <button type="button" class="header-close-btn" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bx bx-receipt me-2"></i>{{ __('Order Details') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4" id="order-details-content">
                     <div class="text-center py-5">
-                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <div class="spinner-border text-primary" role="status"></div>
                         <p class="mt-3 text-muted">{{ __('Loading order details...') }}</p>
                     </div>
                 </div>
@@ -1286,56 +1215,6 @@
     #order-details-content {
         max-height: calc(100vh - 150px);
         overflow-y: auto;
-    }
-
-    .order-details-header {
-        background: #696cff;
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-    }
-
-    .order-details-header .header-icon {
-        width: 50px;
-        height: 50px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        color: #fff;
-    }
-
-    .order-details-header .header-text h5 {
-        color: #fff;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .order-details-header .header-text small {
-        color: rgba(255,255,255,0.8);
-        font-size: 13px;
-    }
-
-    .order-details-header .header-close-btn {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .order-details-header .header-close-btn:hover {
-        background: rgba(255,255,255,0.3);
     }
 
     /* Order Details Content Styles */
@@ -1645,16 +1524,6 @@
 
     /* Mobile */
     @media (max-width: 767px) {
-        .order-details-header {
-            padding: 16px 20px;
-        }
-
-        .order-details-header .header-icon {
-            width: 44px;
-            height: 44px;
-            font-size: 18px;
-        }
-
         #order-details-content {
             padding: 16px !important;
         }
@@ -1687,11 +1556,11 @@
         aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="fas fa-cash-register me-2"></i>{{ __('Complete Payment') }}
+                        <i class="bx bx-credit-card me-2"></i>{{ __('Complete Payment') }}
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="payment-order-id" value="">
@@ -1968,9 +1837,9 @@
     <div class="modal fade" id="createTableModal" tabindex="-1" role="dialog" aria-labelledby="createTableModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="createTableModalLabel">
-                        <i class="fas fa-plus-circle me-2"></i>{{ __('Create New Table') }}
+                        <i class="bx bx-plus-circle me-2"></i>{{ __('Create New Table') }}
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -2047,18 +1916,11 @@
     <div class="modal fade" id="startDineInModal" tabindex="-1" role="dialog" aria-labelledby="startDineInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content border-0 shadow-lg dine-in-modal">
-                <!-- Header with gradient -->
-                <div class="dine-in-modal-header">
-                    <div class="dine-in-header-icon">
-                        <i class="fas fa-utensils"></i>
-                    </div>
-                    <div class="dine-in-header-text">
-                        <h5 class="mb-0">{{ __('Start Dine-In Order') }}</h5>
-                        <small>{{ __('Configure your table order') }}</small>
-                    </div>
-                    <button type="button" class="dine-in-close-btn" data-bs-dismiss="modal" aria-label="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bx bx-restaurant me-2"></i>{{ __('Start Dine-In Order') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
                 <div class="modal-body p-0">
@@ -2154,56 +2016,6 @@
     .dine-in-modal {
         border-radius: 16px;
         overflow: hidden;
-    }
-
-    .dine-in-modal-header {
-        background: linear-gradient(135deg, #696cff 0%, #5a5ee0 100%);
-        padding: 20px 24px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-    }
-
-    .dine-in-header-icon {
-        width: 50px;
-        height: 50px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        color: #fff;
-    }
-
-    .dine-in-header-text h5 {
-        color: #fff;
-        font-weight: 600;
-        font-size: 18px;
-    }
-
-    .dine-in-header-text small {
-        color: rgba(255,255,255,0.8);
-        font-size: 13px;
-    }
-
-    .dine-in-close-btn {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .dine-in-close-btn:hover {
-        background: rgba(255,255,255,0.3);
     }
 
     /* Table Card */
@@ -2432,16 +2244,6 @@
 
     /* Responsive */
     @media (max-width: 576px) {
-        .dine-in-modal-header {
-            padding: 16px 20px;
-        }
-
-        .dine-in-header-icon {
-            width: 44px;
-            height: 44px;
-            font-size: 18px;
-        }
-
         .dine-in-table-card {
             padding: 16px 20px;
         }
@@ -2483,9 +2285,9 @@
     <div class="modal fade" id="posReceiptModal" tabindex="-1" role="dialog" aria-labelledby="posReceiptModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 400px;">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white py-2">
+                <div class="modal-header bg-primary text-white py-2">
                     <h5 class="modal-title" id="posReceiptModalLabel">
-                        <i class="fas fa-check-circle me-2"></i>{{ __('Payment Successful') }}
+                        <i class="bx bx-check-circle me-2"></i>{{ __('Payment Successful') }}
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -4431,8 +4233,8 @@
             currentRunningOrdersPage = page;
             $('#running-orders-content').html(`
                 <div class="text-center py-5">
-                    <i class="fas fa-spinner fa-spin fa-3x text-info"></i>
-                    <p class="mt-3">{{ __('Loading running orders...') }}</p>
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-3 text-muted">{{ __('Loading running orders...') }}</p>
                 </div>
             `);
 

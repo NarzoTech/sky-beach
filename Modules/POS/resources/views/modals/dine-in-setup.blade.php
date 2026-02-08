@@ -21,10 +21,9 @@
 <div class="modal fade payment-modal" id="dineInSetupModal" tabindex="-1" aria-labelledby="dineInSetupModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header header-dine-in">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="dineInSetupModalLabel">
-                    <i class="bx bx-restaurant"></i>
-                    {{ __('Dine-In Order') }}
+                    <i class="bx bx-restaurant me-2"></i>{{ __('Dine-In Order') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -128,17 +127,11 @@
 }
 
 #dineInSetupModal .btn-start-order {
-    background: linear-gradient(135deg, #697a8d, #5a6a7d);
-    border: none;
-    color: white;
     padding: 14px 20px;
-    border-radius: var(--pm-radius);
-    transition: all 0.3s ease;
 }
 
 #dineInSetupModal .btn-start-order:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(105, 122, 141, 0.4);
+    background: #5f61e6;
 }
 
 #dineInSetupModal .btn-complete-payment {

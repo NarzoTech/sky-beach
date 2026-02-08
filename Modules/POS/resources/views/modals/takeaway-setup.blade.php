@@ -17,27 +17,27 @@
 <div class="modal fade payment-modal" id="takeawaySetupModal" tabindex="-1" aria-labelledby="takeawaySetupModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark" id="takeawaySetupModalLabel">
-                    {{ __('Take-Away Order') }}
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="takeawaySetupModalLabel">
+                    <i class="bx bx-shopping-bag me-2"></i>{{ __('Take-Away Order') }}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
                 <form id="takeawaySetupForm">
                     {{-- Customer Info Section --}}
-                    <div class="section-title">
-                        {{ __('Customer Info') }}
+                    <div class="pm-section-title">
+                        <i class="bx bx-user me-2"></i>{{ __('Customer Info') }}
                         <span class="text-muted fw-normal ms-2">({{ __('Optional') }})</span>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-3">
                         <div class="col-12">
                             <label class="form-label">{{ __('Customer Name') }}</label>
                             <input type="text"
                                    name="customer_name"
-                                   class="form-control"
+                                   class="form-control pm-input"
                                    placeholder="{{ __('Name for the order...') }}"
                                    autocomplete="off">
                         </div>
@@ -46,17 +46,17 @@
                             <label class="form-label">{{ __('Phone') }} <small class="text-muted">({{ __('for pickup notification') }})</small></label>
                             <input type="tel"
                                    name="customer_phone"
-                                   class="form-control"
+                                   class="form-control pm-input"
                                    placeholder="{{ __('Phone number...') }}"
                                    autocomplete="off">
                         </div>
                     </div>
 
-                    <hr>
+                    <div class="pm-divider"></div>
 
                     {{-- Estimated Pickup Time --}}
-                    <div class="section-title">
-                        {{ __('Estimated Pickup Time') }}
+                    <div class="pm-section-title">
+                        <i class="bx bx-time-five me-2"></i>{{ __('Estimated Pickup Time') }}
                     </div>
 
                     <div class="pickup-time-selector mb-4">
@@ -102,21 +102,23 @@
                         </div>
                     </div>
 
-                    <hr>
+                    <div class="pm-divider"></div>
 
                     {{-- Special Instructions --}}
-                    <div class="section-title">
-                        {{ __('Special Instructions') }}
+                    <div class="pm-section-title">
+                        <i class="bx bx-notepad me-2"></i>{{ __('Special Instructions') }}
                         <span class="text-muted fw-normal ms-2">({{ __('Optional') }})</span>
                     </div>
 
                     <textarea name="special_instructions"
-                              class="form-control mb-4"
+                              class="form-control pm-input mb-3"
                               rows="2"
                               placeholder="{{ __('Any special requests or packaging instructions...') }}"></textarea>
 
+                    <div class="pm-divider-dashed"></div>
+
                     {{-- Order Summary --}}
-                    <div class="takeaway-summary">
+                    <div class="payment-summary-card">
                         <div class="summary-row">
                             <span class="text-muted">{{ __('Subtotal') }}</span>
                             <span id="takeawaySubtotal">{{ currency_icon() }} 0.00</span>
@@ -138,10 +140,13 @@
             </div>
 
             <div class="modal-footer d-flex gap-2">
-                <button type="button" class="btn btn-secondary flex-fill" onclick="placeTakeawayOrder(false)">
+                <button type="button" class="btn btn-start-order flex-fill" onclick="placeTakeawayOrder(false)">
+                    <i class="bx bx-check-circle me-1"></i>
                     {{ __('Place Order') }}
+                    <small class="d-block" style="opacity: 0.7;">{{ __('Pay Later') }}</small>
                 </button>
-                <button type="button" class="btn btn-success flex-fill" onclick="placeTakeawayOrder(true)">
+                <button type="button" class="btn btn-complete-payment flex-fill" onclick="placeTakeawayOrder(true)">
+                    <i class="bx bx-credit-card me-1"></i>
                     {{ __('Pay Now') }}
                 </button>
             </div>
@@ -150,13 +155,6 @@
 </div>
 
 <style>
-.section-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 12px;
-}
-
 .pickup-time-options {
     display: flex;
     gap: 10px;
@@ -179,20 +177,21 @@
     flex-direction: column;
     align-items: center;
     padding: 12px 8px;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
+    border: 2px solid var(--pm-border, #e0e0e0);
+    border-radius: var(--pm-radius, 12px);
     background: #fff;
     transition: all 0.2s ease;
 }
 
 .pickup-time-box:hover {
-    border-color: #f39c12;
+    border-color: var(--pm-primary, #696cff);
+    background: var(--pm-primary-light, #e8e8ff);
 }
 
 .pickup-time-option.active .pickup-time-box,
 .pickup-time-option input:checked + .pickup-time-box {
-    border-color: #f39c12;
-    background: #f39c12;
+    border-color: var(--pm-primary, #696cff);
+    background: var(--pm-primary, #696cff);
     color: white;
 }
 
@@ -209,41 +208,22 @@
 }
 
 .estimated-pickup-display {
-    background: #fff8e1;
+    background: var(--pm-primary-light, #e8e8ff);
     padding: 12px 16px;
-    border-radius: 8px;
-    border: 1px solid #f39c12;
-    color: #333;
+    border-radius: var(--pm-radius, 12px);
+    border: 1px solid var(--pm-primary, #696cff);
+    color: var(--pm-dark, #232333);
     font-size: 14px;
 }
 
 .estimated-pickup-display strong {
-    color: #e67e00;
+    color: var(--pm-primary, #696cff);
     font-size: 16px;
 }
 
-.takeaway-summary {
-    background: #f8f9fa;
-    padding: 16px;
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-}
-
-.takeaway-summary .summary-row {
+#takeawaySetupModal .pm-section-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    font-size: 14px;
-}
-
-.takeaway-summary .summary-row.summary-total {
-    border-top: 2px dashed #dee2e6;
-    margin-top: 8px;
-    padding-top: 12px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #333;
 }
 
 @media (max-width: 576px) {

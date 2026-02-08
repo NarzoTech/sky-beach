@@ -17,9 +17,9 @@
 <div class="modal fade payment-modal" id="deliverySetupModal" tabindex="-1" aria-labelledby="deliverySetupModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="deliverySetupModalLabel">
-                    {{ __('Delivery Order') }}
+                    <i class="bx bx-package me-2"></i>{{ __('Delivery Order') }}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
