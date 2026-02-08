@@ -135,6 +135,12 @@ class EmployeeService
             })
             ->count();
 
+        // Check if ANY attendance records exist for this month (to distinguish "no records tracked" from "all absent")
+        $hasAttendanceRecords = Attendance::where('employee_id', $id)
+            ->whereMonth('date', $monthNumber)
+            ->whereYear('date', $year)
+            ->exists();
+
 
 
         $weekendDays = collect($weekends)->map(function ($day) {
@@ -224,7 +230,10 @@ class EmployeeService
         $totalDayOff = $totalWeekends + $totalHolidays;
 
         $payableSalary = $employee->salary;
-        if ($totalWorkingDays != $totalAttendance) {
+
+        // If no attendance records exist for the month, assume full salary (attendance wasn't tracked)
+        // Only pro-rate when attendance IS being tracked and days are missing
+        if ($hasAttendanceRecords && $totalWorkingDays != $totalAttendance) {
             $payableSalary = ($payableSalary / $totalDays) * ($totalWeekends + $totalHolidays + $totalAttendance);
         }
         $payableSalary = (int) $payableSalary;

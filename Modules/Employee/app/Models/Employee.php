@@ -56,7 +56,7 @@ class Employee extends Model
      */
     public function scopeActiveWaiters($query)
     {
-        return $query->where('is_waiter', true)->where('status', 'active');
+        return $query->where('is_waiter', true)->where('status', 1);
     }
 
     public function getImageUrlAttribute()
