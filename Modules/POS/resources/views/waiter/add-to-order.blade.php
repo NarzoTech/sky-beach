@@ -26,6 +26,10 @@
         background: #696cff;
         color: #fff;
     }
+    .menu-item-card,
+    .combo-card {
+        min-height: unset !important;
+    }
     .menu-item-card {
         cursor: pointer;
         transition: all 0.2s;
@@ -69,20 +73,71 @@
     .cart-items-wrapper {
         flex: 1;
         overflow-y: auto;
-        max-height: 300px;
+        max-height: 400px;
     }
     .cart-item {
         border-bottom: 1px solid #e9ecef;
-        padding: 12px 0;
+        padding: 8px 0;
     }
     .cart-item:last-child {
         border-bottom: none;
     }
-    .qty-btn {
-        width: 28px;
-        height: 28px;
+    .cart-item-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .cart-item-name {
+        font-weight: 600;
+        font-size: 0.82rem;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .cart-item-price {
+        font-size: 0.75rem;
+        color: #697a8d;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .cart-item-qty {
+        flex-shrink: 0;
+    }
+    .cart-item-total {
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: #71dd37;
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: 80px;
+        text-align: right;
+    }
+    .cart-item-remove {
+        background: none;
+        border: none;
+        color: #dc3545;
         padding: 0;
-        font-size: 14px;
+        font-size: 1.1rem;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+        opacity: 0.65;
+        transition: opacity 0.15s;
+    }
+    .cart-item-remove:hover {
+        opacity: 1;
+    }
+    .cart-item-extras {
+        padding-left: 0;
+        margin-top: 4px;
+    }
+    .qty-btn {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        font-size: 12px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -97,8 +152,8 @@
         margin-top: 2px;
         display: inline-block;
     }
-    .order-info-banner {
-        background: #71dd37;
+    .table-info-banner {
+        background: #696cff;
         color: #fff;
         border-radius: 8px;
         padding: 12px 20px;
@@ -114,10 +169,8 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 2.4em;
     }
     .menu-item-card .card-body .item-price-row {
-        margin-top: auto;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -135,37 +188,14 @@
         justify-content: center;
         flex-shrink: 0;
     }
+    .quick-add-btn i {
+        margin-right: 0 !important;
+    }
     .cart-qty-badge {
         position: absolute;
         top: 8px;
         left: 8px;
         z-index: 10;
-    }
-    .addon-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px;
-        margin-bottom: 8px;
-        background: #f5f5f9;
-        border-radius: 6px;
-        border: 1px solid #e9ecef;
-    }
-    .addon-item.selected {
-        background: #e8fadf;
-        border-color: #71dd37;
-    }
-    .addon-qty-control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .addon-qty-btn {
-        width: 26px;
-        height: 26px;
-        padding: 0;
-        font-size: 12px;
-        border-radius: 4px;
     }
     .search-box {
         position: relative;
@@ -202,6 +232,144 @@
     .existing-item:last-child {
         border-bottom: none;
     }
+
+    /* Modal Styles */
+    .modal-content {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
+        color: #fff;
+        border-radius: 10px 10px 0 0;
+        padding: 1rem 1.5rem;
+    }
+    .modal-header .modal-title {
+        color: #fff;
+        font-weight: 600;
+    }
+    .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+        opacity: 1;
+    }
+    .modal-header .btn-close:hover {
+        opacity: 0.8;
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    .modal-price-box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px 15px;
+    }
+    .modal-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #696cff;
+    }
+    .modal-qty-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .modal-qty-control .btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+    .modal-qty-control input {
+        width: 50px;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        background-color: #696cff !important;
+        color: #fff !important;
+        border-color: #696cff !important;
+    }
+    .addon-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .addon-item:hover {
+        border-color: #696cff;
+        background: #f5f5ff;
+    }
+    .addon-item.selected {
+        background: #e8e8ff;
+        border-color: #696cff;
+    }
+    .addon-item.selected .addon-check-icon {
+        color: #696cff !important;
+    }
+    .addon-price {
+        color: #696cff;
+        font-weight: 600;
+    }
+    .addon-qty-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .addon-qty-btn {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        font-size: 14px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-add-cart {
+        background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 8px;
+    }
+    .btn-add-cart:hover {
+        background: linear-gradient(135deg, #5f61e6 0%, #5254d4 100%);
+        color: #fff;
+    }
+
+    /* Combo Modal */
+    .modal-header.combo-header {
+        background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
+    }
+    .btn-add-combo {
+        background: linear-gradient(135deg, #696cff 0%, #5f61e6 100%);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 8px;
+    }
+    .btn-add-combo:hover {
+        background: linear-gradient(135deg, #5f61e6 0%, #5254d4 100%);
+        color: #fff;
+    }
+
     /* Combo styles */
     .combo-card {
         cursor: pointer;
@@ -211,12 +379,28 @@
         overflow: hidden;
     }
     .combo-card:hover {
-        border-color: #ffab00;
+        border-color: #696cff;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .combo-card.in-cart {
         border-color: #71dd37;
         background: #f5faf5;
+    }
+    .combo-card.in-cart::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-top: 25px solid #71dd37;
+        border-left: 25px solid transparent;
+    }
+    .combo-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 10;
     }
     .combo-savings {
         background: #ff3e1d;
@@ -236,16 +420,96 @@
         color: #8592a3;
     }
     .combo-section {
-        background: #fff8e1;
+        background: #f5f5ff;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
-        border: 1px solid #ffe082;
+        border: 1px solid #d4d5ff;
     }
     .combo-section-title {
-        color: #ffab00;
+        color: #696cff;
         font-weight: 600;
         margin-bottom: 10px;
+    }
+
+    /* Menu items scrollable container */
+    .menu-items-container {
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    .menu-items-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .menu-items-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    .menu-items-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    .menu-items-container::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+
+    /* Tablet responsive styles */
+    @media (max-width: 1199px) {
+        .cart-panel {
+            position: relative;
+            top: 0;
+            max-height: none;
+            margin-top: 20px;
+        }
+        .cart-items-wrapper {
+            max-height: 300px;
+        }
+        .menu-items-container {
+            max-height: 50vh;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .menu-items-container {
+            max-height: 400px;
+        }
+        .cart-panel {
+            margin-top: 15px;
+        }
+        .cart-items-wrapper {
+            max-height: 250px;
+        }
+        .cart-header-sticky {
+            position: sticky;
+            top: 60px;
+            z-index: 100;
+        }
+        .table-info-banner {
+            padding: 10px 15px;
+        }
+        .table-info-banner h5 {
+            font-size: 1rem;
+        }
+        .menu-item-img {
+            height: 80px;
+        }
+        .category-tabs .nav-link {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .menu-items-container {
+            max-height: 350px;
+        }
+        .cart-items-wrapper {
+            max-height: 250px;
+        }
+        .table-info-banner .col-md-6.text-end {
+            text-align: left !important;
+            margin-top: 10px;
+        }
     }
 </style>
 @endpush
@@ -254,11 +518,11 @@
 <div class="main-content">
     <div class="container-fluid">
         <!-- Header with Order Info -->
-        <div class="order-info-banner mb-3">
+        <div class="table-info-banner mb-3">
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <h5 class="mb-1">
-                        <i class="bx bx-plus-circle me-1"></i>{{ __('Add Items') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
+                        <i class="bx bx-plus-circle me-1"></i>{{ __('Add Items') }} - {{ __('Order') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
                     </h5>
                     <span>
                         @if($order->table)
@@ -300,8 +564,8 @@
                         </a>
                         @if(isset($combos) && $combos->count() > 0)
                         <a class="nav-link" href="#" data-category="combos" onclick="filterCategory('combos', this); return false;">
-                            <i class="fas fa-gift me-1"></i>{{ __('Combos') }}
-                            <span class="badge bg-warning text-dark ms-1">{{ $combos->count() }}</span>
+                            <i class="bx bx-gift me-1"></i>{{ __('Combos') }}
+                            <span class="badge bg-primary ms-1">{{ $combos->count() }}</span>
                         </a>
                         @endif
                         @foreach($categories as $category)
@@ -313,16 +577,18 @@
                     </nav>
                 </div>
 
+                <!-- Scrollable Menu Container -->
+                <div class="menu-items-container">
                 <!-- Combos Section -->
                 @if(isset($combos) && $combos->count() > 0)
                 <div class="combo-section menu-item-wrapper" data-category="combos" id="combos-section">
-                    <h5 class="combo-section-title"><i class="fas fa-gift me-2"></i>{{ __('Combo Deals') }}</h5>
+                    <h5 class="combo-section-title"><i class="bx bx-gift me-2"></i>{{ __('Combo Deals') }} - {{ __('Save More!') }}</h5>
                     <div class="row g-2">
                         @foreach($combos as $combo)
                         <div class="col-lg-4 col-md-6 col-12 combo-item-wrapper" data-name="{{ strtolower($combo->name) }}">
                             <div class="card combo-card h-100" data-combo-id="{{ $combo->id }}" data-combo='@json($combo)' onclick="showComboModal({{ $combo->id }})">
-                                <span class="badge bg-success cart-qty-badge" style="display: none;">
-                                    <i class="fas fa-check"></i> <span class="qty-num">0</span>
+                                <span class="badge bg-success combo-badge cart-qty-badge" style="display: none;">
+                                    <i class="bx bx-check"></i> <span class="qty-num">0</span>
                                 </span>
                                 @if($combo->savings_percentage > 0)
                                 <span class="combo-savings" style="position: absolute; top: 8px; right: 8px;">
@@ -332,15 +598,15 @@
                                 @if($combo->image)
                                 <img src="{{ $combo->image_url }}" class="menu-item-img" alt="{{ $combo->name }}">
                                 @else
-                                <div class="menu-item-img bg-warning bg-opacity-25 d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-gift fa-2x text-warning"></i>
+                                <div class="menu-item-img d-flex align-items-center justify-content-center" style="background: rgba(105, 108, 255, 0.15);">
+                                    <i class="bx bx-gift bx-lg" style="color: #696cff;"></i>
                                 </div>
                                 @endif
                                 <div class="card-body p-2">
-                                    <h6 class="mb-1 small fw-bold">{{ $combo->name }}</h6>
+                                    <h6 class="mb-1 small fw-bold" style="line-height: 1.2;">{{ $combo->name }}</h6>
                                     <div class="combo-item-list mb-1">
                                         @foreach($combo->items->take(3) as $comboItem)
-                                            <span>{{ $comboItem->menuItem->name ?? '' }}{{ !$loop->last ? ', ' : '' }}</span>
+                                            <span>{{ $comboItem->menuItem->name }}{{ $comboItem->variant ? ' ('.$comboItem->variant->name.')' : '' }}{{ !$loop->last ? ', ' : '' }}</span>
                                         @endforeach
                                         @if($combo->items->count() > 3)
                                             <span>+{{ $combo->items->count() - 3 }} {{ __('more') }}</span>
@@ -348,11 +614,11 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div>
-                                            <span class="combo-original-price">${{ number_format($combo->original_price, 2) }}</span>
-                                            <span class="item-price ms-1">${{ number_format($combo->combo_price, 2) }}</span>
+                                            <span class="combo-original-price">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($combo->original_price, 2) }}</span>
+                                            <span class="item-price ms-1">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($combo->combo_price, 2) }}</span>
                                         </div>
-                                        <button class="btn btn-warning quick-add-btn" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
-                                            <i class="fas fa-plus"></i>
+                                        <button class="btn btn-primary quick-add-btn" onclick="event.stopPropagation(); quickAddCombo({{ $combo->id }});">
+                                            <i class="bx bx-plus"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -370,26 +636,26 @@
                         <div class="col-lg-3 col-md-4 col-6 menu-item-wrapper" data-category="{{ $category->id }}" data-name="{{ strtolower($item->name) }}">
                             <div class="card menu-item-card h-100" data-item-id="{{ $item->id }}" data-item='@json($item)'>
                                 <span class="badge bg-success cart-qty-badge" style="display: none;">
-                                    <i class="fas fa-check"></i> <span class="qty-num">0</span>
+                                    <i class="bx bx-check"></i> <span class="qty-num">0</span>
                                 </span>
                                 @if($item->image)
                                 <img src="{{ asset($item->image) }}" class="menu-item-img" alt="{{ $item->name }}" onclick="showItemModal({{ $item->id }})">
                                 @else
                                 <div class="menu-item-img bg-light d-flex align-items-center justify-content-center" onclick="showItemModal({{ $item->id }})">
-                                    <i class="fas fa-utensils fa-2x text-muted"></i>
+                                    <i class="bx bx-restaurant text-muted" style="font-size: 2rem;"></i>
                                 </div>
                                 @endif
                                 <div class="card-body" onclick="showItemModal({{ $item->id }})">
                                     <h6 class="mb-1 small" style="line-height: 1.2;">{{ Str::limit($item->name, 25) }}</h6>
                                     <div class="item-price-row">
-                                        <div class="item-price mb-0">${{ number_format($item->price, 2) }}</div>
+                                        <div class="item-price mb-0">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($item->price, 2) }}</div>
                                         @if($item->addons->isEmpty())
                                         <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
-                                            <i class="fas fa-plus"></i>
+                                            <i class="bx bx-plus"></i>
                                         </button>
                                         @else
                                         <button class="btn btn-primary quick-add-btn" onclick="event.stopPropagation(); showItemModal({{ $item->id }});" title="{{ __('Customize') }}">
-                                            <i class="fas fa-cog"></i>
+                                            <i class="bx bx-cog"></i>
                                         </button>
                                         @endif
                                     </div>
@@ -399,14 +665,24 @@
                         @endforeach
                     @endforeach
                 </div>
+
+                @if($categories->isEmpty() || $categories->sum(fn($c) => $c->menuItems->count()) === 0)
+                <div class="text-center py-5">
+                    <i class="bx bx-restaurant text-muted mb-3" style="font-size: 4rem;"></i>
+                    <h5 class="text-muted">{{ __('No menu items available') }}</h5>
+                </div>
+                @endif
+                </div>
+                <!-- End Scrollable Menu Container -->
             </div>
 
             <!-- Cart Section -->
-            <div class="col-lg-4">
+            <div class="col-lg-4 mt-3 mt-lg-0">
                 <!-- Existing Order Items -->
                 <div class="card mb-3">
-                    <div class="card-header bg-secondary text-white py-2">
-                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>{{ __('Current Order') }} ({{ $order->details->count() }} {{ __('items') }})</h6>
+                    <div class="card-header d-flex justify-content-between align-items-center py-2" style="background: #8592a3; color: #fff; border-radius: 8px 8px 0 0;">
+                        <h6 class="mb-0" style="color: #fff;"><i class="bx bx-list-ul me-2"></i>{{ __('Current Order') }}</h6>
+                        <span class="badge" style="background: #fff; color: #8592a3;">{{ $order->details->count() }} {{ __('items') }}</span>
                     </div>
                     <div class="card-body existing-items-section p-2">
                         @foreach($order->details as $detail)
@@ -415,49 +691,37 @@
                                 <span class="small">
                                     <strong>{{ $detail->quantity }}x</strong> {{ $detail->menuItem->name ?? $detail->service->name ?? 'Item' }}
                                 </span>
-                                <span class="small fw-bold">${{ number_format($detail->sub_total, 2) }}</span>
+                                <span class="small fw-bold">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($detail->sub_total, 2) }}</span>
                             </div>
                         </div>
                         @endforeach
                         <div class="p-2 bg-light text-end">
-                            <strong>{{ __('Current Total') }}: ${{ number_format($order->total, 2) }}</strong>
+                            <strong>{{ __('Current Total') }}: {{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($order->total, 2) }}</strong>
                         </div>
                     </div>
                 </div>
 
                 <!-- New Items Cart -->
                 <div class="card cart-panel">
-                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
-                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>{{ __('New Items') }}</h6>
-                        <span class="badge bg-light text-success" id="cart-count">0 {{ __('items') }}</span>
+                    <div class="card-header d-flex justify-content-between align-items-center cart-header-sticky" style="background: #696cff; color: #fff; border-radius: 8px 8px 0 0;">
+                        <h5 class="mb-0" style="color: #fff;"><i class="bx bx-cart me-2"></i>{{ __('New Items') }}</h5>
+                        <span class="badge" style="background: #fff; color: #696cff;" id="cart-count">0 {{ __('items') }}</span>
                     </div>
-                    <div class="card-body cart-items-wrapper p-2" id="cart-items">
+                    <div class="card-body cart-items-wrapper" id="cart-items">
                         <div class="text-center text-muted py-4" id="empty-cart">
-                            <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                            <i class="bx bx-basket bx-lg mb-3" style="font-size: 3rem;"></i>
                             <p class="mb-1">{{ __('No new items') }}</p>
                             <small>{{ __('Tap items to add') }}</small>
                         </div>
                     </div>
                     <div class="card-footer" id="cart-footer" style="display: none;">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">{{ __('Subtotal') }}:</span>
-                            <span id="cart-subtotal">{{ currency_icon() }}0.00</span>
-                        </div>
-                        @php
-                            $taxRate = optional($posSettings)->pos_tax_rate ?: 15;
-                        @endphp
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">{{ __('Tax') }} (<span id="cart-tax-rate">{{ $taxRate }}</span>%):</span>
-                            <span id="cart-tax">{{ currency_icon() }}0.00</span>
-                        </div>
                         <div class="d-flex justify-content-between mb-2 pt-2" style="border-top: 1px dashed #dee2e6;">
-                            <span class="fw-bold">{{ __('New Items Total') }}:</span>
-                            <strong class="text-success" id="cart-total">{{ currency_icon() }}0.00</strong>
+                            <span class="fw-bold">{{ __('Total') }}:</span>
+                            <strong id="cart-total" style="color: #696cff;">{{ currency_icon() }}0.00</strong>
                         </div>
                         <button class="btn btn-success w-100" onclick="addItemsToOrder()" id="add-items-btn">
-                            <i class="fas fa-paper-plane me-2"></i>{{ __('Send to Kitchen') }}
+                            <i class="bx bx-send me-2"></i>{{ __('Confirm Order') }}
                         </button>
-                        <input type="hidden" id="posTaxRate" value="{{ $taxRate }}">
                     </div>
                 </div>
             </div>
@@ -469,43 +733,43 @@
 <div class="modal fade" id="itemModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header">
                 <h5 class="modal-title" id="itemModalTitle">Item Name</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body modal-body-scroll">
                 <div id="itemModalImage" class="text-center mb-3"></div>
-                <p id="itemModalDescription" class="text-muted small"></p>
+                <p id="itemModalDescription" class="text-muted small mb-3"></p>
 
-                <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
-                    <span class="h5 mb-0 text-success" id="itemModalPrice">$0.00</span>
-                    <div class="input-group" style="width: 140px;">
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(-1)">
-                            <i class="fas fa-minus"></i>
+                <div class="modal-price-box d-flex justify-content-between align-items-center mb-3">
+                    <span class="modal-price" id="itemModalPrice">{{ currency_icon() }}0.00</span>
+                    <div class="modal-qty-control">
+                        <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(-1)">
+                            <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control text-center fw-bold" id="item-qty" value="1" min="1" readonly>
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(1)">
-                            <i class="fas fa-plus"></i>
+                        <input type="number" class="form-control" id="item-qty" value="1" min="1" readonly>
+                        <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(1)">
+                            <i class="bx bx-plus"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Addons -->
                 <div id="addons-section" style="display: none;">
-                    <label class="form-label fw-bold"><i class="fas fa-plus-circle me-1"></i>{{ __('Add-ons') }}</label>
+                    <label class="form-label fw-bold mb-2"><i class="bx bx-plus-circle me-1"></i>{{ __('Add-ons') }}</label>
                     <div id="addons-list"></div>
                 </div>
 
                 <!-- Note -->
                 <div class="mt-3">
                     <label class="form-label small text-muted">{{ __('Special Request') }}</label>
-                    <input type="text" class="form-control form-control-sm" id="item-note" placeholder="{{ __('E.g., No onions, extra spicy...') }}">
+                    <input type="text" class="form-control" id="item-note" placeholder="{{ __('E.g., No onions, extra spicy...') }}">
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                <button type="button" class="btn btn-success px-4" onclick="addToCart()">
-                    <i class="fas fa-cart-plus me-1"></i>{{ __('Add') }} <span id="modal-total"></span>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-add-cart" onclick="addToCart()">
+                    <i class="bx bx-cart-add me-1"></i>{{ __('Add') }} - <span id="modal-total"></span>
                 </button>
             </div>
         </div>
@@ -516,36 +780,36 @@
 <div class="modal fade" id="comboModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-warning bg-opacity-25 border-0 pb-0">
+            <div class="modal-header combo-header">
                 <h5 class="modal-title" id="comboModalTitle">
-                    <i class="fas fa-gift text-warning me-2"></i>Combo Name
+                    <i class="bx bx-gift me-2"></i>Combo Name
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body modal-body-scroll">
                 <div id="comboModalImage" class="text-center mb-3"></div>
-                <p id="comboModalDescription" class="text-muted small"></p>
+                <p id="comboModalDescription" class="text-muted small mb-3"></p>
 
                 <!-- Combo Items List -->
                 <div class="mb-3">
-                    <label class="form-label fw-bold"><i class="fas fa-list me-1"></i>{{ __('Includes') }}:</label>
-                    <ul class="list-group list-group-flush" id="combo-items-list"></ul>
+                    <label class="form-label fw-bold mb-2"><i class="bx bx-list-ul me-1"></i>{{ __('Includes') }}:</label>
+                    <ul class="list-group" id="combo-items-list"></ul>
                 </div>
 
                 <!-- Price Display -->
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-warning bg-opacity-10 rounded">
+                <div class="modal-price-box d-flex justify-content-between align-items-center mb-3">
                     <div>
-                        <span class="combo-original-price h6" id="comboModalOriginalPrice">$0.00</span>
-                        <span class="h4 mb-0 text-success ms-2" id="comboModalPrice">$0.00</span>
+                        <span class="text-muted text-decoration-line-through me-2" id="comboModalOriginalPrice">{{ currency_icon() }}0.00</span>
+                        <span class="modal-price" id="comboModalPrice">{{ currency_icon() }}0.00</span>
                         <span class="badge bg-danger ms-2" id="comboModalSavings">Save 0%</span>
                     </div>
-                    <div class="input-group" style="width: 140px;">
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateComboQty(-1)">
-                            <i class="fas fa-minus"></i>
+                    <div class="modal-qty-control">
+                        <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(-1)">
+                            <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control text-center fw-bold" id="combo-qty" value="1" min="1" readonly>
-                        <button class="btn btn-outline-secondary" type="button" onclick="updateComboQty(1)">
-                            <i class="fas fa-plus"></i>
+                        <input type="number" class="form-control" id="combo-qty" value="1" min="1" readonly>
+                        <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(1)">
+                            <i class="bx bx-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -553,13 +817,13 @@
                 <!-- Note -->
                 <div class="mt-3">
                     <label class="form-label small text-muted">{{ __('Special Request') }}</label>
-                    <input type="text" class="form-control form-control-sm" id="combo-note" placeholder="{{ __('E.g., No onions, extra spicy...') }}">
+                    <input type="text" class="form-control" id="combo-note" placeholder="{{ __('E.g., No onions, extra spicy...') }}">
                 </div>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                <button type="button" class="btn btn-warning px-4" onclick="addComboToCart()">
-                    <i class="fas fa-cart-plus me-1"></i>{{ __('Add Combo') }} <span id="combo-modal-total"></span>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-add-combo" onclick="addComboToCart()">
+                    <i class="bx bx-cart-add me-1"></i>{{ __('Add Combo') }} - <span id="combo-modal-total"></span>
                 </button>
             </div>
         </div>
@@ -569,6 +833,7 @@
 
 @push('js')
 <script>
+    const currency = '{{ optional($posSettings)->currency ?? "TK" }}';
     let cart = [];
     let comboCart = [];
     let currentItem = null;
@@ -677,7 +942,7 @@
         currentItemData = { addons: [] };
 
         document.getElementById('itemModalTitle').textContent = item.name;
-        document.getElementById('itemModalPrice').textContent = '$' + parseFloat(item.price).toFixed(2);
+        document.getElementById('itemModalPrice').textContent = currency + parseFloat(item.price).toFixed(2);
         document.getElementById('itemModalDescription').textContent = item.short_description || '';
         document.getElementById('item-qty').value = 1;
         document.getElementById('item-note').value = '';
@@ -697,9 +962,9 @@
             addonsList.innerHTML = item.addons.map(addon => `
                 <div class="addon-item" data-addon-id="${addon.id}" onclick="toggleAddon(${addon.id}, '${addon.name.replace(/'/g, "\\'")}', ${addon.price})">
                     <div>
-                        <i class="fas fa-square addon-check-icon text-muted me-2"></i>
+                        <i class="bx bx-square addon-check-icon text-muted me-2"></i>
                         <span>${addon.name}</span>
-                        <span class="text-success ms-2">+$${parseFloat(addon.price).toFixed(2)}</span>
+                        <span class="addon-price ms-2">+${currency}${parseFloat(addon.price).toFixed(2)}</span>
                     </div>
                     <div class="addon-qty-control" style="display: none;" onclick="event.stopPropagation();">
                         <button class="btn btn-outline-secondary addon-qty-btn" onclick="updateAddonQty(${addon.id}, -1)">-</button>
@@ -727,8 +992,8 @@
         if (existingIndex > -1) {
             currentItemData.addons.splice(existingIndex, 1);
             addonItem.classList.remove('selected');
-            icon.classList.remove('fa-check-square', 'text-success');
-            icon.classList.add('fa-square', 'text-muted');
+            icon.classList.remove('bx-check-square', 'text-success');
+            icon.classList.add('bx-square', 'text-muted');
             qtyControl.style.display = 'none';
         } else {
             currentItemData.addons.push({
@@ -738,8 +1003,8 @@
                 qty: 1
             });
             addonItem.classList.add('selected');
-            icon.classList.remove('fa-square', 'text-muted');
-            icon.classList.add('fa-check-square', 'text-success');
+            icon.classList.remove('bx-square', 'text-muted');
+            icon.classList.add('bx-check-square', 'text-success');
             qtyControl.style.display = 'flex';
         }
 
@@ -774,7 +1039,7 @@
             total += addon.price * addon.qty * qty;
         });
 
-        document.getElementById('modal-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('modal-total').textContent = currency + total.toFixed(2);
     }
 
     function addToCart() {
@@ -855,9 +1120,9 @@
 
         currentCombo = combo;
 
-        document.getElementById('comboModalTitle').innerHTML = '<i class="fas fa-gift text-warning me-2"></i>' + combo.name;
-        document.getElementById('comboModalPrice').textContent = '$' + parseFloat(combo.combo_price).toFixed(2);
-        document.getElementById('comboModalOriginalPrice').textContent = '$' + parseFloat(combo.original_price).toFixed(2);
+        document.getElementById('comboModalTitle').innerHTML = '<i class="bx bx-gift me-2"></i>' + combo.name;
+        document.getElementById('comboModalPrice').textContent = currency + parseFloat(combo.combo_price).toFixed(2);
+        document.getElementById('comboModalOriginalPrice').textContent = currency + parseFloat(combo.original_price).toFixed(2);
         document.getElementById('comboModalSavings').textContent = '{{ __("Save") }} ' + combo.savings_percentage + '%';
         document.getElementById('comboModalDescription').textContent = combo.description || '';
         document.getElementById('combo-qty').value = 1;
@@ -881,7 +1146,7 @@
                 }
                 return `
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span><i class="fas fa-check text-success me-2"></i>${name}</span>
+                        <span><i class="bx bx-check text-success me-2"></i>${name}</span>
                         <span class="badge bg-secondary">${item.quantity}x</span>
                     </li>
                 `;
@@ -905,7 +1170,7 @@
     function updateComboModalTotal() {
         const qty = parseInt(document.getElementById('combo-qty').value);
         const total = parseFloat(currentCombo.combo_price) * qty;
-        document.getElementById('combo-modal-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('combo-modal-total').textContent = currency + total.toFixed(2);
     }
 
     function addComboToCart() {
@@ -969,7 +1234,7 @@
         if (cart.length === 0 && comboCart.length === 0) {
             cartItemsDiv.innerHTML = `
                 <div class="text-center text-muted py-4">
-                    <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                    <i class="bx bx-basket bx-lg mb-3" style="font-size: 3rem;"></i>
                     <p class="mb-1">{{ __('No new items') }}</p>
                     <small>{{ __('Tap items to add') }}</small>
                 </div>
@@ -985,73 +1250,63 @@
         let html = '';
         let subtotal = 0;
 
-        // Display combo items first
+        // Display combo items first with special styling
         comboCart.forEach((combo, index) => {
             subtotal += combo.subtotal;
             html += `
-                <div class="cart-item" style="background: #fff8e1; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1 pe-2">
-                            <div class="fw-bold small">
-                                <i class="fas fa-gift text-warning me-1"></i>${combo.name}
-                            </div>
-                            <div class="text-muted" style="font-size: 0.75rem;">
-                                $${combo.price.toFixed(2)} x ${combo.quantity}
-                            </div>
-                            ${combo.note ? `<div class="text-info small mt-1"><i class="fas fa-comment-alt"></i> ${combo.note}</div>` : ''}
+                <div class="cart-item" style="background: #f5f5ff; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px;">
+                    <div class="cart-item-row">
+                        <span class="cart-item-name">
+                            <i class="bx bx-gift me-1" style="color: #696cff;"></i>${combo.name}
+                        </span>
+                        <span class="cart-item-price">${currency}${combo.price.toFixed(2)}</span>
+                        <div class="cart-item-qty btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary qty-btn" onclick="updateComboCartItemQty(${index}, -1)">-</button>
+                            <span class="btn btn-primary qty-btn">${combo.quantity}</span>
+                            <button class="btn btn-outline-primary qty-btn" onclick="updateComboCartItemQty(${index}, 1)">+</button>
                         </div>
-                        <div class="text-end" style="min-width: 90px;">
-                            <div class="fw-bold text-success mb-1">$${combo.subtotal.toFixed(2)}</div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-warning qty-btn" onclick="updateComboCartItemQty(${index}, -1)">-</button>
-                                <span class="btn btn-warning qty-btn text-dark">${combo.quantity}</span>
-                                <button class="btn btn-outline-warning qty-btn" onclick="updateComboCartItemQty(${index}, 1)">+</button>
-                            </div>
-                        </div>
+                        <span class="cart-item-total">${currency}${combo.subtotal.toFixed(2)}</span>
+                        <button class="cart-item-remove" onclick="removeComboFromCart(${index})" title="{{ __('Remove') }}">
+                            <i class="bx bx-x"></i>
+                        </button>
                     </div>
+                    ${combo.note ? `<div class="cart-item-extras text-info small"><i class="bx bx-comment-detail"></i> ${combo.note}</div>` : ''}
                 </div>
             `;
         });
 
-        // Display regular items
+        // Display regular menu items
         cart.forEach((item, index) => {
             subtotal += item.subtotal;
             html += `
                 <div class="cart-item">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1 pe-2">
-                            <div class="fw-bold small">${item.name}</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">$${item.price.toFixed(2)} x ${item.quantity}</div>
-                            ${item.addons.length > 0 ? `
-                                <div class="mt-1">
-                                    ${item.addons.map(a => `<span class="addon-badge">${a.name}${a.qty > 1 ? ' x' + a.qty : ''}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${item.note ? `<div class="text-info small mt-1"><i class="fas fa-comment-alt"></i> ${item.note}</div>` : ''}
+                    <div class="cart-item-row">
+                        <span class="cart-item-name">${item.name}</span>
+                        <span class="cart-item-price">${currency}${item.price.toFixed(2)}</span>
+                        <div class="cart-item-qty btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary qty-btn" onclick="updateCartItemQty(${index}, -1)">-</button>
+                            <span class="btn btn-primary qty-btn">${item.quantity}</span>
+                            <button class="btn btn-outline-primary qty-btn" onclick="updateCartItemQty(${index}, 1)">+</button>
                         </div>
-                        <div class="text-end" style="min-width: 90px;">
-                            <div class="fw-bold text-success mb-1">$${item.subtotal.toFixed(2)}</div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary qty-btn" onclick="updateCartItemQty(${index}, -1)">-</button>
-                                <span class="btn btn-light qty-btn">${item.quantity}</span>
-                                <button class="btn btn-outline-secondary qty-btn" onclick="updateCartItemQty(${index}, 1)">+</button>
-                            </div>
-                        </div>
+                        <span class="cart-item-total">${currency}${item.subtotal.toFixed(2)}</span>
+                        <button class="cart-item-remove" onclick="removeFromCart(${index})" title="{{ __('Remove') }}">
+                            <i class="bx bx-x"></i>
+                        </button>
                     </div>
+                    ${item.addons.length > 0 ? `
+                        <div class="cart-item-extras">
+                            ${item.addons.map(a => `<span class="addon-badge">${a.name}${a.qty > 1 ? ' x' + a.qty : ''}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${item.note ? `<div class="cart-item-extras text-info small"><i class="bx bx-comment-detail"></i> ${item.note}</div>` : ''}
                 </div>
             `;
         });
 
         cartItemsDiv.innerHTML = html;
 
-        // Calculate tax and total
-        const currency = '{{ currency_icon() }}';
-        const taxRate = parseFloat(document.getElementById('posTaxRate')?.value) || 0;
-        const taxAmount = subtotal * taxRate / 100;
-        const total = subtotal + taxAmount;
-
-        document.getElementById('cart-subtotal').textContent = currency + subtotal.toFixed(2);
-        document.getElementById('cart-tax').textContent = currency + taxAmount.toFixed(2);
+        // Calculate total
+        const total = subtotal;
         document.getElementById('cart-total').textContent = currency + total.toFixed(2);
 
         updateMenuItemBadges();
@@ -1142,7 +1397,7 @@
 
         const btn = document.getElementById('add-items-btn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ __("Sending...") }}';
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-2"></i>{{ __("Confirming...") }}';
 
         $.ajax({
             url: "{{ route('admin.waiter.add-to-order.store', $order->id) }}",
@@ -1160,7 +1415,6 @@
                         progressBar: true
                     });
 
-                    // Redirect after a short delay
                     setTimeout(function() {
                         window.location.href = "{{ route('admin.waiter.order-details', $order->id) }}";
                     }, 1500);
@@ -1176,7 +1430,7 @@
                     progressBar: true
                 });
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>{{ __("Send to Kitchen") }}';
+                btn.innerHTML = '<i class="bx bx-send me-2"></i>{{ __("Confirm Order") }}';
             }
         });
     }

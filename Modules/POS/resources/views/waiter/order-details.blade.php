@@ -12,6 +12,9 @@
                     <h4 class="mb-1">{{ __('Order') }} #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</h4>
                 </div>
                 <div class="col-md-6 text-end">
+                    <button type="button" class="btn btn-outline-primary me-2" onclick="printOrder('kitchen')">
+                        <i class="bx bx-printer me-1"></i>{{ __('Print') }}
+                    </button>
                     <a href="{{ route('admin.waiter.my-orders') }}" class="btn btn-outline-secondary">
                         <i class="bx bx-arrow-back me-1"></i>{{ __('Back') }}
                     </a>
@@ -300,6 +303,15 @@
 
 @push('js')
 <script>
+    function printOrder() {
+        const url = "{{ route('admin.waiter.print.kitchen', $order->id) }}";
+        const screenLeft = window.screenLeft || window.screenX;
+        const screenTop = window.screenTop || window.screenY;
+        window.open(url, 'kitchen_{{ $order->id }}',
+            `width=322,height=600,left=${screenLeft + 50},top=${screenTop + 50},scrollbars=yes,resizable=no`
+        );
+    }
+
     let selectedNewTableId = null;
 
     function showChangeTableModal() {
