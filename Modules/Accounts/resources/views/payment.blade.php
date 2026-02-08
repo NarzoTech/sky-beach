@@ -33,11 +33,14 @@
             $html .=
                 '<option value="' .
                 $account->id .
-                '">' .
+                '"' .
+                ($payment->account_id == $account->id ? ' selected' : '') .
+                '>' .
                 $account->card_number .
                 ' (' .
                 ($account->bank->name ?? '') .
                 ')</option>';
+            echo $html;
             break;
 
         default:

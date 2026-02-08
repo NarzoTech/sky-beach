@@ -38,7 +38,7 @@
             @endadminCan
             @adminCan('balance.transfer.view')
                 <li class="{{ isRoute('admin.balance.transfer', 'active') }} menu-item">
-                    <a href="{{ route('admin.balance.transfer') }}"class="menu-link">
+                    <a href="{{ route('admin.balance.transfer') }}" class="menu-link">
                         {{ __('Balance Transfer') }}
                     </a>
                 </li>

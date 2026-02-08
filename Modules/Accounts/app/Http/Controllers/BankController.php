@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Traits\RedirectHelperTrait;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Modules\Accounts\app\Services\BankService;
 
@@ -42,10 +41,10 @@ class BankController extends Controller
 
         try {
             $this->bankService->create($request->only('name'));
-            return $this->redirectWithMessage(RedirectType::CREATE->value, 'admin.bank.index', [], ['messege' => 'Bank created successfully', 'alert-type' => 'success']);
+            return $this->redirectWithMessage(RedirectType::CREATE->value, 'admin.bank.index', [], ['messege' => __('Bank created successfully'), 'alert-type' => 'success']);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => 'Something went wrong', 'alert-type' => 'error']);
+            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => __('Something went wrong'), 'alert-type' => 'error']);
         }
     }
 
@@ -63,10 +62,10 @@ class BankController extends Controller
         try {
             $bank = $this->bankService->find($id);
             $this->bankService->update($bank, $request->only('name'));
-            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.bank.index', [], ['messege' => 'Bank updated successfully', 'alert-type' => 'success']);
+            return $this->redirectWithMessage(RedirectType::UPDATE->value, 'admin.bank.index', [], ['messege' => __('Bank updated successfully'), 'alert-type' => 'success']);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => 'Something went wrong', 'alert-type' => 'error']);
+            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => __('Something went wrong'), 'alert-type' => 'error']);
         }
     }
 
@@ -79,10 +78,10 @@ class BankController extends Controller
         try {
             $bank = $this->bankService->find($id);
             $this->bankService->delete($bank);
-            return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.bank.index', [], ['messege' => 'Bank deleted successfully', 'alert-type' => 'success']);
+            return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.bank.index', [], ['messege' => __('Bank deleted successfully'), 'alert-type' => 'success']);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => 'Something went wrong', 'alert-type' => 'error']);
+            return $this->redirectWithMessage(RedirectType::ERROR->value, 'admin.bank.index', [], ['messege' => __('Something went wrong'), 'alert-type' => 'error']);
         }
     }
 }

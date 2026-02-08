@@ -12,7 +12,7 @@
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group search-wrapper">
                                     <input type="text" name="keyword" value="{{ request()->get('keyword') }}"
-                                        class="form-control" placeholder="Search..." autocomplete="off">
+                                        class="form-control" placeholder="{{ __('Search') }}..." autocomplete="off">
                                     <button type="submit">
                                         <i class='bx bx-search'></i>
                                     </button>
@@ -52,8 +52,8 @@
                             </div>
                             <div class="col-lg-3 col-md-6">
                                 <div class="form-group">
-                                    <button type="button" class="btn bg-danger form-reset">Reset</button>
-                                    <button type="submit" class="btn bg-primary">Search</button>
+                                    <button type="button" class="btn bg-danger form-reset">{{ __('Reset') }}</button>
+                                    <button type="submit" class="btn bg-primary">{{ __('Search') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                     <tbody>
                         @forelse ($banks as $index => $bank)
                             <tr>
-                                <td>{{ $loop->first + $index }}</td>
+                                <td>{{ $banks->firstItem() + $loop->index }}</td>
                                 <td>{{ $bank->name }}</td>
                                 <td>
                                     @if (checkAdminHasPermission('bank.edit') || checkAdminHasPermission('bank.delete'))
@@ -145,7 +145,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="name">{{ __('Name') }}<span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name">
+                                    <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
                             </div>
                         </div>
@@ -153,8 +153,8 @@
                 </div>
                 <!-- Modal footer -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" form="add-bank-form">Save</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="submit" class="btn btn-primary" form="add-bank-form">{{ __('Save') }}</button>
                 </div>
 
             </div>
@@ -185,8 +185,8 @@
                                     <div class="form-group">
                                         <label for="name">{{ __('Name') }}<span
                                                 class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="name" name="name"
-                                            value="{{ $bank->name }}">
+                                        <input type="text" class="form-control" id="name_{{ $bank->id }}" name="name"
+                                            value="{{ $bank->name }}" required>
                                     </div>
                                 </div>
                             </div>
