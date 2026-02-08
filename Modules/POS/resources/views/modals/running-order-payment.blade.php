@@ -1687,6 +1687,11 @@ function completeRunningOrderPayment() {
             // Show success
             showRopSuccess(result.message || '{{ __("Payment completed successfully") }}');
 
+            // Show loyalty points notification
+            if (result.points_earned > 0) {
+                toastr.info('{{ __("Customer earned") }} ' + result.points_earned + ' {{ __("loyalty points!") }}');
+            }
+
             // Store for receipt
             window.lastCompletedOrderId = orderId;
 

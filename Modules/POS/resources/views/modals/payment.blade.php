@@ -1009,8 +1009,15 @@ function completePayment() {
             // Store order ID for receipt printing
             window.lastOrderId = result.order_id;
 
-            // Award loyalty points if customer has phone
-            awardLoyaltyPointsForOrder(result.order_id, currentTotal);
+            // Show loyalty points notification (points earned server-side)
+            if (result.points_earned > 0) {
+                toastr.info('{{ __("Customer earned") }} ' + result.points_earned + ' {{ __("loyalty points!") }}');
+                const successMsg = document.getElementById('paymentSuccessMessage');
+                if (successMsg) {
+                    successMsg.innerHTML = successMsg.textContent +
+                        '<br><small class="text-info"><i class="bx bx-star"></i> +' + result.points_earned + ' {{ __("points earned") }}</small>';
+                }
+            }
 
             // Clear cart
             $(".product-table tbody").html('');

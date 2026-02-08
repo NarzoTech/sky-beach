@@ -1046,6 +1046,26 @@ class POSController extends Controller
                 ], 200);
             }
 
+            // Award loyalty points server-side for paid orders
+            $pointsEarned = 0;
+            try {
+                $customerPhone = $sale->customer->phone ?? null;
+                if ($customerPhone && ($sale->points_earned ?? 0) <= 0) {
+                    $saleContext = [
+                        'amount' => $sale->grand_total,
+                        'sale_id' => $sale->id,
+                        'items' => [],
+                    ];
+                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, 1, $saleContext);
+                    if ($loyaltyResult['success'] ?? false) {
+                        $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
+                        $sale->update(['points_earned' => $pointsEarned]);
+                    }
+                }
+            } catch (\Exception $loyaltyException) {
+                Log::warning('Loyalty points error (POS): ' . $loyaltyException->getMessage());
+            }
+
             // Generate POS receipt for paid orders
             $setting = \Illuminate\Support\Facades\Cache::get('setting');
             $sale->load(['details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'table', 'payment.account']);
@@ -1064,6 +1084,7 @@ class POSController extends Controller
                 'invoice' => $receiptHtml,
                 'invoiceRoute' => $invoiceRoute,
                 'is_deferred' => false,
+                'points_earned' => $pointsEarned,
                 'message' => __('Sale created successfully'),
                 'alert-type' => 'success',
             ], 200);
@@ -1786,6 +1807,26 @@ class POSController extends Controller
                 Log::warning('Receipt generation failed: ' . $receiptException->getMessage());
             }
 
+            // Award loyalty points server-side for completed running/waiter orders
+            $pointsEarned = 0;
+            try {
+                $customerPhone = $order->customer->phone ?? null;
+                if ($customerPhone && ($order->points_earned ?? 0) <= 0) {
+                    $saleContext = [
+                        'amount' => $order->grand_total,
+                        'sale_id' => $order->id,
+                        'items' => [],
+                    ];
+                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, 1, $saleContext);
+                    if ($loyaltyResult['success'] ?? false) {
+                        $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
+                        $order->update(['points_earned' => $pointsEarned]);
+                    }
+                }
+            } catch (\Exception $loyaltyException) {
+                Log::warning('Loyalty points error (running order): ' . $loyaltyException->getMessage());
+            }
+
             Log::info('Order completion successful', ['order_id' => $order->id]);
 
             return response()->json([
@@ -1793,6 +1834,7 @@ class POSController extends Controller
                 'message' => __('Order completed successfully'),
                 'receipt' => $receiptHtml,
                 'invoice' => $order->invoice,
+                'points_earned' => $pointsEarned,
                 'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
             ]);
         } catch (\Exception $e) {
