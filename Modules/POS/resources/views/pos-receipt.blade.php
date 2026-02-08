@@ -226,31 +226,50 @@
     <!-- Payment Info -->
     <div class="payment-info">
         @php
+            $payments = $sale->payment ?? collect();
+            $paymentCount = $payments->count();
+            $isSplitPayment = $paymentCount > 1;
             $returnAmount = ($sale->paid_amount ?? 0) - ($sale->grand_total ?? 0);
-            $paymentMethod = 'Cash';
-            $isCashPayment = true;
-            if($sale->payment && $sale->payment->count() > 0) {
-                $firstPayment = $sale->payment->first();
-                $paymentMethod = ucfirst($firstPayment->account->account_type ?? 'cash');
-                $isCashPayment = strtolower($firstPayment->account->account_type ?? 'cash') == 'cash';
-            }
+            $hasCashPayment = $payments->contains(function($p) {
+                return strtolower($p->account->account_type ?? 'cash') === 'cash';
+            });
         @endphp
-        @if($isCashPayment)
-        <div style="display: flex; justify-content: space-between;">
-            <span>Received:</span>
-            <span>{{ currency($sale->paid_amount) }}</span>
-        </div>
-        @if($returnAmount > 0)
-        <div style="display: flex; justify-content: space-between;">
-            <span>Return:</span>
-            <span>{{ currency($returnAmount) }}</span>
-        </div>
+        @if($isSplitPayment)
+            @foreach($payments as $p)
+            <div style="display: flex; justify-content: space-between;">
+                <span>{{ ucfirst(str_replace('_', ' ', $p->account->account_type ?? 'cash')) }}:</span>
+                <span>{{ currency($p->amount) }}</span>
+            </div>
+            @endforeach
+            @if($hasCashPayment && $returnAmount > 0)
+            <div style="display: flex; justify-content: space-between; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000;">
+                <span>Return:</span>
+                <span>{{ currency($returnAmount) }}</span>
+            </div>
+            @endif
+        @else
+            @php
+                $firstPayment = $payments->first();
+                $paymentMethod = $firstPayment ? ucfirst(str_replace('_', ' ', $firstPayment->account->account_type ?? 'cash')) : 'Cash';
+                $isCashPayment = $firstPayment ? strtolower($firstPayment->account->account_type ?? 'cash') === 'cash' : true;
+            @endphp
+            @if($isCashPayment)
+            <div style="display: flex; justify-content: space-between;">
+                <span>Received:</span>
+                <span>{{ currency($sale->paid_amount) }}</span>
+            </div>
+            @if($returnAmount > 0)
+            <div style="display: flex; justify-content: space-between;">
+                <span>Return:</span>
+                <span>{{ currency($returnAmount) }}</span>
+            </div>
+            @endif
+            @endif
+            <div style="display: flex; justify-content: space-between;{{ $isCashPayment ? ' margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000;' : '' }}">
+                <span>Payment By:</span>
+                <span>{{ $paymentMethod }}</span>
+            </div>
         @endif
-        @endif
-        <div style="display: flex; justify-content: space-between;{{ $isCashPayment ? ' margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000;' : '' }}">
-            <span>Payment By:</span>
-            <span>{{ $paymentMethod }}</span>
-        </div>
     </div>
 
     <!-- Footer -->

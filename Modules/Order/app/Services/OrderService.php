@@ -88,11 +88,14 @@ class OrderService
 
         foreach ($request->payment_type as $key => $item) {
 
-            $account = Account::where('account_type', $item);
             if ($item == 'cash') {
-                $account = $account->first();
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
             } else {
-                $account = $account->where('id', $request->account_id[$key])->first();
+                $account = Account::where('account_type', $item)
+                    ->where('id', $request->account_id[$key])->first();
             }
             Payment::create([
                 'payment_type' => 'sale',

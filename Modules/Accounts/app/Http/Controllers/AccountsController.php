@@ -72,10 +72,10 @@ class AccountsController extends Controller
         checkAdminHasPermissionAndThrowException('account.create');
         try {
             $this->accountsService->create($request->except('_token'));
-            return $this->redirectWithMessage(RedirectType::CREATE->value, 'admin.accounts.create', [], ['messege' => 'Account created successfully', 'alert-type' => 'success']);
+            return redirect()->route('admin.accounts.index')->with(['messege' => __('Account created successfully'), 'alert-type' => 'success']);
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            return $this->redirectWithMessage(RedirectType::CREATE->value, 'admin.accounts.create', [], ['messege' => 'Something went wrong', 'alert-type' => 'error']);
+            return redirect()->back()->withInput()->with(['messege' => __('Something went wrong'), 'alert-type' => 'error']);
         }
     }
 

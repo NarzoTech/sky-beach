@@ -412,11 +412,20 @@ class SaleService
             foreach ($paymentTypes as $key => $item) {
                 if (empty($item)) continue;
 
-                $account = Account::where('account_type', $item);
+                $account = null;
                 if ($item == 'cash') {
-                    $account = $account->first();
+                    $account = Account::firstOrCreate(
+                        ['account_type' => 'cash'],
+                        ['bank_account_name' => 'Cash Register']
+                    );
                 } else {
-                    $account = $account->where('id', $accountIds[$key] ?? null)->first();
+                    $accountId = $accountIds[$key] ?? null;
+                    if ($accountId) {
+                        $account = Account::find($accountId);
+                    }
+                    if (!$account) {
+                        $account = Account::where('account_type', $item)->first();
+                    }
                 }
 
                 if (!$account) continue;
@@ -951,11 +960,14 @@ class SaleService
 
             // create payments
             foreach ($paymentTypes as $key => $item) {
-                $account = Account::where('account_type', $item);
                 if ($item == 'cash') {
-                    $account = $account->first();
+                    $account = Account::firstOrCreate(
+                        ['account_type' => 'cash'],
+                        ['bank_account_name' => 'Cash Register']
+                    );
                 } else {
-                    $account = $account->where('id', $accountIds[$key] ?? null)->first();
+                    $account = Account::where('account_type', $item)
+                        ->where('id', $accountIds[$key] ?? null)->first();
                 }
                 $customerId = $request->order_customer_id;
                 $payingAmount = $payingAmounts[$key] ?? 0;

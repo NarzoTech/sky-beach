@@ -151,7 +151,10 @@ class ExpenseSupplierService
         $account = $request->account_id;
 
         if ($account == 'cash' || $account == 'advance') {
-            $account = Account::where('account_type', $account)?->first();
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
             $account = Account::find($account);
         }
@@ -332,7 +335,10 @@ class ExpenseSupplierService
         ]);
 
         if ($account == 'cash' || $account == 'advance') {
-            $account = Account::where('account_type', $account)?->first();
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
             $account = Account::find($account);
         }

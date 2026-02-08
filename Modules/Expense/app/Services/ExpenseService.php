@@ -48,7 +48,10 @@ class ExpenseService
         $firstAccountId = $accountIds[0] ?? null;
 
         if ($firstPaymentType == 'cash' || $firstPaymentType == 'advance') {
-            $account = $this->account->where('account_type', 'cash')->first();
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
             $account = $this->account->find($firstAccountId);
         }
@@ -117,8 +120,11 @@ class ExpenseService
             $paymentAccountId = $accountIds[$index] ?? null;
 
             if ($paymentType == 'cash' || $paymentType == 'advance') {
-                $paymentAccount = $this->account->where('account_type', 'cash')->first();
-                $paymentAccountId = $paymentAccount ? $paymentAccount->id : null;
+                $paymentAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+                $paymentAccountId = $paymentAccount->id;
             }
 
             ExpenseSupplierPayment::create([
@@ -175,7 +181,10 @@ class ExpenseService
         $firstAccountId = $accountIds[0] ?? null;
 
         if ($firstPaymentType == 'cash' || $firstPaymentType == 'advance') {
-            $account = $this->account->where('account_type', 'cash')->first();
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
             $account = $this->account->find($firstAccountId);
         }
@@ -240,8 +249,11 @@ class ExpenseService
             $paymentAccountId = $accountIds[$index] ?? null;
 
             if ($paymentType == 'cash' || $paymentType == 'advance') {
-                $paymentAccount = $this->account->where('account_type', 'cash')->first();
-                $paymentAccountId = $paymentAccount ? $paymentAccount->id : null;
+                $paymentAccount = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+                $paymentAccountId = $paymentAccount->id;
             }
 
             ExpenseSupplierPayment::create([

@@ -65,6 +65,12 @@
             break;
     }
     @endsession
+    @session('success')
+    toastr.success("{{ $value }}", '', options);
+    @endsession
+    @session('error')
+    toastr.error("{{ $value }}", '', options);
+    @endsession
 </script>
 
 

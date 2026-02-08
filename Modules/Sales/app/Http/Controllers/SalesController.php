@@ -358,8 +358,11 @@ class SalesController extends Controller
             // Get or find cash account if payment type is cash
             $accountId = $request->account_id;
             if ($request->payment_type === 'cash' && !$accountId) {
-                $cashAccount = \Modules\Accounts\app\Models\Account::where('account_type', 'cash')->first();
-                $accountId = $cashAccount?->id;
+                $cashAccount = \Modules\Accounts\app\Models\Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
+                $accountId = $cashAccount->id;
             }
 
             // Create payment record (customer_id must be null if 0 due to foreign key)

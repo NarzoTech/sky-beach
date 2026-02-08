@@ -4,77 +4,54 @@
 @push('css')
     <style>
         .account-summary-card {
-            border-radius: 10px;
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             border: none;
-        }
-
-        .account-summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
         .account-summary-card .card-body {
-            padding: 1.5rem;
+            padding: 1.25rem;
         }
 
         .account-summary-card .icon-wrapper {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .account-summary-card .amount {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
+            color: #566a7f;
         }
 
         .account-summary-card .label {
-            font-size: 1rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: 900
-        }
-
-        .bg-gradient-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);
-        }
-
-        .bg-gradient-info {
-            background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
-        }
-
-        .bg-gradient-warning {
-            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-        }
-
-        .bg-gradient-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            font-weight: 600;
+            color: #8592a3;
         }
 
         .account-section-card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
 
         .account-section-card .card-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.25rem;
+            background: #fff;
         }
 
         .account-section-card .section-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
             display: inline-flex;
             align-items: center;
@@ -88,45 +65,37 @@
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
-            color: #6c757d;
-            padding: 1rem 0.75rem;
+            color: #8592a3;
+            padding: 0.875rem 0.75rem;
         }
 
         .account-section-card .table tbody td {
             vertical-align: middle;
-            padding: 0.875rem 0.75rem;
+            padding: 0.75rem;
         }
 
         .amount-badge {
             display: inline-block;
-            padding: 0.35rem 0.75rem;
-            border-radius: 20px;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
             font-weight: 600;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
         }
 
         .amount-positive {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
+            background-color: rgba(113, 221, 55, 0.15);
+            color: #71dd37;
         }
 
         .amount-negative {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
+            background-color: rgba(255, 62, 29, 0.15);
+            color: #ff3e1d;
         }
 
         .filter-card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .text-white-50 {
-            color: #fff !important;
-        }
-
-        .btn-outline-danger {
-            background: #dc3545;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
         }
     </style>
 @endpush
@@ -194,15 +163,15 @@
     <div class="row mt-4">
         {{-- Cash Amount Card --}}
         <div class="col-12 col-md-6 col-xl-3 mb-4">
-            <div class="card account-summary-card bg-gradient-success text-white">
+            <div class="card account-summary-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="icon-wrapper bg-white bg-opacity-25 me-3">
-                            <i class="fas fa-money-bill-wave text-black"></i>
+                        <div class="icon-wrapper me-3" style="background: rgba(113, 221, 55, 0.15);">
+                            <i class="fas fa-money-bill-wave" style="color: #71dd37;"></i>
                         </div>
                         <div>
-                            <p class="label mb-0 text-white-50">{{ __('Cash in Hand') }}</p>
-                            <h3 class="amount mb-0 text-white">{{ currency($cashAccount?->getBalanceBetween()) }}</h3>
+                            <p class="label mb-0">{{ __('Cash in Hand') }}</p>
+                            <h3 class="amount mb-0">{{ currency($cashAccount?->getBalanceBetween()) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -211,18 +180,18 @@
 
         {{-- Bank Accounts Total --}}
         <div class="col-12 col-md-6 col-xl-3 mb-4">
-            <div class="card account-summary-card bg-gradient-primary text-white">
+            <div class="card account-summary-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="icon-wrapper bg-white bg-opacity-25 me-3">
-                            <i class="fas fa-university text-black"></i>
+                        <div class="icon-wrapper me-3" style="background: rgba(105, 108, 255, 0.15);">
+                            <i class="fas fa-university" style="color: #696cff;"></i>
                         </div>
                         <div>
                             @php
                                 $bankTotal = $bankAccounts->sum(fn($acc) => $acc->getBalanceBetween());
                             @endphp
-                            <p class="label mb-0 text-white-50">{{ __('Bank Accounts') }}</p>
-                            <h3 class="amount mb-0 text-white">{{ currency($bankTotal) }}</h3>
+                            <p class="label mb-0">{{ __('Bank Accounts') }}</p>
+                            <h3 class="amount mb-0">{{ currency($bankTotal) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -231,18 +200,18 @@
 
         {{-- Mobile Banking Total --}}
         <div class="col-12 col-md-6 col-xl-3 mb-4">
-            <div class="card account-summary-card bg-gradient-info text-white">
+            <div class="card account-summary-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="icon-wrapper bg-white bg-opacity-25 me-3">
-                            <i class="fas fa-mobile-alt text-black"></i>
+                        <div class="icon-wrapper me-3" style="background: rgba(3, 195, 236, 0.15);">
+                            <i class="fas fa-mobile-alt" style="color: #03c3ec;"></i>
                         </div>
                         <div>
                             @php
                                 $mobileTotal = $mobileAccounts->sum(fn($acc) => $acc->getBalanceBetween());
                             @endphp
-                            <p class="label mb-0 text-white-50">{{ __('Mobile Banking') }}</p>
-                            <h3 class="amount mb-0 text-white">{{ currency($mobileTotal) }}</h3>
+                            <p class="label mb-0">{{ __('Mobile Banking') }}</p>
+                            <h3 class="amount mb-0">{{ currency($mobileTotal) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -251,15 +220,15 @@
 
         {{-- Total Balance Card --}}
         <div class="col-12 col-md-6 col-xl-3 mb-4">
-            <div class="card account-summary-card bg-gradient-warning text-white">
+            <div class="card account-summary-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="icon-wrapper bg-white bg-opacity-25 me-3">
-                            <i class="fas fa-wallet text-black"></i>
+                        <div class="icon-wrapper me-3" style="background: rgba(255, 171, 0, 0.15);">
+                            <i class="fas fa-wallet" style="color: #ffab00;"></i>
                         </div>
                         <div>
-                            <p class="label mb-0 text-white-50">{{ __('Total Balance') }}</p>
-                            <h3 class="amount mb-0 text-white">{{ currency($accountBalance) }}</h3>
+                            <p class="label mb-0">{{ __('Total Balance') }}</p>
+                            <h3 class="amount mb-0">{{ currency($accountBalance) }}</h3>
                         </div>
                     </div>
                 </div>
@@ -273,8 +242,8 @@
             <div class="card account-section-card">
                 <div class="card-header bg-white d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
-                        <div class="section-icon bg-primary bg-opacity-10">
-                            <i class="fas fa-university text-white"></i>
+                        <div class="section-icon" style="background: rgba(105, 108, 255, 0.15);">
+                            <i class="fas fa-university" style="color: #696cff;"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">{{ __('Bank Accounts') }}</h5>
                     </div>
@@ -366,8 +335,8 @@
             <div class="card account-section-card h-100">
                 <div class="card-header bg-white d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
-                        <div class="section-icon bg-primary">
-                            <i class="fas fa-mobile-alt text-white"></i>
+                        <div class="section-icon" style="background: rgba(3, 195, 236, 0.15);">
+                            <i class="fas fa-mobile-alt" style="color: #03c3ec;"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">{{ __('Mobile Banking') }}</h5>
                     </div>
@@ -448,8 +417,8 @@
             <div class="card account-section-card h-100">
                 <div class="card-header bg-white d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
-                        <div class="section-icon bg-primary">
-                            <i class="fas fa-credit-card text-white"></i>
+                        <div class="section-icon" style="background: rgba(255, 62, 29, 0.15);">
+                            <i class="fas fa-credit-card" style="color: #ff3e1d;"></i>
                         </div>
                         <h5 class="mb-0 fw-bold">{{ __('Bank Cards') }}</h5>
                     </div>

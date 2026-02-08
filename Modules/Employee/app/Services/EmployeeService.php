@@ -60,13 +60,14 @@ class EmployeeService
         $data['amount'] = $request->amount;
         $data['note'] = $request->note;
 
-        $account = Account::where('account_type', $request->payment_type);
-        if (
-            $request->payment_type == 'cash'
-        ) {
-            $account = $account->first();
+        if ($request->payment_type == 'cash') {
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $account = $account->where('id', $request->account_id)->first();
+            $account = Account::where('account_type', $request->payment_type)
+                ->where('id', $request->account_id)->first();
         }
         $data['account_id'] = $account->id;
         $employee->employeeSalary()->create($data);
@@ -86,13 +87,14 @@ class EmployeeService
         $data['note'] = $request->note;
         $data['account_id'] = $payment->account_id;
 
-        $account = Account::where('account_type', $request->payment_type);
-        if (
-            $request->payment_type == 'cash'
-        ) {
-            $account = $account->first();
+        if ($request->payment_type == 'cash') {
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $account = $account->where('id', $request->account_id)->first();
+            $account = Account::where('account_type', $request->payment_type)
+                ->where('id', $request->account_id)->first();
         }
         $data['account_id'] = $account->id;
 

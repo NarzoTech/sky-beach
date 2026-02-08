@@ -55,7 +55,10 @@ class BalanceController extends Controller
         checkAdminHasPermissionAndThrowException('deposit.withdraw.create');
         try {
             if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
-                $account = $this->account->all()->where('account_type', 'cash')->first();
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
             } else {
                 $account = $this->account->find($request->account_id);
             }
@@ -121,7 +124,10 @@ class BalanceController extends Controller
     {
         checkAdminHasPermissionAndThrowException('deposit.withdraw.edit');
         if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
-            $account = $this->account->all()->where('account_type', 'cash')->first();
+            $account = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
             $account = $this->account->find($request->account_id);
         }
@@ -155,8 +161,55 @@ class BalanceController extends Controller
 
         $accounts = $this->account->all()->get();
 
-        $transfers = BalanceTransfer::query();
+        $transfers = BalanceTransfer::with(['fromAccount.bank', 'toAccount.bank', 'createdBy']);
 
+        // Keyword search
+        if (request('keyword')) {
+            $keyword = request('keyword');
+            $transfers->where(function ($q) use ($keyword) {
+                $q->where('amount', 'like', "%{$keyword}%")
+                    ->orWhere('note', 'like', "%{$keyword}%")
+                    ->orWhereHas('fromAccount', function ($q) use ($keyword) {
+                        $q->where('bank_account_name', 'like', "%{$keyword}%")
+                            ->orWhere('bank_account_number', 'like', "%{$keyword}%")
+                            ->orWhere('mobile_number', 'like', "%{$keyword}%")
+                            ->orWhere('mobile_bank_name', 'like', "%{$keyword}%");
+                    })
+                    ->orWhereHas('toAccount', function ($q) use ($keyword) {
+                        $q->where('bank_account_name', 'like', "%{$keyword}%")
+                            ->orWhere('bank_account_number', 'like', "%{$keyword}%")
+                            ->orWhere('mobile_number', 'like', "%{$keyword}%")
+                            ->orWhere('mobile_bank_name', 'like', "%{$keyword}%");
+                    })
+                    ->orWhereHas('createdBy', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+            });
+        }
+
+        // Ordering
+        $orderDirection = request('order_by', 'desc');
+        $transfers->orderBy('id', $orderDirection);
+
+        // Export (before pagination so all records are included)
+        if (checkAdminHasPermission('balance.transfer.excel.download')) {
+            if (request('export')) {
+                $allTransfers = $transfers->get();
+                $fileName = 'transfer-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+                return Excel::download(new BalanceTransferExport($allTransfers), $fileName);
+            }
+        }
+
+        if (checkAdminHasPermission('balance.transfer.pdf.download')) {
+            if (request('export_pdf')) {
+                $allTransfers = $transfers->get();
+                return view('accounts::pdf.transfer', [
+                    'transfers' => $allTransfers,
+                ]);
+            }
+        }
+
+        // Pagination
         if (request('par-page')) {
             if (request('par-page') == 'all') {
                 $transfers = $transfers->get();
@@ -167,21 +220,6 @@ class BalanceController extends Controller
         } else {
             $transfers = $transfers->paginate(20);
             $transfers->appends(request()->query());
-        }
-
-        if (checkAdminHasPermission('balance.transfer.excel.download')) {
-            if (request('export')) {
-                $fileName = 'transfer-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new BalanceTransferExport($transfers), $fileName);
-            }
-        }
-
-        if (checkAdminHasPermission('balance.transfer.pdf.download')) {
-            if (request('export_pdf')) {
-                return view('accounts::pdf.transfer', [
-                    'transfers' => $transfers,
-                ]);
-            }
         }
 
         return view('accounts::balance-transfer', compact('accounts', 'transfers'));
@@ -209,11 +247,14 @@ class BalanceController extends Controller
 
         // from account
 
-        $fromAccount = Account::where('account_type', $request->from_account_type);
         if ($request->from_account_type == 'cash') {
-            $fromAccount = $fromAccount->first();
+            $fromAccount = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $fromAccount = $fromAccount->where('id', $request->from_account)->first();
+            $fromAccount = Account::where('account_type', $request->from_account_type)
+                ->where('id', $request->from_account)->first();
         }
 
         if (!$fromAccount) {
@@ -224,11 +265,14 @@ class BalanceController extends Controller
 
         // to account
 
-        $toAccount = Account::where('account_type', $request->to_account_type);
         if ($request->to_account_type == 'cash') {
-            $toAccount = $toAccount->first();
+            $toAccount = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $toAccount = $toAccount->where('id', $request->to_account)->first();
+            $toAccount = Account::where('account_type', $request->to_account_type)
+                ->where('id', $request->to_account)->first();
         }
 
         if (!$toAccount) {
@@ -237,7 +281,10 @@ class BalanceController extends Controller
 
         $data['to_account_id'] = $toAccount->id;
 
-
+        // Prevent transfer to the same account
+        if ($fromAccount->id === $toAccount->id) {
+            return back()->with(['messege' => 'Cannot transfer to the same account.', 'alert-type' => 'error']);
+        }
 
         BalanceTransfer::create($data);
         return back()->with(['messege' => 'Balance transfer created successfully.', 'alert-type' => 'success']);
@@ -265,11 +312,14 @@ class BalanceController extends Controller
 
         // from account
 
-        $fromAccount = Account::where('account_type', $request->from_account_type);
         if ($request->from_account_type == 'cash') {
-            $fromAccount = $fromAccount->first();
+            $fromAccount = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $fromAccount = $fromAccount->where('id', $request->from_account)->first();
+            $fromAccount = Account::where('account_type', $request->from_account_type)
+                ->where('id', $request->from_account)->first();
         }
 
         if (!$fromAccount) {
@@ -279,11 +329,14 @@ class BalanceController extends Controller
         $data['from_account_id'] = $fromAccount->id;
 
 
-        $toAccount = Account::where('account_type', $request->to_account_type);
         if ($request->to_account_type == 'cash') {
-            $toAccount = $toAccount->first();
+            $toAccount = Account::firstOrCreate(
+                ['account_type' => 'cash'],
+                ['bank_account_name' => 'Cash Register']
+            );
         } else {
-            $toAccount = $toAccount->where('id', $request->to_account)->first();
+            $toAccount = Account::where('account_type', $request->to_account_type)
+                ->where('id', $request->to_account)->first();
         }
 
         if (!$toAccount) {
@@ -291,6 +344,11 @@ class BalanceController extends Controller
         }
 
         $data['to_account_id'] = $toAccount->id;
+
+        // Prevent transfer to the same account
+        if ($fromAccount->id === $toAccount->id) {
+            return back()->with(['messege' => 'Cannot transfer to the same account.', 'alert-type' => 'error']);
+        }
 
         $balance->update($data);
         return back()->with(['messege' => 'Balance transfer updated successfully.', 'alert-type' => 'success']);

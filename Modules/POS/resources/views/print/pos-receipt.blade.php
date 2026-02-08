@@ -337,34 +337,53 @@
 
     <!-- Payment Info -->
     @php
+        $payments = $sale->payment ?? collect();
+        $paymentCount = $payments->count();
+        $isSplitPayment = $paymentCount > 1;
         $returnAmount = ($sale->paid_amount ?? 0) - ($sale->grand_total ?? 0);
-        $paymentMethod = 'Cash';
-        $isCashPayment = true;
-        if($sale->payment && $sale->payment->count() > 0) {
-            $firstPayment = $sale->payment->first();
-            $paymentMethod = ucfirst($firstPayment->account->account_type ?? $firstPayment->payment_type ?? 'cash');
-            $isCashPayment = strtolower($firstPayment->account->account_type ?? $firstPayment->payment_type ?? 'cash') == 'cash';
-        }
+        $hasCashPayment = $payments->contains(function($p) {
+            return strtolower($p->account->account_type ?? 'cash') === 'cash';
+        });
     @endphp
-    @if($sale->payment && $sale->payment->count() > 0 || ($sale->paid_amount ?? 0) > 0)
+    @if($paymentCount > 0 || ($sale->paid_amount ?? 0) > 0)
     <div class="payment-section">
         <div class="payment-title">PAYMENT</div>
-        @if($isCashPayment)
-        <div class="info-row">
-            <span>Received:</span>
-            <span>{{ currency($sale->paid_amount) }}</span>
-        </div>
-        @if($returnAmount > 0)
-        <div class="info-row">
-            <span>Return:</span>
-            <span>{{ currency($returnAmount) }}</span>
-        </div>
+        @if($isSplitPayment)
+            @foreach($payments as $p)
+            <div class="info-row">
+                <span>{{ ucfirst(str_replace('_', ' ', $p->account->account_type ?? 'cash')) }}:</span>
+                <span>{{ currency($p->amount) }}</span>
+            </div>
+            @endforeach
+            @if($hasCashPayment && $returnAmount > 0)
+            <div class="info-row" style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;">
+                <span>Return:</span>
+                <span>{{ currency($returnAmount) }}</span>
+            </div>
+            @endif
+        @else
+            @php
+                $firstPayment = $payments->first();
+                $paymentMethod = $firstPayment ? ucfirst(str_replace('_', ' ', $firstPayment->account->account_type ?? 'cash')) : 'Cash';
+                $isCashPayment = $firstPayment ? strtolower($firstPayment->account->account_type ?? 'cash') === 'cash' : true;
+            @endphp
+            @if($isCashPayment)
+            <div class="info-row">
+                <span>Received:</span>
+                <span>{{ currency($sale->paid_amount) }}</span>
+            </div>
+            @if($returnAmount > 0)
+            <div class="info-row">
+                <span>Return:</span>
+                <span>{{ currency($returnAmount) }}</span>
+            </div>
+            @endif
+            @endif
+            <div class="info-row"{{ $isCashPayment ? ' style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;"' : '' }}>
+                <span>Payment By:</span>
+                <span>{{ $paymentMethod }}</span>
+            </div>
         @endif
-        @endif
-        <div class="info-row"{{ $isCashPayment ? ' style="border-top: 1px dashed #000; margin-top: 3px; padding-top: 3px;"' : '' }}>
-            <span>Payment By:</span>
-            <span>{{ $paymentMethod }}</span>
-        </div>
     </div>
     @endif
 

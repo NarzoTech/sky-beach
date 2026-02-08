@@ -208,11 +208,14 @@ class SalesReturnController extends Controller
 
             if ($request->paying_amount) {
                 // create a payment
-                $account = Account::where('account_type', $request->payment_type);
                 if ($request->payment_type == 'cash') {
-                    $account = $account->first();
+                    $account = Account::firstOrCreate(
+                        ['account_type' => 'cash'],
+                        ['bank_account_name' => 'Cash Register']
+                    );
                 } else {
-                    $account = $account->where('id', $request->account_id)->first();
+                    $account = Account::where('account_type', $request->payment_type)
+                        ->where('id', $request->account_id)->first();
                 }
                 $data = [
                     'customer_id' => $request->customer_id,
@@ -387,11 +390,14 @@ class SalesReturnController extends Controller
             // Update payment
             $return->payments()->delete();
             if ($request->paying_amount) {
-                $account = Account::where('account_type', $request->payment_type);
                 if ($request->payment_type == 'cash') {
-                    $account = $account->first();
+                    $account = Account::firstOrCreate(
+                        ['account_type' => 'cash'],
+                        ['bank_account_name' => 'Cash Register']
+                    );
                 } else {
-                    $account = $account->where('id', $request->account_id)->first();
+                    $account = Account::where('account_type', $request->payment_type)
+                        ->where('id', $request->account_id)->first();
                 }
 
                 CustomerPayment::create([

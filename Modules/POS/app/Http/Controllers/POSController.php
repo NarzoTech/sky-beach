@@ -1704,15 +1704,19 @@ class POSController extends Controller
                     $amount = $payingAmounts[$key] ?? 0;
                     if ($amount <= 0) continue;
 
-                    // Find the appropriate account
+                    // Find the appropriate account (auto-create cash if missing)
                     $account = null;
                     if ($paymentType === 'cash') {
-                        $account = Account::where('account_type', 'cash')->first();
+                        $account = Account::firstOrCreate(
+                            ['account_type' => 'cash'],
+                            ['bank_account_name' => 'Cash Register']
+                        );
                     } else {
                         $accountId = $accountIds[$key] ?? null;
                         if ($accountId) {
                             $account = Account::find($accountId);
-                        } else {
+                        }
+                        if (!$account) {
                             $account = Account::where('account_type', $paymentType)->first();
                         }
                     }

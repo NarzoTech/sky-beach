@@ -99,13 +99,34 @@
                     </thead>
                     <tbody>
                         @foreach ($transfers as $key => $balanceTransfer)
+                            @php
+                                $fromAcc = $balanceTransfer->fromAccount;
+                                $toAcc = $balanceTransfer->toAccount;
+
+                                $fromLabel = accountList()[$fromAcc->account_type] ?? 'Unknown';
+                                if ($fromAcc->account_type === 'bank') {
+                                    $fromLabel = ($fromAcc->bank->name ?? 'Bank') . ' - ' . ($fromAcc->bank_account_number ?? '');
+                                } elseif ($fromAcc->account_type === 'mobile_banking') {
+                                    $fromLabel = ($fromAcc->mobile_bank_name ?? 'Mobile') . ' - ' . ($fromAcc->mobile_number ?? '');
+                                } elseif ($fromAcc->account_type === 'card') {
+                                    $fromLabel = ($fromAcc->card_holder_name ?? 'Card') . ' - ' . ($fromAcc->card_number ?? '');
+                                }
+
+                                $toLabel = accountList()[$toAcc->account_type] ?? 'Unknown';
+                                if ($toAcc->account_type === 'bank') {
+                                    $toLabel = ($toAcc->bank->name ?? 'Bank') . ' - ' . ($toAcc->bank_account_number ?? '');
+                                } elseif ($toAcc->account_type === 'mobile_banking') {
+                                    $toLabel = ($toAcc->mobile_bank_name ?? 'Mobile') . ' - ' . ($toAcc->mobile_number ?? '');
+                                } elseif ($toAcc->account_type === 'card') {
+                                    $toLabel = ($toAcc->card_holder_name ?? 'Card') . ' - ' . ($toAcc->card_number ?? '');
+                                }
+                            @endphp
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td>{{ accountList()[$balanceTransfer->fromAccount->account_type] }}
-                                </td>
-                                <td>{{ accountList()[$balanceTransfer->toAccount->account_type] }}</td>
-                                <td>{{ $balanceTransfer->amount }}</td>
-                                <td>{{ $balanceTransfer->createdBy->name }}</td>
+                                <td>{{ $fromLabel }}</td>
+                                <td>{{ $toLabel }}</td>
+                                <td>{{ number_format($balanceTransfer->amount, 2) }}</td>
+                                <td>{{ $balanceTransfer->createdBy->name ?? '-' }}</td>
                                 <td>{{ formatDate($balanceTransfer->date) }}</td>
                                 <td>{{ $balanceTransfer->note }}</td>
                                 <td>

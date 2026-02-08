@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Accounts\app\Models\Account;
 use Modules\Accounts\app\Services\AccountsService;
 
 class AssetController extends Controller
@@ -55,7 +56,10 @@ class AssetController extends Controller
         checkAdminHasPermissionAndThrowException('asset.create');
         try {
             if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
-                $account = $this->account->all()->where('account_type', 'cash')->first();
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
             } else {
                 $account = $this->account->find($request->account_id);
             }
@@ -92,7 +96,10 @@ class AssetController extends Controller
         // update assets
         try {
             if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
-                $account = $this->account->all()->where('account_type', 'cash')->first();
+                $account = Account::firstOrCreate(
+                    ['account_type' => 'cash'],
+                    ['bank_account_name' => 'Cash Register']
+                );
             } else {
                 $account = $this->account->find($request->account_id);
             }
