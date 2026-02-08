@@ -17,8 +17,8 @@
 @endphp
 
 <div class="modal fade payment-modal" id="unifiedPaymentModal" tabindex="-1" aria-labelledby="unifiedPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-lg unified-payment-dialog">
+        <div class="modal-content unified-payment-content">
             <div class="modal-header bg-primary text-white" id="paymentModalHeader">
                 <h5 class="modal-title" id="unifiedPaymentModalLabel">
                     <i class="bx bx-credit-card me-2"></i>{{ __('Payment') }}
@@ -95,45 +95,26 @@
                             ])
                         </div>
 
-                        {{-- Account Selection (for non-cash payments) --}}
-                        <div class="account-selection-container mt-3 d-none" id="accountSelectionContainer">
-                            <label class="form-label">{{ __('Select Account') }}</label>
-                            <select class="form-select pm-input" name="account_id" id="paymentAccountSelect">
-                                <option value="">{{ __('Select Account...') }}</option>
-                                @foreach($accounts ?? [] as $account)
-                                    @if($account->account_type !== 'cash')
-                                    <option value="{{ $account->id }}"
-                                            data-type="{{ $account->account_type }}">
-                                        @if($account->account_type === 'bank')
-                                            {{ $account->bank_account_number }} ({{ $account->bank->name ?? 'Bank' }})
-                                        @elseif($account->account_type === 'card')
-                                            {{ $account->card_number }} ({{ $account->card_type ?? 'Card' }})
-                                        @elseif($account->account_type === 'mobile_banking')
-                                            {{ $account->mobile_number }} ({{ $account->mobile_bank_name ?? 'Mobile' }})
-                                        @else
-                                            {{ $account->name ?? $account->account_type }}
-                                        @endif
-                                    </option>
-                                    @endif
-                                @endforeach
-                            </select>
-                        </div>
-
                         {{-- Split Payment Container --}}
                         <div class="split-payment-container d-none" id="splitPaymentContainer">
                             <div class="pm-divider"></div>
                             <div class="pm-section-title d-flex justify-content-between align-items-center">
                                 <span>{{ __('Split Payments') }}</span>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSplitPayment()">
-                                    <i class="bx bx-plus me-1"></i>{{ __('Add') }}
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="resetToSinglePayment()">
+                                        <i class="bx bx-x me-1"></i>{{ __('Cancel') }}
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addSplitBtn" onclick="addSplitPayment()">
+                                        <i class="bx bx-plus me-1"></i>{{ __('Add') }}
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="split-payments-list" id="splitPaymentsList">
-                                {{-- Split payment rows will be added here --}}
+                                {{-- Compact split payment rows will be added here --}}
                             </div>
 
-                            <div class="split-total-bar">
+                            <div class="split-total-bar" id="splitTotalBar">
                                 <div>
                                     <div class="split-total-label">{{ __('Total Payments') }}</div>
                                     <div class="split-remaining" id="splitRemaining">
@@ -141,7 +122,7 @@
                                     </div>
                                 </div>
                                 <div class="split-total-amount">
-                                    <span id="splitTotalPaying">0.00</span>
+                                    {{ currency_icon() }} <span id="splitTotalPaying">0.00</span>
                                 </div>
                             </div>
                         </div>
@@ -157,13 +138,7 @@
                                 'id' => 'paymentReceiveAmount'
                             ])
 
-                            {{-- Change Display --}}
-                            <div class="change-display mt-3" id="changeDisplayContainer">
-                                <div class="change-display-row">
-                                    <span>{{ __('Change Due') }}</span>
-                                    <span class="change-amount" id="changeAmount">{{ currency_icon() }} 0.00</span>
-                                </div>
-                            </div>
+                            {{-- Change display is handled by the amount-input component above --}}
                         </div>
 
                         {{-- Hidden fields --}}
@@ -187,9 +162,36 @@
 </div>
 
 <style>
+/* Dialog positioning - account for POS footer */
+.unified-payment-dialog {
+    max-width: 800px;
+    margin-top: 0.5rem;
+    margin-bottom: calc(var(--pos-footer-height, 70px) + 0.5rem);
+}
+
+/* Flex column layout for sticky footer */
+.unified-payment-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--pos-footer-height, 70px) - 1rem);
+}
+
+/* Scrollable body */
+#unifiedPaymentModal .modal-body {
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Sticky footer */
+#unifiedPaymentModal .modal-footer {
+    flex-shrink: 0;
+    padding: 16px 24px;
+}
+
 .payment-summary-card {
     background: #f8f9fa;
-    padding: 16px;
+    padding: 12px 16px;
     border-radius: 10px;
     border: 1px solid #e9ecef;
 }
@@ -198,31 +200,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
+    padding: 4px 0;
     font-size: 14px;
 }
 
 .payment-total-card {
     background: var(--pm-primary, #696cff);
     color: white;
-    padding: 30px;
+    padding: 16px 20px;
     border-radius: var(--pm-radius, 12px);
     text-align: center;
 }
 
 .payment-total-amount {
-    font-size: 48px;
+    font-size: 32px;
     font-weight: 700;
     line-height: 1.2;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .payment-total-label {
-    font-size: 14px;
+    font-size: 12px;
     opacity: 0.7;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .payment-order-context {
@@ -230,7 +232,7 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    font-size: 14px;
+    font-size: 13px;
     opacity: 0.9;
 }
 
@@ -238,41 +240,6 @@
     opacity: 0.4;
 }
 
-/* Change Display */
-.change-display {
-    background: var(--pm-success-light);
-    padding: 16px;
-    border-radius: var(--pm-radius);
-}
-
-.change-display-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.change-display-row span:first-child {
-    font-weight: 500;
-    color: var(--pm-dark);
-}
-
-.change-amount {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--pm-success);
-}
-
-.change-display.has-change {
-    background: var(--pm-success-light);
-}
-
-.change-display.insufficient {
-    background: var(--pm-danger-light);
-}
-
-.change-display.insufficient .change-amount {
-    color: var(--pm-danger);
-}
 
 /* Order type badge colors in total card */
 .payment-total-card .order-type-badge {
@@ -283,138 +250,115 @@
     font-size: 12px;
 }
 
-/* Modal footer */
-#unifiedPaymentModal .modal-footer {
-    padding: 16px 24px;
-}
-
-/* Split payment styles in unified modal */
+/* Split payment styles - compact rows */
 #splitPaymentContainer .split-payments-list {
-    max-height: 280px;
+    max-height: 300px;
     overflow-y: auto;
 }
 
 .split-payment-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
 }
 
-.split-payment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.split-payment-number {
-    font-weight: 600;
+.split-row-number {
+    font-weight: 700;
     font-size: 13px;
-    color: #495057;
+    color: #696cff;
+    min-width: 24px;
 }
 
-.btn-remove-payment {
+.split-row-method {
+    min-width: 100px;
+}
+
+.split-row-method select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.split-row-account {
+    min-width: 130px;
+}
+
+.split-row-account select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.split-row-amount {
+    flex: 1;
+    min-width: 120px;
+}
+
+.split-row-amount .input-group-text {
+    background: var(--pm-primary, #696cff);
+    color: white;
+    border-color: var(--pm-primary, #696cff);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+.split-row-amount input {
+    font-weight: 700;
+    font-size: 16px;
+    text-align: right;
+    padding: 8px 12px;
+    border-color: #dee2e6;
+}
+
+.split-row-amount input:focus {
+    border-color: var(--pm-primary, #696cff);
+    box-shadow: 0 0 0 2px rgba(105, 108, 255, 0.15);
+}
+
+.btn-remove-split {
     background: none;
     border: none;
     color: #dc3545;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 4px 6px;
     border-radius: 4px;
     font-size: 18px;
     line-height: 1;
+    flex-shrink: 0;
 }
 
-.btn-remove-payment:hover {
+.btn-remove-split:hover {
     background: #fee2e2;
-}
-
-.split-payment-methods {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-}
-
-.split-method-option {
-    cursor: pointer;
-    margin: 0;
-}
-
-.split-method-option input[type="radio"] {
-    display: none;
-}
-
-.split-method-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 4px;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    background: white;
-    transition: all 0.2s ease;
-    min-height: 50px;
-}
-
-.split-method-box i {
-    font-size: 16px;
-    margin-bottom: 2px;
-    color: var(--method-color, #666);
-}
-
-.split-method-box span {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #666;
-}
-
-.split-method-option:hover .split-method-box {
-    border-color: var(--method-color, #696cff);
-}
-
-.split-method-option.active .split-method-box,
-.split-method-option input:checked + .split-method-box {
-    background: var(--method-color, #696cff);
-    border-color: var(--method-color, #696cff);
-}
-
-.split-method-option.active .split-method-box i,
-.split-method-option.active .split-method-box span,
-.split-method-option input:checked + .split-method-box i,
-.split-method-option input:checked + .split-method-box span {
-    color: white;
-}
-
-.split-account-select select {
-    font-size: 13px;
-}
-
-.split-amount-input .input-group-text {
-    background: #e9ecef;
-    border-color: #dee2e6;
-    font-weight: 600;
-    font-size: 13px;
-}
-
-.split-amount-input input {
-    font-weight: 600;
-    font-size: 16px;
-    text-align: right;
 }
 
 .split-total-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--pm-primary, #696cff);
-    color: white;
     padding: 12px 16px;
     border-radius: var(--pm-radius, 12px);
+    margin-top: 8px;
+}
+
+.split-total-bar.state-remaining {
+    background: var(--pm-warning, #ffab00);
+    color: #232333;
+}
+
+.split-total-bar.state-exact {
+    background: var(--pm-success, #71dd37);
+    color: white;
+}
+
+.split-total-bar.state-overpaid {
+    background: #ff6b35;
+    color: white;
 }
 
 .split-total-label {
@@ -427,14 +371,7 @@
 .split-remaining {
     font-size: 12px;
     margin-top: 2px;
-}
-
-.split-remaining.has-remaining {
-    color: #ffc107;
-}
-
-.split-remaining.fully-paid {
-    color: #71dd37;
+    font-weight: 600;
 }
 
 .split-total-amount {
@@ -442,14 +379,32 @@
     font-weight: 700;
 }
 
+#addSplitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 576px) {
+    .split-payment-row {
+        flex-wrap: wrap;
+    }
+    .split-row-method,
+    .split-row-account {
+        min-width: calc(50% - 20px);
+    }
+    .split-row-amount {
+        min-width: calc(100% - 40px);
+    }
+}
+
 /* Responsive */
 @media (max-width: 576px) {
     .payment-total-amount {
-        font-size: 36px;
+        font-size: 26px;
     }
 
     .payment-total-card {
-        padding: 20px;
+        padding: 12px 16px;
     }
 }
 </style>
@@ -701,6 +656,9 @@ function proceedToPayment(orderType) {
     });
 }
 
+// Max split payment rows
+var MAX_SPLIT_ROWS = 4;
+
 // Reset to single payment mode
 function resetToSinglePayment() {
     isSplitMode = false;
@@ -722,123 +680,125 @@ function resetToSinglePayment() {
         cashOption.closest('.payment-method-option').classList.add('active');
     }
 
-    // Hide account selection
-    document.getElementById('accountSelectionContainer').classList.add('d-none');
+    // Hide component's account selection
+    const compAccountSel = document.querySelector('#paymentMethodContainer .account-selection');
+    if (compAccountSel) compAccountSel.style.display = 'none';
+
+    // Re-enable complete button
+    document.getElementById('completePaymentBtn').disabled = false;
+
+    // Recalculate change for single mode
+    calculateChange();
 }
 
 // Enable split payment mode
 function enableSplitPayment() {
+    if (isSplitMode) return; // Guard against double-click
+
     isSplitMode = true;
     document.getElementById('isSplitPayment').value = '1';
     document.getElementById('splitPaymentContainer').classList.remove('d-none');
     document.getElementById('singlePaymentContainer').classList.add('d-none');
+    document.getElementById('splitPaymentsList').innerHTML = '';
+    splitPaymentIndex = 0;
 
-    // Add first two payment rows
-    addSplitPayment(currentTotal / 2);
-    addSplitPayment(currentTotal / 2);
+    // Hide component's account selection
+    const accountSelection = document.querySelector('#paymentMethodContainer .account-selection');
+    if (accountSelection) accountSelection.style.display = 'none';
+
+    // Add first two payment rows with 50/50 split
+    addSplitPayment(Math.round(currentTotal / 2 * 100) / 100);
+    addSplitPayment(Math.round(currentTotal / 2 * 100) / 100);
 }
 
-// Add split payment row
+// Add split payment row (compact single-line)
 function addSplitPayment(amount) {
-    amount = amount || 0;
     const container = document.getElementById('splitPaymentsList');
+    const rowCount = container.querySelectorAll('.split-payment-row').length;
+
+    // Enforce max limit
+    if (rowCount >= MAX_SPLIT_ROWS) {
+        toastr.warning('{{ __("Maximum") }} ' + MAX_SPLIT_ROWS + ' {{ __("split payments allowed") }}');
+        return;
+    }
+
+    amount = amount || 0;
     const index = splitPaymentIndex++;
 
     const html = `
         <div class="split-payment-row" data-index="${index}">
-            <div class="split-payment-header">
-                <span class="split-payment-number">{{ __('Payment') }} #${index + 1}</span>
-                <button type="button" class="btn-remove-payment" onclick="removeSplitPayment(${index})">
-                    <i class="bx bx-x"></i>
-                </button>
+            <span class="split-row-number">#${rowCount + 1}</span>
+            <div class="split-row-method">
+                <select class="form-select form-select-sm" name="split_type_${index}" onchange="onSplitMethodChange(${index}, this.value)">
+                    <option value="cash" selected>{{ __('Cash') }}</option>
+                    <option value="card">{{ __('Card') }}</option>
+                    <option value="bank">{{ __('Bank') }}</option>
+                    <option value="mobile_banking">{{ __('Mobile') }}</option>
+                </select>
             </div>
-            <div class="split-payment-content">
-                <div class="split-payment-methods">
-                    <label class="split-method-option active">
-                        <input type="radio" name="payment_type[${index}]" value="cash" checked onchange="onSplitPaymentTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #71dd37">
-                            <i class="bx bx-money"></i>
-                            <span>{{ __('Cash') }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="payment_type[${index}]" value="card" onchange="onSplitPaymentTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #696cff">
-                            <i class="bx bx-credit-card"></i>
-                            <span>{{ __('Card') }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="payment_type[${index}]" value="bank" onchange="onSplitPaymentTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #03c3ec">
-                            <i class="bx bx-building"></i>
-                            <span>{{ __('Bank') }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="payment_type[${index}]" value="mobile_banking" onchange="onSplitPaymentTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #ffab00">
-                            <i class="bx bx-mobile"></i>
-                            <span>{{ __('Mobile') }}</span>
-                        </div>
-                    </label>
-                </div>
-                <div class="split-account-select mt-2" style="display: none;">
-                    <select class="form-select form-select-sm" name="account_id[${index}]">
-                        <option value="">{{ __('Select Account...') }}</option>
-                        @foreach($accounts ?? [] as $account)
-                            @if($account->account_type !== 'cash')
-                            <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
-                                {{ $account->bank_account_number ?? $account->card_number ?? $account->mobile_number ?? $account->name }}
-                            </option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="split-amount-input mt-2">
-                    <div class="input-group">
-                        <span class="input-group-text">{{ currency_icon() }}</span>
-                        <input type="number" name="paying_amount[${index}]" class="form-control split-amount" value="${amount.toFixed(2)}" step="0.01" min="0" onchange="calculateSplitTotal()" oninput="calculateSplitTotal()">
-                    </div>
+            <div class="split-row-account" style="display: none;">
+                <select class="form-select form-select-sm" name="split_account_${index}">
+                    <option value="">{{ __('Account...') }}</option>
+                    @foreach($accounts ?? [] as $account)
+                        @if($account->account_type !== 'cash')
+                        <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
+                            {{ $account->bank_account_number ?? $account->card_number ?? $account->mobile_number ?? $account->name }}
+                        </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+            <div class="split-row-amount">
+                <div class="input-group">
+                    <span class="input-group-text">{{ currency_icon() }}</span>
+                    <input type="number" name="split_amount_${index}" class="form-control split-amount"
+                           value="${amount.toFixed(2)}" step="0.01" min="0"
+                           oninput="calculateSplitTotal()" onchange="calculateSplitTotal()">
                 </div>
             </div>
+            <button type="button" class="btn-remove-split" onclick="removeSplitPayment(${index})" title="{{ __('Remove') }}">
+                <i class="bx bx-x"></i>
+            </button>
         </div>
     `;
 
-    // Create temp element to insert the HTML
     const temp = document.createElement('div');
-    temp.innerHTML = html;
-
-    // Append with animation
+    temp.innerHTML = html.trim();
     const row = temp.firstElementChild;
     row.style.animation = 'slideUp 0.3s ease';
     container.appendChild(row);
+
+    // Update Add button state
+    updateAddSplitBtnState();
 
     // Calculate totals
     calculateSplitTotal();
 }
 
-// Handle split payment type change
-function onSplitPaymentTypeChange(index, type) {
+// Update Add button disabled state
+function updateAddSplitBtnState() {
+    const container = document.getElementById('splitPaymentsList');
+    const rowCount = container.querySelectorAll('.split-payment-row').length;
+    const addBtn = document.getElementById('addSplitBtn');
+    if (addBtn) {
+        addBtn.disabled = rowCount >= MAX_SPLIT_ROWS;
+    }
+}
+
+// Handle split row method change
+function onSplitMethodChange(index, type) {
     const row = document.querySelector(`.split-payment-row[data-index="${index}"]`);
     if (!row) return;
 
-    // Update active state on method buttons
-    row.querySelectorAll('.split-method-option').forEach(opt => {
-        opt.classList.remove('active');
-        if (opt.querySelector(`input[value="${type}"]`)) {
-            opt.classList.add('active');
-        }
-    });
+    const accountDiv = row.querySelector('.split-row-account');
+    const accountSelect = accountDiv.querySelector('select');
 
-    // Show/hide account select
-    const accountSelect = row.querySelector('.split-account-select');
     if (type === 'cash') {
-        accountSelect.style.display = 'none';
-        accountSelect.querySelector('select').value = '';
+        accountDiv.style.display = 'none';
+        accountSelect.value = '';
     } else {
-        accountSelect.style.display = 'block';
-        // Filter options by type
+        accountDiv.style.display = 'block';
+        // Filter account options by type
         accountSelect.querySelectorAll('option').forEach(opt => {
             if (opt.value === '') {
                 opt.style.display = 'block';
@@ -846,6 +806,7 @@ function onSplitPaymentTypeChange(index, type) {
                 opt.style.display = opt.dataset.type === type ? 'block' : 'none';
             }
         });
+        accountSelect.value = '';
     }
 }
 
@@ -857,43 +818,60 @@ function calculateSplitTotal() {
     });
 
     const remaining = currentTotal - total;
+    const totalBar = document.getElementById('splitTotalBar');
     const remainingEl = document.getElementById('splitRemaining');
-    const remainingAmount = document.getElementById('splitRemainingAmount');
+    const totalPayingEl = document.getElementById('splitTotalPaying');
 
-    if (remainingAmount) {
-        remainingAmount.textContent = currencyIcon + ' ' + Math.abs(remaining).toFixed(2);
+    // Update total paying display
+    if (totalPayingEl) {
+        totalPayingEl.textContent = total.toFixed(2);
+    }
+
+    // Update status bar color and message
+    if (totalBar) {
+        totalBar.classList.remove('state-remaining', 'state-exact', 'state-overpaid');
     }
 
     if (remainingEl) {
-        if (remaining <= 0.01) {
-            remainingEl.classList.remove('has-remaining');
-            remainingEl.classList.add('fully-paid');
-            remainingEl.innerHTML = '<i class="bx bx-check-circle text-success"></i> {{ __("Fully Covered") }}';
+        if (remaining > 0.01) {
+            // Under-paid
+            if (totalBar) totalBar.classList.add('state-remaining');
+            remainingEl.innerHTML = '{{ __("Remaining") }}: ' + currencyIcon + ' ' + remaining.toFixed(2);
+        } else if (remaining < -0.01) {
+            // Over-paid
+            if (totalBar) totalBar.classList.add('state-overpaid');
+            remainingEl.innerHTML = '<i class="bx bx-error me-1"></i>{{ __("Overpaid by") }} ' + currencyIcon + ' ' + Math.abs(remaining).toFixed(2);
         } else {
-            remainingEl.classList.add('has-remaining');
-            remainingEl.classList.remove('fully-paid');
-            remainingEl.innerHTML = '{{ __("Remaining") }}:<br><span id="splitRemainingAmount">' + currencyIcon + ' ' + remaining.toFixed(2) + '</span>';
+            // Exact
+            if (totalBar) totalBar.classList.add('state-exact');
+            remainingEl.innerHTML = '<i class="bx bx-check-circle me-1"></i>{{ __("Fully Covered") }}';
         }
     }
 
-    // Enable/disable complete button
+    // Enable complete button only if fully covered (allow slight overpayment)
     document.getElementById('completePaymentBtn').disabled = remaining > 0.01;
-
-    // Dispatch event
-    document.dispatchEvent(new CustomEvent('splitTotalChanged', {
-        detail: { total: total, remaining: remaining }
-    }));
 }
 
 // Remove split payment row
 function removeSplitPayment(index) {
-    const row = document.querySelector(`.split-payment-row[data-index="${index}"]`);
+    const container = document.getElementById('splitPaymentsList');
+    const rows = container.querySelectorAll('.split-payment-row');
+
+    // Prevent removing if only 2 rows left
+    if (rows.length <= 2) {
+        toastr.warning('{{ __("Minimum 2 split payments required. Use Cancel to exit split mode.") }}');
+        return;
+    }
+
+    const row = container.querySelector(`.split-payment-row[data-index="${index}"]`);
     if (row) {
-        row.style.animation = 'slideDown 0.3s ease';
-        setTimeout(() => {
-            row.remove();
-            calculateSplitTotal();
-        }, 300);
+        row.remove();
+        // Re-number remaining rows
+        container.querySelectorAll('.split-payment-row').forEach((r, i) => {
+            r.querySelector('.split-row-number').textContent = '#' + (i + 1);
+        });
+        updateAddSplitBtnState();
+        calculateSplitTotal();
     }
 }
 
@@ -902,17 +880,26 @@ function calculateChange() {
     const received = parseFloat(document.getElementById('paymentReceiveAmount')?.value) || 0;
     const change = received - currentTotal;
 
-    const changeDisplay = document.getElementById('changeDisplayContainer');
-    const changeAmount = document.getElementById('changeAmount');
+    // Update the amount-input component's change display
+    const changeDisplay = document.getElementById('paymentReceiveAmountChangeDisplay');
+    const changeValue = document.getElementById('paymentReceiveAmountChangeValue');
+    const changeCard = document.getElementById('paymentReceiveAmountChangeCard');
 
-    if (change >= 0) {
-        changeDisplay.classList.remove('insufficient');
-        changeDisplay.classList.add('has-change');
-        changeAmount.textContent = currencyIcon + ' ' + change.toFixed(2);
-    } else {
-        changeDisplay.classList.add('insufficient');
-        changeDisplay.classList.remove('has-change');
-        changeAmount.textContent = '- ' + currencyIcon + ' ' + Math.abs(change).toFixed(2);
+    if (changeDisplay && changeValue && changeCard) {
+        if (received > 0 && currentTotal > 0) {
+            changeDisplay.style.display = 'block';
+            changeValue.textContent = Math.abs(change).toFixed(2);
+
+            if (change >= 0) {
+                changeCard.classList.remove('has-due');
+                changeCard.querySelector('.change-label').textContent = '{{ __("Change Due") }}';
+            } else {
+                changeCard.classList.add('has-due');
+                changeCard.querySelector('.change-label').textContent = '{{ __("Amount Due") }}';
+            }
+        } else {
+            changeDisplay.style.display = 'none';
+        }
     }
 
     // Enable/disable complete button
@@ -963,12 +950,12 @@ function completePayment() {
 
     // Handle payments - Backend expects arrays: payment_type[], paying_amount[], account_id[]
     if (isSplitMode) {
-        // Split payments - collect from each row
+        // Split payments - collect from each compact row
         let index = 0;
         document.querySelectorAll('#splitPaymentsList .split-payment-row').forEach((row) => {
-            const paymentType = row.querySelector('input[name^="payment_type"]:checked')?.value || 'cash';
+            const paymentType = row.querySelector('select[name^="split_type_"]')?.value || 'cash';
             const amount = parseFloat(row.querySelector('.split-amount')?.value) || 0;
-            const accountId = row.querySelector('select[name^="account_id"]')?.value || '';
+            const accountId = row.querySelector('select[name^="split_account_"]')?.value || '';
 
             if (amount > 0) {
                 formData.append('payment_type[' + index + ']', paymentType);
@@ -989,7 +976,8 @@ function completePayment() {
         // Single payment - send as array with index 0
         const paymentType = document.querySelector('#unifiedPaymentForm input[name="payment_type"]:checked')?.value || 'cash';
         const receiveAmount = parseFloat(document.getElementById('paymentReceiveAmount')?.value) || 0;
-        const accountId = document.getElementById('paymentAccountSelect')?.value || '';
+        // Read account from the payment-method-selector component's own select
+        const accountId = document.querySelector('#paymentMethodContainer .account-select')?.value || '';
 
         formData.append('payment_type[0]', paymentType);
         formData.append('paying_amount[0]', receiveAmount);
@@ -1024,10 +1012,17 @@ function completePayment() {
             // Award loyalty points if customer has phone
             awardLoyaltyPointsForOrder(result.order_id, currentTotal);
 
-            // Reset cart
-            if (typeof getCart === 'function') {
-                getCart();
+            // Clear cart
+            $(".product-table tbody").html('');
+            $('#titems').text(0);
+            $('#discount_total_amount').val(0);
+            $('#tds').text(0);
+            if (typeof totalSummery === 'function') {
+                totalSummery();
             }
+            $("#customer_id").val('').trigger('change');
+            $('#discount_type').val(0).trigger('change');
+            $('.dis-form').hide();
 
             // Update running orders count
             if (typeof updateRunningOrdersCount === 'function') {
@@ -1160,55 +1155,20 @@ document.addEventListener('DOMContentLoaded', function() {
         amountInput.addEventListener('change', calculateChange);
     }
 
-    // Payment method change
+    // Payment method change — component handles its own account selection
     document.addEventListener('paymentMethodChanged', function(e) {
         const paymentType = e.detail.type;
-        const accountContainer = document.getElementById('accountSelectionContainer');
-        const accountSelect = document.getElementById('paymentAccountSelect');
 
-        if (paymentType === 'cash') {
-            accountContainer.classList.add('d-none');
-            accountSelect.value = '';
-        } else if (paymentType === 'split') {
+        if (paymentType === 'split') {
             enableSplitPayment();
         } else {
-            accountContainer.classList.remove('d-none');
-            // Filter account options by type
-            accountSelect.querySelectorAll('option').forEach(opt => {
-                if (opt.value === '') {
-                    opt.style.display = 'block';
-                } else {
-                    opt.style.display = opt.dataset.type === paymentType ? 'block' : 'none';
-                }
-            });
-            accountSelect.value = '';
+            // If we were in split mode, exit it
+            if (isSplitMode) {
+                resetToSinglePayment();
+            }
         }
 
         calculateChange();
-    });
-
-    // Split total changed
-    document.addEventListener('splitTotalChanged', function(e) {
-        const total = e.detail.total;
-        const remaining = currentTotal - total;
-
-        document.getElementById('splitRemainingAmount').textContent =
-            currencyIcon + ' ' + Math.abs(remaining).toFixed(2);
-
-        const remainingEl = document.getElementById('splitRemaining');
-        if (remaining <= 0) {
-            remainingEl.classList.remove('has-remaining');
-            remainingEl.classList.add('fully-paid');
-            remainingEl.innerHTML = '<i class="bx bx-check-circle me-1"></i> {{ __("Fully Covered") }}';
-        } else {
-            remainingEl.classList.add('has-remaining');
-            remainingEl.classList.remove('fully-paid');
-            remainingEl.innerHTML = '{{ __("Remaining") }}: <span id="splitRemainingAmount">' +
-                currencyIcon + ' ' + remaining.toFixed(2) + '</span>';
-        }
-
-        // Enable/disable complete button
-        document.getElementById('completePaymentBtn').disabled = remaining > 0.01;
     });
 
     // Quick amount buttons

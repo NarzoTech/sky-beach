@@ -19,8 +19,8 @@
 @endphp
 
 <div class="modal fade payment-modal" id="dineInSetupModal" tabindex="-1" aria-labelledby="dineInSetupModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-lg dinein-dialog">
+        <div class="modal-content dinein-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="dineInSetupModalLabel">
                     <i class="bx bx-restaurant me-2"></i>{{ __('Dine-In Order') }}
@@ -112,6 +112,31 @@
 </div>
 
 <style>
+/* Dialog positioning - account for POS footer */
+.dinein-dialog {
+    margin-top: 0.5rem;
+    margin-bottom: calc(var(--pos-footer-height, 70px) + 0.5rem);
+}
+
+/* Flex column layout for sticky footer */
+.dinein-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--pos-footer-height, 70px) - 1rem);
+}
+
+/* Scrollable body */
+#dineInSetupModal .modal-body {
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Sticky footer */
+#dineInSetupModal .modal-footer {
+    flex-shrink: 0;
+}
+
 .dine-in-order-summary {
     background: var(--pm-gray-light);
     padding: 16px;

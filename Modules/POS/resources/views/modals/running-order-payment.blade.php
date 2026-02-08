@@ -14,7 +14,7 @@
 @endphp
 
 <div class="modal fade payment-modal" id="runningOrderPaymentModal" tabindex="-1" aria-labelledby="runningOrderPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered rop-dialog">
+    <div class="modal-dialog modal-xl rop-dialog">
         <div class="modal-content rop-modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -209,14 +209,19 @@
                                     <div class="pm-divider"></div>
                                     <div class="pm-section-title d-flex justify-content-between align-items-center">
                                         <span>{{ __('Split Payments') }}</span>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRopSplitPayment()">
-                                            <i class="bx bx-plus me-1"></i>{{ __('Add') }}
-                                        </button>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="resetRopPaymentMethod()">
+                                                <i class="bx bx-x me-1"></i>{{ __('Cancel') }}
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="ropAddSplitBtn" onclick="addRopSplitPayment()">
+                                                <i class="bx bx-plus me-1"></i>{{ __('Add') }}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="rop-split-list" id="ropSplitList">
-                                        {{-- Split payment rows --}}
+                                        {{-- Compact split payment rows --}}
                                     </div>
-                                    <div class="split-total-bar mt-3">
+                                    <div class="rop-split-total-bar" id="ropSplitTotalBar">
                                         <div>
                                             <div class="split-total-label">{{ __('Total Payments') }}</div>
                                             <div class="split-remaining" id="ropSplitRemaining"></div>
@@ -678,7 +683,7 @@
     color: #ff3e1d;
 }
 
-/* Split Payment Styles */
+/* Split Payment Styles - Compact Single-Line Rows */
 .rop-split-container {
     margin-top: 16px;
 }
@@ -688,158 +693,132 @@
     overflow-y: auto;
 }
 
-.split-payment-row {
+#ropSplitList .split-payment-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
 }
 
-.split-payment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.split-payment-number {
-    font-weight: 600;
+#ropSplitList .split-row-number {
+    font-weight: 700;
     font-size: 13px;
-    color: #495057;
+    color: #696cff;
+    min-width: 24px;
 }
 
-.btn-remove-payment {
+#ropSplitList .split-row-method {
+    min-width: 100px;
+}
+
+#ropSplitList .split-row-method select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+#ropSplitList .split-row-account {
+    min-width: 130px;
+}
+
+#ropSplitList .split-row-account select {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+#ropSplitList .split-row-amount {
+    flex: 1;
+    min-width: 120px;
+}
+
+#ropSplitList .split-row-amount .input-group-text {
+    background: var(--pm-primary, #696cff);
+    color: white;
+    border-color: var(--pm-primary, #696cff);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+#ropSplitList .split-row-amount input {
+    font-weight: 700;
+    font-size: 16px;
+    text-align: right;
+    padding: 8px 12px;
+    border-color: #dee2e6;
+}
+
+#ropSplitList .split-row-amount input:focus {
+    border-color: var(--pm-primary, #696cff);
+    box-shadow: 0 0 0 2px rgba(105, 108, 255, 0.15);
+}
+
+#ropSplitList .btn-remove-split {
     background: none;
     border: none;
     color: #dc3545;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 4px 6px;
     border-radius: 4px;
     font-size: 18px;
     line-height: 1;
+    flex-shrink: 0;
 }
 
-.btn-remove-payment:hover {
+#ropSplitList .btn-remove-split:hover {
     background: #fee2e2;
 }
 
-.split-payment-methods {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-}
-
-.split-method-option {
-    cursor: pointer;
-    margin: 0;
-}
-
-.split-method-option input[type="radio"] {
-    display: none;
-}
-
-.split-method-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 4px;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    background: white;
-    transition: all 0.2s ease;
-    min-height: 50px;
-}
-
-.split-method-box i {
-    font-size: 16px;
-    margin-bottom: 2px;
-    color: var(--method-color, #666);
-}
-
-.split-method-box span {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #666;
-}
-
-.split-method-option:hover .split-method-box {
-    border-color: var(--method-color, #696cff);
-}
-
-.split-method-option.active .split-method-box,
-.split-method-option input:checked + .split-method-box {
-    background: var(--method-color, #696cff);
-    border-color: var(--method-color, #696cff);
-}
-
-.split-method-option.active .split-method-box i,
-.split-method-option.active .split-method-box span,
-.split-method-option input:checked + .split-method-box i,
-.split-method-option input:checked + .split-method-box span {
-    color: white;
-}
-
-.split-account-select select {
-    font-size: 13px;
-}
-
-.split-amount-input .input-group {
-    max-width: 100%;
-}
-
-.split-amount-input .input-group-text {
-    background: #e9ecef;
-    border-color: #dee2e6;
-    font-weight: 600;
-    font-size: 13px;
-}
-
-.split-amount-input input {
-    font-weight: 600;
-    font-size: 16px;
-    text-align: right;
-}
-
-.split-total-bar {
+.rop-split-total-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #696cff;
-    color: white;
-    padding: 14px 18px;
+    padding: 12px 16px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.3);
+    margin-top: 8px;
+}
+
+.rop-split-total-bar.state-remaining {
+    background: var(--pm-warning, #ffab00);
+    color: #232333;
+}
+
+.rop-split-total-bar.state-exact {
+    background: var(--pm-success, #71dd37);
+    color: white;
+}
+
+.rop-split-total-bar.state-overpaid {
+    background: #ff6b35;
+    color: white;
 }
 
 .split-total-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    opacity: 0.9;
-    font-weight: 500;
+    opacity: 0.8;
 }
 
 .split-remaining {
     font-size: 12px;
-    margin-top: 4px;
-}
-
-.split-remaining.has-remaining {
-    color: #ffab00;
-}
-
-.split-remaining.fully-paid {
-    color: #b4ffb4;
+    margin-top: 2px;
+    font-weight: 600;
 }
 
 .split-total-amount {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
+}
+
+#ropAddSplitBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Responsive - Tablet (768px - 1199px) */
@@ -882,8 +861,17 @@
         grid-template-columns: repeat(3, 1fr);
     }
 
-    .split-payment-methods {
-        grid-template-columns: repeat(2, 1fr);
+    #ropSplitList .split-payment-row {
+        flex-wrap: wrap;
+    }
+
+    #ropSplitList .split-row-method,
+    #ropSplitList .split-row-account {
+        min-width: 80px;
+    }
+
+    #ropSplitList .split-row-amount {
+        min-width: 100px;
     }
 }
 
@@ -925,6 +913,15 @@
     .rop-btn-cancel,
     .rop-btn-complete {
         width: 100%;
+    }
+
+    #ropSplitList .split-row-method,
+    #ropSplitList .split-row-account {
+        min-width: calc(50% - 20px);
+    }
+
+    #ropSplitList .split-row-amount {
+        min-width: calc(100% - 40px);
     }
 }
 
@@ -973,6 +970,7 @@
 var ropCurrentOrder = null;
 var ropSplitIndex = 0;
 var ropIsSplitMode = false;
+var ROP_MAX_SPLIT_ROWS = 4;
 
 // Open Running Order Payment Modal
 function openRunningOrderPayment(orderId) {
@@ -1326,7 +1324,7 @@ function calculateRopTotals() {
     calculateRopChange();
 }
 
-// Reset payment method to cash
+// Reset payment method to cash (also used as "Cancel Split")
 function resetRopPaymentMethod() {
     ropIsSplitMode = false;
     document.getElementById('ropIsSplit').value = '0';
@@ -1352,6 +1350,12 @@ function resetRopPaymentMethod() {
         cashOption.checked = true;
         cashOption.closest('.payment-method-option').classList.add('active');
     }
+
+    // Re-enable complete button
+    document.getElementById('ropCompleteBtn').disabled = false;
+
+    // Recalculate change for single mode
+    calculateRopChange();
 }
 
 // Handle payment method change for ROP modal
@@ -1415,6 +1419,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Enable split payment mode
 function enableRopSplitPayment() {
+    if (ropIsSplitMode) return; // Guard against double-click
+
     ropIsSplitMode = true;
     document.getElementById('ropIsSplit').value = '1';
     document.getElementById('ropSplitContainer').classList.remove('d-none');
@@ -1429,126 +1435,133 @@ function enableRopSplitPayment() {
     ropSplitIndex = 0;
 
     const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
-    addRopSplitPayment(total / 2);
-    addRopSplitPayment(total / 2);
+    addRopSplitPayment(Math.round(total / 2 * 100) / 100);
+    addRopSplitPayment(Math.round(total / 2 * 100) / 100);
 }
 
-// Add split payment row
+// Add split payment row (compact single-line)
 function addRopSplitPayment(amount) {
-    amount = amount || 0;
     const container = document.getElementById('ropSplitList');
+    const rowCount = container.querySelectorAll('.split-payment-row').length;
+
+    // Enforce max limit
+    if (rowCount >= ROP_MAX_SPLIT_ROWS) {
+        toastr.warning('{{ __("Maximum") }} ' + ROP_MAX_SPLIT_ROWS + ' {{ __("split payments allowed") }}');
+        return;
+    }
+
+    amount = amount || 0;
     const index = ropSplitIndex++;
 
     const html = `
         <div class="split-payment-row" data-index="${index}">
-            <div class="split-payment-header">
-                <span class="split-payment-number">{{ __("Payment") }} #${index + 1}</span>
-                <button type="button" class="btn-remove-payment" onclick="removeRopSplit(${index})">
-                    <i class="bx bx-x"></i>
-                </button>
+            <span class="split-row-number">#${rowCount + 1}</span>
+            <div class="split-row-method">
+                <select class="form-select form-select-sm" name="rop_split_type_${index}" onchange="onRopSplitMethodChange(${index}, this.value)">
+                    <option value="cash" selected>{{ __('Cash') }}</option>
+                    <option value="card">{{ __('Card') }}</option>
+                    <option value="bank">{{ __('Bank') }}</option>
+                    <option value="mobile_banking">{{ __('Mobile') }}</option>
+                </select>
             </div>
-            <div class="split-payment-content">
-                <div class="split-payment-methods">
-                    <label class="split-method-option active">
-                        <input type="radio" name="rop_split_type_${index}" value="cash" checked onchange="onRopSplitTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #71dd37">
-                            <i class="bx bx-money"></i>
-                            <span>{{ __("Cash") }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="rop_split_type_${index}" value="card" onchange="onRopSplitTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #696cff">
-                            <i class="bx bx-credit-card"></i>
-                            <span>{{ __("Card") }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="rop_split_type_${index}" value="bank" onchange="onRopSplitTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #03c3ec">
-                            <i class="bx bx-building"></i>
-                            <span>{{ __("Bank") }}</span>
-                        </div>
-                    </label>
-                    <label class="split-method-option">
-                        <input type="radio" name="rop_split_type_${index}" value="mobile_banking" onchange="onRopSplitTypeChange(${index}, this.value)">
-                        <div class="split-method-box" style="--method-color: #ffab00">
-                            <i class="bx bx-mobile"></i>
-                            <span>{{ __("Mobile") }}</span>
-                        </div>
-                    </label>
-                </div>
-                <div class="split-account-select mt-2" style="display: none;">
-                    <select class="form-select form-select-sm" name="rop_split_account_${index}">
-                        <option value="">{{ __("Select Account...") }}</option>
-                        @foreach($accounts ?? [] as $account)
-                            @if($account->account_type !== 'cash')
-                            <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
-                                {{ $account->bank_account_number ?? $account->card_number ?? $account->mobile_number ?? $account->name }}
-                            </option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="split-amount-input mt-2">
-                    <div class="input-group">
-                        <span class="input-group-text">{{ currency_icon() }}</span>
-                        <input type="number" name="rop_split_amount_${index}" class="form-control rop-split-amount" value="${amount.toFixed(2)}" step="0.01" min="0" onchange="calculateRopSplitTotal()" oninput="calculateRopSplitTotal()">
-                    </div>
+            <div class="split-row-account" style="display: none;">
+                <select class="form-select form-select-sm" name="rop_split_account_${index}">
+                    <option value="">{{ __('Account...') }}</option>
+                    @foreach($accounts ?? [] as $account)
+                        @if($account->account_type !== 'cash')
+                        <option value="{{ $account->id }}" data-type="{{ $account->account_type }}">
+                            {{ $account->bank_account_number ?? $account->card_number ?? $account->mobile_number ?? $account->name }}
+                        </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+            <div class="split-row-amount">
+                <div class="input-group">
+                    <span class="input-group-text">{{ currency_icon() }}</span>
+                    <input type="number" name="rop_split_amount_${index}" class="form-control rop-split-amount"
+                           value="${amount.toFixed(2)}" step="0.01" min="0"
+                           oninput="calculateRopSplitTotal()" onchange="calculateRopSplitTotal()">
                 </div>
             </div>
+            <button type="button" class="btn-remove-split" onclick="removeRopSplit(${index})" title="{{ __('Remove') }}">
+                <i class="bx bx-x"></i>
+            </button>
         </div>
     `;
 
     const temp = document.createElement('div');
-    temp.innerHTML = html;
-    container.appendChild(temp.firstElementChild);
+    temp.innerHTML = html.trim();
+    const row = temp.firstElementChild;
+    row.style.animation = 'slideUp 0.3s ease';
+    container.appendChild(row);
 
+    // Update Add button state
+    updateRopAddSplitBtnState();
+
+    // Calculate totals
     calculateRopSplitTotal();
+}
+
+// Update Add button disabled state
+function updateRopAddSplitBtnState() {
+    const container = document.getElementById('ropSplitList');
+    const rowCount = container.querySelectorAll('.split-payment-row').length;
+    const addBtn = document.getElementById('ropAddSplitBtn');
+    if (addBtn) {
+        addBtn.disabled = rowCount >= ROP_MAX_SPLIT_ROWS;
+    }
 }
 
 // Remove split payment row
 function removeRopSplit(index) {
-    const row = document.querySelector(`#ropSplitList .split-payment-row[data-index="${index}"]`);
+    const container = document.getElementById('ropSplitList');
+    const rows = container.querySelectorAll('.split-payment-row');
+
+    // Prevent removing if only 2 rows left
+    if (rows.length <= 2) {
+        toastr.warning('{{ __("Minimum 2 split payments required. Use Cancel to exit split mode.") }}');
+        return;
+    }
+
+    const row = container.querySelector(`.split-payment-row[data-index="${index}"]`);
     if (row) {
         row.remove();
+        // Re-number remaining rows
+        container.querySelectorAll('.split-payment-row').forEach((r, i) => {
+            r.querySelector('.split-row-number').textContent = '#' + (i + 1);
+        });
+        updateRopAddSplitBtnState();
         calculateRopSplitTotal();
     }
 }
 
-// Handle split payment type change
-function onRopSplitTypeChange(index, type) {
+// Handle split row method change (compact select-based)
+function onRopSplitMethodChange(index, type) {
     const row = document.querySelector(`#ropSplitList .split-payment-row[data-index="${index}"]`);
     if (!row) return;
 
-    const accountSelect = row.querySelector('.split-account-select');
-    const selectElement = row.querySelector('select');
-
-    // Update active state
-    row.querySelectorAll('.split-method-option').forEach(opt => {
-        opt.classList.remove('active');
-        if (opt.querySelector('input').value === type) {
-            opt.classList.add('active');
-        }
-    });
+    const accountDiv = row.querySelector('.split-row-account');
+    const accountSelect = accountDiv.querySelector('select');
 
     if (type === 'cash') {
-        accountSelect.style.display = 'none';
+        accountDiv.style.display = 'none';
+        accountSelect.value = '';
     } else {
-        accountSelect.style.display = 'block';
-        // Filter options
-        selectElement.querySelectorAll('option').forEach(opt => {
+        accountDiv.style.display = 'block';
+        // Filter account options by type
+        accountSelect.querySelectorAll('option').forEach(opt => {
             if (opt.value === '') {
                 opt.style.display = 'block';
             } else {
                 opt.style.display = opt.dataset.type === type ? 'block' : 'none';
             }
         });
-        selectElement.value = '';
+        accountSelect.value = '';
     }
 }
 
-// Calculate split total
+// Calculate split total with overpayment detection
 function calculateRopSplitTotal() {
     let total = 0;
     document.querySelectorAll('#ropSplitList .rop-split-amount').forEach(input => {
@@ -1558,20 +1571,38 @@ function calculateRopSplitTotal() {
     const orderTotal = parseFloat(document.getElementById('ropTotalValue').value) || 0;
     const remaining = orderTotal - total;
 
-    document.getElementById('ropSplitTotal').textContent = total.toFixed(2);
-
-    const remainingEl = document.getElementById('ropSplitRemaining');
-    if (remaining <= 0.01) {
-        remainingEl.innerHTML = '<i class="bx bx-check-circle me-1"></i> {{ __("Fully Covered") }}';
-        remainingEl.classList.remove('has-remaining');
-        remainingEl.classList.add('fully-paid');
-        document.getElementById('ropCompleteBtn').disabled = false;
-    } else {
-        remainingEl.innerHTML = '{{ __("Remaining") }}: ' + currencyIcon + ' ' + remaining.toFixed(2);
-        remainingEl.classList.add('has-remaining');
-        remainingEl.classList.remove('fully-paid');
-        document.getElementById('ropCompleteBtn').disabled = true;
+    // Update total paying display
+    const totalPayingEl = document.getElementById('ropSplitTotal');
+    if (totalPayingEl) {
+        totalPayingEl.textContent = total.toFixed(2);
     }
+
+    // Update status bar color and message
+    const totalBar = document.getElementById('ropSplitTotalBar');
+    const remainingEl = document.getElementById('ropSplitRemaining');
+
+    if (totalBar) {
+        totalBar.classList.remove('state-remaining', 'state-exact', 'state-overpaid');
+    }
+
+    if (remainingEl) {
+        if (remaining > 0.01) {
+            // Under-paid
+            if (totalBar) totalBar.classList.add('state-remaining');
+            remainingEl.innerHTML = '{{ __("Remaining") }}: ' + currencyIcon + ' ' + remaining.toFixed(2);
+        } else if (remaining < -0.01) {
+            // Over-paid
+            if (totalBar) totalBar.classList.add('state-overpaid');
+            remainingEl.innerHTML = '<i class="bx bx-error me-1"></i>{{ __("Overpaid by") }} ' + currencyIcon + ' ' + Math.abs(remaining).toFixed(2);
+        } else {
+            // Exact
+            if (totalBar) totalBar.classList.add('state-exact');
+            remainingEl.innerHTML = '<i class="bx bx-check-circle me-1"></i>{{ __("Fully Covered") }}';
+        }
+    }
+
+    // Enable complete button only if fully covered (allow slight overpayment)
+    document.getElementById('ropCompleteBtn').disabled = remaining > 0.01;
 }
 
 // Edit running order
@@ -1610,22 +1641,25 @@ function completeRunningOrderPayment() {
     formData.append('total_amount', document.getElementById('ropTotalValue').value || 0);
 
     if (ropIsSplitMode) {
-        // Collect split payments as arrays (backend expects arrays)
+        // Collect split payments from compact rows (select-based)
         let index = 0;
-        document.querySelectorAll('#ropSplitList .split-payment-row').forEach(row => {
-            const rowIndex = row.dataset.index;
-            const type = row.querySelector(`input[name="rop_split_type_${rowIndex}"]:checked`)?.value || 'cash';
+        let totalReceived = 0;
+        document.querySelectorAll('#ropSplitList .split-payment-row').forEach((row) => {
+            const paymentType = row.querySelector('select[name^="rop_split_type_"]')?.value || 'cash';
             const amount = parseFloat(row.querySelector('.rop-split-amount')?.value) || 0;
-            const accountId = row.querySelector(`select[name="rop_split_account_${rowIndex}"]`)?.value || '';
+            const accountId = row.querySelector('select[name^="rop_split_account_"]')?.value || '';
 
             if (amount > 0) {
-                formData.append('payment_type[' + index + ']', type);
+                formData.append('payment_type[' + index + ']', paymentType);
                 formData.append('paying_amount[' + index + ']', amount);
                 formData.append('account_id[' + index + ']', accountId);
+                totalReceived += amount;
                 index++;
             }
         });
         formData.append('is_split', '1');
+        formData.append('receive_amount', totalReceived);
+        formData.append('return_amount', Math.max(0, totalReceived - parseFloat(document.getElementById('ropTotalValue').value || 0)));
     } else {
         // Single payment - send as arrays with index 0 (backend expects arrays)
         const paymentType = document.querySelector('#ropPaymentMethodContainer input[name="rop_payment_type"]:checked')?.value || 'cash';

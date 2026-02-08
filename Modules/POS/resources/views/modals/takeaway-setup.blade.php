@@ -15,8 +15,8 @@
 @endphp
 
 <div class="modal fade payment-modal" id="takeawaySetupModal" tabindex="-1" aria-labelledby="takeawaySetupModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content">
+    <div class="modal-dialog modal-md takeaway-dialog">
+        <div class="modal-content takeaway-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="takeawaySetupModalLabel">
                     <i class="bx bx-shopping-bag me-2"></i>{{ __('Take-Away Order') }}
@@ -152,6 +152,31 @@
 </div>
 
 <style>
+/* Dialog positioning - account for POS footer */
+.takeaway-dialog {
+    margin-top: 0.5rem;
+    margin-bottom: calc(var(--pos-footer-height, 70px) + 0.5rem);
+}
+
+/* Flex column layout for sticky footer */
+.takeaway-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--pos-footer-height, 70px) - 1rem);
+}
+
+/* Scrollable body */
+#takeawaySetupModal .modal-body {
+    flex: 1 1 auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Sticky footer */
+#takeawaySetupModal .modal-footer {
+    flex-shrink: 0;
+}
+
 .pickup-time-options {
     display: flex;
     gap: 10px;
