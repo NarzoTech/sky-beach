@@ -32,7 +32,6 @@
                 Tel: {{ $setting->mobile }}<br>
                 <a href="mailto:{{ $setting->email }}"
                     style="color: #003366; text-decoration: none;">{{ $setting->email }}</a>
-                |
             </p>
         </div>
     </div>
