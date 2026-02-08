@@ -1186,7 +1186,7 @@
     {{-- Order Details Modal --}}
     <div class="modal fade" id="order-details-modal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModal"
         aria-hidden="true">
-        <div class="modal-dialog modal-xl order-details-dialog modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl order-details-dialog" role="document">
             <div class="modal-content order-details-modal">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
@@ -1206,14 +1206,23 @@
 
     <style>
     /* Order Details Modal Styles */
+    #order-details-modal.show .modal-dialog {
+        transform: none !important;
+        transition: none !important;
+    }
+
+    .order-details-dialog {
+        margin-top: 2rem;
+    }
+
     .order-details-modal {
         border-radius: 16px;
-        overflow: hidden;
         border: none;
     }
 
     #order-details-content {
         max-height: calc(100vh - 150px);
+        overflow-x: hidden;
         overflow-y: auto;
     }
 
@@ -1278,6 +1287,13 @@
         font-weight: 700;
         letter-spacing: 2px;
         color: #696cff;
+        min-width: 160px;
+    }
+
+    .order-details-content .duration-display span {
+        display: inline-block;
+        width: 2ch;
+        text-align: center;
     }
 
     .order-details-content .status-badge {

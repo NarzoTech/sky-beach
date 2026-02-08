@@ -318,28 +318,27 @@
 // Real-time duration update
 (function() {
     const createdTimestamp = {{ $order->created_at->timestamp }};
+    const hoursEl = document.querySelector('#orderDuration .hours');
+    const minutesEl = document.querySelector('#orderDuration .minutes');
+    const secondsEl = document.querySelector('#orderDuration .seconds');
+    const durationEl = document.getElementById('orderDuration');
+    let lastH = '', lastM = '', lastS = '', lastColor = '';
+
+    if (!hoursEl || !minutesEl || !secondsEl) return;
 
     function updateDuration() {
-        const now = new Date();
-        const elapsed = Math.floor(now.getTime() / 1000) - createdTimestamp;
+        const elapsed = Math.floor(Date.now() / 1000) - createdTimestamp;
 
-        const hours = Math.floor(elapsed / 3600);
-        const minutes = Math.floor((elapsed % 3600) / 60);
-        const seconds = elapsed % 60;
+        const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const s = String(elapsed % 60).padStart(2, '0');
 
-        const durationEl = document.getElementById('orderDuration');
-        if (durationEl) {
-            durationEl.querySelector('.hours').textContent = String(hours).padStart(2, '0');
-            durationEl.querySelector('.minutes').textContent = String(minutes).padStart(2, '0');
-            durationEl.querySelector('.seconds').textContent = String(seconds).padStart(2, '0');
+        if (s !== lastS) { secondsEl.textContent = s; lastS = s; }
+        if (m !== lastM) { minutesEl.textContent = m; lastM = m; }
+        if (h !== lastH) { hoursEl.textContent = h; lastH = h; }
 
-            // Change color based on duration
-            if (elapsed > 3600) {
-                durationEl.style.color = '#dc3545';
-            } else if (elapsed > 1800) {
-                durationEl.style.color = '#ffab00';
-            }
-        }
+        const color = elapsed > 3600 ? '#dc3545' : elapsed > 1800 ? '#ffab00' : '';
+        if (color !== lastColor) { durationEl.style.color = color; lastColor = color; }
     }
 
     updateDuration();

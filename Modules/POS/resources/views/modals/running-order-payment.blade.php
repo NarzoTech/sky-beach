@@ -14,7 +14,7 @@
 @endphp
 
 <div class="modal fade payment-modal" id="runningOrderPaymentModal" tabindex="-1" aria-labelledby="runningOrderPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable rop-dialog">
+    <div class="modal-dialog modal-xl modal-dialog-centered rop-dialog">
         <div class="modal-content rop-modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
@@ -296,13 +296,23 @@
 /* Running Order Payment Modal - Theme Styles */
 .rop-dialog {
     max-width: 1100px;
+    margin-top: 0.5rem;
+    margin-bottom: calc(var(--pos-footer-height, 70px) + 0.5rem);
 }
 
 .rop-modal-content {
     border-radius: 16px;
-    overflow: hidden;
     border: none;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - var(--pos-footer-height, 70px) - 1rem);
+}
+
+#runningOrderPaymentModal .modal-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1 1 auto;
 }
 
 .rop-modal-footer {
@@ -339,8 +349,11 @@
     transition: all 0.2s;
 }
 
-.rop-btn-complete:hover {
+#runningOrderPaymentModal .rop-btn-complete:hover,
+#runningOrderPaymentModal .rop-btn-complete:focus,
+#runningOrderPaymentModal .rop-btn-complete:active {
     background: #5a5ee0;
+    color: #fff;
     box-shadow: 0 4px 12px rgba(105, 108, 255, 0.4);
 }
 
