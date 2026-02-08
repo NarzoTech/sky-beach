@@ -15,7 +15,10 @@ class PosPrinter extends Model
         'connection_type',
         'ip_address',
         'port',
+        'path',
         'paper_width',
+        'capability_profile',
+        'char_per_line',
         'is_active',
         'print_categories',
         'location_name',
@@ -30,9 +33,17 @@ class PosPrinter extends Model
     const TYPE_KITCHEN = 'kitchen';
 
     const CONNECTION_NETWORK = 'network';
+    const CONNECTION_WINDOWS = 'windows';
+    const CONNECTION_LINUX = 'linux';
     const CONNECTION_USB = 'usb';
     const CONNECTION_BLUETOOTH = 'bluetooth';
     const CONNECTION_BROWSER = 'browser';
+
+    const PROFILE_DEFAULT = 'default';
+    const PROFILE_SIMPLE = 'simple';
+    const PROFILE_SP2000 = 'SP2000';
+    const PROFILE_TEP200M = 'TEP-200M';
+    const PROFILE_P822D = 'P822D';
 
     /**
      * Get all print jobs for this printer

@@ -124,6 +124,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::get('/add-to-order/{id}', [WaiterDashboardController::class, 'showAddToOrder'])->name('add-to-order');
         Route::post('/add-to-order/{id}', [WaiterDashboardController::class, 'addToOrder'])->name('add-to-order.store');
         Route::post('/cancel-order/{id}', [WaiterDashboardController::class, 'cancelOrder'])->name('cancel-order');
+        Route::post('/order/{id}/remove-item', [WaiterDashboardController::class, 'removeOrderItem'])->name('order.remove-item');
         Route::get('/menu-items', [WaiterDashboardController::class, 'getMenuItems'])->name('menu-items');
         Route::get('/table-status/{id}', [WaiterDashboardController::class, 'getTableStatus'])->name('table-status');
         // Print Routes

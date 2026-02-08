@@ -115,8 +115,13 @@
             <!-- Order Items -->
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">{{ __('Order Items') }}</h5>
+                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
+                        <a href="{{ route('admin.waiter.add-to-order', $order->id) }}" class="btn btn-sm btn-primary">
+                            <i class="bx bx-plus me-1"></i>{{ __('Add Items') }}
+                        </a>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -127,6 +132,9 @@
                                         <th class="text-center">{{ __('Qty') }}</th>
                                         <th class="text-end">{{ __('Price') }}</th>
                                         <th class="text-end">{{ __('Subtotal') }}</th>
+                                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
+                                        <th class="text-center" style="width: 50px;"></th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -153,26 +161,26 @@
                                         <td class="text-center">{{ $detail->quantity }}</td>
                                         <td class="text-end">{{ number_format($detail->price, 2) }}</td>
                                         <td class="text-end">{{ number_format($detail->sub_total, 2) }}</td>
+                                        @if(in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']))
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-outline-danger p-0" style="width: 28px; height: 28px; line-height: 1;" onclick="removeItem({{ $detail->id }})" title="{{ __('Remove') }}">
+                                                <i class="bx bx-x"></i>
+                                            </button>
+                                        </td>
+                                        @endif
                                     </tr>
                                     @endforeach
                                 </tbody>
+                                @php $footColspan = in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready']) ? 4 : 3; @endphp
                                 <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end"><strong>{{ __('Subtotal') }}</strong></td>
-                                        <td class="text-end">{{ number_format($order->subtotal, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3" class="text-end">{{ __('Tax') }} @if(($order->tax_rate ?? 0) > 0)({{ $order->tax_rate }}%)@endif</td>
-                                        <td class="text-end">{{ number_format($order->total_tax ?? $order->tax_amount ?? 0, 2) }}</td>
-                                    </tr>
                                     @if($order->discount_amount > 0)
                                     <tr>
-                                        <td colspan="3" class="text-end">{{ __('Discount') }}</td>
+                                        <td colspan="{{ $footColspan }}" class="text-end">{{ __('Discount') }}</td>
                                         <td class="text-end">-{{ number_format($order->discount_amount, 2) }}</td>
                                     </tr>
                                     @endif
                                     <tr>
-                                        <td colspan="3" class="text-end"><strong>{{ __('Total') }}</strong></td>
+                                        <td colspan="{{ $footColspan }}" class="text-end"><strong>{{ __('Total') }}</strong></td>
                                         <td class="text-end"><strong>{{ number_format($order->total, 2) }}</strong></td>
                                     </tr>
                                 </tfoot>
@@ -416,6 +424,54 @@
                             icon: 'error',
                             title: '{{ __("Error") }}',
                             text: xhr.responseJSON?.message || '{{ __("Failed to change table.") }}',
+                            confirmButtonColor: '#696cff'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function removeItem(detailId) {
+        Swal.fire({
+            title: "{{ __('Remove Item?') }}",
+            text: "{{ __('Are you sure you want to remove this item from the order?') }}",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff3e1d',
+            cancelButtonColor: '#8592a3',
+            confirmButtonText: "{{ __('Yes, Remove') }}",
+            cancelButtonText: "{{ __('Cancel') }}"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "{{ url('admin/waiter/order') }}/{{ $order->id }}/remove-item",
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        detail_id: detailId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '{{ __("Removed") }}',
+                                text: response.message,
+                                confirmButtonColor: '#696cff',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{{ __("Error") }}',
+                            text: xhr.responseJSON?.message || '{{ __("Failed to remove item.") }}',
                             confirmButtonColor: '#696cff'
                         });
                     }

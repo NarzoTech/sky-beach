@@ -12,7 +12,9 @@ use Modules\Menu\app\Models\MenuItem;
 use Modules\POS\app\Models\PosSettings;
 use Modules\POS\app\Services\PrintService;
 use Modules\Sales\app\Models\Sale;
+use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Services\SaleService;
+use Illuminate\Support\Facades\DB;
 use Modules\TableManagement\app\Models\RestaurantTable;
 
 class WaiterDashboardController extends Controller
@@ -513,6 +515,65 @@ class WaiterDashboardController extends Controller
             'success' => true,
             'message' => 'Order cancelled successfully.',
         ]);
+    }
+
+    /**
+     * Remove an item from an existing order
+     */
+    public function removeOrderItem($id, Request $request)
+    {
+        checkAdminHasPermissionAndThrowException('waiter.order.update');
+
+        $admin = Auth::guard('admin')->user();
+        $employee = $admin->employee;
+
+        $order = Sale::where('id', $id)
+            ->where('waiter_id', $employee?->id)
+            ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
+            ->firstOrFail();
+
+        $detail = ProductSale::where('sale_id', $id)
+            ->where('id', $request->detail_id)
+            ->firstOrFail();
+
+        // Prevent removing last item
+        if ($order->details()->count() <= 1) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Cannot remove the last item. Cancel the order instead.'),
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $subtotalToRemove = $detail->sub_total;
+            $detail->delete();
+
+            $newSubtotal = max(0, ($order->total_price ?? 0) - $subtotalToRemove);
+            $taxRate = $order->tax_rate ?: 0;
+            $newTax = $newSubtotal * ($taxRate / 100);
+            $newGrandTotal = $newSubtotal + $newTax;
+
+            $order->update([
+                'total_price' => $newSubtotal,
+                'total_tax' => $newTax,
+                'grand_total' => $newGrandTotal,
+                'due_amount' => max(0, $newGrandTotal - ($order->paid_amount ?? 0)),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Item removed successfully.'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to remove item.'),
+            ], 500);
+        }
     }
 
     /**

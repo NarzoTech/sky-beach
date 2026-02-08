@@ -32,6 +32,8 @@
                                 <th>{{ __('Name') }}</th>
                                 <th>{{ __('Type') }}</th>
                                 <th>{{ __('Connection') }}</th>
+                                <th>{{ __('Capability Profile') }}</th>
+                                <th>{{ __('Char/Line') }}</th>
                                 <th>{{ __('IP/Address') }}</th>
                                 <th>{{ __('Paper Width') }}</th>
                                 <th width="100">{{ __('Status') }}</th>
@@ -62,9 +64,13 @@
                                 <td>
                                     <span class="badge bg-secondary">{{ ucfirst($printer->connection_type) }}</span>
                                 </td>
+                                <td>{{ ucfirst($printer->capability_profile ?? 'default') }}</td>
+                                <td>{{ $printer->char_per_line ?? 42 }}</td>
                                 <td>
-                                    @if($printer->ip_address)
+                                    @if($printer->connection_type === 'network' && $printer->ip_address)
                                     {{ $printer->ip_address }}{{ $printer->port ? ':' . $printer->port : '' }}
+                                    @elseif(in_array($printer->connection_type, ['windows', 'linux']) && $printer->path)
+                                    <code>{{ $printer->path }}</code>
                                     @else
                                     <span class="text-muted">-</span>
                                     @endif
@@ -101,7 +107,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="10" class="text-center py-4">
                                     <i class="fas fa-print fa-3x text-muted mb-3"></i>
                                     <p class="text-muted mb-0">{{ __('No printers configured') }}</p>
                                     <a href="{{ route('admin.pos.printers.create') }}" class="btn btn-primary btn-sm mt-2">
