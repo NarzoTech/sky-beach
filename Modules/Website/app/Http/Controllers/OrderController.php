@@ -242,19 +242,8 @@ class OrderController extends Controller
             $conversionRate = $ingredient->conversion_rate ?? 1;
             $restoreInPurchaseUnit = $restoreQuantity / $conversionRate;
 
-            // Update ingredient stock
-            $ingredient->stock = $ingredient->stock + $restoreInPurchaseUnit;
-
-            // Update stock status
-            if ($ingredient->stock <= 0) {
-                $ingredient->stock_status = 'out_of_stock';
-            } elseif ($ingredient->alert_quantity && $ingredient->stock <= $ingredient->alert_quantity) {
-                $ingredient->stock_status = 'low_stock';
-            } else {
-                $ingredient->stock_status = 'in_stock';
-            }
-
-            $ingredient->save();
+            // Update ingredient stock using safe method (handles number_format, negative stock, low_stock)
+            $ingredient->addStock($restoreQuantity, $ingredient->consumption_unit_id);
 
             // Create stock record for tracking (reversal)
             $stockData = [

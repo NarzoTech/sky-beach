@@ -15,6 +15,7 @@ use Modules\Membership\app\Models\LoyaltyCustomer;
 use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\Membership\app\Services\LoyaltyService;
 use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Models\Combo;
 use App\Models\Stock;
 use App\Models\TaxLedger;
@@ -459,6 +460,58 @@ class CheckoutController extends Controller
                         $this->deductIngredientStockFromRecipe($menuItem, $cartItem->quantity, $sale);
                     }
                 }
+
+                // Deduct addon ingredient stock for all item types
+                $addons = $cartItem->addons;
+                if (!empty($addons)) {
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    if (is_array($addons)) {
+                        foreach ($addons as $addon) {
+                            $addonId = $addon['id'] ?? null;
+                            $addonQty = $addon['qty'] ?? 1;
+                            if (!$addonId) continue;
+
+                            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                            $totalAddonQty = $addonQty * $cartItem->quantity;
+                            foreach ($addonModel->recipes as $recipe) {
+                                $ingredient = $recipe->ingredient;
+                                if (!$ingredient) continue;
+
+                                $deductQuantity = $recipe->quantity_required * $totalAddonQty;
+                                $conversionRate = $ingredient->conversion_rate ?? 1;
+                                $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+                                $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
+
+                                $stockData = [
+                                    'sale_id' => $sale->id,
+                                    'ingredient_id' => $ingredient->id,
+                                    'unit_id' => $ingredient->consumption_unit_id,
+                                    'date' => now(),
+                                    'type' => 'Addon Sale',
+                                    'invoice' => $sale->invoice,
+                                    'out_quantity' => $deductQuantity,
+                                    'base_out_quantity' => $deductInPurchaseUnit,
+                                    'sku' => $ingredient->sku,
+                                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                                    'average_cost' => $ingredient->average_cost ?? 0,
+                                    'sale_price' => 0,
+                                    'rate' => $ingredient->consumption_unit_cost ?? 0,
+                                    'profit' => 0,
+                                    'created_by' => 1,
+                                ];
+                                if ($sale->warehouse_id && \App\Models\Warehouse::find($sale->warehouse_id)) {
+                                    $stockData['warehouse_id'] = $sale->warehouse_id;
+                                }
+                                Stock::create($stockData);
+                            }
+                        }
+                    }
+                }
             }
         } catch (\Exception $e) {
             // Log error but don't fail the order - stock can be adjusted manually
@@ -484,19 +537,8 @@ class CheckoutController extends Controller
             $conversionRate = $ingredient->conversion_rate ?? 1;
             $deductInPurchaseUnit = $deductQuantity / $conversionRate;
 
-            // Update ingredient stock
-            $ingredient->stock = max(0, $ingredient->stock - $deductInPurchaseUnit);
-
-            // Update stock status
-            if ($ingredient->stock <= 0) {
-                $ingredient->stock_status = 'out_of_stock';
-            } elseif ($ingredient->alert_quantity && $ingredient->stock <= $ingredient->alert_quantity) {
-                $ingredient->stock_status = 'low_stock';
-            } else {
-                $ingredient->stock_status = 'in_stock';
-            }
-
-            $ingredient->save();
+            // Update ingredient stock using safe method (handles number_format, negative stock, low_stock)
+            $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
 
             // Create stock record for tracking (only if warehouse exists)
             $stockData = [

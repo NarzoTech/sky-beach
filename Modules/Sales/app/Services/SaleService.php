@@ -17,6 +17,7 @@ use Modules\Customer\app\Models\CustomerPayment;
 use Modules\Ingredient\app\Models\Ingredient;
 use Modules\Ingredient\app\Models\Variant;
 use Modules\Menu\app\Models\Combo;
+use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuVariant;
 use Modules\Sales\app\Models\ProductSale;
@@ -228,6 +229,14 @@ class SaleService
                 // Deduct ingredient stock based on menu item recipes
                 if ($menuItem && $item['source'] == 1) {
                     $this->deductIngredientStockFromRecipe($menuItem, $saleQuantity, $sale, $request);
+
+                    // Deduct addon ingredient stock
+                    $this->deductAddonStock(
+                        $item['addons'] ?? null,
+                        $saleQuantity,
+                        $sale,
+                        $this->parseDate($request->sale_date)
+                    );
                 }
             }
             // Handle legacy product type (direct ingredient sale)
@@ -272,20 +281,17 @@ class SaleService
 
                 // update stock using base quantity
                 if ($product != null && $item['source'] == 1) {
-                    $product->stock = $product->stock - $baseQuantity;
-                    $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                    $product->save();
+                    $product->deductStock($baseQuantity);
 
                     // create stock with unit tracking
                     $purchasePrice = $product->last_purchase_price ?? 0;
                     Stock::create([
                         'sale_id' => $sale->id,
-                        'product_id' => $product->id,
+                        'ingredient_id' => $product->id,
                         'unit_id' => $saleUnitId,
                         'date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
                         'type' => 'Sale',
                         'invoice' => route('admin.sales.invoice', $sale->id),
-                        'invoice_number' => $sale->invoice,
                         'out_quantity' => $saleQuantity,
                         'base_out_quantity' => $baseQuantity,
                         'sku' => $product->sku,
@@ -587,6 +593,13 @@ class SaleService
                 // Deduct ingredient stock based on menu item recipes
                 if ($menuItem && ($item['source'] ?? 1) == 1) {
                     $this->deductIngredientStockForWaiterOrder($menuItem, $saleQuantity, $sale);
+
+                    // Deduct addon ingredient stock
+                    $addons = $item['addons'] ?? null;
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    $this->deductAddonStock($addons, $saleQuantity, $sale);
                 }
             }
             // Handle combo type
@@ -688,18 +701,16 @@ class SaleService
             $conversionRate = $ingredient->conversion_rate ?? 1;
             $deductInPurchaseUnit = $deductQuantity / $conversionRate;
 
-            $ingredient->stock = $ingredient->stock - $deductInPurchaseUnit;
-            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
-            $ingredient->save();
+            // Update ingredient stock using safe method (handles number_format, negative stock, low_stock)
+            $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
 
             Stock::create([
                 'sale_id' => $sale->id,
-                'product_id' => $ingredient->id,
+                'ingredient_id' => $ingredient->id,
                 'unit_id' => $ingredient->consumption_unit_id,
                 'date' => Carbon::now(),
                 'type' => 'Sale',
                 'invoice' => route('admin.sales.invoice', $sale->id),
-                'invoice_number' => $sale->invoice,
                 'out_quantity' => $deductQuantity,
                 'base_out_quantity' => $deductInPurchaseUnit,
                 'sku' => $ingredient->sku,
@@ -707,7 +718,6 @@ class SaleService
                 'sale_price' => 0,
                 'rate' => $ingredient->consumption_unit_cost ?? 0,
                 'profit' => 0,
-                'note' => 'Waiter Order - Menu Item: ' . $menuItem->name,
                 'created_by' => auth('admin')->id(),
             ]);
         }
@@ -767,7 +777,14 @@ class SaleService
             foreach ($sale->menuItems as $item) {
                 $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
                 if ($menuItem && $item->source == 1) {
-                    $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity);
+                    $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity, $sale);
+
+                    // Restore addon ingredient stock
+                    $addons = $item->addons;
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    $this->restoreAddonStock($addons, $item->quantity, $sale);
                 }
             }
 
@@ -776,9 +793,7 @@ class SaleService
                 $product = Ingredient::where('id', $item->ingredient_id)->first();
                 if ($product != null && $item->source == 1) {
                     $restoreQty = $item->base_quantity ?? $item->quantity;
-                    $product->stock = $product->stock + $restoreQty;
-                    $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                    $product->save();
+                    $product->addStock($restoreQty);
                 }
             }
 
@@ -1021,7 +1036,14 @@ class SaleService
         foreach ($sale->menuItems as $item) {
             $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
             if ($menuItem && $item->source == 1) {
-                $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity);
+                $this->restoreIngredientStockFromRecipe($menuItem, $item->quantity, $sale);
+
+                // Restore addon ingredient stock
+                $addons = $item->addons;
+                if (is_string($addons)) {
+                    $addons = json_decode($addons, true);
+                }
+                $this->restoreAddonStock($addons, $item->quantity, $sale);
             }
         }
 
@@ -1030,9 +1052,7 @@ class SaleService
             $product = Ingredient::where('id', $item->ingredient_id)->first();
             if ($product != null && $item->source == 1) {
                 $restoreQty = $item->base_quantity ?? $item->quantity;
-                $product->stock = $product->stock + $restoreQty;
-                $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                $product->save();
+                $product->addStock($restoreQty);
             }
         }
 
@@ -1241,20 +1261,17 @@ class SaleService
             $conversionRate = $ingredient->conversion_rate ?? 1;
             $deductInPurchaseUnit = $deductQuantity / $conversionRate;
 
-            // Update ingredient stock
-            $ingredient->stock = $ingredient->stock - $deductInPurchaseUnit;
-            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
-            $ingredient->save();
+            // Update ingredient stock using safe method (handles number_format, negative stock, low_stock)
+            $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
 
             // Create stock record for tracking
             Stock::create([
                 'sale_id' => $sale->id,
-                'product_id' => $ingredient->id,
+                'ingredient_id' => $ingredient->id,
                 'unit_id' => $ingredient->consumption_unit_id,
                 'date' => $this->parseDate($request->sale_date),
                 'type' => 'Sale',
                 'invoice' => route('admin.sales.invoice', $sale->id),
-                'invoice_number' => $sale->invoice,
                 'out_quantity' => $deductQuantity,
                 'base_out_quantity' => $deductInPurchaseUnit,
                 'sku' => $ingredient->sku,
@@ -1262,7 +1279,6 @@ class SaleService
                 'sale_price' => 0,
                 'rate' => $ingredient->consumption_unit_cost ?? 0,
                 'profit' => 0,
-                'note' => 'Menu Item: ' . $menuItem->name,
                 'created_by' => auth('admin')->user()->id,
             ]);
         }
@@ -1271,7 +1287,7 @@ class SaleService
     /**
      * Restore ingredient stock based on menu item recipe (for sale cancellation/return)
      */
-    private function restoreIngredientStockFromRecipe(MenuItem $menuItem, $quantity)
+    private function restoreIngredientStockFromRecipe(MenuItem $menuItem, $quantity, ?Sale $sale = null)
     {
         foreach ($menuItem->recipes as $recipe) {
             $ingredient = $recipe->ingredient;
@@ -1284,10 +1300,125 @@ class SaleService
             $conversionRate = $ingredient->conversion_rate ?? 1;
             $restoreInPurchaseUnit = $restoreQuantity / $conversionRate;
 
-            // Update ingredient stock
-            $ingredient->stock = $ingredient->stock + $restoreInPurchaseUnit;
-            $ingredient->stock_status = $ingredient->stock <= 0 ? 'out_of_stock' : 'in_stock';
-            $ingredient->save();
+            // Update ingredient stock using safe method
+            $ingredient->addStock($restoreQuantity, $ingredient->consumption_unit_id);
+
+            // Create stock record for audit trail
+            Stock::create([
+                'sale_id' => $sale->id ?? null,
+                'ingredient_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => now(),
+                'type' => 'Sale Reversal',
+                'invoice' => $sale->invoice ?? null,
+                'in_quantity' => $restoreQuantity,
+                'base_in_quantity' => $restoreInPurchaseUnit,
+                'out_quantity' => 0,
+                'base_out_quantity' => 0,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'average_cost' => $ingredient->average_cost ?? 0,
+                'created_by' => auth('admin')->id(),
+            ]);
+        }
+    }
+
+    /**
+     * Deduct ingredient stock for addons in a sale
+     * Addons are stored as JSON array: [{id, name, price, qty}, ...]
+     *
+     * @param array|null $addons The addons array from cart item
+     * @param int $itemQuantity The menu item quantity (addon stock = addon_qty * item_qty)
+     * @param Sale $sale The sale record
+     * @param mixed $date The sale date
+     */
+    private function deductAddonStock(?array $addons, int $itemQuantity, Sale $sale, $date = null)
+    {
+        if (empty($addons)) return;
+
+        foreach ($addons as $addon) {
+            $addonId = $addon['id'] ?? null;
+            $addonQty = $addon['qty'] ?? 1;
+            if (!$addonId) continue;
+
+            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+            $totalAddonQty = $addonQty * $itemQuantity;
+
+            foreach ($addonModel->recipes as $recipe) {
+                $ingredient = $recipe->ingredient;
+                if (!$ingredient) continue;
+
+                $deductQuantity = $recipe->quantity_required * $totalAddonQty;
+                $conversionRate = $ingredient->conversion_rate ?? 1;
+                $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+                $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
+
+                Stock::create([
+                    'sale_id' => $sale->id,
+                    'ingredient_id' => $ingredient->id,
+                    'unit_id' => $ingredient->consumption_unit_id,
+                    'date' => $date ?? now(),
+                    'type' => 'Addon Sale',
+                    'invoice' => route('admin.sales.invoice', $sale->id),
+                    'out_quantity' => $deductQuantity,
+                    'base_out_quantity' => $deductInPurchaseUnit,
+                    'sku' => $ingredient->sku,
+                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                    'sale_price' => 0,
+                    'rate' => $ingredient->consumption_unit_cost ?? 0,
+                    'profit' => 0,
+                    'created_by' => auth('admin')->id(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Restore ingredient stock for addons (for sale cancellation/return)
+     */
+    private function restoreAddonStock(?array $addons, int $itemQuantity, ?Sale $sale = null)
+    {
+        if (empty($addons)) return;
+
+        foreach ($addons as $addon) {
+            $addonId = $addon['id'] ?? null;
+            $addonQty = $addon['qty'] ?? 1;
+            if (!$addonId) continue;
+
+            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+            $totalAddonQty = $addonQty * $itemQuantity;
+
+            foreach ($addonModel->recipes as $recipe) {
+                $ingredient = $recipe->ingredient;
+                if (!$ingredient) continue;
+
+                $restoreQuantity = $recipe->quantity_required * $totalAddonQty;
+                $conversionRate = $ingredient->conversion_rate ?? 1;
+                $restoreInPurchaseUnit = $restoreQuantity / $conversionRate;
+
+                $ingredient->addStock($restoreQuantity, $ingredient->consumption_unit_id);
+
+                Stock::create([
+                    'sale_id' => $sale->id ?? null,
+                    'ingredient_id' => $ingredient->id,
+                    'unit_id' => $ingredient->consumption_unit_id,
+                    'date' => now(),
+                    'type' => 'Addon Sale Reversal',
+                    'invoice' => $sale->invoice ?? null,
+                    'in_quantity' => $restoreQuantity,
+                    'base_in_quantity' => $restoreInPurchaseUnit,
+                    'out_quantity' => 0,
+                    'base_out_quantity' => 0,
+                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                    'average_cost' => $ingredient->average_cost ?? 0,
+                    'created_by' => auth('admin')->id(),
+                ]);
+            }
         }
     }
 

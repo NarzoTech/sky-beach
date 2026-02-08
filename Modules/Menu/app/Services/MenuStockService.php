@@ -6,6 +6,7 @@ use App\Helpers\UnitConverter;
 use App\Models\Stock;
 use Illuminate\Support\Facades\DB;
 use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Models\Recipe;
 use Modules\Ingredient\app\Models\Ingredient;
 
@@ -373,6 +374,148 @@ class MenuStockService
                     'unit' => $ingredient->purchaseUnit?->ShortName ?? 'unit',
                     'new_stock' => $ingredient->fresh()->stock,
                     'stock_id' => $stock->id,
+                ];
+            }
+
+            DB::commit();
+            return $reversals;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Deduct stock for addon ingredients when an addon is sold
+     *
+     * @param int $addonId The menu addon ID
+     * @param int $quantity Quantity of addons sold (addon_qty * menu_item_qty)
+     * @param int $warehouseId Warehouse/branch ID
+     * @param string|null $reference Optional reference (invoice number, etc.)
+     * @return array Array of stock deductions made
+     */
+    public function deductAddonStockForSale(int $addonId, int $quantity, int $warehouseId, ?string $reference = null): array
+    {
+        $addon = MenuAddon::with(['recipes.ingredient'])->find($addonId);
+
+        if (!$addon || $addon->recipes->isEmpty()) {
+            return [];
+        }
+
+        $deductions = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($addon->recipes as $recipe) {
+                if (!$recipe->ingredient_id || !$recipe->ingredient) {
+                    continue;
+                }
+
+                $ingredient = $recipe->ingredient;
+                $recipeQuantity = $recipe->quantity_required * $quantity;
+                $recipeUnitId = $recipe->unit_id ?? $ingredient->consumption_unit_id ?? $ingredient->unit_id;
+
+                $purchaseUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+                $deductQuantity = $this->convertQuantity($recipeQuantity, $recipeUnitId, $purchaseUnitId, $ingredient);
+
+                $baseUnitId = UnitConverter::getBaseUnitId($purchaseUnitId ?? $ingredient->unit_id);
+                $baseQuantity = UnitConverter::safeConvert($deductQuantity, $purchaseUnitId, $baseUnitId);
+
+                Stock::create([
+                    'ingredient_id' => $ingredient->id,
+                    'warehouse_id' => $warehouseId,
+                    'unit_id' => $recipeUnitId,
+                    'in_quantity' => 0,
+                    'out_quantity' => $deductQuantity,
+                    'base_in_quantity' => 0,
+                    'base_out_quantity' => $baseQuantity,
+                    'type' => 'Addon Sale',
+                    'date' => now(),
+                    'invoice' => $reference,
+                    'purchase_price' => $ingredient->average_cost ?? $ingredient->cost ?? 0,
+                    'average_cost' => $ingredient->average_cost,
+                    'created_by' => auth('admin')->id(),
+                ]);
+
+                $ingredient->deductStock($recipeQuantity, $recipeUnitId);
+
+                $deductions[] = [
+                    'addon_id' => $addon->id,
+                    'addon_name' => $addon->name,
+                    'ingredient_id' => $ingredient->id,
+                    'ingredient_name' => $ingredient->name,
+                    'deducted_quantity' => $deductQuantity,
+                ];
+            }
+
+            DB::commit();
+            return $deductions;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Reverse addon stock deduction (for order cancellation)
+     *
+     * @param int $addonId The menu addon ID
+     * @param int $quantity Quantity of addons to reverse
+     * @param int $warehouseId Warehouse/branch ID
+     * @param string|null $reference Optional reference
+     * @return array
+     */
+    public function reverseAddonStockDeduction(int $addonId, int $quantity, int $warehouseId, ?string $reference = null): array
+    {
+        $addon = MenuAddon::with(['recipes.ingredient'])->find($addonId);
+
+        if (!$addon || $addon->recipes->isEmpty()) {
+            return [];
+        }
+
+        $reversals = [];
+
+        DB::beginTransaction();
+        try {
+            foreach ($addon->recipes as $recipe) {
+                if (!$recipe->ingredient_id || !$recipe->ingredient) {
+                    continue;
+                }
+
+                $ingredient = $recipe->ingredient;
+                $recipeQuantity = $recipe->quantity_required * $quantity;
+                $recipeUnitId = $recipe->unit_id ?? $ingredient->consumption_unit_id ?? $ingredient->unit_id;
+
+                $purchaseUnitId = $ingredient->purchase_unit_id ?? $ingredient->unit_id;
+                $addQuantity = $this->convertQuantity($recipeQuantity, $recipeUnitId, $purchaseUnitId, $ingredient);
+
+                $baseUnitId = UnitConverter::getBaseUnitId($purchaseUnitId ?? $ingredient->unit_id);
+                $baseQuantity = UnitConverter::safeConvert($addQuantity, $purchaseUnitId, $baseUnitId);
+
+                Stock::create([
+                    'ingredient_id' => $ingredient->id,
+                    'warehouse_id' => $warehouseId,
+                    'unit_id' => $recipeUnitId,
+                    'in_quantity' => $addQuantity,
+                    'out_quantity' => 0,
+                    'base_in_quantity' => $baseQuantity,
+                    'base_out_quantity' => 0,
+                    'type' => 'Addon Sale Reversal',
+                    'date' => now(),
+                    'invoice' => $reference,
+                    'purchase_price' => $ingredient->average_cost ?? $ingredient->cost ?? 0,
+                    'average_cost' => $ingredient->average_cost,
+                    'created_by' => auth('admin')->id(),
+                ]);
+
+                $ingredient->addStock($recipeQuantity, $recipeUnitId);
+
+                $reversals[] = [
+                    'addon_id' => $addon->id,
+                    'addon_name' => $addon->name,
+                    'ingredient_id' => $ingredient->id,
+                    'ingredient_name' => $ingredient->name,
+                    'quantity_added' => $addQuantity,
                 ];
             }
 

@@ -9,6 +9,7 @@ use Modules\Sales\app\Models\Sale;
 use Modules\Menu\app\Services\MenuStockService;
 use App\Models\Stock;
 use App\Models\TaxLedger;
+use Modules\Menu\app\Models\Combo;
 
 class WebsiteOrderController extends Controller
 {
@@ -188,6 +189,62 @@ class WebsiteOrderController extends Controller
                         'error' => $e->getMessage(),
                     ]);
                 }
+            } elseif ($detail->combo_id) {
+                // Expand combo into individual menu items and deduct stock for each
+                try {
+                    $combo = Combo::with(['comboItems.menuItem.recipes.ingredient'])->find($detail->combo_id);
+                    if ($combo) {
+                        foreach ($combo->comboItems as $comboItem) {
+                            if ($comboItem->menuItem) {
+                                $totalQty = $comboItem->quantity * $detail->quantity;
+                                $this->menuStockService->deductStockForSale(
+                                    $comboItem->menu_item_id,
+                                    $totalQty,
+                                    $warehouseId,
+                                    $order->invoice
+                                );
+                            }
+                        }
+                    }
+                    Log::info('Stock deducted for combo in order', [
+                        'order_id' => $order->id,
+                        'combo_id' => $detail->combo_id,
+                        'quantity' => $detail->quantity,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to deduct stock for combo in order', [
+                        'order_id' => $order->id,
+                        'combo_id' => $detail->combo_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Deduct addon ingredient stock
+            $addons = $detail->addons;
+            if (!empty($addons)) {
+                if (is_string($addons)) {
+                    $addons = json_decode($addons, true);
+                }
+                if (is_array($addons)) {
+                    foreach ($addons as $addon) {
+                        $addonId = $addon['id'] ?? null;
+                        $addonQty = ($addon['qty'] ?? 1) * $detail->quantity;
+                        if ($addonId) {
+                            try {
+                                $this->menuStockService->deductAddonStockForSale(
+                                    $addonId, $addonQty, $warehouseId, $order->invoice
+                                );
+                            } catch (\Exception $e) {
+                                Log::error('Failed to deduct addon stock', [
+                                    'order_id' => $order->id,
+                                    'addon_id' => $addonId,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -220,6 +277,62 @@ class WebsiteOrderController extends Controller
                         'menu_item_id' => $detail->menu_item_id,
                         'error' => $e->getMessage(),
                     ]);
+                }
+            } elseif ($detail->combo_id) {
+                // Expand combo into individual menu items and reverse stock for each
+                try {
+                    $combo = Combo::with(['comboItems.menuItem.recipes.ingredient'])->find($detail->combo_id);
+                    if ($combo) {
+                        foreach ($combo->comboItems as $comboItem) {
+                            if ($comboItem->menuItem) {
+                                $totalQty = $comboItem->quantity * $detail->quantity;
+                                $this->menuStockService->reverseStockDeduction(
+                                    $comboItem->menu_item_id,
+                                    $totalQty,
+                                    $warehouseId,
+                                    $order->invoice . '-CANCELLED'
+                                );
+                            }
+                        }
+                    }
+                    Log::info('Stock reversed for combo in cancelled order', [
+                        'order_id' => $order->id,
+                        'combo_id' => $detail->combo_id,
+                        'quantity' => $detail->quantity,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to reverse stock for combo in order', [
+                        'order_id' => $order->id,
+                        'combo_id' => $detail->combo_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Reverse addon ingredient stock
+            $addons = $detail->addons;
+            if (!empty($addons)) {
+                if (is_string($addons)) {
+                    $addons = json_decode($addons, true);
+                }
+                if (is_array($addons)) {
+                    foreach ($addons as $addon) {
+                        $addonId = $addon['id'] ?? null;
+                        $addonQty = ($addon['qty'] ?? 1) * $detail->quantity;
+                        if ($addonId) {
+                            try {
+                                $this->menuStockService->reverseAddonStockDeduction(
+                                    $addonId, $addonQty, $warehouseId, $order->invoice . '-CANCELLED'
+                                );
+                            } catch (\Exception $e) {
+                                Log::error('Failed to reverse addon stock', [
+                                    'order_id' => $order->id,
+                                    'addon_id' => $addonId,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+                    }
                 }
             }
         }
