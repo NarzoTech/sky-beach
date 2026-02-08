@@ -33,7 +33,7 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label">{{ __('Customer Name') }}</label>
                             <input type="text"
                                    name="customer_name"
@@ -42,8 +42,8 @@
                                    autocomplete="off">
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label">{{ __('Phone') }} <small class="text-muted">({{ __('for pickup notification') }})</small></label>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ __('Phone') }}</label>
                             <input type="tel"
                                    name="customer_phone"
                                    class="form-control pm-input"
@@ -139,15 +139,12 @@
                 </form>
             </div>
 
-            <div class="modal-footer d-flex gap-2">
-                <button type="button" class="btn btn-start-order flex-fill" onclick="placeTakeawayOrder(false)">
-                    <i class="bx bx-check-circle me-1"></i>
-                    {{ __('Place Order') }}
-                    <small class="d-block" style="opacity: 0.7;">{{ __('Pay Later') }}</small>
+            <div class="modal-footer d-flex flex-nowrap gap-2">
+                <button type="button" class="btn btn-start-order w-50" onclick="placeTakeawayOrder(false)">
+                    <i class="bx bx-check-circle me-1"></i>{{ __('Place Order') }}
                 </button>
-                <button type="button" class="btn btn-complete-payment flex-fill" onclick="placeTakeawayOrder(true)">
-                    <i class="bx bx-credit-card me-1"></i>
-                    {{ __('Pay Now') }}
+                <button type="button" class="btn btn-complete-payment w-50" onclick="placeTakeawayOrder(true)">
+                    <i class="bx bx-credit-card me-1"></i>{{ __('Pay Now') }}
                 </button>
             </div>
         </div>
@@ -372,7 +369,7 @@ function submitTakeawayOrderWithoutPayment() {
     submitData.append('sub_total', document.getElementById('subtotal')?.value || document.getElementById('total')?.value || 0);
 
     // Show loading state
-    const placeOrderBtn = document.querySelector('#takeawaySetupModal .btn-secondary');
+    const placeOrderBtn = document.querySelector('#takeawaySetupModal .btn-start-order');
     const originalText = placeOrderBtn.innerHTML;
     placeOrderBtn.innerHTML = '{{ __("Processing...") }}';
     placeOrderBtn.disabled = true;
@@ -393,10 +390,17 @@ function submitTakeawayOrderWithoutPayment() {
                 takeawayModal.hide();
             }
 
-            // Reset cart
-            if (typeof getCart === 'function') {
-                getCart();
+            // Clear cart table and reset totals
+            $(".product-table tbody").html('');
+            $('#titems').text(0);
+            $('#discount_total_amount').val(0);
+            $('#tds').text(0);
+            if (typeof totalSummery === 'function') {
+                totalSummery();
             }
+            $("#customer_id").val('').trigger('change');
+            $('#discount_type').val(0).trigger('change');
+            $('.dis-form').hide();
 
             // Update running orders count
             if (typeof updateRunningOrdersCount === 'function') {
@@ -428,12 +432,10 @@ function submitTakeawayOrderWithoutPayment() {
                         openRunningOrders();
                     }
                 } else if (dialogResult.isDenied && orderId) {
-                    // Print receipt only
-                    if (typeof printDineInReceipt === 'function') {
-                        printDineInReceipt(orderId);
-                    }
+                    // Print kitchen ticket (Item + Qty format)
+                    const kitchenUrl = '{{ route("admin.waiter.print.kitchen", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+                    window.open(kitchenUrl, 'kitchen_' + orderId, 'width=322,height=600,scrollbars=yes,resizable=no');
                 }
-                // If cancelled, just stay on POS for new order
             });
         } else {
             if (typeof toastr !== 'undefined') {

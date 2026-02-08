@@ -99,16 +99,12 @@
                 </form>
             </div>
 
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-start-order flex-fill me-2" onclick="startDineInOrder()">
-                    <i class="bx bx-play-circle me-2"></i>
-                    {{ __('Start Order') }}
-                    <small class="d-block text-white-50">{{ __('Pay Later') }}</small>
+            <div class="modal-footer d-flex flex-nowrap gap-2">
+                <button type="button" class="btn btn-start-order w-50" onclick="startDineInOrder()">
+                    <i class="bx bx-play-circle me-1"></i>{{ __('Start Order') }}
                 </button>
-                <button type="button" class="btn btn-complete-payment flex-fill" onclick="proceedToPayment('dine_in')">
-                    <i class="bx bx-credit-card me-2"></i>
-                    {{ __('Pay Now') }}
-                    <small class="d-block" id="dineInPayNowAmount"></small>
+                <button type="button" class="btn btn-complete-payment w-50" onclick="proceedToPayment('dine_in')">
+                    <i class="bx bx-credit-card me-1"></i>{{ __('Pay Now') }}
                 </button>
             </div>
         </div>
@@ -272,20 +268,55 @@ function createDineInOrder(data) {
     .then(result => {
         if (result.success) {
             modal.hide();
-            toastr.success(result.message || '{{ __("Order started successfully") }}');
 
             // Update table display
             updateSelectedTable(data.table_id, result.table_name);
 
-            // Refresh cart
-            if (typeof getCart === 'function') {
-                getCart();
+            // Clear cart table and reset totals
+            $(".product-table tbody").html('');
+            $('#titems').text(0);
+            $('#discount_total_amount').val(0);
+            $('#tds').text(0);
+            if (typeof totalSummery === 'function') {
+                totalSummery();
             }
+            $("#customer_id").val('').trigger('change');
+            $('#discount_type').val(0).trigger('change');
+            $('.dis-form').hide();
 
             // Refresh running orders count
             if (typeof updateRunningOrdersCount === 'function') {
                 updateRunningOrdersCount();
             }
+
+            // Get order ID from response
+            const orderId = result.order_id || (result.order ? result.order.id : null);
+            const successMessage = result.message || '{{ __("Dine-in order started successfully") }}';
+
+            // Show success dialog with print option
+            Swal.fire({
+                icon: 'success',
+                title: "{{ __('Order Started') }}",
+                text: successMessage,
+                showCancelButton: true,
+                showDenyButton: orderId ? true : false,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                denyButtonColor: '#17a2b8',
+                confirmButtonText: '<i class="bx bx-list-ul me-1"></i> {{ __("View Orders") }}',
+                cancelButtonText: '<i class="bx bx-plus me-1"></i> {{ __("New Order") }}',
+                denyButtonText: '<i class="bx bx-printer me-1"></i> {{ __("Print Kitchen") }}',
+                reverseButtons: true
+            }).then((dialogResult) => {
+                if (dialogResult.isConfirmed) {
+                    if (typeof openRunningOrders === 'function') {
+                        openRunningOrders();
+                    }
+                } else if (dialogResult.isDenied && orderId) {
+                    const kitchenUrl = '{{ route("admin.waiter.print.kitchen", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+                    window.open(kitchenUrl, 'kitchen_' + orderId, 'width=322,height=600,scrollbars=yes,resizable=no');
+                }
+            });
         } else {
             toastr.error(result.message || '{{ __("Failed to start order") }}');
         }
