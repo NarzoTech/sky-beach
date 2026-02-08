@@ -1787,6 +1787,63 @@ class POSController extends Controller
     }
 
     /**
+     * Complete an already-paid running order (no payment processing needed)
+     */
+    public function completePaidOrder($id)
+    {
+        try {
+            $order = Sale::with('table')->findOrFail($id);
+
+            // Verify the order is actually paid
+            if ($order->payment_status != 1 && $order->payment_status !== 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('Order is not yet paid. Please use Complete & Pay instead.')
+                ], 422);
+            }
+
+            // Mark as completed
+            $order->update([
+                'status' => 1,
+                'updated_by' => auth('admin')->id(),
+            ]);
+
+            // Release the table if dine-in
+            if ($order->table) {
+                $order->table->release();
+            }
+
+            // Generate receipt
+            $receiptHtml = '';
+            try {
+                $sale = Sale::with(['table', 'details.menuItem', 'details.service', 'details.ingredient', 'customer', 'createdBy', 'waiter', 'payment.account'])->find($order->id);
+                $setting = \Illuminate\Support\Facades\Cache::get('setting');
+
+                $receiptHtml = view('pos::pos-receipt')->with([
+                    'sale' => $sale,
+                    'setting' => $setting,
+                ])->render();
+            } catch (\Exception $e) {
+                Log::warning('Receipt generation failed: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Order completed successfully'),
+                'receipt' => $receiptHtml,
+                'invoice' => $order->invoice,
+                'invoiceRoute' => route('admin.sales.invoice', $order->id) . '?print=true'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error completing paid order: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error completing order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Cancel a running order
      */
     public function cancelRunningOrder($id)

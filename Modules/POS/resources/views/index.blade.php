@@ -4864,6 +4864,68 @@
             }
         }
 
+        // Print receipt for an already-paid order
+        function printReceipt(orderId) {
+            printDineInReceipt(orderId);
+        }
+
+        // Complete an already-paid running order (no payment processing needed)
+        function completeRunningOrderDirectly(orderId) {
+            $('#order-details-modal').modal('hide');
+
+            Swal.fire({
+                title: "{{ __('Complete Order?') }}",
+                text: "{{ __('This order is already paid. Mark it as completed?') }}",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#71dd37',
+                confirmButtonText: "{{ __('Yes, Complete') }}",
+                cancelButtonText: "{{ __('Cancel') }}"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('.preloader_area').removeClass('d-none');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "{{ url('admin/pos/running-orders') }}/" + orderId + "/complete-paid",
+                        data: {
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(response.message);
+                                loadRunningOrdersCount();
+                                loadRunningOrders();
+                                refreshAvailableTables();
+
+                                // Show receipt if returned
+                                if (response.receipt) {
+                                    $('#pos-receipt-body').html(response.receipt);
+                                    $('.receipt-full-invoice').attr('href', response.invoiceRoute);
+                                    $('#posReceiptModal').modal('show');
+
+                                    if (posSettings.is_printable) {
+                                        setTimeout(function() { printPosReceipt(); }, 500);
+                                    }
+                                }
+                            } else {
+                                toastr.error(response.message || "{{ __('Error completing order') }}");
+                                $('#order-details-modal').modal('show');
+                            }
+                            $('.preloader_area').addClass('d-none');
+                        },
+                        error: function(xhr) {
+                            toastr.error(xhr.responseJSON?.message || "{{ __('Server error occurred') }}");
+                            $('.preloader_area').addClass('d-none');
+                            $('#order-details-modal').modal('show');
+                        }
+                    });
+                } else {
+                    $('#order-details-modal').modal('show');
+                }
+            });
+        }
+
         function cancelRunningOrder(orderId) {
             // Hide the modal first to prevent z-index conflict
             $('#order-details-modal').modal('hide');

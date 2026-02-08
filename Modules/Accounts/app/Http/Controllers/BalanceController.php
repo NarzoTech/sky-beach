@@ -53,6 +53,16 @@ class BalanceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         checkAdminHasPermissionAndThrowException('deposit.withdraw.create');
+
+        $request->validate([
+            'balance_type' => 'required|in:deposit,withdraw',
+            'date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_type' => 'required',
+            'account_id' => 'required_unless:payment_type,cash,advance',
+            'note' => 'nullable|string|max:500',
+        ]);
+
         try {
             if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
                 $account = Account::firstOrCreate(
@@ -61,18 +71,18 @@ class BalanceController extends Controller
                 );
             } else {
                 $account = $this->account->find($request->account_id);
+                if (!$account) {
+                    return back()->withInput()->with(['messege' => 'Selected account not found.', 'alert-type' => 'error']);
+                }
             }
 
-            // balance
-
-            $balance = Balance::create([
+            Balance::create([
                 'balance_type' => $request->balance_type,
                 'date' => now()->parse($request->date),
                 'amount' => $request->amount,
                 'account_id' => $account->id,
                 'note' => $request->note,
                 'payment_type' => $request->payment_type,
-                'type_id' => $request->type_id,
                 'created_by' => auth('admin')->id(),
             ]);
 
@@ -80,7 +90,7 @@ class BalanceController extends Controller
         } catch (Exception $ex) {
             Log::error($ex->getMessage());
 
-            return back()->with(['messege' => 'Something went wrong.', 'alert-type' => 'danger']);
+            return back()->withInput()->with(['messege' => 'Something went wrong.', 'alert-type' => 'error']);
         }
     }
 
@@ -107,7 +117,7 @@ class BalanceController extends Controller
 
         $totalDeposits = Balance::where('balance_type', 'deposit')->sum('amount');
         $totalWithdraws = Balance::where('balance_type', 'withdraw')->sum('amount');
-        $balance = Balance::find($id);
+        $balance = Balance::findOrFail($id);
 
         $accountBalance = 0;
         $accounts->map(function ($account) use (&$accountBalance) {
@@ -123,6 +133,16 @@ class BalanceController extends Controller
     public function update(Request $request, $id): RedirectResponse
     {
         checkAdminHasPermissionAndThrowException('deposit.withdraw.edit');
+
+        $request->validate([
+            'balance_type' => 'required|in:deposit,withdraw',
+            'date' => 'required|date',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_type' => 'required',
+            'account_id' => 'required_unless:payment_type,cash,advance',
+            'note' => 'nullable|string|max:500',
+        ]);
+
         if ($request->payment_type == 'cash' || $request->payment_type == 'advance') {
             $account = Account::firstOrCreate(
                 ['account_type' => 'cash'],
@@ -130,11 +150,14 @@ class BalanceController extends Controller
             );
         } else {
             $account = $this->account->find($request->account_id);
+            if (!$account) {
+                return back()->withInput()->with(['messege' => 'Selected account not found.', 'alert-type' => 'error']);
+            }
         }
 
-        $balance = Balance::find($id);
+        $balance = Balance::findOrFail($id);
 
-        $data = $request->except('_token');
+        $data = $request->except('_token', '_method');
         $data['updated_by'] = auth('admin')->id();
         $data['account_id'] = $account->id;
         $data['date'] = now()->parse($request->date);
@@ -150,7 +173,7 @@ class BalanceController extends Controller
     public function destroy($id)
     {
         checkAdminHasPermissionAndThrowException('deposit.withdraw.delete');
-        $balance = Balance::find($id);
+        $balance = Balance::findOrFail($id);
         $balance->delete();
         return back()->with(['messege' => 'Balance deleted successfully.', 'alert-type' => 'success']);
     }

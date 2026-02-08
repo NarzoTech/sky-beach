@@ -17,6 +17,11 @@
         }
     }
 
+    // Payment status check
+    $isPaid = $order->payment_status == 1 || $order->payment_status === 'paid';
+    $isCancelled = $order->status === 2 || $order->status === 'cancelled';
+    $dueAmount = $calculatedGrandTotal - ($order->paid_amount ?? 0);
+
     // Status configuration
     $statusValue = $order->status;
     $statusClass = match(true) {
@@ -211,11 +216,15 @@
                 <tbody>
                     @foreach($order->details as $detail)
                     <tr class="order-item-row" data-detail-id="{{ $detail->id }}" data-price="{{ $detail->price }}">
+                        @if(!$isPaid && !$isCancelled)
                         <td class="text-center">
                             <button type="button" class="remove-btn" onclick="removeOrderItem({{ $order->id }}, {{ $detail->id }})" title="{{ __('Remove') }}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
+                        @else
+                        <td></td>
+                        @endif
                         <td>
                             <strong>{{ $detail->menuItem->name ?? ($detail->service->name ?? 'Unknown Item') }}</strong>
                             @if($detail->variant_id && $detail->attributes)
@@ -231,6 +240,7 @@
                             @endif
                         </td>
                         <td class="text-center">
+                            @if(!$isPaid && !$isCancelled)
                             <div class="qty-control">
                                 <button class="qty-btn" type="button" onclick="updateItemQty({{ $order->id }}, {{ $detail->id }}, -1)">
                                     <i class="fas fa-minus"></i>
@@ -242,6 +252,9 @@
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
+                            @else
+                            {{ $detail->quantity }}
+                            @endif
                         </td>
                         <td class="text-end">{{ currency($detail->price) }}</td>
                         <td class="text-end fw-semibold">{{ currency($detail->sub_total) }}</td>
@@ -272,6 +285,33 @@
         </div>
     </div>
 
+    <!-- Payment Info (for already-paid orders) -->
+    @if($isPaid)
+    <div class="progress-card mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="fas fa-credit-card text-success"></i>
+            <strong>{{ __('Payment Info') }}</strong>
+            <span class="badge bg-success ms-auto">{{ __('Paid') }}</span>
+        </div>
+        @php
+            $payments = $order->payment ?? collect();
+        @endphp
+        @if($payments->count() > 0)
+            @foreach($payments as $p)
+            <div class="d-flex justify-content-between py-1">
+                <span class="text-muted">{{ ucfirst(str_replace('_', ' ', $p->account->account_type ?? 'cash')) }}</span>
+                <span class="fw-semibold">{{ currency($p->amount) }}</span>
+            </div>
+            @endforeach
+        @else
+            <div class="d-flex justify-content-between py-1">
+                <span class="text-muted">{{ __('Paid Amount') }}</span>
+                <span class="fw-semibold">{{ currency($order->paid_amount) }}</span>
+            </div>
+        @endif
+    </div>
+    @endif
+
     <!-- Notes -->
     @if($order->sale_note || $order->staff_note)
     <div class="progress-card mb-4">
@@ -294,17 +334,30 @@
             <button type="button" class="btn btn-back" onclick="backToRunningOrders()">
                 <i class="fas fa-arrow-left me-1"></i>{{ __('Back') }}
             </button>
+            @if(!$isPaid && !$isCancelled)
             <button type="button" class="btn btn-cancel" onclick="cancelRunningOrder({{ $order->id }})">
                 <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
             </button>
+            @endif
         </div>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-add" onclick="addItemsToOrder({{ $order->id }})">
-                <i class="fas fa-plus me-1"></i>{{ __('Add Items') }}
-            </button>
-            <button type="button" class="btn btn-pay" onclick="showPaymentModal({{ $order->id }}, {{ $calculatedGrandTotal }}, '{{ $order->invoice }}', '{{ $order->table->name ?? '' }}')">
-                <i class="fas fa-cash-register me-1"></i>{{ __('Complete & Pay') }}
-            </button>
+            @if($isPaid)
+                {{-- Order is already paid - show print receipt and complete buttons --}}
+                <button type="button" class="btn btn-add" onclick="printReceipt({{ $order->id }})">
+                    <i class="fas fa-print me-1"></i>{{ __('Print Receipt') }}
+                </button>
+                <button type="button" class="btn btn-pay" onclick="completeRunningOrderDirectly({{ $order->id }})">
+                    <i class="fas fa-check me-1"></i>{{ __('Complete') }}
+                </button>
+            @elseif(!$isCancelled)
+                {{-- Order is unpaid - show add items and pay buttons --}}
+                <button type="button" class="btn btn-add" onclick="addItemsToOrder({{ $order->id }})">
+                    <i class="fas fa-plus me-1"></i>{{ __('Add Items') }}
+                </button>
+                <button type="button" class="btn btn-pay" onclick="showPaymentModal({{ $order->id }}, {{ $calculatedGrandTotal }}, '{{ $order->invoice }}', '{{ $order->table->name ?? '' }}')">
+                    <i class="fas fa-cash-register me-1"></i>{{ __('Complete & Pay') }}
+                </button>
+            @endif
         </div>
     </div>
 </div>

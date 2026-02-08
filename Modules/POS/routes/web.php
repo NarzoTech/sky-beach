@@ -62,6 +62,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::post('/running-orders/{id}/load-to-cart', [POSController::class, 'loadOrderToCart'])->name('pos.running-orders.load-cart');
         Route::post('/running-orders/{id}/update', [POSController::class, 'updateRunningOrder'])->name('pos.running-orders.update');
         Route::post('/running-orders/{id}/complete', [POSController::class, 'completeRunningOrder'])->name('pos.running-orders.complete');
+        Route::post('/running-orders/{id}/complete-paid', [POSController::class, 'completePaidOrder'])->name('pos.running-orders.complete-paid');
         Route::post('/running-orders/{id}/cancel', [POSController::class, 'cancelRunningOrder'])->name('pos.running-orders.cancel');
         Route::get('/running-orders/{id}/receipt', [POSController::class, 'printOrderReceipt'])->name('pos.running-orders.receipt');
         Route::post('/running-orders/{id}/update-item-qty', [POSController::class, 'updateOrderItemQty'])->name('pos.running-orders.update-item-qty');
