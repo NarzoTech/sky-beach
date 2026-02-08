@@ -973,13 +973,16 @@
                     <h5 class="modal-title">
                         <i class="bx bx-food-menu me-2"></i>{{ __('Running Orders') }}
                     </h5>
-                    <div class="running-orders-search ms-auto me-3">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-white border-0"><i class="bx bx-search"></i></span>
-                            <input type="text" id="running-orders-search" class="form-control border-0" placeholder="{{ __('Search invoice, table, customer...') }}" autocomplete="off">
-                        </div>
-                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="ro-search-strip">
+                    <div class="ro-search-box">
+                        <i class="bx bx-search ro-search-icon"></i>
+                        <input type="text" id="running-orders-search" placeholder="{{ __('Search by invoice, table, customer or waiter...') }}" autocomplete="off">
+                        <span class="ro-search-clear d-none" id="ro-search-clear"><i class="bx bx-x"></i></span>
+                        <span class="ro-search-spinner d-none" id="ro-search-spinner"><i class="bx bx-loader-alt bx-spin"></i></span>
+                        <kbd class="ro-search-kbd">{{ __('Ctrl+F') }}</kbd>
+                    </div>
                 </div>
                 <div class="modal-body" id="running-orders-content">
                     <div class="text-center py-5">
@@ -992,28 +995,71 @@
     </div>
 
     <style>
-    /* Running Orders Search */
-    .running-orders-search .input-group {
-        background: rgba(255,255,255,0.15);
-        border-radius: 8px;
-        overflow: hidden;
-        min-width: 250px;
+    /* Running Orders Search Strip */
+    .ro-search-strip {
+        padding: 12px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
     }
-    .running-orders-search .input-group-text {
-        color: #696cff;
-        padding: 4px 8px 4px 12px;
+    .ro-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 0 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .running-orders-search .form-control {
-        font-size: 13px;
-        padding: 6px 12px 6px 0;
-        box-shadow: none !important;
+    .ro-search-box:focus-within {
+        border-color: #696cff;
+        box-shadow: 0 0 0 3px rgba(105,108,255,0.1);
     }
-    .running-orders-search .form-control::placeholder {
+    .ro-search-icon {
+        font-size: 18px;
         color: #a1acb8;
+        flex-shrink: 0;
+        transition: color 0.2s;
     }
+    .ro-search-box:focus-within .ro-search-icon { color: #696cff; }
+    .ro-search-box input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 10px 12px;
+        font-size: 14px;
+        background: transparent;
+        color: #566a7f;
+    }
+    .ro-search-box input::placeholder { color: #b4bdc6; }
+    .ro-search-clear {
+        cursor: pointer;
+        font-size: 20px;
+        color: #a1acb8;
+        padding: 2px;
+        line-height: 1;
+        border-radius: 50%;
+        transition: all 0.15s;
+    }
+    .ro-search-clear:hover { color: #dc3545; background: #fde8ea; }
+    .ro-search-spinner { font-size: 18px; color: #696cff; }
+    .ro-search-kbd {
+        font-size: 11px;
+        padding: 2px 6px;
+        background: #f0f1ff;
+        color: #696cff;
+        border-radius: 4px;
+        border: 1px solid #e0e1ff;
+        font-family: inherit;
+        white-space: nowrap;
+        margin-left: 6px;
+    }
+    /* Hide cards during client-side filter */
+    .running-order-col-hidden { display: none !important; }
     @media (max-width: 575px) {
-        .running-orders-search { min-width: 0; flex: 1; }
-        .running-orders-search .input-group { min-width: 0; }
+        .ro-search-strip { padding: 8px 12px; }
+        .ro-search-kbd { display: none; }
+        .ro-search-box input { font-size: 13px; padding: 8px 10px; }
     }
 
     /* Running Order Card Styles */
@@ -4271,28 +4317,94 @@
 
         function openRunningOrders() {
             $('#running-orders-modal').modal('show');
+            $('#running-orders-search').val('');
+            $('#ro-search-clear').addClass('d-none');
+            $('.ro-search-kbd').removeClass('d-none');
             loadRunningOrders();
         }
 
         var currentRunningOrdersPage = 1;
+        var roSearchTimer = null;
+        var roSearchXhr = null;
+
+        // Keyboard shortcut: Ctrl+F focuses search when modal is open
+        $(document).on('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f' && $('#running-orders-modal').hasClass('show')) {
+                e.preventDefault();
+                $('#running-orders-search').focus();
+            }
+        });
+
+        // Clear button
+        $(document).on('click', '#ro-search-clear', function() {
+            $('#running-orders-search').val('').focus();
+            $(this).addClass('d-none');
+            $('.ro-search-kbd').removeClass('d-none');
+            // Show all cards instantly
+            $('.running-order-col').removeClass('running-order-col-hidden');
+            loadRunningOrders(1);
+        });
+
+        // Search input handler — instant client-side + debounced server
+        $(document).on('input', '#running-orders-search', function() {
+            var val = $(this).val().trim();
+
+            // Toggle clear button / kbd hint
+            if (val.length > 0) {
+                $('#ro-search-clear').removeClass('d-none');
+                $('.ro-search-kbd').addClass('d-none');
+            } else {
+                $('#ro-search-clear').addClass('d-none');
+                $('.ro-search-kbd').removeClass('d-none');
+            }
+
+            // Instant client-side filter on visible cards
+            var term = val.toLowerCase();
+            if (term.length > 0) {
+                $('.running-order-col').each(function() {
+                    var data = $(this).data('search') || '';
+                    $(this).toggleClass('running-order-col-hidden', data.indexOf(term) === -1);
+                });
+            } else {
+                $('.running-order-col').removeClass('running-order-col-hidden');
+            }
+
+            // Debounced server search for full results
+            clearTimeout(roSearchTimer);
+            if (roSearchXhr) roSearchXhr.abort();
+            roSearchTimer = setTimeout(function() {
+                loadRunningOrders(1);
+            }, 400);
+        });
 
         function loadRunningOrders(page = 1) {
             currentRunningOrdersPage = page;
-            $('#running-orders-content').html(`
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-3 text-muted">{{ __('Loading running orders...') }}</p>
-                </div>
-            `);
+            var search = ($('#running-orders-search').val() || '').trim();
 
-            $.ajax({
+            // Show spinner only when no cards are visible
+            if ($('.running-order-col:not(.running-order-col-hidden)').length === 0) {
+                $('#running-orders-content').html(`
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="mt-2 text-muted mb-0" style="font-size:13px">{{ __('Searching...') }}</p>
+                    </div>
+                `);
+            }
+
+            // Show inline spinner
+            $('#ro-search-spinner').removeClass('d-none');
+
+            if (roSearchXhr) roSearchXhr.abort();
+            roSearchXhr = $.ajax({
                 type: 'GET',
                 url: "{{ route('admin.pos.running-orders') }}",
-                data: { page: page },
+                data: { page: page, search: search },
                 success: function(response) {
                     if (response.success) {
                         $('#running-orders-content').html(response.html);
-                        updateRunningOrdersCount(response.count);
+                        if (!search) {
+                            updateRunningOrdersCount(response.count);
+                        }
                     } else {
                         $('#running-orders-content').html(`
                             <div class="alert alert-danger">
@@ -4301,12 +4413,16 @@
                         `);
                     }
                 },
-                error: function() {
+                error: function(xhr) {
+                    if (xhr.statusText === 'abort') return;
                     $('#running-orders-content').html(`
                         <div class="alert alert-danger">
                             {{ __('Server error occurred') }}
                         </div>
                     `);
+                },
+                complete: function() {
+                    $('#ro-search-spinner').addClass('d-none');
                 }
             });
         }

@@ -1269,13 +1269,31 @@ class POSController extends Controller
         try {
             $page = $request->get('page', 1);
             $perPage = 9;
+            $search = $request->get('search', '');
 
             // Note: status column is integer - 0 = processing/pending, 1 = completed
             // Include all order types: Dine-in, Take Away
-            $runningOrders = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
+            $query = Sale::with(['table', 'details.menuItem', 'customer', 'waiter'])
                 ->whereIn('order_type', [Sale::ORDER_TYPE_DINE_IN, Sale::ORDER_TYPE_TAKE_AWAY])
-                ->where('status', 0) // 0 = processing/pending
-                ->orderBy('created_at', 'desc')
+                ->where('status', 0); // 0 = processing/pending
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('invoice', 'like', "%{$search}%")
+                      ->orWhereHas('table', function ($tq) use ($search) {
+                          $tq->where('name', 'like', "%{$search}%");
+                      })
+                      ->orWhereHas('customer', function ($cq) use ($search) {
+                          $cq->where('name', 'like', "%{$search}%")
+                             ->orWhere('phone', 'like', "%{$search}%");
+                      })
+                      ->orWhereHas('waiter', function ($wq) use ($search) {
+                          $wq->where('name', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            $runningOrders = $query->orderBy('created_at', 'desc')
                 ->paginate($perPage, ['*'], 'page', $page);
 
             $html = view('pos::running-orders', compact('runningOrders'))->render();

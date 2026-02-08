@@ -34,7 +34,7 @@
             $overdueMinutes = $isOverdue ? $now->diffInMinutes($prepEndTime) : 0;
         }
     @endphp
-    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
+    <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 running-order-col" data-search="{{ strtolower(($order->invoice ?? '') . ' ' . ($order->table->name ?? '') . ' ' . ($order->customer->name ?? 'guest') . ' ' . ($order->customer->phone ?? '') . ' ' . ($order->waiter->name ?? '')) }}">
         <div class="card h-100 running-order-card shadow-sm" onclick="viewOrderDetails({{ $order->id }})">
             <div class="card-body">
                 {{-- Header Row --}}
