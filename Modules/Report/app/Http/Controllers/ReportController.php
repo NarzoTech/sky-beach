@@ -2,45 +2,40 @@
 
 namespace Modules\Report\app\Http\Controllers;
 
-use App\Exports\BarcodeWiseProductExport;
-use App\Exports\BarcodeWiseSaleExport;
-use App\Exports\CategoryWiseExport;
 use App\Exports\CustomerReportExport;
 use App\Exports\DetailsSaleReportExport;
-use App\Exports\DueDateSaleReportExport;
 use App\Exports\ExpenseReportExport;
+use App\Exports\MenuItemSalesExport;
+use App\Exports\OrderTypeExport;
 use App\Exports\PurchaseReportExport;
-use App\Exports\ReceivableReportExport;
 use App\Exports\SalaryReportExport;
 use App\Exports\SuppliersPaymentReportExport;
 use App\Exports\SuppliersReportExport;
-use App\Exports\TotalReceiveReportExport;
+use App\Exports\TablePerformanceExport;
+use App\Exports\WaiterPerformanceExport;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Accounts\app\Services\AccountsService;
 use Modules\Customer\app\Models\CustomerPayment;
+use Modules\Employee\app\Models\Employee;
 use Modules\Employee\app\Models\EmployeeSalary;
 use Modules\Employee\app\Services\EmployeeService;
 use Modules\Expense\app\Models\Expense;
 use Modules\Ingredient\app\Services\BrandService;
 use Modules\Ingredient\app\Services\IngredientCategoryService;
 use Modules\Ingredient\app\Services\IngredientService;
+use Modules\Menu\app\Models\MenuCategory;
+use Modules\Menu\app\Models\MenuItem;
 use Modules\Purchase\app\Models\Purchase;
-use Modules\Purchase\app\Models\PurchaseDetails;
 use Modules\Purchase\app\Models\PurchaseReturn;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\SalesReturn;
-use Modules\Sales\app\Models\SalesReturnDetails;
-use Modules\Service\app\Models\Service;
 use Modules\Supplier\app\Services\SupplierService;
+use Modules\TableManagement\app\Models\RestaurantTable;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Service\app\Models\ServiceCategory;
 use Modules\Supplier\app\Models\SupplierPayment;
 
 class ReportController extends Controller
@@ -50,184 +45,313 @@ class ReportController extends Controller
     {
         $this->middleware('auth:admin');
     }
-    public function barcodeWiseProduct()
+
+    /**
+     * Menu Item Sales Report
+     */
+    public function menuItemSales()
     {
-        $products = $this->productService->getProducts();
-        $products = $products->where('status', 1);
+        $query = ProductSale::whereNotNull('menu_item_id')
+            ->selectRaw('menu_item_id, SUM(quantity) as total_qty, SUM(sub_total) as total_revenue, SUM(cogs_amount) as total_cogs, SUM(profit_amount) as total_profit')
+            ->groupBy('menu_item_id');
 
-        // Calculate totals from ALL products before pagination
-        $allProducts = $products->get();
-
-        $totalSalePrice = 0;
-        $totalSaleQty = 0;
-        $totalReturnPrice = 0;
-        $totalReturnQty = 0;
-        $totalPurchasePrice = 0;
-        $totalPurchaseQty = 0;
-
-        foreach ($allProducts as $product) {
-            $totalSalePrice += (int) $product->sales['price'];
-            $totalSaleQty += $product->sales['qty'];
-            $totalReturnPrice += (int) $product->sales_return['price'];
-            $totalReturnQty += $product->sales_return['qty'];
-            $totalPurchasePrice += (int) $product->total_purchase['price'];
-            $totalPurchaseQty += $product->total_purchase['qty'];
+        // Date filter via sale relationship
+        if (request('from_date') || request('to_date')) {
+            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+            $query->whereHas('sale', function ($q) use ($fromDate, $toDate) {
+                $q->whereBetween('order_date', [$fromDate, $toDate]);
+            });
         }
 
+        // Category filter
+        if (request('category')) {
+            $query->whereHas('menuItem', function ($q) {
+                $q->where('category_id', request('category'));
+            });
+        }
+
+        // Keyword search
+        if (request('keyword')) {
+            $query->whereHas('menuItem', function ($q) {
+                $q->where('name', 'like', '%' . request('keyword') . '%');
+            });
+        }
+
+        $allItems = $query->with(['menuItem.category'])->get();
+
+        // Calculate totals
         $data = [
-            'totalSalePrice' => $totalSalePrice,
-            'totalSaleQty' => $totalSaleQty,
-            'totalReturnPrice' => $totalReturnPrice,
-            'totalReturnQty' => $totalReturnQty,
-            'totalPurchasePrice' => $totalPurchasePrice,
-            'totalPurchaseQty' => $totalPurchaseQty,
+            'totalQty' => $allItems->sum('total_qty'),
+            'totalRevenue' => $allItems->sum('total_revenue'),
+            'totalCogs' => $allItems->sum('total_cogs'),
+            'totalProfit' => $allItems->sum('total_profit'),
         ];
 
-        if (request('par-page')) {
-            $parpage = request('par-page') == 'all' ? null : request('par-page');
-        } else {
-            $parpage = 20;
-        }
-        if ($parpage === null) {
-            $products = $allProducts;
-        } else {
-            $products = $this->productService->getProducts()->where('status', 1)->paginate($parpage);
-            $products->appends(request()->query());
-        }
-
+        // Excel export
         if (checkAdminHasPermission('report.excel.download')) {
             if (request('export')) {
-                $fileName = 'barcode-wise-product-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new BarcodeWiseProductExport($allProducts, $data), $fileName);
+                $fileName = 'menu-item-sales-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+                return Excel::download(new MenuItemSalesExport($allItems, $data), $fileName);
             }
         }
 
+        // PDF export
         if (checkAdminHasPermission('report.pdf.download')) {
             if (request('export_pdf')) {
-                return view('report::pdf.barcode-wise-product', [
-                    'products' => $allProducts,
+                return view('report::pdf.menu-item-sales', [
+                    'items' => $allItems,
                     'data' => $data
                 ]);
             }
         }
 
-
-        return view('report::barcode-wise-product', compact('products', 'data'));
-    }
-
-    public function barcodeSale()
-    {
-        $products = $this->productService->getProducts();
-        $products = $products->where('status', 1);
-        $allProducts = $products->get();
-
-        $totalStock = 0;
-        $sellCount = 0;
-        $sellPrice = 0;
-        $totalPurchasePrice = 0;
-        $totalProfitLoss = 0;
-
-        foreach ($allProducts as $product) {
-            $sellQty = $product->sales['qty'] - $product->sales_return['qty'];
-            $sellingPrice = $sellQty > 0 ? $product->sales['price'] / $sellQty : 0;
-            $profitLoss = $sellQty * $sellingPrice - $sellQty * $product->purchase_price;
-
-            $totalStock += $product->stock_count;
-            $sellCount += $sellQty;
-            $sellPrice += $sellingPrice;
-            $totalPurchasePrice += $product->purchase_price;
-            $totalProfitLoss += $profitLoss;
-        }
-
-        $data = [
-            'totalStock' => $totalStock,
-            'sellCount' => $sellCount,
-            'sellPrice' => $sellPrice,
-            'totalPurchasePrice' => $totalPurchasePrice,
-            'totalProfitLoss' => $totalProfitLoss,
-        ];
-
+        // Pagination
         if (request('par-page')) {
             $parpage = request('par-page') == 'all' ? null : request('par-page');
         } else {
             $parpage = 20;
         }
+
         if ($parpage === null) {
-            $products = $allProducts;
+            $items = $allItems;
         } else {
-            $products = $this->productService->getProducts()->where('status', 1)->paginate($parpage);
-            $products->appends(request()->query());
+            $items = ProductSale::whereNotNull('menu_item_id')
+                ->selectRaw('menu_item_id, SUM(quantity) as total_qty, SUM(sub_total) as total_revenue, SUM(cogs_amount) as total_cogs, SUM(profit_amount) as total_profit')
+                ->groupBy('menu_item_id');
+
+            if (request('from_date') || request('to_date')) {
+                $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+                $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+                $items->whereHas('sale', function ($q) use ($fromDate, $toDate) {
+                    $q->whereBetween('order_date', [$fromDate, $toDate]);
+                });
+            }
+            if (request('category')) {
+                $items->whereHas('menuItem', function ($q) {
+                    $q->where('category_id', request('category'));
+                });
+            }
+            if (request('keyword')) {
+                $items->whereHas('menuItem', function ($q) {
+                    $q->where('name', 'like', '%' . request('keyword') . '%');
+                });
+            }
+
+            $items = $items->with(['menuItem.category'])->paginate($parpage);
+            $items->appends(request()->query());
         }
 
+        $categories = MenuCategory::where('status', 1)->orderBy('name')->get();
+
+        return view('report::menu-item-sales', compact('items', 'data', 'categories'));
+    }
+
+    /**
+     * Waiter Performance Report
+     */
+    public function waiterPerformance()
+    {
+        $query = Sale::whereNotNull('waiter_id')
+            ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+            ->groupBy('waiter_id');
+
+        if (request('from_date') || request('to_date')) {
+            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+            $query->whereBetween('order_date', [$fromDate, $toDate]);
+        }
+
+        if (request('waiter_id')) {
+            $query->where('waiter_id', request('waiter_id'));
+        }
+
+        $allWaiters = $query->with('waiter')->get();
+
+        $data = [
+            'totalOrders' => $allWaiters->sum('total_orders'),
+            'totalRevenue' => $allWaiters->sum('total_revenue'),
+            'totalCogs' => $allWaiters->sum('total_cogs'),
+            'totalProfit' => $allWaiters->sum('total_profit'),
+        ];
+
+        // Excel export
         if (checkAdminHasPermission('report.excel.download')) {
             if (request('export')) {
-                $fileName = 'barcode-wise-sale-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new BarcodeWiseSaleExport($allProducts, $data), $fileName);
+                $fileName = 'waiter-performance-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+                return Excel::download(new WaiterPerformanceExport($allWaiters, $data), $fileName);
             }
         }
+
+        // PDF export
         if (checkAdminHasPermission('report.pdf.download')) {
             if (request('export_pdf')) {
-                return view('report::pdf.barcode-sale', [
-                    'products' => $allProducts,
+                return view('report::pdf.waiter-performance', [
+                    'waiters' => $allWaiters,
                     'data' => $data
                 ]);
             }
         }
 
-        return view('report::barcode-sale', compact('products', 'totalStock', 'sellCount', 'sellPrice', 'totalPurchasePrice'));
-    }
-
-
-    public function categories()
-    {
-        $categories = $this->categoryService->getCategories();
-
-        // Calculate totals from ALL categories before pagination
-        $allCategories = $categories->get();
-
-        $data = [
-            'totalPurchaseCount' => 0,
-            'totalSalesCount' => 0,
-            'totalPurchaseAmount' => 0,
-            'totalSalesAmount' => 0,
-        ];
-
-        foreach ($allCategories as $category) {
-            $data['totalPurchaseCount'] += $category->PurchaseSummary['count'];
-            $data['totalSalesCount'] += $category->sales_count;
-            $data['totalPurchaseAmount'] += $category->PurchaseSummary['amount'];
-            $data['totalSalesAmount'] += $category->sales_amount;
-        }
-
+        // Pagination
         if (request('par-page')) {
             $parpage = request('par-page') == 'all' ? null : request('par-page');
         } else {
             $parpage = 20;
         }
+
         if ($parpage === null) {
-            $categories = $allCategories;
+            $waiters = $allWaiters;
         } else {
-            $categories = $this->categoryService->getCategories()->paginate($parpage);
-            $categories->appends(request()->query());
+            $paginateQuery = Sale::whereNotNull('waiter_id')
+                ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+                ->groupBy('waiter_id');
+
+            if (request('from_date') || request('to_date')) {
+                $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+                $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+                $paginateQuery->whereBetween('order_date', [$fromDate, $toDate]);
+            }
+            if (request('waiter_id')) {
+                $paginateQuery->where('waiter_id', request('waiter_id'));
+            }
+
+            $waiters = $paginateQuery->with('waiter')->paginate($parpage);
+            $waiters->appends(request()->query());
         }
 
+        $waiterList = Employee::waiters()->where('status', 1)->orderBy('name')->get();
+
+        return view('report::waiter-performance', compact('waiters', 'data', 'waiterList'));
+    }
+
+    /**
+     * Order Type Report
+     */
+    public function orderType()
+    {
+        $query = Sale::selectRaw('order_type, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+            ->groupBy('order_type');
+
+        if (request('from_date') || request('to_date')) {
+            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+            $query->whereBetween('order_date', [$fromDate, $toDate]);
+        }
+
+        $orderTypes = $query->get();
+
+        $grandTotalOrders = $orderTypes->sum('total_orders');
+
+        $data = [
+            'totalOrders' => $grandTotalOrders,
+            'totalRevenue' => $orderTypes->sum('total_revenue'),
+            'totalCogs' => $orderTypes->sum('total_cogs'),
+            'totalProfit' => $orderTypes->sum('total_profit'),
+        ];
+
+        // Excel export
         if (checkAdminHasPermission('report.excel.download')) {
             if (request('export')) {
-                $fileName = 'category-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new CategoryWiseExport($allCategories, $data), $fileName);
+                $fileName = 'order-type-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+                return Excel::download(new OrderTypeExport($orderTypes, $data), $fileName);
             }
         }
+
+        // PDF export
         if (checkAdminHasPermission('report.pdf.download')) {
             if (request('export_pdf')) {
-                return view('report::pdf.categories', [
-                    'categories' => $allCategories,
+                return view('report::pdf.order-type', [
+                    'orderTypes' => $orderTypes,
+                    'data' => $data,
+                    'grandTotalOrders' => $grandTotalOrders,
+                ]);
+            }
+        }
+
+        return view('report::order-type', compact('orderTypes', 'data', 'grandTotalOrders'));
+    }
+
+    /**
+     * Table Performance Report
+     */
+    public function tablePerformance()
+    {
+        $query = Sale::whereNotNull('table_id')
+            ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
+            ->groupBy('table_id');
+
+        if (request('from_date') || request('to_date')) {
+            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+            $query->whereBetween('order_date', [$fromDate, $toDate]);
+        }
+
+        if (request('floor')) {
+            $query->whereHas('table', function ($q) {
+                $q->where('floor', request('floor'));
+            });
+        }
+
+        $allTables = $query->with('table')->get();
+
+        $data = [
+            'totalOrders' => $allTables->sum('total_orders'),
+            'totalRevenue' => $allTables->sum('total_revenue'),
+        ];
+
+        // Excel export
+        if (checkAdminHasPermission('report.excel.download')) {
+            if (request('export')) {
+                $fileName = 'table-performance-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
+                return Excel::download(new TablePerformanceExport($allTables, $data), $fileName);
+            }
+        }
+
+        // PDF export
+        if (checkAdminHasPermission('report.pdf.download')) {
+            if (request('export_pdf')) {
+                return view('report::pdf.table-performance', [
+                    'tables' => $allTables,
                     'data' => $data
                 ]);
             }
         }
 
-        return view('report::categories', compact('categories', 'data'));
+        // Pagination
+        if (request('par-page')) {
+            $parpage = request('par-page') == 'all' ? null : request('par-page');
+        } else {
+            $parpage = 20;
+        }
+
+        if ($parpage === null) {
+            $tables = $allTables;
+        } else {
+            $paginateQuery = Sale::whereNotNull('table_id')
+                ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
+                ->groupBy('table_id');
+
+            if (request('from_date') || request('to_date')) {
+                $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
+                $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
+                $paginateQuery->whereBetween('order_date', [$fromDate, $toDate]);
+            }
+            if (request('floor')) {
+                $paginateQuery->whereHas('table', function ($q) {
+                    $q->where('floor', request('floor'));
+                });
+            }
+
+            $tables = $paginateQuery->with('table')->paginate($parpage);
+            $tables->appends(request()->query());
+        }
+
+        $floors = RestaurantTable::select('floor')->distinct()->whereNotNull('floor')->orderBy('floor')->pluck('floor');
+
+        return view('report::table-performance', compact('tables', 'data', 'floors'));
     }
+
     public function customers(Request $request)
     {
         $query = User::query();
@@ -293,62 +417,6 @@ class ReportController extends Controller
         }
 
         return view('report::customer', compact('customers', 'totalSales', 'totalAmount', 'totalPaid', 'totalDue'));
-    }
-
-    public function receivable()
-    {
-        $sales = Sale::with('customer')->where('payment_status', 1)->where('due_amount', '>', 0);
-
-        if (request()->keyword) {
-            $sales = $sales->whereHas('customer', function ($q) {
-                $q->where('name', 'like', '%' . request()->keyword . '%');
-            })
-                ->orWhere('invoice', request()->keyword);
-        }
-
-        // Only filter by date if dates are provided
-        if (request('from_date') || request('to_date')) {
-            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
-            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
-            $sales = $sales->whereBetween('order_date', [$fromDate, $toDate]);
-        }
-
-        // Get all data for calculations and export
-        $allSales = $sales->get();
-        $totalDues = $allSales->sum('due_amount');
-
-        $data = ['totalDues' => $totalDues];
-
-        // Export with ALL data (not paginated)
-        if (checkAdminHasPermission('report.excel.download')) {
-            if (request('export')) {
-                $fileName = 'receivable-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new ReceivableReportExport($allSales, $data), $fileName);
-            }
-        }
-        if (checkAdminHasPermission('report.pdf.download')) {
-            if (request('export_pdf')) {
-                return view('report::pdf.receivable', [
-                    'sales' => $allSales,
-                    'data' => $data
-                ]);
-            }
-        }
-
-        // Paginate for view
-        if (request('par-page')) {
-            $parpage = request('par-page') == 'all' ? null : request('par-page');
-        } else {
-            $parpage = 20;
-        }
-        if ($parpage === null) {
-            $sales = $allSales;
-        } else {
-            $sales = $sales->paginate($parpage);
-            $sales->appends(request()->query());
-        }
-
-        return view('report::receiveable', compact('sales', 'totalDues'));
     }
 
     public function detailsSale()
@@ -418,65 +486,6 @@ class ReportController extends Controller
         return view('report::details-sale', compact('sales', 'data'));
     }
 
-    public function dueDateSale()
-    {
-        $sales = Sale::with(['customer', 'payment', 'payment.account', 'saleReturns'])->where('due_amount', '>', 0);
-
-        // Only filter by date if dates are provided
-        if (request('from_date') || request('to_date')) {
-            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
-            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
-            $sales = $sales->whereBetween('order_date', [$fromDate, $toDate]);
-        }
-
-        if (request()->keyword) {
-            $sales = $sales->whereHas('customer', function ($q) {
-                $q->where('name', 'like', '%' . request()->keyword . '%');
-            })
-                ->orWhere('invoice', request()->keyword);
-        }
-
-        // Get all data for calculations and export
-        $allSales = $sales->get();
-
-        $data['due'] = 0;
-        foreach ($allSales as $sale) {
-            $data['due'] += $sale->due_amount;
-        }
-
-        // Export with ALL data (not paginated)
-        if (checkAdminHasPermission('report.excel.download')) {
-            if (request('export')) {
-                $fileName = 'due-date-sale-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new DueDateSaleReportExport($allSales, $data), $fileName);
-            }
-        }
-
-        if (checkAdminHasPermission('report.pdf.download')) {
-            if (request('export_pdf')) {
-                return view('report::pdf.due-date-sale', [
-                    'sales' => $allSales,
-                    'data' => $data
-                ]);
-            }
-        }
-
-        // Paginate for view
-        if (request('par-page')) {
-            $parpage = request('par-page') == 'all' ? null : request('par-page');
-        } else {
-            $parpage = 20;
-        }
-        if ($parpage === null) {
-            $sales = $allSales;
-        } else {
-            $sales = $sales->paginate($parpage);
-            $sales->appends(request()->query());
-        }
-
-        return view('report::due-date-sale', compact('sales', 'data'));
-    }
-
     public function expense()
     {
         $expenses = Expense::with('createdBy', 'expenseType');
@@ -536,34 +545,6 @@ class ReportController extends Controller
         return view('report::expense', compact('expenses', 'totalAmount'));
     }
 
-    public function masterSale()
-    {
-
-        $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subDay();
-        $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
-        // ->whereBetween('order_date', [$fromDate, $toDate])
-        $sales = Sale::with('customer');
-        if (request('from_date') || request('to_date')) {
-            $sales = $sales->whereBetween('order_date', [$fromDate, $toDate]);
-        }
-
-        $totalAmount = $sales->sum('grand_total');
-        $sales = $sales->paginate(20);
-        $sales->appends(request()->query());
-        return view('report::master-sale', compact('sales', 'totalAmount'));
-    }
-
-    public function monthlySale()
-    {
-        $month = request('month') ? now()->parse(request('month')) : now()->month;
-
-        $sales = Sale::with('customer')->whereMonth('order_date', $month);
-        $totalAmount = $sales->sum('grand_total');
-        $sales = $sales->paginate(20);
-        $sales->appends(request()->query());
-        return view('report::monthly-sale', compact('sales', 'totalAmount'));
-    }
-
     public function profitLoss()
     {
         checkAdminHasPermissionAndThrowException('report.view');
@@ -605,7 +586,6 @@ class ReportController extends Controller
         $data['totalIncome'] = $data['netSales'] + $data['purchaseReturns'];
 
         // COGS - Use pre-calculated COGS from sales (weighted average cost based)
-        // This is more accurate as it uses the actual cost at time of sale
         $data['cogs'] = (clone $salesQuery)->sum('total_cogs') ?? 0;
 
         // If no pre-calculated COGS exists, fall back to legacy calculation
@@ -712,88 +692,6 @@ class ReportController extends Controller
         return view('report::low-stock-alert', compact('ingredients', 'data'));
     }
 
-    public function productSaleReport()
-    {
-        $products = $this->productService->getProducts();
-        $products = $products->where('status', 1);
-        $totalProducts = $products->get();
-
-        $totalStock = 0;
-        $sellCount = 0;
-        $sellPrice = 0;
-        $totalPurchasePrice = 0;
-
-        $totalProducts->map(function ($product) use (&$totalStock, &$sellCount, &$sellPrice, &$totalPurchasePrice) {
-            $sellQty = $product->sales['qty'] - $product->sales_return['qty'];
-            $sellCount += $sellQty;
-
-            $sellPrice += $sellQty > 0 ? $product->sales['price'] / $sellQty : 0;
-
-            $totalPurchasePrice += $sellCount * $product->purchase_price;
-
-            $totalStock += $product->stock_count;
-
-            return;
-        });
-
-        $products = $products->paginate(20);
-        $products = $products->appends(request()->query());
-        return view('report::product-sale-report', compact('products', 'totalStock', 'sellCount', 'sellPrice', 'totalPurchasePrice'));
-    }
-
-    public function  receivedReport()
-    {
-        $totalReceive = CustomerPayment::with(['account', 'sale', 'customer'])->where('is_received', 1)->where('amount', '>', 0);
-
-        if (request('from_date') || request('to_date')) {
-            $totalReceive = $totalReceive->whereBetween('created_at', [request('from_date'), request('to_date')]);
-        }
-
-
-        if (request()->keyword) {
-            $totalReceive = $totalReceive->where(function ($q) {
-                $q->whereHas('customer', function ($query) {
-                    $query->where('name', 'like', '%' . request()->keyword . '%');
-                });
-            });
-        }
-
-        // Get all data for calculations and export
-        $allReceive = $totalReceive->get();
-
-        $data['receive'] = $allReceive->sum('amount');
-
-        // Export with ALL data (not paginated)
-        if (checkAdminHasPermission('report.excel.download')) {
-            if (request('export')) {
-                $fileName = 'received-report-' . date('Y-m-d') . '_' . date('h-i-s') . '.xlsx';
-                return Excel::download(new TotalReceiveReportExport($allReceive, $data), $fileName);
-            }
-        }
-
-        if (checkAdminHasPermission('report.pdf.download')) {
-            if (request('export_pdf')) {
-                return view('report::pdf.received-report', [
-                    'totalReceive' => $allReceive
-                ]);
-            }
-        }
-
-        // Paginate for view
-        if (request('par-page')) {
-            $parpage = request('par-page') == 'all' ? null : request('par-page');
-        } else {
-            $parpage = 20;
-        }
-        if ($parpage === null) {
-            $totalReceive = $allReceive;
-        } else {
-            $totalReceive = $totalReceive->paginate($parpage);
-            $totalReceive->appends(request()->query());
-        }
-
-        return view('report::received-report', compact('totalReceive', 'data'));
-    }
     public function purchase()
     {
 

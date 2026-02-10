@@ -1,22 +1,18 @@
 @php
     $routeList = [
-        'admin.report.barcode-wise-product',
-        'admin.report.barcode-sale',
-        'admin.report.categories',
-        'admin.report.customers',
-        'admin.report.receivable',
+        'admin.report.menu-item-sales',
+        'admin.report.waiter-performance',
+        'admin.report.order-type',
+        'admin.report.table-performance',
         'admin.report.details-sale',
-        'admin.report.due-date-sale',
+        'admin.report.customers',
         'admin.report.expense',
-        'admin.report.master-sale',
-        'admin.report.monthly-sale',
         'admin.report.profit-loss',
-        'admin.report.product-sale-report',
-        'admin.report.received-report',
         'admin.report.purchase',
         'admin.report.supplier',
         'admin.report.supplier-payment',
         'admin.report.salary',
+        'admin.report.low-stock-alert',
     ];
 @endphp
 @adminCan('report.view')
@@ -27,30 +23,24 @@
         </a>
 
         <ul class="menu-sub">
-
-            <li class="{{ Route::is('admin.report.barcode-wise-product') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.barcode-wise-product') }}" class="menu-link">
-                    {{ __('Barcode Wise Product Report') }}
+            <li class="{{ Route::is('admin.report.menu-item-sales') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.menu-item-sales') }}" class="menu-link">
+                    {{ __('Menu Item Sales') }}
                 </a>
             </li>
-            <li class="{{ Route::is('admin.report.barcode-sale') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.barcode-sale') }}" class="menu-link">
-                    {{ __('Barcode Wise Sale Report') }}
+            <li class="{{ Route::is('admin.report.waiter-performance') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.waiter-performance') }}" class="menu-link">
+                    {{ __('Waiter Performance') }}
                 </a>
             </li>
-            <li class="{{ Route::is('admin.report.categories') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.categories') }}" class="menu-link">
-                    {{ __('Categories Report') }}
+            <li class="{{ Route::is('admin.report.order-type') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.order-type') }}" class="menu-link">
+                    {{ __('Order Type Report') }}
                 </a>
             </li>
-            <li class="{{ Route::is('admin.report.customers') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.customers') }}" class="menu-link">
-                    {{ __('Customers Report') }}
-                </a>
-            </li>
-            <li class="{{ Route::is('admin.report.receivable') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.receivable') }}" class="menu-link">
-                    {{ __('Due Report') }}
+            <li class="{{ Route::is('admin.report.table-performance') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.table-performance') }}" class="menu-link">
+                    {{ __('Table Performance') }}
                 </a>
             </li>
             <li class="{{ Route::is('admin.report.details-sale') ? 'active' : '' }} menu-item">
@@ -58,44 +48,19 @@
                     {{ __('Detail Sales Report') }}
                 </a>
             </li>
-            <li class="{{ Route::is('admin.report.due-date-sale') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.due-date-sale') }}" class="menu-link">
-                    {{ __('Due Date Sales Report') }}
+            <li class="{{ Route::is('admin.report.customers') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.customers') }}" class="menu-link">
+                    {{ __('Customers Report') }}
                 </a>
             </li>
-            {{-- <li class="{{ Route::is('admin.report.dts') ? 'active' : '' }} menu-item">
-            <a href="{{ route('admin.report.dts') }}" class="menu-link">
-                {{ __('Daily Sales Report') }}
-            </a>
-        </li> --}}
             <li class="{{ Route::is('admin.report.expense') ? 'active' : '' }} menu-item">
                 <a href="{{ route('admin.report.expense') }}" class="menu-link">
                     {{ __('Expense Report') }}
                 </a>
             </li>
-            {{-- <li class="{{ Route::is('admin.report.master-sale') ? 'active' : '' }} menu-item">
-            <a href="{{ route('admin.report.master-sale') }}" class="menu-link">
-                {{ __('Master Sales Report') }}
-            </a>
-        </li> --}}
-            {{-- <li class="{{ Route::is('admin.report.monthly-sale') ? 'active' : '' }} menu-item">
-            <a href="{{ route('admin.report.monthly-sale') }}" class="menu-link">
-                {{ __('Monthly Sales Report') }}
-            </a>
-        </li> --}}
             <li class="{{ Route::is('admin.report.profit-loss') ? 'active' : '' }} menu-item">
                 <a href="{{ route('admin.report.profit-loss') }}" class="menu-link">
                     {{ __('Profit/Loss Report') }}
-                </a>
-            </li>
-            {{-- <li class="{{ Route::is('admin.report.product-sale-report') ? 'active' : '' }} menu-item">
-            <a href="{{ route('admin.report.product-sale-report') }}" class="menu-link">
-                {{ __('Products Sales Report') }}
-            </a>
-        </li> --}}
-            <li class="{{ Route::is('admin.report.received-report') ? 'active' : '' }} menu-item">
-                <a href="{{ route('admin.report.received-report') }}" class="menu-link">
-                    {{ __('Payment Received Report') }}
                 </a>
             </li>
             <li class="{{ Route::is('admin.report.purchase') ? 'active' : '' }} menu-item">
@@ -118,26 +83,11 @@
                     {{ __('Salary Report') }}
                 </a>
             </li>
-            {{-- <li class="{{ Route::is('admin.report.dts') ? 'active' : '' }}  menu-item">
-            <a href="{{ route('admin.report.dts') }}" class="menu-link">
-                {{ __('Stock Report') }}
-            </a>
-        </li> --}}
-            {{-- <li class="{{ Route::is('admin.report.dts') ? 'active' : '' }}  menu-item">
-            <a href="{{ route('admin.report.dts') }}" class="menu-link">
-                {{ __('Low Stock Product Report') }}
-            </a>
-        </li> --}}
-            {{-- <li class="{{ Route::is('admin.report.dts') ? 'active' : '' }}  menu-item">
-            <a href="{{ route('admin.report.dts') }}" class="menu-link">
-                {{ __('Summary') }}
-            </a>
-        </li> --}}
-            {{-- <li class="{{ Route::is('admin.report.dts') ? 'active' : '' }}  menu-item">
-            <a href="{{ route('admin.report.dts') }}" class="menu-link">
-                {{ __('Yearly Sales Report') }}
-            </a>
-        </li> --}}
+            <li class="{{ Route::is('admin.report.low-stock-alert') ? 'active' : '' }} menu-item">
+                <a href="{{ route('admin.report.low-stock-alert') }}" class="menu-link">
+                    {{ __('Low Stock Alert') }}
+                </a>
+            </li>
         </ul>
     </li>
 @endadminCan

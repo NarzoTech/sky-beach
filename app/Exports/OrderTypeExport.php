@@ -11,53 +11,61 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TotalReceiveReportExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
+class OrderTypeExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithEvents
 {
     private $index;
-    private $totalReceive;
+    private $orderTypes;
     private $data;
 
-    public function __construct($totalReceive, $data = null)
+    public function __construct($orderTypes, $data = null)
     {
-        $this->totalReceive = $totalReceive;
+        $this->orderTypes = $orderTypes;
         $this->data = $data;
     }
-    /**
-     * @return \Illuminate\Support\Collection
-     */
+
     public function collection()
     {
-        return $this->totalReceive;
+        return $this->orderTypes;
     }
+
     public function headings(): array
     {
         $setting = cache('setting');
         return [
-            [$setting->app_name],  // Title rows
-            ['Payment Received Report'],
+            [$setting->app_name],
+            ['Order Type Report'],
             ['Time: ' . now()],
             [
                 __('SN'),
-                __('Date'),
-                __('Invoice Type'),
-                __('Invoice'),
-                __('Customer'),
-                __('Total Amount'),
-                __('Pay By'),
+                __('Order Type'),
+                __('Total Orders'),
+                __('Total Revenue'),
+                __('Total Cost'),
+                __('Profit'),
+                __('% of Total'),
             ],
         ];
     }
-    public function map($receive): array
+
+    public function map($type): array
     {
-        // Map the data to match your format
+        $orderTypeLabels = [
+            'dine_in' => __('Dine In'),
+            'take_away' => __('Take Away'),
+            'website' => __('Website'),
+        ];
+
+        $grandTotal = $this->data['totalOrders'] ?? 0;
+        $percentage = $grandTotal > 0 ? round(($type->total_orders / $grandTotal) * 100, 1) : 0;
+
         return [
             ++$this->index,
-            date('d-m-Y', strtotime($receive->payment_date)),
-            ucwords($receive->payment_type),
-            $receive->invoice ?? $receive->sale->invoice ?? '',
-            $receive->customer->name ?? 'Guest',
-            $receive->amount,
-            $receive->account->account_type ?? '',
+            $orderTypeLabels[$type->order_type] ?? ucfirst(str_replace('_', ' ', $type->order_type)),
+            $type->total_orders,
+            currency($type->total_revenue),
+            currency($type->total_cogs),
+            currency($type->total_profit),
+            $percentage . '%',
         ];
     }
 
@@ -68,12 +76,12 @@ class TotalReceiveReportExport implements FromCollection, WithHeadings, WithMapp
             AfterSheet::class => function (AfterSheet $event) use ($data) {
                 $lastRow = $event->sheet->getHighestRow() + 1;
                 $event->sheet->setCellValue('A' . $lastRow, '');
-                $event->sheet->setCellValue('B' . $lastRow, '');
-                $event->sheet->setCellValue('C' . $lastRow, '');
-                $event->sheet->setCellValue('D' . $lastRow, '');
-                $event->sheet->setCellValue('E' . $lastRow, 'Total');
-                $event->sheet->setCellValue('F' . $lastRow, currency($data['receive'] ?? 0));
-                $event->sheet->setCellValue('G' . $lastRow, '');
+                $event->sheet->setCellValue('B' . $lastRow, 'Total');
+                $event->sheet->setCellValue('C' . $lastRow, $data['totalOrders'] ?? 0);
+                $event->sheet->setCellValue('D' . $lastRow, currency($data['totalRevenue'] ?? 0));
+                $event->sheet->setCellValue('E' . $lastRow, currency($data['totalCogs'] ?? 0));
+                $event->sheet->setCellValue('F' . $lastRow, currency($data['totalProfit'] ?? 0));
+                $event->sheet->setCellValue('G' . $lastRow, '100%');
                 $event->sheet->getStyle('A' . $lastRow . ':G' . $lastRow)->getFont()->setBold(true);
             },
         ];
@@ -81,44 +89,34 @@ class TotalReceiveReportExport implements FromCollection, WithHeadings, WithMapp
 
     public function styles(Worksheet $sheet)
     {
-        // Merge cells for title and subtitle
-        $sheet->mergeCells('A1:G1');  // Title
-        $sheet->mergeCells('A2:G2');  // Subtitle
-        $sheet->mergeCells('A3:G3');  // Time
+        $sheet->mergeCells('A1:G1');
+        $sheet->mergeCells('A2:G2');
+        $sheet->mergeCells('A3:G3');
 
-
-        // Apply styles to title and subtitle
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
         $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(10);
 
-        // Apply borders and center alignment to header rows
         $sheet->getStyle('A4:G' . $sheet->getHighestRow())
             ->getBorders()
             ->getAllBorders()
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        // Column Widths (Optional)
         $sheet->getColumnDimension('A')->setWidth(5);
-        $sheet->getColumnDimension('B')->setWidth(25);
+        $sheet->getColumnDimension('B')->setWidth(20);
         $sheet->getColumnDimension('C')->setWidth(15);
-        $sheet->getColumnDimension('D')->setWidth(25);
-        $sheet->getColumnDimension('E')->setWidth(25);
-        $sheet->getColumnDimension('F')->setWidth(25);
-        $sheet->getColumnDimension('G')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(18);
+        $sheet->getColumnDimension('E')->setWidth(18);
+        $sheet->getColumnDimension('F')->setWidth(18);
+        $sheet->getColumnDimension('G')->setWidth(12);
 
-
-
-        // a1 to j1 will be center aligned
         $sheet->getStyle('A1:G1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-
-        // a2 to j2, a3 to j3  will be center aligned
         $sheet->getStyle('A2:G2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('A3:G3')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     }
 
     public function title(): string
     {
-        return 'Payment Received Report';
+        return 'Order Type Report';
     }
 }

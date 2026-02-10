@@ -71,18 +71,14 @@
                                 {{ __('Product Sale') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['productSale']) }}
-                                </span>
+                                <span>{{ currency($data['productSale']) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/12.png') }}" class="icon-img" />
                                 {{ __('Sale Return') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['sale_return']) }}
-                                </span>
+                                <span>{{ currency($data['sale_return']) }}</span>
                             </td>
                         </tr>
                         <tr>
@@ -91,239 +87,154 @@
                                 {{ __('Balance Deposit') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['balance_deposit']) }}
-                                </span>
+                                <span>{{ currency($data['balance_deposit']) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/13.png') }}" class="icon-img" />
                                 {{ __('Balance Withdraw') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['balance_withdraw']) }}
-                                </span>
+                                <span>{{ currency($data['balance_withdraw']) }}</span>
                             </td>
                         </tr>
-
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/3.png') }}" class="icon-img" />
                                 {{ __('Customer Due') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['customer_due']) }}
-                                </span>
-                            </td>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/3.png') }}" class="icon-img" />
-                                {{ __('Customer Due Send') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency(0) }}
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
-                                {{ __('Customer Advance') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency($data['customer_advance']) }}
-                                </span>
+                                <span>{{ currency($data['customer_due']) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
                                 {{ __('Customer Advance Refund') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['customer_advance_refund']) }}
-                                </span>
+                                <span>{{ currency($data['customer_advance_refund']) }}</span>
                             </td>
                         </tr>
-
                         <tr>
                             <td>
-                                <img src="{{ asset('backend/img/cash-flow/10.png') }}" class="icon-img" />
-                                {{ __('Supplier Due Receive') }}
+                                <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
+                                {{ __('Customer Advance') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency(0) }}
-                                </span>
+                                <span>{{ currency($data['customer_advance']) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/10.png') }}" class="icon-img" />
                                 {{ __('Supplier Due Pay') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['supplierDuePay']) }}
-                                </span>
+                                <span>{{ currency($data['supplierDuePay']) }}</span>
                             </td>
                         </tr>
-
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
                                 {{ __('Supplier Advance Refund') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['supplierAdvanceRefund']) }}
-                                </span>
+                                <span>{{ currency($data['supplierAdvanceRefund']) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
                                 {{ __('Supplier Advance') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['supplierAdvancePay']) }}
-                                </span>
+                                <span>{{ currency($data['supplierAdvancePay']) }}</span>
                             </td>
                         </tr>
-
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
                                 {{ __('Purchase Return') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['purchaseReturn'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['purchaseReturn'] ?? 0) }}</span>
                             </td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/6.png') }}" class="icon-img" />
                                 {{ __('Purchase') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['purchase']) }}
-                                </span>
+                                <span>{{ currency($data['purchase']) }}</span>
                             </td>
                         </tr>
-
-                        <tr>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/7.png') }}" class="icon-img" />
-                                {{ __('Service') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency($data['serviceSale']) }}
-                                </span>
-                            </td>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/11.png') }}" class="icon-img" />
-                                {{ __('Expense') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency($data['expenses']) }}
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/1.png') }}" class="icon-img" />
-                                {{ __('Installment') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency(0) }}
-                                </span>
-                            </td>
-                            <td>
-                                <img src="{{ asset('backend/img/cash-flow/14.png') }}" class="icon-img" />
-                                {{ __('Salary') }}
-                            </td>
-                            <td>
-                                <span>
-                                    {{ currency($data['salary']) }}
-                                </span>
-                            </td>
-                        </tr>
-
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/8.png') }}" class="icon-img" />
                                 {{ __('Balance Transfer (In)') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['balance_transfer'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['balance_transfer'] ?? 0) }}</span>
                             </td>
                             <td>
-                                <img src="{{ asset('backend/img/cash-flow/17.png') }}" class="icon-img" />
-                                {{ __('Balance Transfer (Out)') }}
+                                <img src="{{ asset('backend/img/cash-flow/11.png') }}" class="icon-img" />
+                                {{ __('Expense') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['balance_transfer'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['expenses']) }}</span>
                             </td>
                         </tr>
-
                         <tr>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
                                 {{ __('Expense Supplier Advance Refund') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['expenseSupplierAdvanceRefund'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['expenseSupplierAdvanceRefund'] ?? 0) }}</span>
                             </td>
+                            <td>
+                                <img src="{{ asset('backend/img/cash-flow/14.png') }}" class="icon-img" />
+                                {{ __('Salary') }}
+                            </td>
+                            <td>
+                                <span>{{ currency($data['salary']) }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <img src="{{ asset('backend/img/cash-flow/17.png') }}" class="icon-img" />
+                                {{ __('Balance Transfer (Out)') }}
+                            </td>
+                            <td>
+                                <span>{{ currency($data['balance_transfer'] ?? 0) }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/11.png') }}" class="icon-img" />
                                 {{ __('Expense Supplier Payment') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['expenseSupplierPayment'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['expenseSupplierPayment'] ?? 0) }}</span>
                             </td>
                         </tr>
-
                         <tr>
-                            <td>
-                            </td>
-                            <td>
-                            </td>
+                            <td></td>
+                            <td></td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/10.png') }}" class="icon-img" />
                                 {{ __('Expense Supplier Due Pay') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['expenseSupplierDuePay'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['expenseSupplierDuePay'] ?? 0) }}</span>
                             </td>
                         </tr>
-
                         <tr>
-                            <td>
-                            </td>
-                            <td>
-                            </td>
+                            <td></td>
+                            <td></td>
                             <td>
                                 <img src="{{ asset('backend/img/cash-flow/15.png') }}" class="icon-img" />
                                 {{ __('Expense Supplier Advance') }}
                             </td>
                             <td>
-                                <span>
-                                    {{ currency($data['expenseSupplierAdvancePay'] ?? 0) }}
-                                </span>
+                                <span>{{ currency($data['expenseSupplierAdvancePay'] ?? 0) }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -331,15 +242,11 @@
                         <tr>
                             <td></td>
                             <td class="text-left">
-                                <b>
-                                    {{ __('Total') }} : {{ currency($data['totalReceive']) }}
-                                </b>
+                                <b>{{ __('Total') }} : {{ currency($data['totalReceive']) }}</b>
                             </td>
                             <td></td>
                             <td class="text-left">
-                                <b>
-                                    {{ __('Total') }} : {{ currency($data['totalPay']) }}
-                                </b>
+                                <b>{{ __('Total') }} : {{ currency($data['totalPay']) }}</b>
                             </td>
                         </tr>
                         @if (isset($hasDateFilter) && $hasDateFilter)

@@ -28,6 +28,11 @@ class IngredientService
     {
         $this->ingredient = $ingredient;
     }
+    public function getProducts()
+    {
+        return $this->getIngredients();
+    }
+
     public function getIngredients()
     {
         $query = $this->ingredient->with(['salesDetails', 'salesReturnDetails', 'purchaseReturnDetails', 'stockDetails', 'orders', 'brand', 'purchaseDetails.purchase', 'latestPurchaseDetail', 'unit', 'purchaseUnit', 'consumptionUnit', 'category', 'brand']);

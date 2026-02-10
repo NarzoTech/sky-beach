@@ -153,24 +153,24 @@
                                                                 @forelse($item->recipes as $index => $recipe)
                                                                     @php
                                                                         $ingredient = $recipe->ingredient ?? $recipe->product;
-                                                                        $unitName = $ingredient?->consumptionUnit?->name ?? $ingredient?->unit?->name ?? '-';
+                                                                        $unitShortName = $ingredient?->consumptionUnit?->ShortName ?? $ingredient?->unit?->ShortName ?? '-';
                                                                         $cost = $ingredient?->consumption_unit_cost ?? $ingredient?->cost ?? 0;
                                                                     @endphp
                                                                     <tr class="ingredient-row">
                                                                         <td>
-                                                                            <select name="recipes[{{ $index }}][ingredient_id]" class="form-control ingredient-select ingredient-product" required>
+                                                                            <select name="recipes[{{ $index }}][ingredient_id]" class="form-control select2 ingredient-select ingredient-product" required>
                                                                                 <option value="">{{ __('Select Ingredient') }}</option>
                                                                                 @foreach($ingredients as $ing)
                                                                                     @php
-                                                                                        $ingUnit = $ing->consumptionUnit?->name ?? $ing->unit?->name ?? '';
+                                                                                        $ingUnitShort = $ing->consumptionUnit?->ShortName ?? $ing->unit?->ShortName ?? '';
                                                                                         $ingCost = $ing->consumption_unit_cost ?? $ing->cost ?? 0;
                                                                                     @endphp
                                                                                     <option value="{{ $ing->id }}"
                                                                                         data-cost="{{ $ingCost }}"
-                                                                                        data-unit="{{ $ingUnit }}"
+                                                                                        data-unit="{{ $ingUnitShort }}"
                                                                                         data-unit-id="{{ $ing->consumption_unit_id ?? $ing->unit_id ?? '' }}"
                                                                                         {{ ($recipe->ingredient_id ?? $recipe->product_id) == $ing->id ? 'selected' : '' }}>
-                                                                                        {{ $ing->name }} ({{ $ingCost }}/{{ $ingUnit }})
+                                                                                        {{ $ing->name }} ({{ $ingCost }}/{{ $ingUnitShort }})
                                                                                     </option>
                                                                                 @endforeach
                                                                             </select>
@@ -180,7 +180,7 @@
                                                                                 <input type="number" name="recipes[{{ $index }}][quantity_required]" class="form-control ingredient-quantity" step="0.01" min="0.01" value="{{ $recipe->quantity_required }}" required>
                                                                                 <input type="hidden" name="recipes[{{ $index }}][unit_id]" class="ingredient-unit-id" value="{{ $recipe->unit_id }}">
                                                                                 <div class="input-group-append">
-                                                                                    <span class="input-group-text ingredient-unit-label" style="min-width: 50px;">{{ $unitName }}</span>
+                                                                                    <span class="input-group-text ingredient-unit-label" style="min-width: 50px;">{{ $unitShortName }}</span>
                                                                                 </div>
                                                                             </div>
                                                                         </td>
@@ -450,12 +450,6 @@
             var ingredientIndex = {{ $item->recipes->count() }};
 
             $(document).ready(function() {
-                // Initialize select2 for existing ingredient selects
-                $('.ingredient-select').select2({
-                    width: '100%',
-                    placeholder: '{{ __("Search ingredient...") }}',
-                    allowClear: true
-                });
 
                 // Generate SKU button
                 $('#generate-sku').on('click', function() {
@@ -524,15 +518,15 @@
 
                 var ingredientOptions = '<option value="">{{ __("Select Ingredient") }}</option>';
                 ingredients.forEach(function(ingredient) {
-                    var unitName = ingredient.consumption_unit ? ingredient.consumption_unit.name : (ingredient.unit ? ingredient.unit.name : '');
+                    var unitShort = ingredient.consumption_unit ? (ingredient.consumption_unit.ShortName || ingredient.consumption_unit.name) : (ingredient.unit ? (ingredient.unit.ShortName || ingredient.unit.name) : '');
                     var cost = ingredient.consumption_unit_cost || ingredient.cost || 0;
-                    ingredientOptions += '<option value="' + ingredient.id + '" data-cost="' + cost + '" data-unit="' + unitName + '" data-unit-id="' + (ingredient.consumption_unit_id || ingredient.unit_id || '') + '">' + ingredient.name + ' (' + cost + '/' + unitName + ')</option>';
+                    ingredientOptions += '<option value="' + ingredient.id + '" data-cost="' + cost + '" data-unit="' + unitShort + '" data-unit-id="' + (ingredient.consumption_unit_id || ingredient.unit_id || '') + '">' + ingredient.name + ' (' + cost + '/' + unitShort + ')</option>';
                 });
 
                 var row = `
                     <tr class="ingredient-row">
                         <td>
-                            <select name="recipes[${ingredientIndex}][ingredient_id]" class="form-control ingredient-select ingredient-product" required>
+                            <select name="recipes[${ingredientIndex}][ingredient_id]" class="form-control select2 ingredient-select ingredient-product" required>
                                 ${ingredientOptions}
                             </select>
                         </td>

@@ -457,15 +457,15 @@
 
                 var ingredientOptions = '<option value="">{{ __("Select Ingredient") }}</option>';
                 ingredients.forEach(function(ingredient) {
-                    var unitName = ingredient.consumption_unit ? ingredient.consumption_unit.name : (ingredient.unit ? ingredient.unit.name : '');
+                    var unitShort = ingredient.consumption_unit ? (ingredient.consumption_unit.ShortName || ingredient.consumption_unit.name) : (ingredient.unit ? (ingredient.unit.ShortName || ingredient.unit.name) : '');
                     var cost = ingredient.consumption_unit_cost || ingredient.cost || 0;
-                    ingredientOptions += '<option value="' + ingredient.id + '" data-cost="' + cost + '" data-unit="' + unitName + '" data-unit-id="' + (ingredient.consumption_unit_id || ingredient.unit_id || '') + '">' + ingredient.name + ' (' + cost + '/' + unitName + ')</option>';
+                    ingredientOptions += '<option value="' + ingredient.id + '" data-cost="' + cost + '" data-unit="' + unitShort + '" data-unit-id="' + (ingredient.consumption_unit_id || ingredient.unit_id || '') + '">' + ingredient.name + ' (' + cost + '/' + unitShort + ')</option>';
                 });
 
                 var row = `
                     <tr class="ingredient-row">
                         <td>
-                            <select name="recipes[${ingredientIndex}][ingredient_id]" class="form-control ingredient-select ingredient-product" required>
+                            <select name="recipes[${ingredientIndex}][ingredient_id]" class="form-control select2 ingredient-select ingredient-product" required>
                                 ${ingredientOptions}
                             </select>
                         </td>

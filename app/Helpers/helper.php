@@ -804,41 +804,36 @@ if (! function_exists('routeList')) {
                 'permission' => 'quotation.manage',
             ],
             (object) [
-                'name'  => __('Barcode Wise Product Report'),
-                'route' => 'report.barcode-wise-product',
+                'name'  => __('Menu Item Sales'),
+                'route' => 'report.menu-item-sales',
             ],
             (object) [
-                'name'  => __('Barcode Wise Sale Report'),
-                'route' => 'report.barcode-sale',
+                'name'  => __('Waiter Performance'),
+                'route' => 'report.waiter-performance',
             ],
             (object) [
-                'name'  => __('Categories Report'),
-                'route' => 'report.categories',
+                'name'  => __('Order Type Report'),
+                'route' => 'report.order-type',
+            ],
+            (object) [
+                'name'  => __('Table Performance'),
+                'route' => 'report.table-performance',
+            ],
+            (object) [
+                'name'  => __('Detail Sales Report'),
+                'route' => 'report.details-sale',
             ],
             (object) [
                 'name'  => __('Customers Report'),
                 'route' => 'report.customers',
             ],
             (object) [
-                'name'  => __('Due Report'),
-                'route' => 'report.receivable',
-            ],
-            (object) [
-                'name'  => __('Detail Sales Report'),
-                'route' => 'report.details-sale',
-
-            ],
-            (object) [
-                'name'  => __('Due Date Sales Report'),
-                'route' => 'report.due-date-sale',
-            ],
-            (object) [
                 'name'  => __('Expense Report'),
                 'route' => 'report.expense',
             ],
             (object) [
-                'name'  => __('Payment Received Report'),
-                'route' => 'report.received-report',
+                'name'  => __('Profit/Loss Report'),
+                'route' => 'report.profit-loss',
             ],
             (object) [
                 'name'  => __('Purchases Report'),
@@ -855,6 +850,10 @@ if (! function_exists('routeList')) {
             (object) [
                 'name'  => __('Salary Report'),
                 'route' => 'report.salary',
+            ],
+            (object) [
+                'name'  => __('Low Stock Alert'),
+                'route' => 'report.low-stock-alert',
             ],
             (object) [
                 'name'  => __('New Expense'),

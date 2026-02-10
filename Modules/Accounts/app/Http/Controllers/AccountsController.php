@@ -144,25 +144,10 @@ class AccountsController extends Controller
             return $query;
         };
 
-        // Service Sale
-        $serviceSaleQuery = ProductSale::whereNotNull('service_id');
-        if ($hasDateFilter) {
-            $serviceSaleQuery->whereHas('sale', function ($q) use ($fromDate, $toDate) {
-                if ($fromDate && $toDate) {
-                    $q->whereBetween('order_date', [$fromDate, $toDate]);
-                } elseif ($fromDate) {
-                    $q->where('order_date', '>=', $fromDate);
-                } elseif ($toDate) {
-                    $q->where('order_date', '<=', $toDate);
-                }
-            });
-        }
-        $data['serviceSale'] = $serviceSaleQuery->sum('sub_total');
-
         // Product Sale
         $productSaleQuery = CustomerPayment::where('payment_type', 'sale');
         $applyDateFilter($productSaleQuery, 'payment_date');
-        $data['productSale'] = $productSaleQuery->sum('amount') - $data['serviceSale'];
+        $data['productSale'] = $productSaleQuery->sum('amount');
 
         // Customer Due
         $customerDueQuery = CustomerPayment::where('payment_type', 'due_receive');
@@ -264,12 +249,13 @@ class AccountsController extends Controller
 
         $data['totalPay'] = $data['sale_return'] + $data['balance_withdraw'] + $data['customer_advance_refund'] + $data['supplierDuePay'] + $data['supplierAdvancePay'] + $data['purchase'] + $data['expenses'] + $data['salary'] + $data['expenseSupplierDuePay'] + $data['expenseSupplierAdvancePay'] + $data['expenseSupplierPayment'];
 
-        $data['totalReceive'] = $data['productSale']  + $data['balance_deposit'] + $data['customer_advance'] + $data['customer_due'] + $data['supplierAdvanceRefund'] + $data['serviceSale'] + $data['purchaseReturn'] + $data['expenseSupplierAdvanceRefund'];
+        $data['totalReceive'] = $data['productSale'] + $data['balance_deposit'] + $data['customer_advance'] + $data['customer_due'] + $data['supplierAdvanceRefund'] + $data['purchaseReturn'] + $data['expenseSupplierAdvanceRefund'];
 
         // Opening balance is 0 for all-time view, or calculated from the start date when filtered
         $openingBalance = $hasDateFilter && $fromDate ? $this->accountsService->getOpeningBalance($fromDate) : 0;
 
         $currentBalance = $openingBalance + $data['totalReceive'] - $data['totalPay'];
+
         return view('accounts::cash-flow', compact('data', 'openingBalance', 'currentBalance', 'hasDateFilter'));
     }
 }
