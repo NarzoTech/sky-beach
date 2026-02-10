@@ -54,6 +54,49 @@ trait PermissionsTrait
         ],
     ];
 
+    public static array $currencyPermissions = [
+        'group_name'  => 'currency',
+        'permissions' => [
+            'currency.view',
+            'currency.create',
+            'currency.store',
+            'currency.edit',
+            'currency.update',
+            'currency.delete',
+        ],
+    ];
+
+    public static array $languagePermissions = [
+        'group_name'  => 'language',
+        'permissions' => [
+            'language.view',
+            'language.create',
+            'language.store',
+            'language.edit',
+            'language.update',
+            'language.delete',
+        ],
+    ];
+
+    public static array $taxPermissions = [
+        'group_name'  => 'tax',
+        'permissions' => [
+            'tax.view',
+            'tax.create',
+            'tax.store',
+            'tax.edit',
+            'tax.update',
+            'tax.delete',
+        ],
+    ];
+
+    public static array $mediaPermissions = [
+        'group_name'  => 'media',
+        'permissions' => [
+            'media.view',
+        ],
+    ];
+
     public static array $supplierPermissions = [
         'group_name'  => 'supplier',
         'permissions' => [
@@ -230,6 +273,7 @@ trait PermissionsTrait
             'sales.invoice',
             'sales.return',
             'sales.return.list',
+            'sales.return.edit',
             'sales.return.delete',
             'sales.return.excel.download',
             'sales.return.pdf.download',
@@ -243,6 +287,7 @@ trait PermissionsTrait
         'permissions' => [
             'pos.view',
             'pos.settings.view',
+            'pos.settings.edit',
             'pos.settings.update',
             'pos.running_orders.view',
             'pos.running_orders.update',
@@ -308,6 +353,10 @@ trait PermissionsTrait
             'restaurant.menu_item.create',
             'restaurant.menu_item.edit',
             'restaurant.menu_item.delete',
+            'restaurant.contact-message.view',
+            'restaurant.contact-message.delete',
+            'restaurant.website-order.view',
+            'restaurant.website-order.manage',
         ],
     ];
     public static array $accountPermissions = [
@@ -491,6 +540,7 @@ trait PermissionsTrait
     public static array $menuBranchPermissions = [
         'group_name'  => 'menu branch',
         'permissions' => [
+            'menu.branch.view',
             'menu.branch.pricing',
             'menu.branch.availability',
         ],
@@ -501,6 +551,7 @@ trait PermissionsTrait
             'membership.view',
             'membership.create',
             'membership.edit',
+            'membership.delete',
             'membership.manage_points',
             'membership.view_transactions',
         ],
@@ -600,6 +651,24 @@ trait PermissionsTrait
             'cms.features.create',
             'cms.features.edit',
             'cms.features.delete',
+        ],
+    ];
+
+    public static array $warehousePermissions = [
+        'group_name'  => 'warehouse',
+        'permissions' => [
+            'warehouse.view',
+            'warehouse.create',
+            'warehouse.edit',
+            'warehouse.delete',
+        ],
+    ];
+
+    public static array $taxReportPermissions = [
+        'group_name'  => 'Tax Reports',
+        'permissions' => [
+            'tax-reports.view',
+            'tax-reports.manage',
         ],
     ];
 

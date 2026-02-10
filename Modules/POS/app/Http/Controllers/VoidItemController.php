@@ -24,6 +24,7 @@ class VoidItemController extends Controller
      */
     public function voidItem(Request $request, $itemId)
     {
+        checkAdminHasPermissionAndThrowException('void.item');
         $validated = $request->validate([
             'reason' => 'required|string|max:500',
             'notify_kitchen' => 'boolean',
@@ -92,6 +93,7 @@ class VoidItemController extends Controller
      */
     public function voidMultiple(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('void.item');
         $validated = $request->validate([
             'item_ids' => 'required|array|min:1',
             'item_ids.*' => 'exists:product_sales,id',
@@ -173,6 +175,7 @@ class VoidItemController extends Controller
      */
     public function getVoidHistory($orderId)
     {
+        checkAdminHasPermissionAndThrowException('void.view_history');
         $voidedItems = ProductSale::where('sale_id', $orderId)
             ->where('is_voided', true)
             ->with(['menuItem', 'service'])
@@ -186,6 +189,7 @@ class VoidItemController extends Controller
      */
     public function restoreItem(Request $request, $itemId)
     {
+        checkAdminHasPermissionAndThrowException('void.restore');
         $item = ProductSale::with('sale')->findOrFail($itemId);
         $order = $item->sale;
 

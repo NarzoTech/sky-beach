@@ -10,6 +10,7 @@ class ContactMessageController extends Controller
 {
     public function index(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.contact-message.view');
         $query = ContactMessage::latest();
 
         if ($request->filled('status')) {
@@ -23,6 +24,7 @@ class ContactMessageController extends Controller
 
     public function show(ContactMessage $contactMessage)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.contact-message.view');
         // Mark as read if unread
         if ($contactMessage->status === 'unread') {
             $contactMessage->update(['status' => 'read']);
@@ -33,6 +35,7 @@ class ContactMessageController extends Controller
 
     public function updateStatus(Request $request, ContactMessage $contactMessage)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.contact-message.view');
         $validated = $request->validate([
             'status' => 'required|in:unread,read,replied',
         ]);
@@ -44,6 +47,7 @@ class ContactMessageController extends Controller
 
     public function destroy(ContactMessage $contactMessage)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.contact-message.delete');
         $contactMessage->delete();
 
         return redirect()->route('admin.restaurant.contact-messages.index')

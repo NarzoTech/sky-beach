@@ -15,6 +15,7 @@ class MembershipController extends Controller
      */
     public function index(): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         // Get statistics
         $totalPrograms = LoyaltyProgram::count();
         $activePrograms = LoyaltyProgram::active()->count();

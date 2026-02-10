@@ -25,7 +25,7 @@ class MenuAddonController extends Controller
      */
     public function index(Request $request)
     {
-        // $this->authorize('menu-addon-list');
+        checkAdminHasPermissionAndThrowException('menu.addon.view');
 
         $filters = [
             'search' => $request->get('search'),
@@ -45,7 +45,7 @@ class MenuAddonController extends Controller
      */
     public function create()
     {
-        // $this->authorize('menu-addon-create');
+        checkAdminHasPermissionAndThrowException('menu.addon.create');
 
         return view('menu::admin.addons.create');
     }
@@ -55,7 +55,7 @@ class MenuAddonController extends Controller
      */
     public function store(MenuAddonRequest $request)
     {
-        // $this->authorize('menu-addon-create');
+        checkAdminHasPermissionAndThrowException('menu.addon.create');
 
         try {
             $this->addonService->create($request->validated());
@@ -76,7 +76,7 @@ class MenuAddonController extends Controller
      */
     public function show(MenuAddon $menuAddon)
     {
-        // $this->authorize('menu-addon-view');
+        checkAdminHasPermissionAndThrowException('menu.addon.view');
 
         return view('menu::admin.addons.show', ['addon' => $menuAddon]);
     }
@@ -86,7 +86,7 @@ class MenuAddonController extends Controller
      */
     public function edit(MenuAddon $menuAddon)
     {
-        // $this->authorize('menu-addon-edit');
+        checkAdminHasPermissionAndThrowException('menu.addon.edit');
 
         return view('menu::admin.addons.edit', ['addon' => $menuAddon]);
     }
@@ -96,7 +96,7 @@ class MenuAddonController extends Controller
      */
     public function update(MenuAddonRequest $request, MenuAddon $menuAddon)
     {
-        // $this->authorize('menu-addon-edit');
+        checkAdminHasPermissionAndThrowException('menu.addon.edit');
 
         try {
             $this->addonService->update($menuAddon, $request->validated());
@@ -117,7 +117,7 @@ class MenuAddonController extends Controller
      */
     public function destroy(MenuAddon $menuAddon)
     {
-        // $this->authorize('menu-addon-delete');
+        checkAdminHasPermissionAndThrowException('menu.addon.delete');
 
         try {
             $this->addonService->delete($menuAddon);
@@ -139,7 +139,7 @@ class MenuAddonController extends Controller
      */
     public function bulkDelete(Request $request)
     {
-        // $this->authorize('menu-addon-delete');
+        checkAdminHasPermissionAndThrowException('menu.addon.delete');
 
         $request->validate([
             'ids' => 'required|array',
@@ -159,7 +159,7 @@ class MenuAddonController extends Controller
      */
     public function toggleStatus(MenuAddon $menuAddon)
     {
-        // $this->authorize('menu-addon-edit');
+        checkAdminHasPermissionAndThrowException('menu.addon.edit');
 
         $addon = $this->addonService->toggleStatus($menuAddon);
 

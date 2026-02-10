@@ -32,6 +32,7 @@ class DashboardController extends Controller
             return redirect()->route('admin.waiter.dashboard');
         }
 
+        checkAdminHasPermissionAndThrowException('dashboard.view');
         $data['customerDues'] = CustomerDue::where('status', 1)->sum('due_amount');
         $data['todaySales'] = Sale::whereDate('order_date', date('Y-m-d'))->sum('grand_total');
         $data['totalIngredients'] = Ingredient::count();

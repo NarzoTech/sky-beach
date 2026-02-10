@@ -16,6 +16,7 @@ class TableTransferController extends Controller
      */
     public function getTransferData($orderId)
     {
+        checkAdminHasPermissionAndThrowException('table.edit');
         $order = Sale::with('table')->findOrFail($orderId);
 
         $availableTables = RestaurantTable::where('status', 'available')
@@ -40,6 +41,7 @@ class TableTransferController extends Controller
      */
     public function transfer(Request $request, $orderId)
     {
+        checkAdminHasPermissionAndThrowException('table.edit');
         $validated = $request->validate([
             'new_table_id' => 'required|exists:restaurant_tables,id',
             'reason' => 'nullable|string|max:500',
@@ -121,6 +123,7 @@ class TableTransferController extends Controller
      */
     public function merge(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('table.edit');
         $validated = $request->validate([
             'source_order_id' => 'required|exists:sales,id',
             'target_order_id' => 'required|exists:sales,id',

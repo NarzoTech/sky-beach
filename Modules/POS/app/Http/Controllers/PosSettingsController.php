@@ -19,6 +19,7 @@ class PosSettingsController extends Controller
      */
     public function index()
     {
+        checkAdminHasPermissionAndThrowException('pos.settings.view');
         $pos_settings = PosSettings::first();
 
         // Create default settings if none exist
@@ -53,6 +54,7 @@ class PosSettingsController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+      checkAdminHasPermissionAndThrowException('pos.settings.edit');
       try
         {
             // Explicitly handle checkbox fields - unchecked checkboxes are not sent in form data

@@ -121,8 +121,8 @@
             @include('report::sidebar')
         @endif
 
-        {{-- Tax Reports (hidden for waiters) --}}
-        @if(!auth('admin')->user()->hasRole('Waiter'))
+        {{-- Tax Reports --}}
+        @adminCan('tax-reports.view')
         <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class='menu-icon tf-icons bx bx-receipt'></i>
@@ -146,7 +146,7 @@
                 </li>
             </ul>
         </li>
-        @endif
+        @endadminCan
 
         @if (Module::isEnabled('Expense'))
             @include('expense::sidebar')
@@ -196,6 +196,7 @@
                 <ul class="menu-sub">
                     @if (Module::isEnabled('CMS'))
                         {{-- Page Sections --}}
+                        @adminCan('cms.settings.view')
                         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Pages') }}</span></li>
                         <li class="menu-item {{ request()->is('admin/cms/sections/homepage*') || (request()->is('admin/cms/sections/*/edit*') && request()->get('page') == 'home') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.cms.sections.homepage') }}">
@@ -232,29 +233,38 @@
                                 <i class='bx bx-wrench me-2'></i>{{ __('Service Page') }}
                             </a>
                         </li>
+                        @endadminCan
 
                         {{-- Data Management --}}
                         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Data') }}</span></li>
+                        @adminCan('cms.testimonials.view')
                         <li class="menu-item {{ request()->is('admin/cms/testimonials*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.cms.testimonials.index') }}">
                                 <i class='bx bx-message-square-dots me-2'></i>{{ __('Testimonials') }}
                             </a>
                         </li>
+                        @endadminCan
+                        @adminCan('cms.counters.view')
                         <li class="menu-item {{ request()->is('admin/cms/counters*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.cms.counters.index') }}">
                                 <i class='bx bx-bar-chart me-2'></i>{{ __('Counters') }}
                             </a>
                         </li>
+                        @endadminCan
+                        @adminCan('cms.gallery.view')
                         <li class="menu-item {{ request()->is('admin/cms/gallery*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.cms.gallery.index') }}">
                                 <i class='bx bx-images me-2'></i>{{ __('Gallery') }}
                             </a>
                         </li>
+                        @endadminCan
+                        @adminCan('cms.legal-pages.view')
                         <li class="menu-item {{ request()->is('admin/cms/legal-pages*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.cms.legal-pages.index') }}">
                                 <i class='bx bx-file me-2'></i>{{ __('Legal Pages') }}
                             </a>
                         </li>
+                        @endadminCan
                     @endif
 
                     @if (Module::isEnabled('Website'))
@@ -312,16 +322,20 @@
                                 </a>
                             </li>
                         @endadminCan
+                        @adminCan('restaurant.contact-message.view')
                         <li class="menu-item {{ request()->is('admin/restaurant/contact-messages*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.contact-messages.index') }}">
                                 <i class='bx bx-message-dots me-2'></i>{{ __('Contact Messages') }}
                             </a>
                         </li>
+                        @endadminCan
+                        @adminCan('restaurant.website-order.view')
                         <li class="menu-item {{ request()->is('admin/restaurant/website-orders*') ? 'active' : '' }}">
                             <a class="menu-link" href="{{ route('admin.restaurant.website-orders.index') }}">
                                 <i class='bx bx-cart me-2'></i>{{ __('Website Orders') }}
                             </a>
                         </li>
+                        @endadminCan
                     @endif
                 </ul>
             </li>

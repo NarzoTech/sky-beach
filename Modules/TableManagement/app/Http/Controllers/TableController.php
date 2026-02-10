@@ -18,6 +18,7 @@ class TableController extends Controller
 
     public function index()
     {
+        checkAdminHasPermissionAndThrowException('table.view');
         $tables = $this->service->all()->paginate(20);
         $stats = $this->service->getTableStats();
         $floors = $this->service->getFloors();
@@ -28,11 +29,7 @@ class TableController extends Controller
 
     public function create()
     {
-        // Restrict waiters from creating tables
-        if (auth('admin')->user()->hasRole('Waiter')) {
-            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to create tables.');
-        }
-
+        checkAdminHasPermissionAndThrowException('table.create');
         $floors = $this->service->getFloors();
         $sections = $this->service->getSections();
         $shapes = RestaurantTable::SHAPES;
@@ -42,11 +39,7 @@ class TableController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        // Restrict waiters from creating tables
-        if (auth('admin')->user()->hasRole('Waiter')) {
-            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to create tables.');
-        }
-
+        checkAdminHasPermissionAndThrowException('table.create');
         $request->validate([
             'name' => 'required|string|max:255',
             'table_number' => 'nullable|string|max:50|unique:restaurant_tables,table_number',
@@ -67,6 +60,7 @@ class TableController extends Controller
 
     public function show($id)
     {
+        checkAdminHasPermissionAndThrowException('table.view');
         $table = $this->service->find($id);
 
         if (!$table) {
@@ -78,11 +72,7 @@ class TableController extends Controller
 
     public function edit($id)
     {
-        // Restrict waiters from editing tables
-        if (auth('admin')->user()->hasRole('Waiter')) {
-            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to edit tables.');
-        }
-
+        checkAdminHasPermissionAndThrowException('table.edit');
         $table = $this->service->find($id);
 
         if (!$table) {
@@ -98,11 +88,7 @@ class TableController extends Controller
 
     public function update(Request $request, $id): RedirectResponse
     {
-        // Restrict waiters from updating tables
-        if (auth('admin')->user()->hasRole('Waiter')) {
-            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to update tables.');
-        }
-
+        checkAdminHasPermissionAndThrowException('table.edit');
         $request->validate([
             'name' => 'required|string|max:255',
             'table_number' => 'required|string|max:50|unique:restaurant_tables,table_number,' . $id,
@@ -123,11 +109,7 @@ class TableController extends Controller
 
     public function destroy($id): RedirectResponse
     {
-        // Restrict waiters from deleting tables
-        if (auth('admin')->user()->hasRole('Waiter')) {
-            return redirect()->route('admin.tables.index')->with('error', 'You do not have permission to delete tables.');
-        }
-
+        checkAdminHasPermissionAndThrowException('table.delete');
         try {
             $this->service->destroy($id);
             return redirect()->route('admin.tables.index')
@@ -139,6 +121,7 @@ class TableController extends Controller
 
     public function updateStatus(Request $request, $id): JsonResponse
     {
+        checkAdminHasPermissionAndThrowException('table.status');
         $request->validate([
             'status' => 'required|in:available,occupied,reserved,maintenance',
         ]);
@@ -160,6 +143,7 @@ class TableController extends Controller
 
     public function layout()
     {
+        checkAdminHasPermissionAndThrowException('table.view');
         $tablesGrouped = $this->service->getActiveTablesGroupedByFloor();
         $stats = $this->service->getTableStats();
         $floors = $this->service->getFloors();
@@ -169,6 +153,7 @@ class TableController extends Controller
 
     public function updatePositions(Request $request): JsonResponse
     {
+        checkAdminHasPermissionAndThrowException('table.edit');
         $request->validate([
             'positions' => 'required|array',
             'positions.*.id' => 'required|exists:restaurant_tables,id',
@@ -186,12 +171,14 @@ class TableController extends Controller
 
     public function getAvailable(): JsonResponse
     {
+        checkAdminHasPermissionAndThrowException('table.view');
         $tables = $this->service->getAvailableTables();
         return response()->json(['success' => true, 'tables' => $tables]);
     }
 
     public function releaseTable($id): JsonResponse
     {
+        checkAdminHasPermissionAndThrowException('table.status');
         try {
             $table = RestaurantTable::findOrFail($id);
             $table->release();

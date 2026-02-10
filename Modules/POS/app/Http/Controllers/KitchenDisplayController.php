@@ -23,6 +23,7 @@ class KitchenDisplayController extends Controller
      */
     public function index()
     {
+        checkAdminHasPermissionAndThrowException('kitchen.view');
         $orders = Sale::where('status', 0) // Processing orders only
             ->whereHas('details', function ($query) {
                 $query->where('kitchen_status', '!=', 'served')
@@ -43,6 +44,7 @@ class KitchenDisplayController extends Controller
      */
     public function getOrders()
     {
+        checkAdminHasPermissionAndThrowException('kitchen.view');
         $orders = Sale::where('status', 0)
             ->whereHas('details', function ($query) {
                 $query->where('kitchen_status', '!=', 'served')
@@ -63,6 +65,7 @@ class KitchenDisplayController extends Controller
      */
     public function updateItemStatus(Request $request, $itemId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $item = ProductSale::findOrFail($itemId);
 
         $validated = $request->validate([
@@ -96,6 +99,7 @@ class KitchenDisplayController extends Controller
      */
     public function updateOrderStatus(Request $request, $orderId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $order = Sale::findOrFail($orderId);
 
         $validated = $request->validate([
@@ -125,6 +129,7 @@ class KitchenDisplayController extends Controller
      */
     public function startPreparing($itemId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $item = ProductSale::findOrFail($itemId);
 
         $item->update([
@@ -143,6 +148,7 @@ class KitchenDisplayController extends Controller
      */
     public function markReady($itemId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $item = ProductSale::findOrFail($itemId);
 
         $item->update([
@@ -169,6 +175,7 @@ class KitchenDisplayController extends Controller
      */
     public function markServed($itemId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $item = ProductSale::findOrFail($itemId);
 
         $item->update([
@@ -187,6 +194,7 @@ class KitchenDisplayController extends Controller
      */
     public function bumpOrder($orderId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.bump_order');
         $order = Sale::findOrFail($orderId);
 
         $order->details()
@@ -211,6 +219,7 @@ class KitchenDisplayController extends Controller
      */
     public function recallOrder($orderId)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.update_status');
         $order = Sale::findOrFail($orderId);
 
         $order->details()
@@ -252,6 +261,7 @@ class KitchenDisplayController extends Controller
      */
     public function history(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('kitchen.view_history');
         $orders = Sale::where('status', 1) // Completed
             ->with(['table', 'waiter', 'details.menuItem', 'details.service'])
             ->whereDate('created_at', today())

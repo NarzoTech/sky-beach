@@ -20,12 +20,13 @@ class WarehouseController extends Controller
     }
     public function index()
     {
-
+        checkAdminHasPermissionAndThrowException('warehouse.view');
         $warehouses = $this->warehouseService->all()->get();
         return view('admin.pages.warehouse.index',compact('warehouses'));
     }
 
     public function store(Request $request){
+        checkAdminHasPermissionAndThrowException('warehouse.create');
         $request->validate([
             'name' => "required",
         ]);
@@ -40,6 +41,7 @@ class WarehouseController extends Controller
     }
 
     public function update(Request $request, $id){
+        checkAdminHasPermissionAndThrowException('warehouse.edit');
         $request->validate([
             'name' => "required",
         ]);
@@ -54,6 +56,7 @@ class WarehouseController extends Controller
     }
 
     public function destroy($id){
+        checkAdminHasPermissionAndThrowException('warehouse.delete');
         try {
             $this->warehouseService->delete($id);
             return $this->redirectWithMessage(RedirectType::DELETE->value, 'admin.warehouse.index', [], ['messege'=>'Warehouse deleted successfully','alert-type'=>'success']);

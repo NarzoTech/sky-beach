@@ -24,6 +24,7 @@ class LoyaltyRuleController extends Controller
      */
     public function index(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $programId = $request->query('program_id');
 
         $rules = LoyaltyRule::query()
@@ -46,6 +47,7 @@ class LoyaltyRuleController extends Controller
      */
     public function create(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.create');
         $programId = $request->query('program_id');
         $program = LoyaltyProgram::findOrFail($programId);
         $menuCategories = \Modules\Menu\app\Models\MenuCategory::where('status', 1)->get();
@@ -65,6 +67,7 @@ class LoyaltyRuleController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.create');
         $validated = $request->validate([
             'loyalty_program_id' => 'required|integer|exists:loyalty_programs,id',
             'name' => 'required|string|max:255',
@@ -140,6 +143,7 @@ class LoyaltyRuleController extends Controller
      */
     public function show(LoyaltyRule $rule): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $rule->load('program', 'createdBy');
 
         return view('membership::rules.show', [
@@ -152,6 +156,7 @@ class LoyaltyRuleController extends Controller
      */
     public function edit(LoyaltyRule $rule): View
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $menuCategories = \Modules\Menu\app\Models\MenuCategory::where('status', 1)->get();
         $menuItems = \Modules\Menu\app\Models\MenuItem::where('status', 1)->get();
         $customerSegments = \Modules\Membership\app\Models\LoyaltyCustomerSegment::where('is_active', true)->get();
@@ -169,6 +174,7 @@ class LoyaltyRuleController extends Controller
      */
     public function update(Request $request, LoyaltyRule $rule): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -245,6 +251,7 @@ class LoyaltyRuleController extends Controller
      */
     public function destroy(LoyaltyRule $rule): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.delete');
         $programId = $rule->loyalty_program_id;
         $rule->delete();
 
@@ -257,6 +264,7 @@ class LoyaltyRuleController extends Controller
      */
     public function updatePriorities(Request $request): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $validated = $request->validate([
             'priorities' => 'required|array',
             'priorities.*.id' => 'required|integer|exists:loyalty_rules,id',

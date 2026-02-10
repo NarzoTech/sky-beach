@@ -24,6 +24,7 @@ class SplitBillController extends Controller
      */
     public function show($orderId)
     {
+        checkAdminHasPermissionAndThrowException('split.view');
         $order = Sale::with(['details.menuItem', 'details.service', 'table', 'splitBills.items'])
             ->findOrFail($orderId);
 
@@ -35,6 +36,7 @@ class SplitBillController extends Controller
      */
     public function getOrderData($orderId)
     {
+        checkAdminHasPermissionAndThrowException('split.view');
         $order = Sale::with([
             'details' => function ($query) {
                 $query->where('is_voided', false);
@@ -52,6 +54,7 @@ class SplitBillController extends Controller
      */
     public function createSplits(Request $request, $orderId)
     {
+        checkAdminHasPermissionAndThrowException('split.create');
         $validated = $request->validate([
             'splits' => 'required|array|min:2',
             'splits.*.label' => 'required|string|max:50',
@@ -145,6 +148,7 @@ class SplitBillController extends Controller
      */
     public function splitEqually(Request $request, $orderId)
     {
+        checkAdminHasPermissionAndThrowException('split.create');
         $validated = $request->validate([
             'number_of_splits' => 'required|integer|min:2|max:20',
         ]);
@@ -192,6 +196,7 @@ class SplitBillController extends Controller
      */
     public function processPayment(Request $request, $splitId)
     {
+        checkAdminHasPermissionAndThrowException('split.process_payment');
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|string',
@@ -223,6 +228,7 @@ class SplitBillController extends Controller
      */
     public function printSplitReceipt($splitId)
     {
+        checkAdminHasPermissionAndThrowException('split.view');
         $split = SplitBill::with(['sale.table', 'sale.waiter', 'items.productSale.menuItem'])
             ->findOrFail($splitId);
 
@@ -262,6 +268,7 @@ class SplitBillController extends Controller
      */
     public function removeSplits($orderId)
     {
+        checkAdminHasPermissionAndThrowException('split.create');
         SplitBill::where('sale_id', $orderId)->delete();
 
         return response()->json([

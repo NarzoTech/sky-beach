@@ -15,6 +15,7 @@ class LoyaltyProgramController extends Controller
      */
     public function index(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $warehouseId = $request->query('warehouse_id');
 
         $programs = LoyaltyProgram::query()
@@ -32,6 +33,7 @@ class LoyaltyProgramController extends Controller
      */
     public function create(): View
     {
+        checkAdminHasPermissionAndThrowException('membership.create');
         return view('membership::programs.create');
     }
 
@@ -40,6 +42,7 @@ class LoyaltyProgramController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.create');
         $validated = $request->validate([
             'warehouse_id' => 'nullable|integer|exists:warehouses,id',
             'name' => 'required|string|max:255',
@@ -65,6 +68,7 @@ class LoyaltyProgramController extends Controller
      */
     public function show(LoyaltyProgram $program): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $program->load('warehouse', 'rules', 'segments', 'createdBy');
 
         return view('membership::programs.show', [
@@ -77,6 +81,7 @@ class LoyaltyProgramController extends Controller
      */
     public function edit(LoyaltyProgram $program): View
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         return view('membership::programs.edit', [
             'program' => $program,
         ]);
@@ -87,6 +92,7 @@ class LoyaltyProgramController extends Controller
      */
     public function update(Request $request, LoyaltyProgram $program): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -109,6 +115,7 @@ class LoyaltyProgramController extends Controller
      */
     public function destroy(LoyaltyProgram $program): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.delete');
         $program->delete();
 
         return redirect()->route('membership.programs.index')

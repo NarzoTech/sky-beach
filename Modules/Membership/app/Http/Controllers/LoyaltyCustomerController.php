@@ -23,6 +23,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function index(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $search = $request->query('search');
         $status = $request->query('status');
 
@@ -46,6 +47,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function show(LoyaltyCustomer $customer): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $customer->load('transactions', 'redemptions');
         $summary = $this->pointCalculationService->getPointsSummary($customer);
         $transactionHistory = $this->pointCalculationService->getTransactionHistory($customer, 50);
@@ -62,6 +64,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function adjustPoints(Request $request, LoyaltyCustomer $customer): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.manage_points');
         $validated = $request->validate([
             'adjustment_amount' => 'required|numeric',
             'reason' => 'required|string|max:255',
@@ -94,6 +97,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function block(LoyaltyCustomer $customer): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $customer->update(['status' => 'blocked']);
 
         return redirect()->back()
@@ -105,6 +109,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function unblock(LoyaltyCustomer $customer): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $customer->update(['status' => 'active']);
 
         return redirect()->back()
@@ -116,6 +121,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function suspend(LoyaltyCustomer $customer): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $customer->update(['status' => 'suspended']);
 
         return redirect()->back()
@@ -127,6 +133,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function resume(LoyaltyCustomer $customer): RedirectResponse
     {
+        checkAdminHasPermissionAndThrowException('membership.edit');
         $customer->update(['status' => 'active']);
 
         return redirect()->back()
@@ -138,6 +145,7 @@ class LoyaltyCustomerController extends Controller
      */
     public function export(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('membership.view');
         $customers = LoyaltyCustomer::query()
             ->when($request->query('status'), fn ($q) => $q->where('status', $request->query('status')))
             ->get();

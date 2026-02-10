@@ -14,6 +14,7 @@ class LoyaltyTransactionController extends Controller
      */
     public function index(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view_transactions');
         $type = $request->query('type');
         $customerId = $request->query('customer_id');
         $warehouseId = $request->query('warehouse_id');
@@ -50,6 +51,7 @@ class LoyaltyTransactionController extends Controller
      */
     public function show(LoyaltyTransaction $transaction): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view_transactions');
         $transaction->load('customer', 'warehouse', 'createdBy');
 
         return view('membership::transactions.show', [
@@ -62,6 +64,7 @@ class LoyaltyTransactionController extends Controller
      */
     public function export(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('membership.view_transactions');
         $type = $request->query('type');
         $customerId = $request->query('customer_id');
         $warehouseId = $request->query('warehouse_id');
@@ -131,6 +134,7 @@ class LoyaltyTransactionController extends Controller
      */
     public function statistics(Request $request): View
     {
+        checkAdminHasPermissionAndThrowException('membership.view_transactions');
         $warehouseId = $request->query('warehouse_id');
         $startDate = $request->query('start_date') ? \Carbon\Carbon::parse($request->query('start_date')) : now()->subMonth();
         $endDate = $request->query('end_date') ? \Carbon\Carbon::parse($request->query('end_date')) : now();

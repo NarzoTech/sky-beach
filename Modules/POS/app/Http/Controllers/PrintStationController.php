@@ -15,6 +15,7 @@ class PrintStationController extends Controller
      */
     public function index(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $printers = PosPrinter::active()->browser()->get();
         $selectedPrinterId = $request->get('printer_id');
 
@@ -26,6 +27,7 @@ class PrintStationController extends Controller
      */
     public function getPendingJobs(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $printerId = $request->get('printer_id');
 
         $query = PrintJob::with(['printer', 'sale.table', 'sale.waiter'])
@@ -65,6 +67,7 @@ class PrintStationController extends Controller
      */
     public function getJobContent($id)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $job = PrintJob::with('printer')->findOrFail($id);
 
         // Mark as printing
@@ -79,6 +82,7 @@ class PrintStationController extends Controller
      */
     public function markPrinted($id)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $job = PrintJob::findOrFail($id);
         $job->markAsPrinted();
 
@@ -93,6 +97,7 @@ class PrintStationController extends Controller
      */
     public function markFailed(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $job = PrintJob::findOrFail($id);
         $job->markAsFailed($request->get('error', 'Print failed'));
 
@@ -107,6 +112,7 @@ class PrintStationController extends Controller
      */
     public function retryJob($id)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $job = PrintJob::findOrFail($id);
 
         if ($job->status === PrintJob::STATUS_FAILED) {
@@ -128,6 +134,7 @@ class PrintStationController extends Controller
      */
     public function getStats()
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $stats = [
             'pending' => PrintJob::where('status', PrintJob::STATUS_PENDING)->count(),
             'printing' => PrintJob::where('status', PrintJob::STATUS_PRINTING)->count(),
@@ -148,6 +155,7 @@ class PrintStationController extends Controller
      */
     public function getFailedJobs()
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $jobs = PrintJob::with(['printer', 'sale'])
             ->where('status', PrintJob::STATUS_FAILED)
             ->orderBy('created_at', 'desc')
@@ -165,6 +173,7 @@ class PrintStationController extends Controller
      */
     public function clearOldJobs(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('printer.view');
         $hours = $request->get('hours', 24);
 
         $deleted = PrintJob::where('status', PrintJob::STATUS_PRINTED)

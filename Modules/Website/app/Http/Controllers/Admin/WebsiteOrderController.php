@@ -24,6 +24,7 @@ class WebsiteOrderController extends Controller
      */
     public function index(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.view');
         $query = Sale::with(['customer', 'details.menuItem'])
             ->websiteOrders()
             ->orderBy('created_at', 'desc');
@@ -79,6 +80,7 @@ class WebsiteOrderController extends Controller
      */
     public function show($id)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.view');
         $order = Sale::with(['customer', 'details.menuItem', 'details.combo.comboItems.menuItem', 'createdBy'])
             ->websiteOrders()
             ->findOrFail($id);
@@ -91,6 +93,7 @@ class WebsiteOrderController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.manage');
         $request->validate([
             'status' => 'required|in:pending,confirmed,preparing,ready,completed,cancelled',
             'staff_note' => 'nullable|string|max:500',
@@ -343,6 +346,7 @@ class WebsiteOrderController extends Controller
      */
     public function printOrder($id)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.view');
         $order = Sale::with(['customer', 'details.menuItem'])
             ->websiteOrders()
             ->findOrFail($id);
@@ -355,6 +359,7 @@ class WebsiteOrderController extends Controller
      */
     public function updatePaymentStatus(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.manage');
         $request->validate([
             'payment_status' => 'required|in:unpaid,paid,refunded',
         ]);
@@ -381,6 +386,7 @@ class WebsiteOrderController extends Controller
      */
     public function bulkUpdateStatus(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.manage');
         $request->validate([
             'order_ids' => 'required|array',
             'order_ids.*' => 'exists:sales,id',
@@ -425,6 +431,7 @@ class WebsiteOrderController extends Controller
      */
     public function export(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('restaurant.website-order.view');
         $query = Sale::with(['customer', 'details.menuItem'])
             ->websiteOrders()
             ->orderBy('created_at', 'desc');

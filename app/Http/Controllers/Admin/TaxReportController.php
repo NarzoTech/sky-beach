@@ -16,6 +16,7 @@ class TaxReportController extends Controller
      */
     public function index(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.view');
         // Default to current month
         $startDate = $request->filled('start_date')
             ? Carbon::parse($request->start_date)
@@ -63,6 +64,7 @@ class TaxReportController extends Controller
      */
     public function ledger(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.view');
         $query = TaxLedger::with(['sale', 'purchase', 'tax', 'createdBy']);
 
         // Filter by type
@@ -110,6 +112,7 @@ class TaxReportController extends Controller
      */
     public function periods(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.view');
         $periods = TaxPeriodSummary::orderBy('period_start', 'desc')
             ->paginate(12);
 
@@ -121,6 +124,7 @@ class TaxReportController extends Controller
      */
     public function generatePeriod(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $request->validate([
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',
@@ -142,6 +146,7 @@ class TaxReportController extends Controller
      */
     public function closePeriod(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $period = TaxPeriodSummary::findOrFail($id);
 
         if (!$period->close($request->notes)) {
@@ -156,6 +161,7 @@ class TaxReportController extends Controller
      */
     public function markFiled(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $period = TaxPeriodSummary::findOrFail($id);
 
         if (!$period->markAsFiled($request->notes)) {
@@ -170,6 +176,7 @@ class TaxReportController extends Controller
      */
     public function export(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.view');
         $query = TaxLedger::with(['sale', 'purchase', 'tax'])
             ->active()
             ->orderBy('transaction_date', 'asc');
@@ -242,6 +249,7 @@ class TaxReportController extends Controller
      */
     public function syncSales(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $startDate = $request->filled('start_date')
             ? Carbon::parse($request->start_date)
             : now()->subMonths(3)->startOfMonth();
@@ -284,6 +292,7 @@ class TaxReportController extends Controller
      */
     public function voidEntry(Request $request, $id)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $entry = TaxLedger::findOrFail($id);
 
         if ($entry->status !== 'active') {
@@ -309,6 +318,7 @@ class TaxReportController extends Controller
      */
     public function createAdjustment(Request $request)
     {
+        checkAdminHasPermissionAndThrowException('tax-reports.manage');
         $request->validate([
             'type' => 'required|in:collected,paid',
             'tax_amount' => 'required|numeric|min:0.01',

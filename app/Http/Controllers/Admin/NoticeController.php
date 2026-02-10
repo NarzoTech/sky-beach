@@ -9,7 +9,7 @@ class NoticeController extends Controller
 {
     public function create()
     {
-
+        checkAdminHasPermissionAndThrowException('setting.view');
         return view('admin.pages.notice.create');
     }
 

@@ -12,6 +12,7 @@ class BusinessController extends Controller
      */
     public function index()
     {
+        checkAdminHasPermissionAndThrowException('setting.view');
         return view('admin.pages.business.index');
     }
 
@@ -20,6 +21,7 @@ class BusinessController extends Controller
      */
     public function create()
     {
+        checkAdminHasPermissionAndThrowException('setting.view');
         return view('admin.pages.business.create');
     }
 
