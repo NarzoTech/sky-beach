@@ -36,13 +36,12 @@
                     <div class="menu_det_slider_area">
                         @php
                             $images = [];
-                            if ($menuItem->image) {
-                                $images[] = $menuItem->image_url;
-                            }
-                            if ($menuItem->gallery && is_array($menuItem->gallery)) {
+                            if ($menuItem->gallery && is_array($menuItem->gallery) && count($menuItem->gallery) > 0) {
                                 foreach ($menuItem->gallery as $img) {
                                     $images[] = asset($img);
                                 }
+                            } elseif ($menuItem->image) {
+                                $images[] = $menuItem->image_url;
                             }
                             if (empty($images)) {
                                 $images[] = asset('website/images/placeholder_food.jpg');
