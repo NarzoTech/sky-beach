@@ -24,7 +24,14 @@
                                 <i class="fas fa-leaf text-success" title="Vegetarian"></i>
                             @endif
                         </p>
-                        <p class="price">{{ currency($menuItem->base_price) }}</p>
+                        <p class="price">
+                            @if($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
+                                <small class="text-muted text-decoration-line-through">{{ currency($menuItem->base_price) }}</small>
+                                {{ currency($menuItem->final_price) }}
+                            @else
+                                {{ currency($menuItem->base_price) }}
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>

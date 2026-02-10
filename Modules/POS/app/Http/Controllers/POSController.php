@@ -666,10 +666,10 @@ class POSController extends Controller
             $data['image'] = $type == 'service' ? $service->singleImage : $menuItem->image_url;
             $data['qty'] = $request->qty ? $request->qty : 1;
 
-            // Calculate price - use variant price if applicable, otherwise base_price
-            $basePrice = $type == 'service' ? $service->price : ($menuItem->base_price);
+            // Calculate price - use variant price if applicable, otherwise final_price (discount_price or base_price)
+            $basePrice = $type == 'service' ? $service->price : ($menuItem->final_price);
             if ($variant) {
-                $basePrice = $menuItem->base_price + ($variant->price_adjustment ?? 0);
+                $basePrice = $menuItem->final_price + ($variant->price_adjustment ?? 0);
             }
 
             // Add addons price to item price
@@ -1765,10 +1765,11 @@ class POSController extends Controller
                         continue;
                     }
 
+                    $isGuestOrder = !$order->customer_id || $order->customer_id == 0;
                     \Modules\Customer\app\Models\CustomerPayment::create([
                         'sale_id' => $order->id,
-                        'customer_id' => $order->customer_id != 'walk-in-customer' ? $order->customer_id : null,
-                        'is_guest' => $order->customer_id == 'walk-in-customer' || !$order->customer_id ? 1 : 0,
+                        'customer_id' => $isGuestOrder ? null : $order->customer_id,
+                        'is_guest' => $isGuestOrder ? 1 : 0,
                         'account_id' => $account->id,
                         'payment_type' => 'sale',
                         'amount' => $amount,

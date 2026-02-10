@@ -673,7 +673,12 @@
                                 <div class="card-body" onclick="showItemModal({{ $item->id }})">
                                     <h6 class="mb-1 small" style="line-height: 1.2;">{{ Str::limit($item->name, 25) }}</h6>
                                     <div class="item-price-row">
-                                        <div class="item-price mb-0">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($item->price, 2) }}</div>
+                                        <div class="item-price mb-0">
+                                            @if($item->discount_price && $item->discount_price < $item->base_price)
+                                                <small class="text-muted text-decoration-line-through" style="font-size: 0.75rem;">{{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($item->base_price, 2) }}</small>
+                                            @endif
+                                            {{ optional($posSettings)->currency ?? 'TK' }}{{ number_format($item->final_price, 2) }}
+                                        </div>
                                         @if($item->addons->isEmpty())
                                         <button class="btn btn-success quick-add-btn" onclick="event.stopPropagation(); quickAdd({{ $item->id }});" title="{{ __('Quick Add') }}">
                                             <i class="bx bx-plus"></i>
@@ -982,11 +987,11 @@
             cart.push({
                 menu_item_id: item.id,
                 name: item.name,
-                price: parseFloat(item.price),
+                price: parseFloat(item.final_price),
                 quantity: 1,
                 addons: [],
                 note: '',
-                subtotal: parseFloat(item.price)
+                subtotal: parseFloat(item.final_price)
             });
         }
 
@@ -1005,7 +1010,7 @@
         currentItemData = { addons: [] };
 
         document.getElementById('itemModalTitle').textContent = item.name;
-        document.getElementById('itemModalPrice').textContent = currency + parseFloat(item.price).toFixed(2);
+        document.getElementById('itemModalPrice').textContent = currency + parseFloat(item.final_price).toFixed(2);
         document.getElementById('itemModalDescription').textContent = item.short_description || '';
         document.getElementById('item-qty').value = 1;
         document.getElementById('item-note').value = '';
@@ -1100,7 +1105,7 @@
 
     function updateModalTotal() {
         const qty = parseInt(document.getElementById('item-qty').value);
-        let total = parseFloat(currentItem.price) * qty;
+        let total = parseFloat(currentItem.final_price) * qty;
 
         currentItemData.addons.forEach(addon => {
             total += addon.price * addon.qty * qty;
@@ -1115,7 +1120,7 @@
         const addons = [...currentItemData.addons];
 
         // Calculate subtotal
-        let subtotal = parseFloat(currentItem.price) * qty;
+        let subtotal = parseFloat(currentItem.final_price) * qty;
         addons.forEach(addon => {
             subtotal += addon.price * addon.qty * qty;
         });
@@ -1134,7 +1139,7 @@
             cart.push({
                 menu_item_id: currentItem.id,
                 name: currentItem.name,
-                price: parseFloat(currentItem.price),
+                price: parseFloat(currentItem.final_price),
                 quantity: qty,
                 addons: addons,
                 note: note,

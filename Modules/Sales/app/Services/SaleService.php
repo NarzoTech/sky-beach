@@ -70,7 +70,8 @@ class SaleService
         $sale = new Sale();
         $sale->user_id = $user != null ?  $user->id : null;
 
-        $sale->customer_id = $request->order_customer_id;
+        $isGuest = !$request->order_customer_id || $request->order_customer_id == 'walk-in-customer';
+        $sale->customer_id = $isGuest ? null : $request->order_customer_id;
         $sale->warehouse_id = 1;
         $sale->quantity = 1;
         $sale->total_price = $request->sub_total;
@@ -79,9 +80,9 @@ class SaleService
         $sale->table_id = $request->table_id;
         $sale->guest_count = $request->guest_count ?? 1;
         $sale->waiter_id = $request->waiter_id;
-        // For dine-in orders, defer payment (status = processing, payment_status = unpaid)
-        $isDineIn = $sale->order_type === Sale::ORDER_TYPE_DINE_IN && $sale->table_id;
-        $deferPayment = $request->defer_payment ?? $isDineIn;
+        // Only defer payment when explicitly requested (e.g., "Start Order" button)
+        // Do NOT auto-defer for dine-in when user goes through "Complete Payment" checkout
+        $deferPayment = $request->defer_payment == 1;
 
         // Status uses string values: 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'
         if ($deferPayment) {
@@ -436,22 +437,19 @@ class SaleService
 
                 if (!$account) continue;
 
-                $customerId = $request->order_customer_id;
                 $payingAmount = $payingAmounts[$key] ?? 0;
+                $isGuestPayment = !$sale->customer_id;
                 $data = [
                     'payment_type' => 'sale',
                     'sale_id' => $sale->id,
                     'is_received' => 1,
-                    'customer_id' => $request->order_customer_id,
+                    'customer_id' => $isGuestPayment ? null : $sale->customer_id,
+                    'is_guest' => $isGuestPayment ? 1 : 0,
                     'account_id' => $account->id,
                     'amount' => $payingAmount,
                     'payment_date' => Carbon::createFromFormat('d-m-Y', $request->sale_date),
                     'created_by' => auth('admin')->user()->id,
                 ];
-                if ($customerId == 'walk-in-customer') {
-                    $data['customer_id'] = null;
-                    $data['is_guest'] = 1;
-                }
                 if (!empty($payingAmount)) {
                     CustomerPayment::create($data);
                 }
@@ -733,7 +731,8 @@ class SaleService
 
             // update sales
             $sale->user_id = $user != null ?  $user->id : null;
-            $sale->customer_id = $request->order_customer_id;
+            $isGuestUpdate = !$request->order_customer_id || $request->order_customer_id == 'walk-in-customer';
+            $sale->customer_id = $isGuestUpdate ? null : $request->order_customer_id;
             $sale->warehouse_id = 1;
             $sale->total_price = $request->sub_total;
             $sale->order_date = $this->parseDate($request->sale_date);
@@ -1044,22 +1043,19 @@ class SaleService
                     $account = Account::where('account_type', $item)
                         ->where('id', $accountIds[$key] ?? null)->first();
                 }
-                $customerId = $request->order_customer_id;
+                $isGuestPayment = !$sale->customer_id;
                 $payingAmount = $payingAmounts[$key] ?? 0;
                 $data = [
                     'payment_type' => 'sale',
                     'sale_id' => $sale->id,
                     'is_received' => 1,
-                    'customer_id' => $request->order_customer_id,
+                    'customer_id' => $isGuestPayment ? null : $sale->customer_id,
+                    'is_guest' => $isGuestPayment ? 1 : 0,
                     'account_id' => $account->id ?? null,
                     'amount' => $payingAmount,
                     'payment_date' => $this->parseDate($request->sale_date),
                     'created_by' => auth('admin')->user()->id,
                 ];
-                if ($customerId == 'walk-in-customer') {
-                    $data['customer_id'] = null;
-                    $data['is_guest'] = 1;
-                }
                 if ($payingAmount) {
                     CustomerPayment::create($data);
                 }
@@ -1289,7 +1285,8 @@ class SaleService
     public function salesLedger($request, $sale, $paid, $total_amount = 0, $type = 'sale', $isPaid = 1, $dueAmount = 0, $ledger = null)
     {
         if ($ledger == null) $ledger = new Ledger();
-        $ledger->customer_id = $request->order_customer_id;
+        $isGuestLedger = !$request->order_customer_id || $request->order_customer_id == 'walk-in-customer';
+        $ledger->customer_id = $isGuestLedger ? null : $request->order_customer_id;
         $ledger->amount = $paid;
         $ledger->invoice_type = $type;
         $ledger->is_received = $isPaid;

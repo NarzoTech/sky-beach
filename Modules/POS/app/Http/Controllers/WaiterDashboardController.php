@@ -153,7 +153,7 @@ class WaiterDashboardController extends Controller
         if (!empty($validated['items'])) {
             foreach ($validated['items'] as $item) {
                 $menuItem = MenuItem::findOrFail($item['menu_item_id']);
-                $itemTotal = $menuItem->price * $item['quantity'];
+                $itemTotal = $menuItem->final_price * $item['quantity'];
 
                 $addons = [];
                 if (!empty($item['addons'])) {
@@ -173,8 +173,8 @@ class WaiterDashboardController extends Controller
                     'name' => $menuItem->name,
                     'type' => 'menu_item',
                     'qty' => $item['quantity'],
-                    'price' => $menuItem->price,
-                    'base_price' => $menuItem->price,
+                    'price' => $menuItem->final_price,
+                    'base_price' => $menuItem->final_price,
                     'sub_total' => $itemTotal,
                     'addons' => $addons,
                     'note' => $item['note'] ?? null,
@@ -383,7 +383,7 @@ class WaiterDashboardController extends Controller
         if (!empty($validated['items'])) {
             foreach ($validated['items'] as $item) {
                 $menuItem = MenuItem::findOrFail($item['menu_item_id']);
-                $itemTotal = $menuItem->price * $item['quantity'];
+                $itemTotal = $menuItem->final_price * $item['quantity'];
 
                 $addons = [];
                 if (!empty($item['addons'])) {
@@ -402,7 +402,7 @@ class WaiterDashboardController extends Controller
                 $order->details()->create([
                     'menu_item_id' => $menuItem->id,
                     'quantity' => $item['quantity'],
-                    'price' => $menuItem->price,
+                    'price' => $menuItem->final_price,
                     'sub_total' => $itemTotal,
                     'addons' => !empty($addons) ? json_encode($addons) : null,
                     'note' => $item['note'] ?? null,

@@ -8,7 +8,14 @@
             <div class="product_list_info">
                 <h6>{{ $menuItem->name }}</h6>
                 <p class="mb-0">{{ $menuItem->sku }}</p>
-                <p class="mb-0 text-primary">{{ currency($menuItem->base_price) }}</p>
+                <p class="mb-0 text-primary">
+                    @if($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
+                        <small class="text-muted text-decoration-line-through">{{ currency($menuItem->base_price) }}</small>
+                        {{ currency($menuItem->final_price) }}
+                    @else
+                        {{ currency($menuItem->base_price) }}
+                    @endif
+                </p>
             </div>
         </div>
     </div>

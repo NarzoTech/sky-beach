@@ -389,8 +389,8 @@
     @csrf
     <input type="hidden" name="menu_item_id" value="{{ $menuItem->id }}">
     <input type="hidden" name="serviceType" value="menu_item">
-    <input type="hidden" name="price" value="{{ $menuItem->base_price }}" id="modal_price">
-    <input type="hidden" name="variant_price" value="{{ $menuItem->base_price }}" id="modal_variant_price">
+    <input type="hidden" name="price" value="{{ $menuItem->final_price }}" id="modal_price">
+    <input type="hidden" name="variant_price" value="{{ $menuItem->final_price }}" id="modal_variant_price">
     <input type="hidden" name="variant_id" value="" id="modal_variant_id">
     <input type="hidden" name="variant_sku" value="{{ $menuItem->sku }}" id="modal_variant_sku">
 
@@ -452,14 +452,14 @@
                 <div class="option-section">
                     <div class="option-label">{{ __('Select Size/Variant') }}</div>
                     <select name="variant_id" id="variant_select" class="variant-select">
-                        <option value="" data-price="{{ $menuItem->base_price }}" data-sku="{{ $menuItem->sku }}">
-                            {{ __('Regular') }} - {{ currency($menuItem->base_price) }}
+                        <option value="" data-price="{{ $menuItem->final_price }}" data-sku="{{ $menuItem->sku }}">
+                            {{ __('Regular') }} - {{ currency($menuItem->final_price) }}
                         </option>
                         @foreach ($variants as $variant)
                             <option value="{{ $variant->id }}"
-                                data-price="{{ $menuItem->base_price + ($variant->price_adjustment ?? 0) }}"
+                                data-price="{{ $menuItem->final_price + ($variant->price_adjustment ?? 0) }}"
                                 data-sku="{{ $variant->sku ?? $menuItem->sku }}">
-                                {{ $variant->name }} - {{ currency($menuItem->base_price + ($variant->price_adjustment ?? 0)) }}
+                                {{ $variant->name }} - {{ currency($menuItem->final_price + ($variant->price_adjustment ?? 0)) }}
                             </option>
                         @endforeach
                     </select>
@@ -493,7 +493,10 @@
             <div class="product-action-section">
                 <div class="price-display">
                     <div class="price-label">{{ __('Total Price') }}</div>
-                    <div class="price-value productPrice">{{ currency($menuItem->base_price) }}</div>
+                    @if($menuItem->discount_price && $menuItem->discount_price < $menuItem->base_price)
+                        <div class="text-muted text-decoration-line-through" style="font-size: 0.9rem;">{{ currency($menuItem->base_price) }}</div>
+                    @endif
+                    <div class="price-value productPrice">{{ currency($menuItem->final_price) }}</div>
                 </div>
 
                 <div>
@@ -515,7 +518,7 @@
 
 <script>
 (function() {
-    const basePrice = {{ $menuItem->base_price }};
+    const basePrice = {{ $menuItem->final_price }};
     const currencySymbol = '{{ currency_icon() }}';
 
     function formatCurrency(amount) {
