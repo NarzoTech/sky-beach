@@ -587,6 +587,7 @@ class SaleService
                 $orderDetails->profit_amount = $profitAmount;
                 $orderDetails->attributes = $menuVariant ? $menuVariant->name : null;
                 $orderDetails->addons = !empty($item['addons']) ? $item['addons'] : null;
+                $orderDetails->addons_price = $item['addons_price'] ?? 0;
                 $orderDetails->note = $item['note'] ?? null;
                 $orderDetails->save();
 
@@ -845,6 +846,68 @@ class SaleService
                     // Deduct ingredient stock based on menu item recipes
                     if ($menuItem && ($item['source'] ?? 1) == 1) {
                         $this->deductIngredientStockFromRecipe($menuItem, $saleQuantity, $sale, $request);
+
+                        // Deduct addon ingredient stock
+                        $this->deductAddonStock(
+                            $item['addons'] ?? null,
+                            $saleQuantity,
+                            $sale,
+                            $this->parseDate($request->sale_date)
+                        );
+                    }
+                }
+                // Handle combo type - expand combo into individual menu items
+                elseif ($itemType == 'combo') {
+                    $combo = Combo::with(['items.menuItem.recipes.ingredient', 'items.variant'])->find($item['id']);
+                    if ($combo) {
+                        foreach ($combo->items as $comboItem) {
+                            $menuItem = $comboItem->menuItem;
+                            if (!$menuItem) continue;
+
+                            $comboItemQty = $comboItem->quantity * $saleQuantity;
+
+                            // Calculate proportional price from combo
+                            $menuItemOriginalPrice = $menuItem->price;
+                            if ($comboItem->variant) {
+                                $menuItemOriginalPrice += $comboItem->variant->price_adjustment ?? 0;
+                            }
+
+                            $proportionalShare = ($combo->original_price > 0)
+                                ? ($menuItemOriginalPrice * $comboItem->quantity) / $combo->original_price
+                                : 1 / $combo->items->count();
+                            $proportionalPrice = ($combo->combo_price * $proportionalShare) / $comboItem->quantity;
+                            $itemSubTotal = $proportionalPrice * $comboItemQty;
+
+                            // Calculate COGS
+                            $cogsAmount = $this->calculateMenuItemCOGS($menuItem, $comboItemQty);
+                            $profitAmount = $itemSubTotal - $cogsAmount;
+
+                            $orderDetails = new ProductSale();
+                            $orderDetails->sale_id = $sale->id;
+                            $orderDetails->menu_item_id = $menuItem->id;
+                            $orderDetails->service_id = null;
+                            $orderDetails->product_sku = $menuItem->sku ?? '';
+                            $orderDetails->variant_id = $comboItem->variant_id;
+                            $orderDetails->price = $proportionalPrice;
+                            $orderDetails->source = 1;
+                            $orderDetails->purchase_price = $menuItem->cost_price ?? 0;
+                            $orderDetails->selling_price = $proportionalPrice;
+                            $orderDetails->quantity = $comboItemQty;
+                            $orderDetails->base_quantity = $comboItemQty;
+                            $orderDetails->sub_total = $itemSubTotal;
+                            $orderDetails->cogs_amount = $cogsAmount;
+                            $orderDetails->profit_amount = $profitAmount;
+                            $orderDetails->attributes = $comboItem->variant ? $comboItem->variant->name : null;
+                            $orderDetails->combo_id = $combo->id;
+                            $orderDetails->combo_name = $combo->name;
+                            $orderDetails->note = $item['note'] ?? null;
+                            $orderDetails->save();
+
+                            // Deduct ingredient stock
+                            if ($menuItem) {
+                                $this->deductIngredientStockFromRecipe($menuItem, $comboItemQty, $sale, $request);
+                            }
+                        }
                     }
                 }
                 // Handle legacy product type (direct ingredient sale)
@@ -889,20 +952,17 @@ class SaleService
 
                     // update stock using base quantity
                     if ($product != null && $item['source'] == 1) {
-                        $product->stock = $product->stock - $baseQuantity;
-                        $product->stock_status = $product->stock <= 0 ? 'out_of_stock' : 'in_stock';
-                        $product->save();
+                        $product->deductStock($baseQuantity);
 
                         // create stock with unit tracking
                         $purchasePrice = $product->last_purchase_price ?? 0;
                         Stock::create([
                             'sale_id' => $sale->id,
-                            'product_id' => $product->id,
+                            'ingredient_id' => $product->id,
                             'unit_id' => $saleUnitId,
                             'date' => $this->parseDate($request->sale_date),
                             'type' => 'Sale',
                             'invoice' => route('admin.sales.invoice', $sale->id),
-                            'invoice_number' => $sale->invoice,
                             'out_quantity' => $saleQuantity,
                             'base_out_quantity' => $baseQuantity,
                             'sku' => $product->sku,

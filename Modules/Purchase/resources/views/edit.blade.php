@@ -95,7 +95,7 @@
                                                     @foreach ($suppliers as $supplier)
                                                         <option value="{{ $supplier->id }}"
                                                             {{ $supplier->id == $purchase->supplier_id ? 'selected' : '' }}>
-                                                            {{ $supplier->company }}</option>
+                                                            {{ $supplier->company ?: $supplier->name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('supplier_id')

@@ -211,9 +211,7 @@
                                             <div class="input-group">
                                                 <input type="number" step="0.01" class="form-control" name="stock_alert"
                                                     value="{{ old('stock_alert', 0) }}">
-                                                <div class="input-group-text" id="lowQtyUnitBadge">
-                                                    <span class="badge bg-secondary">-</span>
-                                                </div>
+                                                <span class="input-group-text fw-semibold" id="lowQtyUnitBadge">-</span>
                                             </div>
                                             @error('stock_alert')
                                                 <span class="text-danger">{{ $message }}</span>
@@ -226,9 +224,7 @@
                                             <div class="input-group">
                                                 <input type="number" class="form-control" name="stock"
                                                     value="{{ old('stock', 0) }}">
-                                                <div class="input-group-text" id="openingStockUnitBadge">
-                                                    <span class="badge bg-secondary">-</span>
-                                                </div>
+                                                <span class="input-group-text fw-semibold" id="openingStockUnitBadge">-</span>
                                             </div>
                                             @error('stock')
                                                 <span class="text-danger">{{ $message }}</span>
@@ -341,11 +337,11 @@
 
                     if (purchaseUnit) {
                         const unitText = purchaseUnit.ShortName || purchaseUnit.name;
-                        $('#lowQtyUnitBadge .badge').text(unitText).removeClass('bg-secondary').addClass('bg-info');
-                        $('#openingStockUnitBadge .badge').text(unitText).removeClass('bg-secondary').addClass('bg-info');
+                        $('#lowQtyUnitBadge').text(unitText);
+                        $('#openingStockUnitBadge').text(unitText);
                     } else {
-                        $('#lowQtyUnitBadge .badge').text('-').removeClass('bg-info').addClass('bg-secondary');
-                        $('#openingStockUnitBadge .badge').text('-').removeClass('bg-info').addClass('bg-secondary');
+                        $('#lowQtyUnitBadge').text('-');
+                        $('#openingStockUnitBadge').text('-');
                     }
                 }
 

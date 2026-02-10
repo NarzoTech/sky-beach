@@ -207,9 +207,7 @@
                                             <div class="input-group">
                                                 <input type="number" step="0.01" class="form-control" name="stock_alert"
                                                     value="{{ old('stock_alert', $product->stock_alert ?? 0) }}">
-                                                <div class="input-group-text" id="lowQtyUnitBadge">
-                                                    <span class="badge bg-info">{{ $product->purchaseUnit->ShortName ?? '-' }}</span>
-                                                </div>
+                                                <span class="input-group-text fw-semibold" id="lowQtyUnitBadge">{{ $product->purchaseUnit->ShortName ?? '-' }}</span>
                                             </div>
                                             @error('stock_alert')
                                                 <span class="text-danger">{{ $message }}</span>
@@ -434,9 +432,9 @@
 
                     if (purchaseUnit) {
                         const unitText = purchaseUnit.ShortName || purchaseUnit.name;
-                        $('#lowQtyUnitBadge .badge').text(unitText).removeClass('bg-secondary').addClass('bg-info');
+                        $('#lowQtyUnitBadge').text(unitText);
                     } else {
-                        $('#lowQtyUnitBadge .badge').text('-').removeClass('bg-info').addClass('bg-secondary');
+                        $('#lowQtyUnitBadge').text('-');
                     }
                 }
 

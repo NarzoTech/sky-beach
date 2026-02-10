@@ -88,7 +88,7 @@
                                         <option value="">{{ __('Select Supplier') }}</option>
                                         @foreach ($suppliers as $supplier)
                                             <option value="{{ $supplier->id }}">
-                                                {{ $supplier->company }}</option>
+                                                {{ $supplier->company ?: $supplier->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('supplier_id')
