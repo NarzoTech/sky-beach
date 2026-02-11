@@ -187,9 +187,9 @@
                         <div class="col-lg-7">
                             <div class="p-3">
                                 {{-- Total Display --}}
-                                <div class="rop-total-display mb-4">
-                                    <div class="rop-total-amount" id="ropTotalAmount">{{ currency_icon() }} 0.00</div>
-                                    <div class="rop-total-label">{{ __('TOTAL DUE') }}</div>
+                                <div class="payment-total-card mb-3">
+                                    <div class="payment-total-amount" id="ropTotalAmount">{{ currency_icon() }} 0.00</div>
+                                    <div class="payment-total-label">{{ __('TOTAL DUE') }}</div>
                                 </div>
 
                                 {{-- Membership Phone --}}
@@ -258,42 +258,13 @@
                                 <div class="rop-single-container" id="ropSingleContainer">
                                     <div class="pm-divider"></div>
 
-                                    {{-- Amount Input --}}
-                                    <div class="pm-section-title">{{ __('Amount Received') }}</div>
-
-                                    <div class="rop-amount-input-wrapper">
-                                        <div class="rop-amount-input-container">
-                                            <span class="currency-prefix">{{ currency_icon() }}</span>
-                                            <input type="number"
-                                                   id="ropAmountReceived"
-                                                   class="rop-amount-input"
-                                                   value="0"
-                                                   step="0.01"
-                                                   min="0"
-                                                   onchange="calculateRopChange()"
-                                                   oninput="calculateRopChange()">
-                                        </div>
-
-                                        {{-- Quick Amounts --}}
-                                        <div class="rop-quick-amounts mt-3" id="ropQuickAmounts">
-                                            {{-- Will be populated via JavaScript --}}
-                                        </div>
-
-                                        {{-- Exact Amount Button --}}
-                                        <div class="mt-2">
-                                            <button type="button" class="btn btn-primary w-100 rop-exact-btn" onclick="setRopExactAmount()">
-                                                <i class="bx bx-check me-1"></i>{{ __('EXACT AMOUNT') }}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {{-- Change Display --}}
-                                    <div class="rop-change-display mt-3" id="ropChangeDisplay">
-                                        <div class="change-row">
-                                            <span class="change-label">{{ __('Change Due') }}</span>
-                                            <span class="change-amount" id="ropChangeAmount">{{ currency_icon() }} 0.00</span>
-                                        </div>
-                                    </div>
+                                    @include('pos::components.amount-input', [
+                                        'total' => 0,
+                                        'name' => 'rop_receive_amount',
+                                        'id' => 'ropAmountReceived',
+                                        'label' => __('Amount Received'),
+                                        'showQuickAmounts' => true
+                                    ])
                                 </div>
                             </div>
                         </div>
@@ -307,12 +278,9 @@
                 <input type="hidden" id="ropIsSplit" value="0">
             </div>
 
-            <div class="modal-footer rop-modal-footer" id="ropFooter">
-                <button type="button" class="btn rop-btn-cancel" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
-                </button>
-                <button type="button" class="btn rop-btn-complete" id="ropCompleteBtn" onclick="completeRunningOrderPayment()">
-                    <i class="fas fa-check-circle me-2"></i>{{ __('Complete & Release Table') }}
+            <div class="modal-footer" id="ropFooter">
+                <button type="button" class="btn btn-complete-payment btn-lg w-100" id="ropCompleteBtn" onclick="completeRunningOrderPayment()">
+                    <i class="bx bx-check-circle me-1"></i>{{ __('Complete Payment') }}
                 </button>
             </div>
         </div>
@@ -342,51 +310,27 @@
     flex: 1 1 auto;
 }
 
-.rop-modal-footer {
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-    padding: 16px 24px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+/* Total Display - matches POS checkout modal */
+.payment-total-card {
+    background: var(--pm-primary, #696cff);
+    color: white;
+    padding: 16px 20px;
+    border-radius: var(--pm-radius, 12px);
+    text-align: center;
 }
 
-.rop-btn-cancel {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    color: #697a8d;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.2s;
+.payment-total-amount {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
 }
 
-.rop-btn-cancel:hover {
-    background: #f8f9fa;
-    border-color: #d9dee3;
-}
-
-.rop-btn-complete {
-    background: #696cff;
-    border: none;
-    color: #fff;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-#runningOrderPaymentModal .rop-btn-complete:hover,
-#runningOrderPaymentModal .rop-btn-complete:focus,
-#runningOrderPaymentModal .rop-btn-complete:active {
-    background: #5a5ee0;
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.4);
-}
-
-.rop-btn-complete:disabled {
-    background: #a5a7ff;
-    cursor: not-allowed;
+.payment-total-label {
+    font-size: 12px;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 /* Loading Spinner Styles */
@@ -560,150 +504,6 @@
     border-top: 2px dashed #e9ecef;
 }
 
-/* Total Display */
-.rop-total-display {
-    background: #696cff;
-    color: white;
-    padding: 28px 24px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(105, 108, 255, 0.3);
-}
-
-.rop-total-amount {
-    font-size: 42px;
-    font-weight: 800;
-    line-height: 1.2;
-}
-
-.rop-total-label {
-    font-size: 12px;
-    opacity: 0.85;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 6px;
-    font-weight: 500;
-}
-
-/* Amount Input */
-.rop-amount-input-wrapper {
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.rop-amount-input-container {
-    position: relative;
-}
-
-.rop-amount-input-container .currency-prefix {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 20px;
-    font-weight: 600;
-    color: #697a8d;
-}
-
-.rop-amount-input {
-    width: 100%;
-    padding: 16px 16px 16px 50px;
-    font-size: 32px;
-    font-weight: 700;
-    text-align: center;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    -moz-appearance: textfield;
-    color: #2d3748;
-    transition: all 0.2s;
-}
-
-.rop-amount-input::-webkit-outer-spin-button,
-.rop-amount-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-}
-
-.rop-amount-input:focus {
-    border-color: #696cff;
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(105, 108, 255, 0.15);
-}
-
-/* Quick Amounts */
-.rop-quick-amounts {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-}
-
-.rop-quick-btn {
-    padding: 10px 8px;
-    font-size: 14px;
-    font-weight: 600;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #697a8d;
-}
-
-.rop-quick-btn:hover {
-    border-color: #696cff;
-    background: rgba(105, 108, 255, 0.08);
-    color: #696cff;
-    transform: translateY(-2px);
-}
-
-.rop-exact-btn {
-    padding: 12px 20px;
-    font-weight: 700;
-    background: #696cff;
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    transition: all 0.2s;
-}
-
-.rop-exact-btn:hover {
-    background: #5a5ee0;
-    box-shadow: 0 4px 12px rgba(105, 108, 255, 0.35);
-}
-
-/* Change Display */
-.rop-change-display {
-    background: rgba(113, 221, 55, 0.1);
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(113, 221, 55, 0.2);
-}
-
-.rop-change-display .change-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.rop-change-display .change-label {
-    font-weight: 600;
-    color: #2d3748;
-    font-size: 14px;
-}
-
-.rop-change-display .change-amount {
-    font-size: 24px;
-    font-weight: 700;
-    color: #71dd37;
-}
-
-.rop-change-display.insufficient {
-    background: rgba(255, 62, 29, 0.1);
-    border-color: rgba(255, 62, 29, 0.2);
-}
-
-.rop-change-display.insufficient .change-amount {
-    color: #ff3e1d;
-}
 
 /* Split Payment Styles - Compact Single-Line Rows */
 .rop-split-container {
@@ -849,40 +649,10 @@
         max-width: 95%;
         margin: 1rem auto;
     }
-
-    .rop-total-amount {
-        font-size: 36px;
-    }
-
-    .rop-amount-input {
-        font-size: 26px;
-        padding: 14px 14px 14px 45px;
-    }
-
-    .rop-quick-amounts {
-        grid-template-columns: repeat(5, 1fr);
-    }
-
-    .rop-quick-btn {
-        padding: 8px 6px;
-        font-size: 13px;
-    }
 }
 
 /* Responsive - Small tablets and below */
 @media (max-width: 992px) {
-    .rop-total-amount {
-        font-size: 32px;
-    }
-
-    .rop-amount-input {
-        font-size: 24px;
-    }
-
-    .rop-quick-amounts {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
     #ropSplitList .split-payment-row {
         flex-wrap: wrap;
     }
@@ -909,32 +679,12 @@
         border-bottom: 1px solid #e9ecef;
     }
 
-    .rop-total-display {
-        padding: 20px 16px;
+    #runningOrderPaymentModal .payment-total-card {
+        padding: 12px 16px;
     }
 
-    .rop-total-amount {
-        font-size: 28px;
-    }
-
-    .rop-amount-input {
-        font-size: 20px;
-        padding: 12px 12px 12px 40px;
-    }
-
-    .rop-amount-input-container .currency-prefix {
-        font-size: 16px;
-        left: 12px;
-    }
-
-    .rop-modal-footer {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .rop-btn-cancel,
-    .rop-btn-complete {
-        width: 100%;
+    #runningOrderPaymentModal .payment-total-amount {
+        font-size: 26px;
     }
 
     #ropSplitList .split-row-method,
@@ -973,6 +723,31 @@
     height: 0;
     border-bottom: 2px dashed #e9ecef;
     margin: 16px 0;
+}
+
+/* Complete Payment Button - matches POS checkout modal */
+#runningOrderPaymentModal .btn-complete-payment {
+    background: linear-gradient(135deg, var(--pm-success, #71dd37), #5cb52a);
+    color: white;
+    border: none;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#runningOrderPaymentModal .btn-complete-payment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(113, 221, 55, 0.4);
+    color: white;
+}
+
+#runningOrderPaymentModal .btn-complete-payment:disabled {
+    background: var(--pm-gray, #697a8d);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Edit Button */
@@ -1206,22 +981,29 @@ function populateRunningOrderModal(order) {
     document.getElementById('ropTotalAmount').textContent = currencyIcon + ' ' + total.toFixed(2);
     document.getElementById('ropTotalValue').value = total;
 
-    // Set amount received to total
+    // Set amount received to total and update component
     document.getElementById('ropAmountReceived').value = total.toFixed(2);
+    if (typeof updateAmountInputTotal === 'function') {
+        updateAmountInputTotal('ropAmountReceived', total);
+    }
 
-    // Generate quick amounts
+    // Generate dynamic quick amounts
     generateRopQuickAmounts(total);
+
+    // Trigger input event for component to calculate change display
+    document.getElementById('ropAmountReceived').dispatchEvent(new Event('input', { bubbles: true }));
 
     // Reset payment method to cash
     resetRopPaymentMethod();
 
-    // Calculate change
+    // Calculate button state
     calculateRopChange();
 }
 
 // Generate quick amount buttons
 function generateRopQuickAmounts(total) {
-    const container = document.getElementById('ropQuickAmounts');
+    const container = document.getElementById('ropAmountReceivedQuickAmounts');
+    if (!container) return;
     const roundedTotal = Math.ceil(total);
     const suggestions = [];
 
@@ -1247,7 +1029,7 @@ function generateRopQuickAmounts(total) {
     // Generate buttons
     let html = '';
     uniqueSuggestions.forEach(amount => {
-        html += `<button type="button" class="rop-quick-btn" onclick="setRopAmount(${amount})">${amount.toLocaleString()}</button>`;
+        html += `<button type="button" class="btn btn-outline-secondary quick-amount-btn" onclick="setRopAmount(${amount})">${amount.toLocaleString()}</button>`;
     });
 
     container.innerHTML = html;
@@ -1255,36 +1037,21 @@ function generateRopQuickAmounts(total) {
 
 // Set amount from quick button
 function setRopAmount(amount) {
-    document.getElementById('ropAmountReceived').value = amount.toFixed(2);
+    const input = document.getElementById('ropAmountReceived');
+    input.value = amount.toFixed(2);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
     calculateRopChange();
 }
 
-// Set exact amount
-function setRopExactAmount() {
-    const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
-    document.getElementById('ropAmountReceived').value = total.toFixed(2);
-    calculateRopChange();
-}
-
-// Calculate change
+// Calculate change - component handles visual display, we manage button state
 function calculateRopChange() {
     const total = parseFloat(document.getElementById('ropTotalValue').value) || 0;
     const received = parseFloat(document.getElementById('ropAmountReceived').value) || 0;
     const change = received - total;
 
-    const changeDisplay = document.getElementById('ropChangeDisplay');
-    const changeAmount = document.getElementById('ropChangeAmount');
-
     if (change >= 0) {
-        changeDisplay.classList.remove('insufficient');
-        changeAmount.textContent = currencyIcon + ' ' + change.toFixed(2);
-        document.querySelector('.rop-change-display .change-label').textContent = '{{ __("Change Due") }}';
         document.getElementById('ropCompleteBtn').disabled = false;
     } else {
-        changeDisplay.classList.add('insufficient');
-        changeAmount.textContent = '- ' + currencyIcon + ' ' + Math.abs(change).toFixed(2);
-        document.querySelector('.rop-change-display .change-label').textContent = '{{ __("Amount Due") }}';
-
         // Allow non-cash payments without full amount
         const paymentType = document.querySelector('input[name="rop_payment_type"]:checked')?.value;
         document.getElementById('ropCompleteBtn').disabled = (paymentType === 'cash' && change < 0);
@@ -1342,13 +1109,19 @@ function calculateRopTotals() {
     document.getElementById('ropTotalAmount').textContent = currencyIcon + ' ' + newTotal.toFixed(2);
     document.getElementById('ropTotalValue').value = newTotal;
 
-    // Update amount received if it was set to exact
+    // Update amount received and component total
     document.getElementById('ropAmountReceived').value = newTotal.toFixed(2);
+    if (typeof updateAmountInputTotal === 'function') {
+        updateAmountInputTotal('ropAmountReceived', newTotal);
+    }
 
     // Regenerate quick amounts
     generateRopQuickAmounts(newTotal);
 
-    // Recalculate change
+    // Trigger input event for component to update change display
+    document.getElementById('ropAmountReceived').dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Recalculate button state
     calculateRopChange();
 }
 

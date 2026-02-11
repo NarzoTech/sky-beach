@@ -49,15 +49,16 @@ class WaiterPerformanceExport implements FromCollection, WithHeadings, WithMappi
 
     public function map($waiter): array
     {
-        $avgOrderValue = $waiter->total_orders > 0 ? $waiter->total_revenue / $waiter->total_orders : 0;
+        $netRevenue = $waiter->net_revenue ?? ($waiter->total_revenue - ($waiter->total_tax ?? 0));
+        $avgOrderValue = $waiter->total_orders > 0 ? $netRevenue / $waiter->total_orders : 0;
 
         return [
             ++$this->index,
             $waiter->waiter->name ?? 'N/A',
             $waiter->total_orders,
-            currency($waiter->total_revenue),
+            currency($netRevenue),
             currency($waiter->total_cogs),
-            currency($waiter->total_profit),
+            currency($netRevenue - ($waiter->total_cogs ?? 0)),
             currency($avgOrderValue),
         ];
     }

@@ -30,8 +30,8 @@
                     <td>{{ $table->table->floor ?? 'N/A' }}</td>
                     <td>{{ $table->table->capacity ?? 'N/A' }}</td>
                     <td>{{ $table->total_orders }}</td>
-                    <td>{{ currency($table->total_revenue) }}</td>
-                    <td>{{ currency($table->total_orders > 0 ? $table->total_revenue / $table->total_orders : 0) }}</td>
+                    <td>{{ currency($table->net_revenue ?? ($table->total_revenue - ($table->total_tax ?? 0))) }}</td>
+                    <td>{{ currency($table->total_orders > 0 ? ($table->net_revenue ?? ($table->total_revenue - ($table->total_tax ?? 0))) / $table->total_orders : 0) }}</td>
                 </tr>
             @endforeach
             <tr>

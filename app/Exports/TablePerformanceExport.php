@@ -49,7 +49,8 @@ class TablePerformanceExport implements FromCollection, WithHeadings, WithMappin
 
     public function map($table): array
     {
-        $avgOrderValue = $table->total_orders > 0 ? $table->total_revenue / $table->total_orders : 0;
+        $netRevenue = $table->net_revenue ?? ($table->total_revenue - ($table->total_tax ?? 0));
+        $avgOrderValue = $table->total_orders > 0 ? $netRevenue / $table->total_orders : 0;
 
         return [
             ++$this->index,
@@ -57,7 +58,7 @@ class TablePerformanceExport implements FromCollection, WithHeadings, WithMappin
             $table->table->floor ?? 'N/A',
             $table->table->capacity ?? 'N/A',
             $table->total_orders,
-            currency($table->total_revenue),
+            currency($netRevenue),
             currency($avgOrderValue),
         ];
     }

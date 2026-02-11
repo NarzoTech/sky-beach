@@ -22,7 +22,9 @@ class ProfitLossExport implements FromArray, WithHeadings, WithStyles, WithTitle
         return [
             // Income Section
             [__('INCOME'), ''],
-            [__('Total Sales'), currency($this->data['totalSales'])],
+            [__('Total Sales') . ' (' . __('incl. Tax') . ')', currency($this->data['totalSales'])],
+            [__('Less: Tax Collected') . ' (' . __('Govt. Liability') . ')', '- ' . currency($this->data['totalTax'])],
+            [__('Net Sales') . ' (' . __('excl. Tax') . ')', currency($this->data['netSales'])],
             [__('Purchase Returns') . ' (' . __('Refund from Supplier') . ')', currency($this->data['purchaseReturns'])],
             [__('Total Income'), currency($this->data['totalIncome'])],
             ['', ''],
@@ -89,6 +91,13 @@ class ProfitLossExport implements FromArray, WithHeadings, WithStyles, WithTitle
         // Style section headers (Income - row 6)
         $sheet->getStyle('A6')->getFont()->setBold(true);
         $sheet->getStyle('A6:B6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('D4EDDA');
+
+        // Style Tax Collected row (row 8) - red text
+        $sheet->getStyle('A8:B8')->getFont()->getColor()->setRGB('DC3545');
+
+        // Style Net Sales row (row 9)
+        $sheet->getStyle('A9')->getFont()->setBold(true);
+        $sheet->getStyle('A9:B9')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('F8F9FA');
 
         // Style Total Income row (row 11)
         $sheet->getStyle('A11')->getFont()->setBold(true);

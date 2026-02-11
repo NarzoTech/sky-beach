@@ -156,7 +156,7 @@ class ReportController extends Controller
     {
         $query = Sale::whereNotNull('waiter_id')
             ->where('status', '!=', 'cancelled')
-            ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+            ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(COALESCE(total_tax, 0)) as total_tax, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
             ->groupBy('waiter_id');
 
         if (request('from_date') || request('to_date')) {
@@ -171,11 +171,17 @@ class ReportController extends Controller
 
         $allWaiters = $query->with('waiter')->get();
 
+        // Calculate net revenue (excluding tax)
+        foreach ($allWaiters as $waiter) {
+            $waiter->net_revenue = $waiter->total_revenue - $waiter->total_tax;
+        }
+
         $data = [
             'totalOrders' => $allWaiters->sum('total_orders'),
-            'totalRevenue' => $allWaiters->sum('total_revenue'),
+            'totalRevenue' => $allWaiters->sum('net_revenue'),
+            'totalTax' => $allWaiters->sum('total_tax'),
             'totalCogs' => $allWaiters->sum('total_cogs'),
-            'totalProfit' => $allWaiters->sum('total_profit'),
+            'totalProfit' => $allWaiters->sum('net_revenue') - $allWaiters->sum('total_cogs'),
         ];
 
         // Excel export
@@ -208,7 +214,7 @@ class ReportController extends Controller
         } else {
             $paginateQuery = Sale::whereNotNull('waiter_id')
                 ->where('status', '!=', 'cancelled')
-                ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+                ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(COALESCE(total_tax, 0)) as total_tax, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
                 ->groupBy('waiter_id');
 
             if (request('from_date') || request('to_date')) {
@@ -235,7 +241,7 @@ class ReportController extends Controller
     public function orderType()
     {
         $query = Sale::where('status', '!=', 'cancelled')
-            ->selectRaw('order_type, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+            ->selectRaw('order_type, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(COALESCE(total_tax, 0)) as total_tax, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
             ->groupBy('order_type');
 
         if (request('from_date') || request('to_date')) {
@@ -251,8 +257,10 @@ class ReportController extends Controller
         $data = [
             'totalOrders' => $grandTotalOrders,
             'totalRevenue' => $orderTypes->sum('total_revenue'),
+            'totalTax' => $orderTypes->sum('total_tax'),
+            'totalNetRevenue' => $orderTypes->sum('total_revenue') - $orderTypes->sum('total_tax'),
             'totalCogs' => $orderTypes->sum('total_cogs'),
-            'totalProfit' => $orderTypes->sum('total_profit'),
+            'totalProfit' => $orderTypes->sum('total_revenue') - $orderTypes->sum('total_tax') - $orderTypes->sum('total_cogs'),
         ];
 
         // Excel export
@@ -284,7 +292,7 @@ class ReportController extends Controller
     {
         $query = Sale::whereNotNull('table_id')
             ->where('status', '!=', 'cancelled')
-            ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
+            ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(COALESCE(total_tax, 0)) as total_tax')
             ->groupBy('table_id');
 
         if (request('from_date') || request('to_date')) {
@@ -301,9 +309,15 @@ class ReportController extends Controller
 
         $allTables = $query->with('table')->get();
 
+        // Calculate net revenue (excluding tax)
+        foreach ($allTables as $table) {
+            $table->net_revenue = $table->total_revenue - $table->total_tax;
+        }
+
         $data = [
             'totalOrders' => $allTables->sum('total_orders'),
-            'totalRevenue' => $allTables->sum('total_revenue'),
+            'totalRevenue' => $allTables->sum('net_revenue'),
+            'totalTax' => $allTables->sum('total_tax'),
         ];
 
         // Excel export
@@ -336,7 +350,7 @@ class ReportController extends Controller
         } else {
             $paginateQuery = Sale::whereNotNull('table_id')
                 ->where('status', '!=', 'cancelled')
-                ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
+                ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(COALESCE(total_tax, 0)) as total_tax')
                 ->groupBy('table_id');
 
             if (request('from_date') || request('to_date')) {
@@ -579,15 +593,15 @@ class ReportController extends Controller
             $data['toDate'] = now()->format('d-m-Y');
         }
 
-        // Income - Total Sales Revenue
+        // Income - Total Sales Revenue (excluding tax)
         $data['totalSales'] = $salesQuery->sum('grand_total');
-        $data['salesReturns'] = 0;
-        $data['netSales'] = $data['totalSales'];
+        $data['totalTax'] = (clone $salesQuery)->sum('total_tax');
+        $data['netSales'] = $data['totalSales'] - $data['totalTax'];
 
         // Purchase Returns (money received back from supplier)
         $data['purchaseReturns'] = $purchaseReturnQuery->sum('return_amount');
 
-        // Total Income
+        // Total Income (excluding tax)
         $data['totalIncome'] = $data['netSales'] + $data['purchaseReturns'];
 
         // COGS - Use pre-calculated COGS from sales (weighted average cost based)

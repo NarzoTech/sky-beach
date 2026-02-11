@@ -83,10 +83,10 @@
                                 <td>{{ $start + $index }}</td>
                                 <td>{{ $waiter->waiter->name ?? 'N/A' }}</td>
                                 <td>{{ $waiter->total_orders }}</td>
-                                <td>{{ currency($waiter->total_revenue) }}</td>
+                                <td>{{ currency($waiter->net_revenue ?? ($waiter->total_revenue - ($waiter->total_tax ?? 0))) }}</td>
                                 <td>{{ currency($waiter->total_cogs) }}</td>
-                                <td>{{ currency($waiter->total_profit) }}</td>
-                                <td>{{ currency($waiter->total_orders > 0 ? $waiter->total_revenue / $waiter->total_orders : 0) }}</td>
+                                <td>{{ currency(($waiter->net_revenue ?? ($waiter->total_revenue - ($waiter->total_tax ?? 0))) - ($waiter->total_cogs ?? 0)) }}</td>
+                                <td>{{ currency($waiter->total_orders > 0 ? ($waiter->net_revenue ?? ($waiter->total_revenue - ($waiter->total_tax ?? 0))) / $waiter->total_orders : 0) }}</td>
                             </tr>
                         @endforeach
                         <tr>
@@ -95,7 +95,7 @@
                             <td><b>{{ currency($data['totalRevenue']) }}</b></td>
                             <td><b>{{ currency($data['totalCogs']) }}</b></td>
                             <td><b>{{ currency($data['totalProfit']) }}</b></td>
-                            <td><b>{{ currency($data['totalOrders'] > 0 ? $data['totalRevenue'] / $data['totalOrders'] : 0) }}</b></td>
+                            <td><b>{{ currency($data['totalOrders'] > 0 ? ($data['totalRevenue']) / $data['totalOrders'] : 0) }}</b></td>
                         </tr>
                     </tbody>
                 </table>

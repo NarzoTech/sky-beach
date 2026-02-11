@@ -64,8 +64,16 @@
                             <table class="table mb-0">
                                 <tbody>
                                     <tr>
-                                        <td>{{ __('Total Sales') }}</td>
+                                        <td>{{ __('Total Sales') }} <small class="text-muted">({{ __('incl. Tax') }})</small></td>
                                         <td class="text-end">{{ currency($data['totalSales']) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-danger">{{ __('Less: Tax Collected') }} <small class="text-muted">({{ __('Govt. Liability') }})</small></td>
+                                        <td class="text-end text-danger">- {{ currency($data['totalTax']) }}</td>
+                                    </tr>
+                                    <tr class="table-light">
+                                        <td><strong>{{ __('Net Sales') }}</strong> <small class="text-muted">({{ __('excl. Tax') }})</small></td>
+                                        <td class="text-end"><strong>{{ currency($data['netSales']) }}</strong></td>
                                     </tr>
                                     <tr>
                                         <td>{{ __('Purchase Returns') }} <small
@@ -163,8 +171,16 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ __('Total Sales') }}</td>
+                                    <td>{{ __('Total Sales') }} <small class="text-muted">({{ __('incl. Tax') }})</small></td>
                                     <td class="text-end">{{ currency($data['totalSales']) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-danger">{{ __('Less: Tax Collected') }}</td>
+                                    <td class="text-end text-danger">- {{ currency($data['totalTax']) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{{ __('Net Sales') }}</strong> <small class="text-muted">({{ __('excl. Tax') }})</small></td>
+                                    <td class="text-end"><strong>{{ currency($data['netSales']) }}</strong></td>
                                 </tr>
                                 <tr>
                                     <td>{{ __('Purchase Returns') }}</td>
