@@ -4,8 +4,8 @@
     <li
         class="menu-item {{ isRoute(['admin.suppliers.*', 'admin.supplierGroup*', 'admin.supplier*']) ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class="menu-icon tf-icons bx bx-file"></i>
-            <div class="text-truncate" data-i18n="Layouts">{{ __('Manage Suppliers') }}</div>
+            <i class="menu-icon tf-icons bx bx-purchase-tag"></i>
+            <div class="text-truncate" data-i18n="{{ __('Suppliers') }}">{{ __('Suppliers') }}</div>
         </a>
 
         <ul class="menu-sub">

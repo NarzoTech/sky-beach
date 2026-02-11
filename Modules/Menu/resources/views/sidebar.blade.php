@@ -7,7 +7,7 @@
         class="menu-item {{ Route::is('admin.menu-category*') || Route::is('admin.menu-item*') || Route::is('admin.menu-addon*') || Route::is('admin.combo*') ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-food-menu'></i>
-            <div class="text-truncate" data-i18n="{{ __('Menu Management') }}">{{ __('Menu Management') }}</div>
+            <div class="text-truncate" data-i18n="{{ __('Menu') }}">{{ __('Menu') }}</div>
         </a>
 
         <ul class="menu-sub">

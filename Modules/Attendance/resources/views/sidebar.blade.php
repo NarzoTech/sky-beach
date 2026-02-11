@@ -3,9 +3,8 @@
 
         <li class="menu-item {{ Route::is('admin.attendance.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class='menu-icon tf-icons bx bx-detail'></i>
-                <div class="text-truncate" data-i18n="{{ __('Employee Attendance') }}">{{ __('Employee Attendance') }}
-                </div>
+                <i class='menu-icon tf-icons bx bx-calendar-check'></i>
+                <div class="text-truncate" data-i18n="{{ __('Attendance') }}">{{ __('Attendance') }}</div>
             </a>
             <ul class="menu-sub">
                 @adminCan('attendance.setting.view')

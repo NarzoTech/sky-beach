@@ -6,8 +6,8 @@
 
     <li class="{{ isRoute(['admin.expense.*', 'admin.expense.type.index', 'admin.expense-suppliers.*'], 'active open') }} menu-item">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class='menu-icon tf-icons bx bx-store'></i>
-            <div class="text-truncate" data-i18n="{{ __('Manage Expense') }}">{{ __('Manage Expense') }}</div>
+            <i class='menu-icon tf-icons bx bx-wallet'></i>
+            <div class="text-truncate" data-i18n="{{ __('Expenses') }}">{{ __('Expenses') }}</div>
         </a>
 
         <ul class="menu-sub">

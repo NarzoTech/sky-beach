@@ -32,10 +32,18 @@
         </li>
         @endif
 
-        @if (Module::isEnabled('Supplier'))
-            @include('supplier::sidebar')
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Core Operations') }}</span></li>
+        @if (Module::isEnabled('POS'))
+            @include('pos::sidebar')
         @endif
 
+        @if (Module::isEnabled('Sales'))
+            @include('sales::sidebar')
+        @endif
+
+        @if (Module::isEnabled('Menu'))
+            @include('menu::sidebar')
+        @endif
 
         @if (Module::isEnabled('Customer'))
             @include('customer::sidebar')
@@ -43,50 +51,6 @@
 
         @if (Module::isEnabled('Membership'))
             @include('membership::sidebar')
-        @endif
-
-        @if (Module::isEnabled('Ingredient'))
-            @include('ingredient::sidebar')
-        @endif
-
-        @if (Module::isEnabled('Menu'))
-            @include('menu::sidebar')
-        @endif
-
-        @if (Module::isEnabled('Purchase'))
-            @include('purchase::sidebar')
-        @endif
-
-        @adminCan('stock.view')
-            <li class="menu-item {{ Route::is('admin.stock.index') ? 'active open' : '' }}">
-                <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class='menu-icon tf-icons bx bx-detail'></i>
-                    <div class="text-truncate" data-i18n="{{ __('Inventory') }}">{{ __('Inventory') }}</div>
-                </a>
-                <ul class="menu-sub">
-
-                    <li class="menu-item {{ Route::is('admin.stock.index') ? 'active' : '' }}">
-                        <a href="{{ route('admin.stock.index') }}" class="menu-link">
-                            <div class="text-truncate" data-i18n="{{ __('Stock') }}">{{ __('Stock') }}</div>
-                        </a>
-                    </li>
-
-                </ul>
-            </li>
-        @endadminCan
-        @if (Module::isEnabled('Service'))
-            @include('service::sidebar')
-        @endif
-        @if (Module::isEnabled('Sales'))
-            @include('sales::sidebar')
-        @endif
-
-        @if (Module::isEnabled('POS'))
-            @include('pos::sidebar')
-        @endif
-
-        @if (Module::isEnabled('Accounts'))
-            @include('accounts::sidebar')
         @endif
 
         @if (checkAdminHasPermission('quotation.view') || checkAdminHasPermission('quotation.create'))
@@ -117,40 +81,46 @@
             </li>
         @endif
 
-        @if (Module::isEnabled('Report'))
-            @include('report::sidebar')
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Inventory & Supply') }}</span></li>
+        @if (Module::isEnabled('Ingredient'))
+            @include('ingredient::sidebar')
         @endif
 
-        {{-- Tax Reports --}}
-        @adminCan('tax-reports.view')
-        <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class='menu-icon tf-icons bx bx-receipt'></i>
-                <div class="text-truncate" data-i18n="{{ __('Tax Reports') }}">{{ __('Tax Reports') }}</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="{{ Route::is('admin.tax-reports.index') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.index') }}">
-                        {{ __('Dashboard') }}
-                    </a>
-                </li>
-                <li class="{{ Route::is('admin.tax-reports.ledger') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.ledger') }}">
-                        {{ __('Tax Ledger') }}
-                    </a>
-                </li>
-                <li class="{{ Route::is('admin.tax-reports.periods') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.periods') }}">
-                        {{ __('Tax Periods') }}
-                    </a>
-                </li>
-            </ul>
-        </li>
+        @adminCan('stock.view')
+            <li class="menu-item {{ Route::is('admin.stock.index') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class='menu-icon tf-icons bx bx-package'></i>
+                    <div class="text-truncate" data-i18n="{{ __('Inventory') }}">{{ __('Inventory') }}</div>
+                </a>
+                <ul class="menu-sub">
+
+                    <li class="menu-item {{ Route::is('admin.stock.index') ? 'active' : '' }}">
+                        <a href="{{ route('admin.stock.index') }}" class="menu-link">
+                            <div class="text-truncate" data-i18n="{{ __('Stock') }}">{{ __('Stock') }}</div>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
         @endadminCan
+
+        @if (Module::isEnabled('Purchase'))
+            @include('purchase::sidebar')
+        @endif
+
+        @if (Module::isEnabled('Supplier'))
+            @include('supplier::sidebar')
+        @endif
+
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Finance') }}</span></li>
+        @if (Module::isEnabled('Accounts'))
+            @include('accounts::sidebar')
+        @endif
 
         @if (Module::isEnabled('Expense'))
             @include('expense::sidebar')
         @endif
+
         @if (checkAdminHasPermission('asset.view') || checkAdminHasPermission('asset.type.view'))
             <li
                 class="menu-item {{ Route::is('admin.asset-category*') || Route::is('admin.assets*') ? 'active open' : '' }}">
@@ -177,6 +147,39 @@
                 </ul>
             </li>
         @endif
+
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Reports & Analytics') }}</span></li>
+        @if (Module::isEnabled('Report'))
+            @include('report::sidebar')
+        @endif
+
+        @adminCan('tax-reports.view')
+        <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class='menu-icon tf-icons bx bx-receipt'></i>
+                <div class="text-truncate" data-i18n="{{ __('Tax Reports') }}">{{ __('Tax Reports') }}</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="{{ Route::is('admin.tax-reports.index') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.index') }}">
+                        {{ __('Dashboard') }}
+                    </a>
+                </li>
+                <li class="{{ Route::is('admin.tax-reports.ledger') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.ledger') }}">
+                        {{ __('Tax Ledger') }}
+                    </a>
+                </li>
+                <li class="{{ Route::is('admin.tax-reports.periods') ? 'active' : '' }} menu-item">
+                    <a class="menu-link" href="{{ route('admin.tax-reports.periods') }}">
+                        {{ __('Tax Periods') }}
+                    </a>
+                </li>
+            </ul>
+        </li>
+        @endadminCan
+
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('HR & Staff') }}</span></li>
         @if (Module::isEnabled('Employee'))
             @include('employee::sidebar')
         @endif
@@ -185,7 +188,12 @@
             @include('attendance::sidebar')
         @endif
 
-        {{-- Website Management Menu (hidden for waiters) --}}
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Services') }}</span></li>
+        @if (Module::isEnabled('Service'))
+            @include('service::sidebar')
+        @endif
+
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Administration') }}</span></li>
         @if(!auth('admin')->user()->hasRole('Waiter'))
         @if (Module::isEnabled('CMS') || Module::isEnabled('Website'))
             <li class="menu-item {{ request()->is('admin/cms/*') || request()->is('admin/restaurant/*') ? 'active open' : '' }}">
@@ -381,26 +389,6 @@
                             </a>
                         </li>
                     @endadminCan
-                    {{-- <li class="{{ isRoute('admin.print.settings', 'active') }} menu-item ">
-                    <a class="menu-link" href="{{ route('admin.print.settings') }}">
-                        {{ __('Print Settings') }}
-                    </a>
-                </li>
-                <li class="{{ isRoute('admin.business*', 'active') }} menu-item ">
-                    <a class="menu-link" href="{{ route('admin.business.index') }}">
-                        {{ __('Business Branches') }}
-                    </a>
-                </li>
-                <li class="{{ isRoute('admin.notice.create', 'active') }} menu-item ">
-                    <a class="menu-link" href="{{ route('admin.notice.create') }}">
-                        {{ __('Notice Send') }}
-                    </a>
-                </li>
-                <li class="{{ isRoute('admin.courier.settings', 'active') }} menu-item ">
-                    <a class="menu-link" href="{{ route('admin.courier.settings') }}">
-                        {{ __('Courier Settings') }}
-                    </a>
-                </li> --}}
                     @adminCan('database.reset')
                         <li class="{{ isRoute('admin.reset.database', 'active') }} menu-item ">
                             <a class="menu-link" href="{{ route('admin.reset.database') }}">
@@ -415,9 +403,6 @@
                             </a>
                         </li>
                     @endadminCan
-                    {{-- @if (Module::isEnabled('Tax'))
-                    @include('tax::sidebar')
-                @endif --}}
                 </ul>
             </li>
 

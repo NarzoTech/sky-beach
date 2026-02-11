@@ -5,7 +5,7 @@
 
     <li class="{{ isRoute(['admin.employee.*', 'admin.salary.*'], 'active open') }} menu-item">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class='menu-icon tf-icons bx bx-user'></i>
+            <i class='menu-icon tf-icons bx bx-group'></i>
             <div class="text-truncate" data-i18n="{{ __('Employees') }}">{{ __('Employees') }}</div>
         </a>
         <ul class="menu-sub">

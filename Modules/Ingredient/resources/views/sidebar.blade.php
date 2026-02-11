@@ -8,8 +8,8 @@
     <li
         class="menu-item {{ Route::is('admin.ingredient.*') || Route::is('admin.unit.*') || Route::is('admin.category.*') || Route::is('admin.brand.*') ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
-            <i class='menu-icon tf-icons bx bx-grid'></i>
-            <div class="text-truncate" data-i18n="Front Pages">{{ __('Manage Ingredient') }}</div>
+            <i class='menu-icon tf-icons bx bx-bowl-hot'></i>
+            <div class="text-truncate" data-i18n="{{ __('Ingredients') }}">{{ __('Ingredients') }}</div>
         </a>
         <ul class="menu-sub">
             @adminCan('ingredient.view')

@@ -6,7 +6,7 @@
         class="menu-item {{ isRoute(['admin.customers.*', 'admin.area.index', 'admin.customerGroup.index', 'admin.customers.due-receive.list'], 'active open') }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-user'></i>
-            <div class="text-truncate" data-i18n="{{ __('Manage Customer') }}">{{ __('Manage Customer') }}</div>
+            <div class="text-truncate" data-i18n="{{ __('Customers') }}">{{ __('Customers') }}</div>
         </a>
         <ul class="menu-sub">
             @adminCan('customer.view')

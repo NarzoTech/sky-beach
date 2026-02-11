@@ -13,7 +13,7 @@
     <li class="menu-item {{ $posMenuActive ? 'active open' : '' }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-store'></i>
-            <div class="text-truncate" data-i18n="{{ __('POS Management') }}">{{ __('POS Management') }}</div>
+            <div class="text-truncate" data-i18n="{{ __('POS') }}">{{ __('POS') }}</div>
         </a>
 
         <ul class="menu-sub">

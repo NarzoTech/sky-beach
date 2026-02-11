@@ -4,7 +4,7 @@
     <li class="menu-item {{ isRoute(['admin.serviceCategory.*', 'admin.service.*'], 'active open') }}">
         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class='menu-icon tf-icons bx bx-layer'></i>
-            <div class="text-truncate" data-i18n="{{ __('Manage Services') }}">{{ __('Manage Services') }}</div>
+            <div class="text-truncate" data-i18n="{{ __('Services') }}">{{ __('Services') }}</div>
         </a>
         <ul class="menu-sub">
             @adminCan('service.view')
