@@ -5006,36 +5006,28 @@
             };
         }
 
-        // Print receipt for dine-in/running order
+        // Print receipt - sends to network printer and/or browser print
         function printDineInReceipt(orderId) {
             if (!orderId) {
                 toastr.warning("{{ __('No order to print') }}");
                 return;
             }
 
-            // Fetch receipt HTML via AJAX and print using hidden iframe
-            const receiptUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
-
-            $.get(receiptUrl, function(html) {
-                let printFrame = document.getElementById('pos-print-frame');
-                if (!printFrame) {
-                    printFrame = document.createElement('iframe');
-                    printFrame.id = 'pos-print-frame';
-                    printFrame.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:80mm;height:0;border:none;';
-                    document.body.appendChild(printFrame);
+            // Send receipt to configured printers (network printers print automatically)
+            const sendUrl = '{{ route("admin.pos.running-orders.send-to-printer", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+            $.ajax({
+                url: sendUrl,
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message || '{{ __("Receipt sent to printer") }}');
+                    }
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON?.message || '{{ __("Failed to print receipt") }}';
+                    toastr.error(msg);
                 }
-
-                const doc = printFrame.contentDocument || printFrame.contentWindow.document;
-                doc.open();
-                doc.write(html);
-                doc.close();
-
-                printFrame.onload = function() {
-                    printFrame.contentWindow.focus();
-                    printFrame.contentWindow.print();
-                };
-            }).fail(function() {
-                toastr.error("{{ __('Failed to load receipt') }}");
             });
         }
 

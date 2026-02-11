@@ -1968,6 +1968,28 @@ class POSController extends Controller
     }
 
     /**
+     * Send receipt to network printer via PrintService
+     */
+    public function sendReceiptToPrinter($id)
+    {
+        try {
+            $sale = Sale::findOrFail($id);
+            $this->printService->printReceipt($sale);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('Receipt sent to printer'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error sending receipt to printer: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('Failed to print receipt') . ': ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Update item quantity in a running order
      */
     public function updateOrderItemQty($id, Request $request)

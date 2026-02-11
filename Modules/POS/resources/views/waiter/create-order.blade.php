@@ -1580,40 +1580,15 @@
     }
 
     function printOrderReceipts(orderId, redirectUrl) {
-        const kitchenUrl = "{{ url('admin/waiter/print/kitchen') }}/" + orderId;
-        const cashUrl = "{{ url('admin/waiter/print/cash') }}/" + orderId;
+        // Printing is handled automatically by the server via PrintService
+        // Network printers receive ESC/POS commands directly
+        // Browser printers are handled via the Print Station page
 
-        // 80mm ≈ 302px at 96dpi, add ~20px for scrollbar/border
-        const receiptWidth = 322;
-        const receiptHeight = 600;
-        const screenLeft = window.screenLeft || window.screenX;
-        const screenTop = window.screenTop || window.screenY;
-
-        // Open kitchen ticket window (centered on screen)
-        const kitchenLeft = screenLeft + 50;
-        const kitchenTop = screenTop + 50;
-        const kitchenWin = window.open(
-            kitchenUrl,
-            'kitchen_' + orderId,
-            `width=${receiptWidth},height=${receiptHeight},left=${kitchenLeft},top=${kitchenTop},scrollbars=yes,resizable=no`
-        );
-
-        // Open cash slip window (offset slightly)
-        setTimeout(function() {
-            const cashLeft = kitchenLeft + receiptWidth + 10;
-            const cashTop = kitchenTop;
-            window.open(
-                cashUrl,
-                'cash_' + orderId,
-                `width=${receiptWidth},height=${receiptHeight},left=${cashLeft},top=${cashTop},scrollbars=yes,resizable=no`
-            );
-        }, 1000);
-
-        // Redirect after delay
+        // Redirect immediately
         if (redirectUrl) {
             setTimeout(function() {
                 window.location.href = redirectUrl;
-            }, 3000);
+            }, 1000);
         }
     }
 </script>

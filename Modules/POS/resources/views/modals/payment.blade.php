@@ -1056,7 +1056,7 @@ function completePayment() {
     });
 }
 
-// Print POS receipt for thermal printer
+// Print POS receipt - sends to network printer and/or browser print
 function printReceipt(orderId) {
     orderId = orderId || window.lastOrderId;
     if (!orderId) {
@@ -1064,14 +1064,22 @@ function printReceipt(orderId) {
         return;
     }
 
-    // Open POS receipt in print-friendly window (80mm thermal printer format)
-    const printUrl = '{{ route("admin.pos.running-orders.receipt", ["id" => "__ID__"]) }}'.replace('__ID__', orderId) + '?auto=1';
-    const printWindow = window.open(printUrl, 'pos_receipt', 'width=350,height=600,scrollbars=yes,resizable=yes');
-
-    // Focus on print window
-    if (printWindow) {
-        printWindow.focus();
-    }
+    // Send receipt to configured printers (network printers print automatically)
+    const sendUrl = '{{ route("admin.pos.running-orders.send-to-printer", ["id" => "__ID__"]) }}'.replace('__ID__', orderId);
+    $.ajax({
+        url: sendUrl,
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message || '{{ __("Receipt sent to printer") }}');
+            }
+        },
+        error: function(xhr) {
+            const msg = xhr.responseJSON?.message || '{{ __("Failed to print receipt") }}';
+            toastr.error(msg);
+        }
+    });
 }
 
 // Award loyalty points for completed order
