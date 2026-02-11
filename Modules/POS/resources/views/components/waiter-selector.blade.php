@@ -50,8 +50,8 @@
                    {{ $required && $loop->first && !$selected ? 'checked' : '' }}>
             <div class="waiter-card">
                 <div class="waiter-avatar">
-                    @if($waiter->image)
-                    <img src="{{ asset($waiter->image) }}" alt="{{ $waiter->name }}">
+                    @if($waiter->image_url)
+                    <img src="{{ $waiter->image_url }}" alt="{{ $waiter->name }}">
                     @else
                     <i class="bx bx-user"></i>
                     @endif

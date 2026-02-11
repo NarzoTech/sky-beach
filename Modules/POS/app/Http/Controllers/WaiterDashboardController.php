@@ -233,7 +233,7 @@ class WaiterDashboardController extends Controller
         $saleData = [
             'order_type' => 'dine_in',
             'table_id' => $table->id,
-            'waiter_id' => $employee->id,
+            'waiter_id' => $admin->id,
             'guest_count' => $validated['guest_count'],
             'special_instructions' => $validated['special_instructions'] ?? null,
             'subtotal' => $subtotal,

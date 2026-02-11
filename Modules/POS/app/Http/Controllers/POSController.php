@@ -151,14 +151,12 @@ class POSController extends Controller
         $editingTableId = session('EDITING_TABLE_ID');
         $editingTableName = session('EDITING_TABLE_NAME');
 
-        // Load waiters/employees for dine-in orders
+        // Load waiters (admins with Waiter role) for dine-in orders
         $waiters = [];
         try {
-            $waiters = \Modules\Employee\app\Models\Employee::where('status', 1)
-                ->orderBy('name')
-                ->get();
+            $waiters = \App\Models\Admin::role('Waiter')->orderBy('name')->get();
         } catch (\Exception $e) {
-            // Employee module might not be installed
+            // Role might not exist
         }
 
         // Load POS settings

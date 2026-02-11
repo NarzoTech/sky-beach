@@ -116,7 +116,7 @@ class SalesController extends Controller
         }
 
         // Get waiters for filter dropdown
-        $waiters = \Modules\Employee\app\Models\Employee::activeWaiters()->orderBy('name')->get();
+        $waiters = \App\Models\Admin::role('Waiter')->orderBy('name')->get();
 
         // Get accounts for payment modal
         $accounts = Account::with('bank')->get();

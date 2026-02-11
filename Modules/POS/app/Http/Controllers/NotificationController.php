@@ -15,13 +15,8 @@ class NotificationController extends Controller
     public function index()
     {
         $admin = Auth::guard('admin')->user();
-        $employee = $admin->employee;
 
-        if (!$employee) {
-            return response()->json([]);
-        }
-
-        $notifications = OrderNotification::forWaiter($employee->id)
+        $notifications = OrderNotification::forWaiter($admin->id)
             ->with('sale.table')
             ->orderBy('created_at', 'desc')
             ->limit(50)
@@ -36,13 +31,8 @@ class NotificationController extends Controller
     public function unreadCount()
     {
         $admin = Auth::guard('admin')->user();
-        $employee = $admin->employee;
 
-        if (!$employee) {
-            return response()->json(['count' => 0]);
-        }
-
-        $count = OrderNotification::forWaiter($employee->id)
+        $count = OrderNotification::forWaiter($admin->id)
             ->unread()
             ->count();
 
@@ -55,13 +45,8 @@ class NotificationController extends Controller
     public function getUnread()
     {
         $admin = Auth::guard('admin')->user();
-        $employee = $admin->employee;
 
-        if (!$employee) {
-            return response()->json([]);
-        }
-
-        $notifications = OrderNotification::forWaiter($employee->id)
+        $notifications = OrderNotification::forWaiter($admin->id)
             ->unread()
             ->with('sale.table')
             ->orderBy('created_at', 'desc')
@@ -79,7 +64,7 @@ class NotificationController extends Controller
 
         // Verify ownership
         $admin = Auth::guard('admin')->user();
-        if ($notification->waiter_id !== $admin->employee?->id) {
+        if ($notification->waiter_id !== $admin->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
@@ -100,16 +85,8 @@ class NotificationController extends Controller
     public function markAllRead()
     {
         $admin = Auth::guard('admin')->user();
-        $employee = $admin->employee;
 
-        if (!$employee) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Waiter profile not found.',
-            ], 400);
-        }
-
-        OrderNotification::forWaiter($employee->id)
+        OrderNotification::forWaiter($admin->id)
             ->unread()
             ->update([
                 'is_read' => true,
@@ -128,17 +105,9 @@ class NotificationController extends Controller
     public function clearOld()
     {
         $admin = Auth::guard('admin')->user();
-        $employee = $admin->employee;
-
-        if (!$employee) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Waiter profile not found.',
-            ], 400);
-        }
 
         // Delete notifications older than 24 hours
-        OrderNotification::forWaiter($employee->id)
+        OrderNotification::forWaiter($admin->id)
             ->where('created_at', '<', now()->subDay())
             ->delete();
 

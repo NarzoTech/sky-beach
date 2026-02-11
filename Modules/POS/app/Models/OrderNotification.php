@@ -4,7 +4,7 @@ namespace Modules\POS\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Modules\Employee\app\Models\Employee;
+use App\Models\Admin;
 use Modules\Sales\app\Models\Sale;
 
 class OrderNotification extends Model
@@ -43,7 +43,7 @@ class OrderNotification extends Model
      */
     public function waiter()
     {
-        return $this->belongsTo(Employee::class, 'waiter_id');
+        return $this->belongsTo(Admin::class, 'waiter_id');
     }
 
     /**

@@ -209,7 +209,7 @@ class Sale extends Model
 
     public function waiter()
     {
-        return $this->belongsTo(\Modules\Employee\app\Models\Employee::class, 'waiter_id');
+        return $this->belongsTo(\App\Models\Admin::class, 'waiter_id');
     }
 
     public function getOrderTypeLabelAttribute(): string

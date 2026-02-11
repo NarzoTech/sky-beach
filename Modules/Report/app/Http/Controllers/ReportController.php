@@ -14,6 +14,7 @@ use App\Exports\SuppliersReportExport;
 use App\Exports\TablePerformanceExport;
 use App\Exports\WaiterPerformanceExport;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -220,7 +221,7 @@ class ReportController extends Controller
             $waiters->appends(request()->query());
         }
 
-        $waiterList = Employee::waiters()->where('status', 1)->orderBy('name')->get();
+        $waiterList = Admin::role('Waiter')->orderBy('name')->get();
 
         return view('report::waiter-performance', compact('waiters', 'data', 'waiterList'));
     }
