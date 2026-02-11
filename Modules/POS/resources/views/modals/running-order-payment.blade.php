@@ -192,6 +192,28 @@
                                     <div class="rop-total-label">{{ __('TOTAL DUE') }}</div>
                                 </div>
 
+                                {{-- Membership Phone --}}
+                                <div class="rop-membership-section mb-3">
+                                    <div class="pm-section-title">
+                                        <i class="bx bx-id-card me-2"></i>{{ __('Membership') }}
+                                    </div>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bx bx-phone"></i></span>
+                                        <input type="text" id="ropCustomerPhone" class="form-control" placeholder="{{ __('Customer phone number (optional)') }}" autocomplete="off">
+                                        <button type="button" class="btn btn-outline-primary" id="ropCheckMemberBtn" onclick="checkRopMembership()">
+                                            <i class="bx bx-search"></i>
+                                        </button>
+                                    </div>
+                                    <div id="ropMembershipInfo" class="mt-2" style="display:none;">
+                                        <div class="alert alert-light border py-2 px-3 mb-0 small">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span><i class="bx bx-user me-1"></i><span id="ropMemberName">--</span></span>
+                                                <span class="badge bg-primary"><i class="bx bx-coin-stack me-1"></i><span id="ropMemberPoints">0</span> {{ __('pts') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- Payment Method Selection --}}
                                 <div class="pm-section-title">{{ __('Payment Method') }}</div>
 
@@ -1640,6 +1662,12 @@ function completeRunningOrderPayment() {
     formData.append('receive_amount', document.getElementById('ropAmountReceived').value || 0);
     formData.append('total_amount', document.getElementById('ropTotalValue').value || 0);
 
+    // Membership phone for loyalty points
+    const ropPhone = document.getElementById('ropCustomerPhone')?.value?.trim();
+    if (ropPhone) {
+        formData.append('customer_phone', ropPhone);
+    }
+
     if (ropIsSplitMode) {
         // Collect split payments from compact rows (select-based)
         let index = 0;
@@ -1731,6 +1759,43 @@ function printRunningOrderReceipt() {
     if (printWindow) {
         printWindow.focus();
     }
+}
+
+// Check membership by phone number
+function checkRopMembership() {
+    const phone = document.getElementById('ropCustomerPhone')?.value?.trim();
+    if (!phone) {
+        toastr.warning('{{ __("Please enter a phone number") }}');
+        return;
+    }
+
+    const btn = document.getElementById('ropCheckMemberBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+    fetch('{{ route("admin.pos.loyalty.customer") }}?phone=' + encodeURIComponent(phone))
+        .then(response => response.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-search"></i>';
+
+            if (result.success && result.customer) {
+                document.getElementById('ropMemberName').textContent = result.customer.name || phone;
+                document.getElementById('ropMemberPoints').textContent = result.customer.total_points || 0;
+                document.getElementById('ropMembershipInfo').style.display = 'block';
+            } else {
+                document.getElementById('ropMemberName').textContent = '{{ __("New Member") }}';
+                document.getElementById('ropMemberPoints').textContent = '0';
+                document.getElementById('ropMembershipInfo').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-search"></i>';
+            document.getElementById('ropMemberName').textContent = '{{ __("New Member") }}';
+            document.getElementById('ropMemberPoints').textContent = '0';
+            document.getElementById('ropMembershipInfo').style.display = 'block';
+        });
 }
 
 // Close and refresh

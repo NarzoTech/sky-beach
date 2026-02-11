@@ -11,7 +11,6 @@ use Modules\Website\app\Models\WebsiteCart;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\Combo;
 use App\Models\Stock;
-use App\Models\TaxLedger;
 
 class OrderController extends Controller
 {
@@ -99,14 +98,6 @@ class OrderController extends Controller
         // Restore stock for cancelled order
         $this->restoreStockForCancelledOrder($order);
 
-        // Void tax ledger entry for cancelled order
-        if ($order->total_tax > 0) {
-            try {
-                TaxLedger::voidSaleTax($order, 'Order cancelled by customer');
-            } catch (\Exception $e) {
-                Log::error('Failed to void tax entry for cancelled order ' . $order->invoice . ': ' . $e->getMessage());
-            }
-        }
 
         if ($request->ajax()) {
             return response()->json([

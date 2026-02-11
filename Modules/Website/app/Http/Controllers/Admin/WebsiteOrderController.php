@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Modules\Sales\app\Models\Sale;
 use Modules\Menu\app\Services\MenuStockService;
 use App\Models\Stock;
-use App\Models\TaxLedger;
 use Modules\Menu\app\Models\Combo;
 
 class WebsiteOrderController extends Controller
@@ -127,14 +126,6 @@ class WebsiteOrderController extends Controller
             $this->reverseStockForOrder($order);
         }
 
-        // Void tax ledger entry if order is cancelled
-        if ($request->status === 'cancelled' && $previousStatus !== 'cancelled' && $order->total_tax > 0) {
-            try {
-                TaxLedger::voidSaleTax($order, 'Order cancelled by admin');
-            } catch (\Exception $e) {
-                Log::error('Failed to void tax entry for cancelled order ' . $order->invoice . ': ' . $e->getMessage());
-            }
-        }
 
         if ($request->ajax()) {
             return response()->json([

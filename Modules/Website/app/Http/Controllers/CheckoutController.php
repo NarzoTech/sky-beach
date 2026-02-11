@@ -18,7 +18,6 @@ use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Models\Combo;
 use App\Models\Stock;
-use App\Models\TaxLedger;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -173,14 +172,6 @@ class CheckoutController extends Controller
             // Deduct stock for all items in the order
             $this->deductStockForWebsiteOrder($sale, $cartItems);
 
-            // Record tax in tax ledger
-            if ($sale->total_tax > 0) {
-                try {
-                    TaxLedger::recordSaleTax($sale, 0, $sale->total_tax);
-                } catch (\Exception $e) {
-                    Log::error('Failed to record tax in tax ledger for website order #' . $sale->id . ': ' . $e->getMessage());
-                }
-            }
 
             // Clear the cart
             WebsiteCart::clearCart();

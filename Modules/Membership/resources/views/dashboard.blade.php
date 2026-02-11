@@ -159,9 +159,6 @@
                     <a href="{{ route('membership.programs.index') }}" class="btn btn-primary me-2">
                         <i class="fa fa-list"></i> {{ __('Manage Programs') }}
                     </a>
-                    <a href="{{ route('membership.rules.index') }}" class="btn btn-primary me-2">
-                        <i class="fa fa-cog"></i> {{ __('Manage Rules') }}
-                    </a>
                     <a href="{{ route('membership.customers.index') }}" class="btn btn-success me-2">
                         <i class="fa fa-users"></i> {{ __('View Customers') }}
                     </a>

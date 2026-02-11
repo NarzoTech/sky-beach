@@ -207,11 +207,22 @@ class RuleEngineService
             return 0;
         }
 
+        // Use simplified earning_rules if available (spend_amount → points_earned)
+        $earningRules = $program->earning_rules;
+        if ($earningRules && isset($earningRules['spend_amount'], $earningRules['points_earned'])) {
+            $spendAmount = (float) $earningRules['spend_amount'];
+            $pointsEarned = (int) $earningRules['points_earned'];
+            if ($spendAmount > 0) {
+                return floor($amount / $spendAmount) * $pointsEarned;
+            }
+            return 0;
+        }
+
         if ($program->earning_type === 'per_transaction') {
             return $program->earning_rate;
         }
 
-        // per_amount type
+        // per_amount type (legacy fallback)
         return floor($amount / (1 / $program->earning_rate));
     }
 

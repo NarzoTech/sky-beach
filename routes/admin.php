@@ -15,7 +15,6 @@ use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\QuotationController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\TaxReportController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Artisan;
@@ -115,19 +114,7 @@ Route::group(['as' => 'admin.', 'prefix' => 'admin'], function () {
         Route::resource('/role', RolesController::class);
         Route::resource('/role', RolesController::class);
 
-        // Tax Reports
-        Route::prefix('tax-reports')->name('tax-reports.')->group(function () {
-            Route::get('/', [TaxReportController::class, 'index'])->name('index');
-            Route::get('/ledger', [TaxReportController::class, 'ledger'])->name('ledger');
-            Route::get('/periods', [TaxReportController::class, 'periods'])->name('periods');
-            Route::get('/export', [TaxReportController::class, 'export'])->name('export');
-            Route::post('/generate-period', [TaxReportController::class, 'generatePeriod'])->name('generate-period');
-            Route::post('/close-period/{id}', [TaxReportController::class, 'closePeriod'])->name('close-period');
-            Route::post('/mark-filed/{id}', [TaxReportController::class, 'markFiled'])->name('mark-filed');
-            Route::post('/sync-sales', [TaxReportController::class, 'syncSales'])->name('sync-sales');
-            Route::post('/void/{id}', [TaxReportController::class, 'voidEntry'])->name('void');
-            Route::post('/adjustment', [TaxReportController::class, 'createAdjustment'])->name('adjustment');
-        });
+
     });
     Route::resource('admin', AdminController::class)->except('show');
     Route::put('admin-status/{id}', [AdminController::class, 'changeStatus'])->name('admin.status');

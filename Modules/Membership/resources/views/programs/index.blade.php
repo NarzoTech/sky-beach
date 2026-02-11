@@ -19,21 +19,43 @@
                         <tr>
                             <th>{{ __('SN') }}</th>
                             <th>{{ __('Name') }}</th>
-                            <th>{{ __('Earning Type') }}</th>
-                            <th>{{ __('Earning Rate') }}</th>
-                            <th>{{ __('Redemption Type') }}</th>
+                            <th>{{ __('Earning Rule') }}</th>
+                            <th>{{ __('Coupon Tiers') }}</th>
                             <th>{{ __('Status') }}</th>
                             <th>{{ __('Action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($programs as $index => $program)
+                            @php
+                                $earningRules = $program->earning_rules ?? [];
+                                $redemptionRules = $program->redemption_rules ?? [];
+                                $couponTiers = $redemptionRules['coupon_tiers'] ?? [];
+                            @endphp
                             <tr>
                                 <td>{{ $programs->firstItem() + $index }}</td>
-                                <td>{{ $program->name }}</td>
-                                <td>{{ ucfirst(str_replace('_', ' ', $program->earning_type)) }}</td>
-                                <td>{{ $program->earning_rate }}</td>
-                                <td>{{ ucfirst(str_replace('_', ' ', $program->redemption_type)) }}</td>
+                                <td>
+                                    <strong>{{ $program->name }}</strong>
+                                    @if($program->description)
+                                        <br><small class="text-muted">{{ $program->description }}</small>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(isset($earningRules['spend_amount']))
+                                        {{ $earningRules['spend_amount'] }} {{ currency_icon() }} = {{ $earningRules['points_earned'] }} {{ __('pts') }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(count($couponTiers) > 0)
+                                        @foreach($couponTiers as $tier)
+                                            <span class="badge bg-info mb-1">{{ $tier['points_required'] }} {{ __('pts') }} = {{ $tier['discount_amount'] }} {{ currency_icon() }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @if ($program->is_active)
                                         <span class="badge bg-success">{{ __('Active') }}</span>
@@ -54,11 +76,8 @@
                                             <a class="dropdown-item" href="{{ route('membership.programs.edit', $program) }}">
                                                 {{ __('Edit') }}
                                             </a>
-                                            <a class="dropdown-item" href="{{ route('membership.rules.index', ['program_id' => $program->id]) }}">
-                                                {{ __('Manage Rules') }}
-                                            </a>
                                             <form action="{{ route('membership.programs.destroy', $program) }}" method="POST"
-                                                onsubmit="return confirm('Are you sure?')">
+                                                onsubmit="return confirm('{{ __('Are you sure?') }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item text-danger">
@@ -71,7 +90,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">{{ __('No programs found') }}</td>
+                                <td colspan="6" class="text-center">{{ __('No programs found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

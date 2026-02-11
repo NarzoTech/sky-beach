@@ -664,13 +664,7 @@ trait PermissionsTrait
         ],
     ];
 
-    public static array $taxReportPermissions = [
-        'group_name'  => 'Tax Reports',
-        'permissions' => [
-            'tax-reports.view',
-            'tax-reports.manage',
-        ],
-    ];
+
 
     // return super admin permission aka 'all permissions'
     private static function getSuperAdminPermissions(): array

@@ -16,11 +16,9 @@ class LoyaltyProgramController extends Controller
     public function index(Request $request): View
     {
         checkAdminHasPermissionAndThrowException('membership.view');
-        $warehouseId = $request->query('warehouse_id');
 
         $programs = LoyaltyProgram::query()
-            ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
-            ->with('warehouse', 'createdBy')
+            ->with('createdBy')
             ->paginate(15);
 
         return view('membership::programs.index', [
@@ -43,24 +41,54 @@ class LoyaltyProgramController extends Controller
     public function store(Request $request): RedirectResponse
     {
         checkAdminHasPermissionAndThrowException('membership.create');
+
         $validated = $request->validate([
-            'warehouse_id' => 'nullable|integer|exists:warehouses,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
-            'earning_type' => 'required|in:per_transaction,per_amount',
-            'earning_rate' => 'required|numeric|min:0.01',
-            'min_transaction_amount' => 'nullable|numeric|min:0',
-            'redemption_type' => 'required|in:discount,free_item,cashback',
-            'points_per_unit' => 'required|numeric|min:0.01',
+            'spend_amount' => 'required|numeric|min:1',
+            'points_earned' => 'required|integer|min:1',
+            'tier_points' => 'required|array|min:1',
+            'tier_points.*' => 'required|integer|min:1',
+            'tier_discounts' => 'required|array|min:1',
+            'tier_discounts.*' => 'required|numeric|min:1',
         ]);
 
-        $validated['created_by'] = auth()->id();
+        // Build coupon tiers array
+        $couponTiers = [];
+        foreach ($validated['tier_points'] as $i => $points) {
+            $couponTiers[] = [
+                'points_required' => (int) $points,
+                'discount_amount' => (float) $validated['tier_discounts'][$i],
+            ];
+        }
 
-        LoyaltyProgram::create($validated);
+        // Sort tiers by points required ascending
+        usort($couponTiers, fn($a, $b) => $a['points_required'] <=> $b['points_required']);
+
+        // Calculate earning_rate for the service layer
+        $earningRate = $validated['points_earned'] / $validated['spend_amount'];
+
+        LoyaltyProgram::create([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'is_active' => $validated['is_active'] ?? true,
+            'earning_type' => 'per_amount',
+            'earning_rate' => $earningRate,
+            'redemption_type' => 'discount',
+            'points_per_unit' => $validated['spend_amount'],
+            'earning_rules' => [
+                'spend_amount' => (float) $validated['spend_amount'],
+                'points_earned' => (int) $validated['points_earned'],
+            ],
+            'redemption_rules' => [
+                'coupon_tiers' => $couponTiers,
+            ],
+            'created_by' => auth()->id(),
+        ]);
 
         return redirect()->route('membership.programs.index')
-            ->with('success', 'Loyalty program created successfully');
+            ->with('success', __('Loyalty program created successfully'));
     }
 
     /**
@@ -69,7 +97,7 @@ class LoyaltyProgramController extends Controller
     public function show(LoyaltyProgram $program): View
     {
         checkAdminHasPermissionAndThrowException('membership.view');
-        $program->load('warehouse', 'rules', 'segments', 'createdBy');
+        $program->load('createdBy');
 
         return view('membership::programs.show', [
             'program' => $program,
@@ -93,21 +121,53 @@ class LoyaltyProgramController extends Controller
     public function update(Request $request, LoyaltyProgram $program): RedirectResponse
     {
         checkAdminHasPermissionAndThrowException('membership.edit');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
-            'earning_type' => 'required|in:per_transaction,per_amount',
-            'earning_rate' => 'required|numeric|min:0.01',
-            'min_transaction_amount' => 'nullable|numeric|min:0',
-            'redemption_type' => 'required|in:discount,free_item,cashback',
-            'points_per_unit' => 'required|numeric|min:0.01',
+            'spend_amount' => 'required|numeric|min:1',
+            'points_earned' => 'required|integer|min:1',
+            'tier_points' => 'required|array|min:1',
+            'tier_points.*' => 'required|integer|min:1',
+            'tier_discounts' => 'required|array|min:1',
+            'tier_discounts.*' => 'required|numeric|min:1',
         ]);
 
-        $program->update($validated);
+        // Build coupon tiers array
+        $couponTiers = [];
+        foreach ($validated['tier_points'] as $i => $points) {
+            $couponTiers[] = [
+                'points_required' => (int) $points,
+                'discount_amount' => (float) $validated['tier_discounts'][$i],
+            ];
+        }
+
+        // Sort tiers by points required ascending
+        usort($couponTiers, fn($a, $b) => $a['points_required'] <=> $b['points_required']);
+
+        // Calculate earning_rate for the service layer
+        $earningRate = $validated['points_earned'] / $validated['spend_amount'];
+
+        $program->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'is_active' => $validated['is_active'] ?? true,
+            'earning_type' => 'per_amount',
+            'earning_rate' => $earningRate,
+            'redemption_type' => 'discount',
+            'points_per_unit' => $validated['spend_amount'],
+            'earning_rules' => [
+                'spend_amount' => (float) $validated['spend_amount'],
+                'points_earned' => (int) $validated['points_earned'],
+            ],
+            'redemption_rules' => [
+                'coupon_tiers' => $couponTiers,
+            ],
+        ]);
 
         return redirect()->route('membership.programs.show', $program)
-            ->with('success', 'Loyalty program updated successfully');
+            ->with('success', __('Loyalty program updated successfully'));
     }
 
     /**
@@ -119,6 +179,6 @@ class LoyaltyProgramController extends Controller
         $program->delete();
 
         return redirect()->route('membership.programs.index')
-            ->with('success', 'Loyalty program deleted successfully');
+            ->with('success', __('Loyalty program deleted successfully'));
     }
 }

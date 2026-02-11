@@ -153,31 +153,6 @@
             @include('report::sidebar')
         @endif
 
-        @adminCan('tax-reports.view')
-        <li class="menu-item {{ Route::is('admin.tax-reports*') ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class='menu-icon tf-icons bx bx-receipt'></i>
-                <div class="text-truncate" data-i18n="{{ __('Tax Reports') }}">{{ __('Tax Reports') }}</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="{{ Route::is('admin.tax-reports.index') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.index') }}">
-                        {{ __('Dashboard') }}
-                    </a>
-                </li>
-                <li class="{{ Route::is('admin.tax-reports.ledger') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.ledger') }}">
-                        {{ __('Tax Ledger') }}
-                    </a>
-                </li>
-                <li class="{{ Route::is('admin.tax-reports.periods') ? 'active' : '' }} menu-item">
-                    <a class="menu-link" href="{{ route('admin.tax-reports.periods') }}">
-                        {{ __('Tax Periods') }}
-                    </a>
-                </li>
-            </ul>
-        </li>
-        @endadminCan
 
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('HR & Staff') }}</span></li>
         @if (Module::isEnabled('Employee'))

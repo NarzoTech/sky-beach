@@ -15,11 +15,6 @@
                     <div class="text-truncate" data-i18n="{{ __('Programs') }}">{{ __('Programs') }}</div>
                 </a>
             </li>
-            <li class="menu-item {{ isRoute('membership.rules.*', 'active') }}">
-                <a href="{{ route('membership.rules.index') }}" class="menu-link">
-                    <div class="text-truncate" data-i18n="{{ __('Rules') }}">{{ __('Rules') }}</div>
-                </a>
-            </li>
             <li class="menu-item {{ isRoute('membership.customers.*', 'active') }}">
                 <a href="{{ route('membership.customers.index') }}" class="menu-link">
                     <div class="text-truncate" data-i18n="{{ __('Customers') }}">{{ __('Customers') }}</div>
