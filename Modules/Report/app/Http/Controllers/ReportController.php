@@ -53,6 +53,7 @@ class ReportController extends Controller
     public function menuItemSales()
     {
         $query = ProductSale::whereNotNull('menu_item_id')
+            ->whereHas('sale', fn($q) => $q->where('status', '!=', 'cancelled'))
             ->selectRaw('menu_item_id, SUM(quantity) as total_qty, SUM(sub_total) as total_revenue, SUM(cogs_amount) as total_cogs, SUM(profit_amount) as total_profit')
             ->groupBy('menu_item_id');
 
@@ -61,7 +62,7 @@ class ReportController extends Controller
             $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
             $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
             $query->whereHas('sale', function ($q) use ($fromDate, $toDate) {
-                $q->whereBetween('order_date', [$fromDate, $toDate]);
+                $q->where('status', '!=', 'cancelled')->whereBetween('order_date', [$fromDate, $toDate]);
             });
         }
 
@@ -118,6 +119,7 @@ class ReportController extends Controller
             $items = $allItems;
         } else {
             $items = ProductSale::whereNotNull('menu_item_id')
+                ->whereHas('sale', fn($q) => $q->where('status', '!=', 'cancelled'))
                 ->selectRaw('menu_item_id, SUM(quantity) as total_qty, SUM(sub_total) as total_revenue, SUM(cogs_amount) as total_cogs, SUM(profit_amount) as total_profit')
                 ->groupBy('menu_item_id');
 
@@ -125,7 +127,7 @@ class ReportController extends Controller
                 $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
                 $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
                 $items->whereHas('sale', function ($q) use ($fromDate, $toDate) {
-                    $q->whereBetween('order_date', [$fromDate, $toDate]);
+                    $q->where('status', '!=', 'cancelled')->whereBetween('order_date', [$fromDate, $toDate]);
                 });
             }
             if (request('category')) {
@@ -154,6 +156,7 @@ class ReportController extends Controller
     public function waiterPerformance()
     {
         $query = Sale::whereNotNull('waiter_id')
+            ->where('status', '!=', 'cancelled')
             ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
             ->groupBy('waiter_id');
 
@@ -205,6 +208,7 @@ class ReportController extends Controller
             $waiters = $allWaiters;
         } else {
             $paginateQuery = Sale::whereNotNull('waiter_id')
+                ->where('status', '!=', 'cancelled')
                 ->selectRaw('waiter_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
                 ->groupBy('waiter_id');
 
@@ -231,7 +235,8 @@ class ReportController extends Controller
      */
     public function orderType()
     {
-        $query = Sale::selectRaw('order_type, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
+        $query = Sale::where('status', '!=', 'cancelled')
+            ->selectRaw('order_type, COUNT(*) as total_orders, SUM(grand_total) as total_revenue, SUM(total_cogs) as total_cogs, SUM(gross_profit) as total_profit')
             ->groupBy('order_type');
 
         if (request('from_date') || request('to_date')) {
@@ -279,6 +284,7 @@ class ReportController extends Controller
     public function tablePerformance()
     {
         $query = Sale::whereNotNull('table_id')
+            ->where('status', '!=', 'cancelled')
             ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
             ->groupBy('table_id');
 
@@ -330,6 +336,7 @@ class ReportController extends Controller
             $tables = $allTables;
         } else {
             $paginateQuery = Sale::whereNotNull('table_id')
+                ->where('status', '!=', 'cancelled')
                 ->selectRaw('table_id, COUNT(*) as total_orders, SUM(grand_total) as total_revenue')
                 ->groupBy('table_id');
 
@@ -357,7 +364,7 @@ class ReportController extends Controller
     {
         $query = User::query();
 
-        $query = $query->with(['sales', 'payment']);
+        $query = $query->with(['sales' => fn($q) => $q->where('status', '!=', 'cancelled'), 'payment']);
 
         $query->when($request->filled('keyword'), function ($q) use ($request) {
             $q->where('name', 'like', '%' . $request->keyword . '%')
@@ -397,7 +404,7 @@ class ReportController extends Controller
         if ($parpage === null) {
             $customers = $allCustomers;
         } else {
-            $customers = User::with(['sales', 'payment'])->orderBy('name', 'asc')->paginate($parpage);
+            $customers = User::with(['sales' => fn($q) => $q->where('status', '!=', 'cancelled'), 'payment'])->orderBy('name', 'asc')->paginate($parpage);
             $customers->appends(request()->query());
         }
 
@@ -422,7 +429,8 @@ class ReportController extends Controller
 
     public function detailsSale()
     {
-        $sales = Sale::with(['customer', 'payment', 'payment.account', 'saleReturns']);
+        $sales = Sale::where('status', '!=', 'cancelled')
+            ->with(['customer', 'payment', 'payment.account', 'saleReturns']);
 
         // Only filter by date if dates are provided
         if (request('from_date') || request('to_date')) {
@@ -551,7 +559,7 @@ class ReportController extends Controller
         checkAdminHasPermissionAndThrowException('report.view');
 
         // Build base queries
-        $salesQuery = Sale::query();
+        $salesQuery = Sale::where('status', '!=', 'cancelled');
         $salesReturnQuery = SalesReturn::query();
         $purchaseReturnQuery = PurchaseReturn::query();
         $expenseQuery = Expense::query();
@@ -591,10 +599,11 @@ class ReportController extends Controller
 
         // If no pre-calculated COGS exists, fall back to legacy calculation
         if ($data['cogs'] == 0) {
-            $productSaleQuery = ProductSale::where('source', 1);
+            $productSaleQuery = ProductSale::where('source', 1)
+                ->whereHas('sale', fn($q) => $q->where('status', '!=', 'cancelled'));
             if (isset($fromDate) && isset($toDate)) {
                 $productSaleQuery->whereHas('sale', function ($q) use ($fromDate, $toDate) {
-                    $q->whereBetween('order_date', [$fromDate, $toDate]);
+                    $q->where('status', '!=', 'cancelled')->whereBetween('order_date', [$fromDate, $toDate]);
                 });
             }
 
