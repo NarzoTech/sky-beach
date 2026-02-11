@@ -1047,10 +1047,13 @@ class POSController extends Controller
             // Award loyalty points server-side for paid orders
             $pointsEarned = 0;
             try {
-                $customerPhone = $sale->customer->phone ?? null;
+                // Use phone from request (checkout modal) or fall back to customer record
+                $customerPhone = $request->customer_phone ?? $sale->customer->phone ?? null;
                 if ($customerPhone && ($sale->points_earned ?? 0) <= 0) {
+                    // Calculate points on subtotal after discount, before tax
+                    $loyaltyAmount = ($sale->total_price ?? 0) - ($sale->order_discount ?? 0);
                     $saleContext = [
-                        'amount' => $sale->grand_total,
+                        'amount' => max(0, $loyaltyAmount),
                         'sale_id' => $sale->id,
                         'items' => [],
                     ];
@@ -1809,10 +1812,13 @@ class POSController extends Controller
             // Award loyalty points server-side for completed running/waiter orders
             $pointsEarned = 0;
             try {
-                $customerPhone = $order->customer->phone ?? null;
+                // Use phone from request (checkout modal) or fall back to customer record
+                $customerPhone = $request->customer_phone ?? $order->customer->phone ?? null;
                 if ($customerPhone && ($order->points_earned ?? 0) <= 0) {
+                    // Calculate points on subtotal after discount, before tax
+                    $loyaltyAmount = ($order->total_price ?? 0) - ($order->order_discount ?? 0);
                     $saleContext = [
-                        'amount' => $order->grand_total,
+                        'amount' => max(0, $loyaltyAmount),
                         'sale_id' => $order->id,
                         'items' => [],
                     ];

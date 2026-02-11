@@ -1001,6 +1001,12 @@ function openRunningOrderPayment(orderId) {
     ropSplitIndex = 0;
     ropIsSplitMode = false;
 
+    // Reset membership phone
+    var ropPhoneInput = document.getElementById('ropCustomerPhone');
+    if (ropPhoneInput) ropPhoneInput.value = '';
+    var ropMemberInfo = document.getElementById('ropMembershipInfo');
+    if (ropMemberInfo) ropMemberInfo.style.display = 'none';
+
     // Show loading, hide content
     showRopLoading();
 

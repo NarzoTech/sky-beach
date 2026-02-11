@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Log;
 use Modules\Website\app\Models\WebsiteCart;
 use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\ProductSale;
-use Modules\Membership\app\Models\LoyaltyCustomer;
-use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\Membership\app\Services\LoyaltyService;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuAddon;
@@ -22,6 +20,13 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
+    protected $loyaltyService;
+
+    public function __construct(LoyaltyService $loyaltyService)
+    {
+        $this->loyaltyService = $loyaltyService;
+    }
+
     /**
      * Display checkout page
      */
@@ -338,84 +343,24 @@ class CheckoutController extends Controller
             // Normalize phone number (remove dashes and spaces)
             $phone = preg_replace('/[\s\-]/', '', $phone);
 
-            // Find or create loyalty customer
-            $loyaltyCustomer = LoyaltyCustomer::where('phone', $phone)->first();
-
-            if (!$loyaltyCustomer) {
-                $loyaltyCustomer = LoyaltyCustomer::create([
-                    'phone' => $phone,
-                    'name' => $customerName,
-                    'status' => 'active',
-                    'total_points' => 0,
-                    'lifetime_points' => 0,
-                    'redeemed_points' => 0,
-                    'joined_at' => now(),
-                ]);
-            }
-
-            if (!$loyaltyCustomer || $loyaltyCustomer->status !== 'active') {
+            if (!$phone) {
                 return;
             }
 
-            // Get warehouse
-            $warehouseId = $sale->warehouse_id ?? $this->getDefaultWarehouse();
+            // Calculate points on subtotal after discount, before tax
+            $loyaltyAmount = ($sale->total_price ?? 0) - ($sale->order_discount ?? 0);
+            $saleContext = [
+                'amount' => max(0, $loyaltyAmount),
+                'sale_id' => $sale->id,
+                'items' => [],
+            ];
 
-            // Get active loyalty program for this warehouse
-            $program = LoyaltyProgram::where('warehouse_id', $warehouseId)
-                ->where('is_active', true)
-                ->first();
+            $loyaltyResult = $this->loyaltyService->handleSaleCompletion($phone, $sale->warehouse_id ?? 1, $saleContext);
 
-            if (!$program) {
-                // Try to get any active program
-                $program = LoyaltyProgram::where('is_active', true)->first();
-            }
-
-            if (!$program) {
-                return;
-            }
-
-            // Calculate points based on program settings
-            $pointsEarned = 0;
-            $amount = $sale->grand_total;
-
-            if ($program->earning_type === 'per_amount') {
-                // e.g., 1 point per $10 spent
-                $pointsEarned = floor($amount / max(1, $program->earning_rate));
-            } else {
-                // per_transaction - fixed points per order
-                $pointsEarned = $program->earning_rate;
-            }
-
-            // Check minimum transaction amount
-            if ($program->min_transaction_amount && $amount < $program->min_transaction_amount) {
-                $pointsEarned = 0;
-            }
-
-            if ($pointsEarned > 0) {
-                // Update customer points
-                $loyaltyCustomer->increment('total_points', $pointsEarned);
-                $loyaltyCustomer->increment('lifetime_points', $pointsEarned);
-                $loyaltyCustomer->update(['last_purchase_at' => now()]);
-
-                // Update sale with points info
-                $sale->update([
-                    'loyalty_customer_id' => $loyaltyCustomer->id,
-                    'points_earned' => $pointsEarned,
-                ]);
-
-                // Create loyalty transaction record
-                if (class_exists(\Modules\Membership\app\Models\LoyaltyTransaction::class)) {
-                    \Modules\Membership\app\Models\LoyaltyTransaction::create([
-                        'loyalty_customer_id' => $loyaltyCustomer->id,
-                        'warehouse_id' => $warehouseId,
-                        'transaction_type' => 'earn',
-                        'points_amount' => $pointsEarned,
-                        'points_balance_before' => $loyaltyCustomer->total_points - $pointsEarned,
-                        'points_balance_after' => $loyaltyCustomer->total_points,
-                        'source_type' => 'sale',
-                        'source_id' => $sale->id,
-                        'description' => 'Points earned from website order #' . $sale->invoice,
-                    ]);
+            if ($loyaltyResult['success'] ?? false) {
+                $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
+                if ($pointsEarned > 0) {
+                    $sale->update(['points_earned' => $pointsEarned]);
                 }
             }
         } catch (\Exception $e) {

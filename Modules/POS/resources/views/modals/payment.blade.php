@@ -84,6 +84,30 @@
 
                         <div class="pm-divider"></div>
 
+                        {{-- Membership Phone --}}
+                        <div class="mb-3">
+                            <div class="pm-section-title">
+                                <i class="bx bx-id-card me-2"></i>{{ __('Membership') }}
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bx bx-phone"></i></span>
+                                <input type="text" id="paymentCustomerPhone" name="customer_phone" class="form-control" placeholder="{{ __('Customer phone number (optional)') }}" autocomplete="off">
+                                <button type="button" class="btn btn-outline-primary" id="paymentCheckMemberBtn" onclick="checkPaymentMembership()">
+                                    <i class="bx bx-search"></i>
+                                </button>
+                            </div>
+                            <div id="paymentMembershipInfo" class="mt-2" style="display:none;">
+                                <div class="alert alert-light border py-2 px-3 mb-0 small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span><i class="bx bx-user me-1"></i><span id="paymentMemberName">--</span></span>
+                                        <span class="badge bg-primary"><i class="bx bx-coin-stack me-1"></i><span id="paymentMemberPoints">0</span> {{ __('pts') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pm-divider"></div>
+
                         {{-- Payment Method Selection --}}
                         <div class="pm-section-title">{{ __('Payment Method') }}</div>
 
@@ -493,6 +517,12 @@ function initPaymentModal(options) {
             if (modal) modal.hide();
         }
     });
+
+    // Reset membership phone
+    var phoneInput = document.getElementById('paymentCustomerPhone');
+    if (phoneInput) phoneInput.value = '';
+    var memberInfo = document.getElementById('paymentMembershipInfo');
+    if (memberInfo) memberInfo.style.display = 'none';
 
     // Show modal with loading state first
     document.getElementById('paymentLoading').classList.remove('d-none');
@@ -940,6 +970,12 @@ function completePayment() {
     formData.append('discount_amount', document.getElementById('discount_total_amount')?.value || 0);
     formData.append('sub_total', document.getElementById('subtotal')?.value || document.getElementById('total')?.value || 0);
 
+    // Membership phone for loyalty points
+    const memberPhone = document.getElementById('paymentCustomerPhone')?.value?.trim();
+    if (memberPhone) {
+        formData.append('customer_phone', memberPhone);
+    }
+
     // Add order type specific data
     if (currentOrderType === 'take_away') {
         const takeawayData = getTakeawayFormData();
@@ -1131,6 +1167,43 @@ function awardLoyaltyPointsForOrder(orderId, orderTotal) {
     .catch(error => {
         console.log('Loyalty points error (non-critical):', error);
     });
+}
+
+// Check membership by phone number
+function checkPaymentMembership() {
+    const phone = document.getElementById('paymentCustomerPhone')?.value?.trim();
+    if (!phone) {
+        toastr.warning('{{ __("Please enter a phone number") }}');
+        return;
+    }
+
+    const btn = document.getElementById('paymentCheckMemberBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i>';
+
+    fetch('{{ route("admin.pos.loyalty.customer") }}?phone=' + encodeURIComponent(phone))
+        .then(response => response.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-search"></i>';
+
+            if (result.success && result.customer) {
+                document.getElementById('paymentMemberName').textContent = result.customer.name || phone;
+                document.getElementById('paymentMemberPoints').textContent = result.customer.total_points || 0;
+                document.getElementById('paymentMembershipInfo').style.display = 'block';
+            } else {
+                document.getElementById('paymentMemberName').textContent = '{{ __("New Member") }}';
+                document.getElementById('paymentMemberPoints').textContent = '0';
+                document.getElementById('paymentMembershipInfo').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-search"></i>';
+            document.getElementById('paymentMemberName').textContent = '{{ __("New Member") }}';
+            document.getElementById('paymentMemberPoints').textContent = '0';
+            document.getElementById('paymentMembershipInfo').style.display = 'block';
+        });
 }
 
 // Close payment modal and clear cart
