@@ -4,26 +4,26 @@
 @section('content')
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card bg-danger text-white">
+            <div class="card">
                 <div class="card-body text-center">
-                    <h3>{{ $data['criticalCount'] }}</h3>
-                    <p class="mb-0">{{ __('Out of Stock') }}</p>
+                    <h3 class="text-danger mb-1">{{ $data['criticalCount'] }}</h3>
+                    <p class="mb-0 text-muted">{{ __('Out of Stock') }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-warning">
+            <div class="card">
                 <div class="card-body text-center">
-                    <h3>{{ $data['lowCount'] }}</h3>
-                    <p class="mb-0">{{ __('Low Stock') }}</p>
+                    <h3 class="text-warning mb-1">{{ $data['lowCount'] }}</h3>
+                    <p class="mb-0 text-muted">{{ __('Low Stock') }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-info text-white">
+            <div class="card">
                 <div class="card-body text-center">
-                    <h3>{{ $data['totalItems'] }}</h3>
-                    <p class="mb-0">{{ __('Total Items Needing Attention') }}</p>
+                    <h3 class="text-info mb-1">{{ $data['totalItems'] }}</h3>
+                    <p class="mb-0 text-muted">{{ __('Total Items Needing Attention') }}</p>
                 </div>
             </div>
         </div>
@@ -31,14 +31,12 @@
 
     <div class="card">
         <div class="card-header">
-            <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
-                <h4 class="section_title">{{ __('Low Stock Alert') }}</h4>
-            </div>
+            <h4 class="section_title">{{ __('Low Stock Alert') }}</h4>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-light">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>{{ __('SN') }}</th>
                             <th>{{ __('Ingredient') }}</th>
@@ -57,11 +55,9 @@
                                 $currentStock = (float) str_replace(',', '', $ingredient->stock);
                                 $isOutOfStock = $currentStock <= 0;
                             @endphp
-                            <tr class="{{ $isOutOfStock ? 'table-danger' : 'table-warning' }}">
+                            <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>
-                                    <strong>{{ $ingredient->name }}</strong>
-                                </td>
+                                <td><strong>{{ $ingredient->name }}</strong></td>
                                 <td>{{ $ingredient->sku }}</td>
                                 <td>{{ $ingredient->category->name ?? 'N/A' }}</td>
                                 <td class="{{ $isOutOfStock ? 'text-danger' : 'text-warning' }}">
