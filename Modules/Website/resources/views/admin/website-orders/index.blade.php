@@ -176,7 +176,6 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary"><i class="bx bx-shopping-bag me-1"></i>{{ __('Take Away') }}</span>
-                                        @endif
                                     </td>
                                     <td>{{ $order->details->sum('quantity') }} {{ __('items') }}</td>
                                     <td><strong>{{ currency($order->grand_total) }}</strong></td>
