@@ -5,6 +5,7 @@ namespace Modules\POS\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\POS\app\Models\PosPrinter;
+use Modules\POS\app\Services\EscPosFormatService;
 
 class PrinterController extends Controller
 {
@@ -149,12 +150,22 @@ class PrinterController extends Controller
             return view('pos::printers.test-print', compact('printer'));
         }
 
-        // For network printers, attempt connection test
-        // This would require actual printer library implementation
-        return response()->json([
-            'success' => true,
-            'message' => 'Test print sent to ' . $printer->name,
-        ]);
+        // For network printers, attempt actual connection test
+        if ($printer->isNetworkPrinter()) {
+            try {
+                $escPosService = new EscPosFormatService();
+                $escPosService->printTestPage($printer);
+
+                return redirect()->route('admin.pos.printers.index')
+                    ->with('success', __('Test print sent successfully to') . ' ' . $printer->name);
+            } catch (\Exception $e) {
+                return redirect()->route('admin.pos.printers.index')
+                    ->with('error', __('Failed to connect to printer') . ': ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('admin.pos.printers.index')
+            ->with('error', __('Printer connection type not supported for testing'));
     }
 
     /**
@@ -223,10 +234,16 @@ class PrinterController extends Controller
      */
     public function retryJob($id)
     {
-        $job = \Modules\POS\app\Models\PrintJob::findOrFail($id);
+        $job = \Modules\POS\app\Models\PrintJob::with('printer')->findOrFail($id);
 
         if ($job->status === \Modules\POS\app\Models\PrintJob::STATUS_FAILED) {
             $job->retry();
+
+            // Re-dispatch for network printers
+            if ($job->printer && $job->printer->isNetworkPrinter()) {
+                \Modules\POS\app\Jobs\ProcessNetworkPrintJob::dispatch($job->id);
+            }
+
             return response()->json(['success' => true, 'message' => 'Job requeued for printing.']);
         }
 

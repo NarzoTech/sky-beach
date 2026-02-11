@@ -4,6 +4,7 @@ namespace Modules\POS\app\Services;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
+use Modules\POS\app\Jobs\ProcessNetworkPrintJob;
 use Modules\POS\app\Models\PosPrinter;
 use Modules\POS\app\Models\PrintJob;
 use Modules\Sales\app\Models\Sale;
@@ -41,13 +42,16 @@ class PrintService
         foreach ($kitchenPrinters as $printer) {
             $content = $this->renderKitchenUpdateTicket($sale, $newItems, $printer);
 
-            PrintJob::create([
+            $job = PrintJob::create([
                 'printer_id' => $printer->id,
                 'sale_id' => $sale->id,
                 'type' => PrintJob::TYPE_UPDATE_ORDER,
                 'content' => $content,
+                'meta' => ['new_items' => $newItems],
                 'status' => PrintJob::STATUS_PENDING,
             ]);
+
+            $this->dispatchIfNetwork($printer, $job);
         }
     }
 
@@ -75,13 +79,16 @@ class PrintService
         foreach ($kitchenPrinters as $printer) {
             $content = $this->renderVoidTicket($sale, $printer);
 
-            PrintJob::create([
+            $job = PrintJob::create([
                 'printer_id' => $printer->id,
                 'sale_id' => $sale->id,
                 'type' => PrintJob::TYPE_VOID,
                 'content' => $content,
+                'meta' => ['void_type' => 'full'],
                 'status' => PrintJob::STATUS_PENDING,
             ]);
+
+            $this->dispatchIfNetwork($printer, $job);
         }
     }
 
@@ -108,19 +115,31 @@ class PrintService
     }
 
     /**
-     * Create a print job
+     * Create a print job and dispatch to network printer if applicable
      */
     protected function createPrintJob(PosPrinter $printer, Sale $sale, string $type, string $template): void
     {
         $content = $this->renderTemplate($template, $sale, $printer);
 
-        PrintJob::create([
+        $job = PrintJob::create([
             'printer_id' => $printer->id,
             'sale_id' => $sale->id,
             'type' => $type,
             'content' => $content,
             'status' => PrintJob::STATUS_PENDING,
         ]);
+
+        $this->dispatchIfNetwork($printer, $job);
+    }
+
+    /**
+     * Dispatch network print job if the printer is a network printer
+     */
+    protected function dispatchIfNetwork(PosPrinter $printer, PrintJob $job): void
+    {
+        if ($printer->isNetworkPrinter()) {
+            ProcessNetworkPrintJob::dispatch($job->id);
+        }
     }
 
     /**
@@ -181,13 +200,16 @@ class PrintService
                 'setting' => cache('setting'),
             ])->render();
 
-            PrintJob::create([
+            $job = PrintJob::create([
                 'printer_id' => $printer->id,
                 'sale_id' => $sale->id,
                 'type' => PrintJob::TYPE_VOID,
                 'content' => $content,
+                'meta' => ['void_type' => 'single', 'item_id' => $item->id],
                 'status' => PrintJob::STATUS_PENDING,
             ]);
+
+            $this->dispatchIfNetwork($printer, $job);
         }
     }
 
@@ -205,13 +227,16 @@ class PrintService
                 'setting' => cache('setting'),
             ])->render();
 
-            PrintJob::create([
+            $job = PrintJob::create([
                 'printer_id' => $printer->id,
                 'sale_id' => $sale->id,
                 'type' => PrintJob::TYPE_VOID,
                 'content' => $content,
+                'meta' => ['void_type' => 'multiple', 'item_ids' => $items->pluck('id')->toArray()],
                 'status' => PrintJob::STATUS_PENDING,
             ]);
+
+            $this->dispatchIfNetwork($printer, $job);
         }
     }
 
@@ -242,10 +267,16 @@ class PrintService
      */
     public function retryJob(int $jobId): bool
     {
-        $job = PrintJob::findOrFail($jobId);
+        $job = PrintJob::with('printer')->findOrFail($jobId);
 
         if ($job->status === PrintJob::STATUS_FAILED) {
             $job->retry();
+
+            // Re-dispatch for network printers
+            if ($job->printer && $job->printer->isNetworkPrinter()) {
+                ProcessNetworkPrintJob::dispatch($job->id);
+            }
+
             return true;
         }
 

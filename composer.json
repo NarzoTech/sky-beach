@@ -20,6 +20,7 @@
         "laravel/tinker": "^2.8",
         "maatwebsite/excel": "^3.1",
         "mews/purifier": "^3.4",
+        "mike42/escpos-php": "^4.0",
         "milon/barcode": "^11.0",
         "mollie/laravel-mollie": "^2.25",
         "nwidart/laravel-modules": "^10.0",

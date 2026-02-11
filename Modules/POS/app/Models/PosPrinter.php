@@ -116,4 +116,12 @@ class PosPrinter extends Model
     {
         return $this->connection_type === self::CONNECTION_BROWSER;
     }
+
+    /**
+     * Check if printer uses network printing
+     */
+    public function isNetworkPrinter(): bool
+    {
+        return $this->connection_type === self::CONNECTION_NETWORK;
+    }
 }

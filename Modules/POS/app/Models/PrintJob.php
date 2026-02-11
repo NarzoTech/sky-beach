@@ -15,6 +15,7 @@ class PrintJob extends Model
         'sale_id',
         'type',
         'content',
+        'meta',
         'status',
         'attempts',
         'error_message',
@@ -23,6 +24,7 @@ class PrintJob extends Model
 
     protected $casts = [
         'printed_at' => 'datetime',
+        'meta' => 'array',
     ];
 
     const TYPE_NEW_ORDER = 'new_order';
