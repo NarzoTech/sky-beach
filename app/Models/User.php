@@ -16,7 +16,6 @@ use Modules\Customer\app\Models\UserGroup;
 use Modules\LiveChat\app\Models\Message;
 use Modules\Order\app\Models\OrderReview;
 use Modules\Sales\app\Models\Sale;
-use Modules\Sales\app\Models\SalesReturn;
 
 class User extends Model
 {
@@ -70,12 +69,7 @@ class User extends Model
             ->whereIn('payment_type', ['sale', 'due_receive'])
             ->sum('amount');
 
-        // Sale returns reduce the amount customer owes
-        $totalSaleReturn = $this->sales->sum(function ($sale) {
-            return $sale->saleReturns->sum('return_amount');
-        });
-
-        return $totalSales - $totalPaid - $totalSaleReturn + $prevDue;
+        return $totalSales - $totalPaid + $prevDue;
     }
 
     public function sales()
@@ -89,14 +83,7 @@ class User extends Model
             $sales = $sales->whereBetween('order_date', [$from_date, $to_date]);
         }
 
-        return $sales->with('saleReturns');
-    }
-
-
-    public function saleReturn()
-    {
-        $return = $this->hasManyThrough(Sale::class, SalesReturn::class, 'customer_id', 'id', 'id', 'sale_id');
-        return $return;
+        return $sales;
     }
 
     public function getTotalPaidAttribute()
@@ -164,16 +151,6 @@ class User extends Model
         return $this->payment
             ->where('payment_type', 'due_dismiss')
             ->sum('amount');
-    }
-
-    /**
-     * Get total sales return amount
-     */
-    public function getTotalReturnAttribute()
-    {
-        return $this->sales->sum(function ($sale) {
-            return $sale->saleReturns->sum('return_amount');
-        });
     }
 
     public function orderReviews()

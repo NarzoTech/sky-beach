@@ -127,7 +127,7 @@
                                     {{ $sale->due_amount }}
                                 </td>
                                 <td>
-                                    {{ $sale->saleReturns->sum('return_amount') }}
+                                    0
                                 </td>
                                 <td>
                                     {{ $sale->due_amount == 0 ? 'Paid' : 'Due' }}

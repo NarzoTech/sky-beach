@@ -27,14 +27,6 @@
                 <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{{ currency($data['totalSales']) }}</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">{{ __('Sales Returns') }} ({{ __('Deduction') }})</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: red;">- {{ currency($data['salesReturns']) }}</td>
-            </tr>
-            <tr style="background-color: #f8f9fa;">
-                <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">{{ __('Net Sales') }}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: right; font-weight: bold;">{{ currency($data['netSales']) }}</td>
-            </tr>
-            <tr>
                 <td style="border: 1px solid #ddd; padding: 8px;">{{ __('Purchase Returns') }} ({{ __('Refund from Supplier') }})</td>
                 <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">{{ currency($data['purchaseReturns']) }}</td>
             </tr>

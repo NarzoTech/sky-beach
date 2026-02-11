@@ -68,15 +68,6 @@
                                         <td class="text-end">{{ currency($data['totalSales']) }}</td>
                                     </tr>
                                     <tr>
-                                        <td>{{ __('Sales Returns') }} <small
-                                                class="text-muted">({{ __('Deduction') }})</small></td>
-                                        <td class="text-end text-danger">- {{ currency($data['salesReturns']) }}</td>
-                                    </tr>
-                                    <tr class="table-secondary">
-                                        <td><strong>{{ __('Net Sales') }}</strong></td>
-                                        <td class="text-end"><strong>{{ currency($data['netSales']) }}</strong></td>
-                                    </tr>
-                                    <tr>
                                         <td>{{ __('Purchase Returns') }} <small
                                                 class="text-muted">({{ __('Refund from Supplier') }})</small></td>
                                         <td class="text-end">{{ currency($data['purchaseReturns']) }}</td>
@@ -174,14 +165,6 @@
                                 <tr>
                                     <td>{{ __('Total Sales') }}</td>
                                     <td class="text-end">{{ currency($data['totalSales']) }}</td>
-                                </tr>
-                                <tr>
-                                    <td>{{ __('Sales Returns') }}</td>
-                                    <td class="text-end text-danger">- {{ currency($data['salesReturns']) }}</td>
-                                </tr>
-                                <tr class="table-secondary">
-                                    <td><strong>{{ __('Net Sales') }}</strong></td>
-                                    <td class="text-end"><strong>{{ currency($data['netSales']) }}</strong></td>
                                 </tr>
                                 <tr>
                                     <td>{{ __('Purchase Returns') }}</td>

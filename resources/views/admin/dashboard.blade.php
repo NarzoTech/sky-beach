@@ -670,7 +670,7 @@
                                                     <td>{{ currency($customer->sales->sum('grand_total')) }}</td>
                                                     <td>
                                                         <span class="text-danger fw-bold">
-                                                            {{ currency($customer->total_due - $customer->total_sale_return_due - $customer->advances()) }}
+                                                            {{ currency($customer->total_due - $customer->advances()) }}
                                                         </span>
                                                     </td>
                                                 </tr>

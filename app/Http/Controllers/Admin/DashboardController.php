@@ -15,7 +15,6 @@ use Modules\Purchase\app\Models\Purchase;
 use Modules\Purchase\app\Models\PurchaseReturn;
 use Modules\Purchase\app\Services\PurchaseService;
 use Modules\Sales\app\Models\Sale;
-use Modules\Sales\app\Models\SalesReturn;
 use Modules\Supplier\app\Services\SupplierService;
 
 class DashboardController extends Controller
@@ -230,7 +229,7 @@ class DashboardController extends Controller
         })->orderByDesc('stock_alert')
             ->get();
 
-        $customers = User::with(['sales', 'payment', 'saleReturn'])->get();
+        $customers = User::with(['sales', 'payment'])->get();
 
         $customers = $customers->filter(function ($customer) {
             return $customer->getTotalDueAttribute() > 0;
@@ -239,8 +238,7 @@ class DashboardController extends Controller
         $customers = $customers->sortByDesc(function ($customer) {
             $totalPurchase = $customer->sales->sum('grand_total');
             $totalPaid = $customer->payment->sum('amount');
-            $totalReturn = $customer->saleReturn->sum('return_amount');
-            $totalDue = $totalPurchase - $totalPaid - $totalReturn;
+            $totalDue = $totalPurchase - $totalPaid;
             return $totalDue;
         });
 
@@ -309,8 +307,7 @@ class DashboardController extends Controller
         $chart['weeklySalesData'] = $weeklyData;
 
         // Profit/Loss for current month
-        $salesReturns = SalesReturn::where('created_at', '>=', now()->startOfMonth())->sum('return_amount');
-        $chart['currentMonthProfit'] = $totalIncome - $salesReturns - $totalExpenseAmount;
+        $chart['currentMonthProfit'] = $totalIncome - $totalExpenseAmount;
 
         return view('admin.dashboard', compact('data', 'purchaseData', 'saleData', 'chart'));
     }

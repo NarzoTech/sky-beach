@@ -15,7 +15,6 @@ use Modules\Order\app\Models\OrderDetails;
 use Modules\Purchase\app\Models\PurchaseDetails;
 use Modules\Purchase\app\Models\PurchaseReturnDetails;
 use Modules\Sales\app\Models\IngredientSale;
-use Modules\Sales\app\Models\SalesReturnDetails;
 
 class Ingredient extends Model
 {
@@ -500,27 +499,6 @@ class Ingredient extends Model
 
 
 
-    public function getSalesReturnAttribute()
-    {
-        $sales = $this->salesReturnDetails;
-
-        // Only filter by date if dates are provided
-        if (request('from_date') || request('to_date')) {
-            $fromDate = request('from_date') ? now()->parse(request('from_date')) : now()->subYear();
-            $toDate = request('to_date') ? now()->parse(request('to_date')) : now();
-            $sales = $sales->whereBetween('created_at', [$fromDate, $toDate]);
-        }
-
-        $price = $sales->sum('sub_total');
-        $qty = $sales->sum('quantity');
-
-        return [
-            'qty' => $qty ?? 0,
-            'price' => $price ?? 0
-        ];
-    }
-
-
 
     public function getPurchaseReturnAttribute()
     {
@@ -631,11 +609,6 @@ class Ingredient extends Model
     public function salesDetails(): HasMany
     {
         return $this->hasMany(IngredientSale::class, 'ingredient_id', 'id');
-    }
-
-    public function salesReturnDetails(): HasMany
-    {
-        return $this->hasMany(SalesReturnDetails::class, 'ingredient_id', 'id');
     }
 
     public function purchaseReturnDetails(): HasMany

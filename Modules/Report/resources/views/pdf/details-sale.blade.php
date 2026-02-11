@@ -37,7 +37,7 @@
                     $data['total_amount'] += $sale->grand_total;
                     $data['paid_amount'] += $sale->paid_amount;
                     $data['due_amount'] += $sale->due_amount;
-                    $data['return_amount'] += $sale->saleReturns->sum('return_amount');
+                    $data['return_amount'] += 0;
                 @endphp
 
                 <tr>
@@ -62,7 +62,7 @@
                         {{ $sale->due_amount }}
                     </td>
                     <td>
-                        {{ $sale->saleReturns->sum('return_amount') }}
+                        0
                     </td>
                     <td>
                         {{ $sale->due_amount == 0 ? 'Paid' : 'Due' }}

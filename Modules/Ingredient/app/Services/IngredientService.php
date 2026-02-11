@@ -35,7 +35,7 @@ class IngredientService
 
     public function getIngredients()
     {
-        $query = $this->ingredient->with(['salesDetails', 'salesReturnDetails', 'purchaseReturnDetails', 'stockDetails', 'orders', 'brand', 'purchaseDetails.purchase', 'latestPurchaseDetail', 'unit', 'purchaseUnit', 'consumptionUnit', 'category', 'brand']);
+        $query = $this->ingredient->with(['salesDetails', 'purchaseReturnDetails', 'stockDetails', 'orders', 'brand', 'purchaseDetails.purchase', 'latestPurchaseDetail', 'unit', 'purchaseUnit', 'consumptionUnit', 'category', 'brand']);
 
         if (request('keyword')) {
             $query = $query->where(function ($q) {

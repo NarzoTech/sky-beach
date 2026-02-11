@@ -35,7 +35,7 @@
                     <td>{{ currency($user->total_paid) }}</td>
                     <td>{{ currency($user->total_due) }}</td>
                     <td>{{ currency($user->advances()) }}</td>
-                    <td>{{ currency($user->total_due - $user->total_sale_return_due) }}</td>
+                    <td>{{ currency($user->total_due) }}</td>
                 </tr>
             @endforeach
 
@@ -56,7 +56,7 @@
                     {{ currency($data['total_advance']) }}
                 </td>
                 <td class="fw-bold" colspan="2">
-                    {{ currency($data['total_due'] - $data['total_return_due']) }}
+                    {{ currency($data['total_due']) }}
                 </td>
             </tr>
         </tbody>

@@ -38,7 +38,7 @@ class CustomerExport implements FromArray, WithHeadings, WithStyles, WithTitle
                 $user->total_paid ?? 0,                        // Sale Pay
                 $user->total_due ?? 0,                         // Sale Due
                 $user->advances() ?? 0,                        // Advance
-                ($user->total_due ?? 0) - ($user->total_sale_return_due ?? 0), // Total Due
+                ($user->total_due ?? 0), // Total Due
             ];
         }
 
@@ -52,7 +52,7 @@ class CustomerExport implements FromArray, WithHeadings, WithStyles, WithTitle
             $this->data['pay'] ?? 0,                           // Sale Pay
             $this->data['total_due'] ?? 0,                     // Sale Due
             $this->data['total_advance'] ?? 0,                 // Advance
-            ($this->data['total_due'] ?? 0) - ($this->data['total_return_due'] ?? 0), // Total Due
+            ($this->data['total_due'] ?? 0), // Total Due
         ];
 
         return $rows;

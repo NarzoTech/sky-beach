@@ -30,8 +30,6 @@ use Modules\Purchase\app\Models\PurchaseReturn;
 use Modules\Purchase\app\Models\PurchaseReturnDetails;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
-use Modules\Sales\app\Models\SalesReturn;
-use Modules\Sales\app\Models\SalesReturnDetails;
 use Modules\Supplier\app\Models\SupplierPayment;
 
 class SettingController extends Controller
@@ -82,8 +80,6 @@ class SettingController extends Controller
 
         Sale::truncate();
         ProductSale::truncate();
-        SalesReturn::truncate();
-        SalesReturnDetails::truncate();
         // truncate sale stock
         Stock::truncate();
         // supplier payment

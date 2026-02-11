@@ -33,7 +33,6 @@ use Modules\Purchase\app\Models\Purchase;
 use Modules\Purchase\app\Models\PurchaseReturn;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
-use Modules\Sales\app\Models\SalesReturn;
 use Modules\Supplier\app\Services\SupplierService;
 use Modules\TableManagement\app\Models\RestaurantTable;
 use Maatwebsite\Excel\Facades\Excel;
@@ -430,7 +429,7 @@ class ReportController extends Controller
     public function detailsSale()
     {
         $sales = Sale::where('status', '!=', 'cancelled')
-            ->with(['customer', 'payment', 'payment.account', 'saleReturns']);
+            ->with(['customer', 'payment', 'payment.account']);
 
         // Only filter by date if dates are provided
         if (request('from_date') || request('to_date')) {
@@ -459,7 +458,6 @@ class ReportController extends Controller
             $data['total_amount'] += $sale->grand_total;
             $data['paid_amount'] += $sale->paid_amount;
             $data['due_amount'] += $sale->due_amount;
-            $data['return_amount'] += $sale->saleReturns->sum('return_amount');
         }
 
         // Export with ALL data (not paginated)
@@ -560,7 +558,6 @@ class ReportController extends Controller
 
         // Build base queries
         $salesQuery = Sale::where('status', '!=', 'cancelled');
-        $salesReturnQuery = SalesReturn::query();
         $purchaseReturnQuery = PurchaseReturn::query();
         $expenseQuery = Expense::query();
         $salaryQuery = EmployeeSalary::query();
@@ -571,7 +568,6 @@ class ReportController extends Controller
             $toDate = request('to_date') ? Carbon::parse(request('to_date'))->endOfDay() : now()->endOfDay();
 
             $salesQuery->whereBetween('order_date', [$fromDate, $toDate]);
-            $salesReturnQuery->whereBetween('created_at', [$fromDate, $toDate]);
             $purchaseReturnQuery->whereBetween('created_at', [$fromDate, $toDate]);
             $expenseQuery->whereBetween('date', [$fromDate, $toDate]);
             $salaryQuery->whereBetween('date', [$fromDate, $toDate]);
@@ -585,8 +581,8 @@ class ReportController extends Controller
 
         // Income - Total Sales Revenue
         $data['totalSales'] = $salesQuery->sum('grand_total');
-        $data['salesReturns'] = $salesReturnQuery->sum('return_amount');
-        $data['netSales'] = $data['totalSales'] - $data['salesReturns'];
+        $data['salesReturns'] = 0;
+        $data['netSales'] = $data['totalSales'];
 
         // Purchase Returns (money received back from supplier)
         $data['purchaseReturns'] = $purchaseReturnQuery->sum('return_amount');

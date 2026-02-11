@@ -759,11 +759,6 @@ if (! function_exists('routeList')) {
                 'permission' => 'sales.view',
             ],
             (object) [
-                'name'       => __('Sales Return List'),
-                'route'      => 'sales.return.list',
-                'permission' => 'salesReturn.view',
-            ],
-            (object) [
                 'name'       => __('Cash Flow'),
                 'route'      => 'cashflow',
                 'permission' => 'cashflow.view',

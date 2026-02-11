@@ -23,8 +23,6 @@ class ProfitLossExport implements FromArray, WithHeadings, WithStyles, WithTitle
             // Income Section
             [__('INCOME'), ''],
             [__('Total Sales'), currency($this->data['totalSales'])],
-            [__('Sales Returns') . ' (' . __('Deduction') . ')', '- ' . currency($this->data['salesReturns'])],
-            [__('Net Sales'), currency($this->data['netSales'])],
             [__('Purchase Returns') . ' (' . __('Refund from Supplier') . ')', currency($this->data['purchaseReturns'])],
             [__('Total Income'), currency($this->data['totalIncome'])],
             ['', ''],

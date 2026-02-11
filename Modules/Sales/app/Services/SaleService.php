@@ -62,7 +62,7 @@ class SaleService
 
     public function getSales()
     {
-        return $this->sale->with('products', 'customer', 'services', 'details', 'payment', 'saleReturns');
+        return $this->sale->with('products', 'customer', 'services', 'details', 'payment');
     }
     public function createSale(Request $request, $user, $cart): Sale
     {

@@ -145,7 +145,7 @@
                                 <td>{{ currency($user->total_paid) }}</td>
                                 <td>{{ currency($user->total_due) }}</td>
                                 <td>{{ currency($user->advances()) }}</td>
-                                <td>{{ currency($user->total_due - $user->total_sale_return_due - $user->advances()) }}
+                                <td>{{ currency($user->total_due - $user->advances()) }}
                                 </td>
 
                                 <td>
@@ -177,11 +177,6 @@
                                                 <a class="dropdown-item"
                                                     href="{{ route('admin.customers.due-receive.list') }}?customer={{ $user->id }}">Due
                                                     Receive List</a>
-                                            @endadminCan
-                                            @adminCan('sales.return')
-                                                <a class="dropdown-item"
-                                                    href="{{ route('admin.sales.return.list') }}?customer={{ $user->id }}">Sales
-                                                    Return</a>
                                             @endadminCan
                                             @adminCan('customer.due.receive')
                                                 <a class="dropdown-item"
@@ -234,7 +229,7 @@
                                 {{ currency($data['total_advance']) }}
                             </td>
                             <td class="fw-bold" colspan="2">
-                                {{ currency($data['total_due'] - $data['total_return_due']) }}
+                                {{ currency($data['total_due']) }}
                             </td>
                         </tr>
                     </tbody>

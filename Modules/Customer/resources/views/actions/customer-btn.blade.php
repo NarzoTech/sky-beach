@@ -2,8 +2,6 @@
         checkAdminHasPermission('customer.edit') ||
         checkAdminHasPermission('customer.due.receive') ||
         checkAdminHasPermission('customer.due.receive.list') ||
-        checkAdminHasPermission('sales.return') ||
-        checkAdminHasPermission('customer.due.receive') ||
         checkAdminHasPermission('customer.status'))
 @endif
 <div class="btn-group" role="group">
@@ -30,10 +28,6 @@
         @adminCan('customer.due.receive.list')
             <a class="dropdown-item" href="{{ route('admin.customers.due-receive.list') }}?customer={{ $user->id }}">Due
                 Receive List</a>
-        @endadminCan
-        @adminCan('sales.return')
-            <a class="dropdown-item" href="{{ route('admin.sales.return.list') }}?customer={{ $user->id }}">Sales
-                Return</a>
         @endadminCan
         @adminCan('customer.due.receive')
             <a class="dropdown-item"

@@ -53,8 +53,6 @@ class IngredientSale extends Model
 
     public function getSaleReturnAttribute()
     {
-        // return $this->sale->saleReturns;
-        // return $this->sale->saleReturns()->where('ingredient_id', $this->ingredient_id)->first();
         return 0;
     }
 

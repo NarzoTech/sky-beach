@@ -70,7 +70,7 @@ class DetailsSaleReportExport implements FromCollection, WithHeadings, WithMappi
             $sale->paid_amount,
             $paymentMethods,
             $sale->due_amount,
-            $sale->saleReturns->sum('return_amount'),
+            0,
             $sale->due_amount == 0 ? 'Paid' : 'Due',
         ];
     }

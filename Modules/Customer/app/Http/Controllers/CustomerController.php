@@ -45,7 +45,7 @@ class CustomerController extends Controller
 
         $query = User::query();
 
-        $query->with('sales', 'payment', 'saleReturn');
+        $query->with('sales', 'payment');
 
         $query->when($request->filled('keyword'), function ($q) use ($request) {
             $q->where('name', 'like', '%' . $request->keyword . '%')
@@ -66,7 +66,7 @@ class CustomerController extends Controller
             $orderBy = $orderBy == 'asc' ? 'sortBy' : 'sortByDesc';
             switch (request()->order_type) {
                 case 'due':
-                    $customers = $query->with(['sales', 'payment', 'saleReturn'])
+                    $customers = $query->with(['sales', 'payment'])
                         ->get();
                     $customers = $customers->filter(function ($customer) {
                         return $customer->getTotalDueAttribute() > 0;
@@ -74,8 +74,7 @@ class CustomerController extends Controller
                     $customers = $customers->$orderBy(function ($customer) {
                         $totalPurchase = $customer->sales->sum('grand_total');
                         $totalPaid = $customer->payment->sum('amount');
-                        $totalReturn = $customer->saleReturn->sum('return_amount');
-                        $totalDue = $totalPurchase - $totalPaid - $totalReturn;
+                        $totalDue = $totalPurchase - $totalPaid;
                         return $totalDue;
                     });
                     break;
@@ -121,13 +120,7 @@ class CustomerController extends Controller
             $data['totalSale'] += $customer->sales->sum('grand_total');
             $data['pay'] += $customer->total_paid;
 
-            $totalReturn = $customer->saleReturn->sum('return_amount');
-            $data['total_return'] += $totalReturn;
-
             $data['total_due'] += $customer->total_due;
-            $data['total_return_pay'] += $totalReturn - $customer->saleReturn->sum('return_due');
-            $data['total_return_due'] += $customer->saleReturn->sum('return_due');
-
 
             $data['total_advance'] += $customer->advances();
             $data['total_due_dismiss'] += $customer->total_due_dismiss;
