@@ -4,6 +4,7 @@ namespace Modules\Menu\app\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Menu\app\Models\AddonRecipe;
 use Modules\Menu\app\Models\MenuAddon;
 
 class MenuAddonService
@@ -65,7 +66,14 @@ class MenuAddonService
             $data['image'] = $this->uploadImage($data['image']);
         }
 
-        return MenuAddon::create($data);
+        $recipes = $data['recipes'] ?? [];
+        unset($data['recipes']);
+
+        $addon = MenuAddon::create($data);
+
+        $this->syncRecipes($addon, $recipes);
+
+        return $addon;
     }
 
     /**
@@ -81,7 +89,13 @@ class MenuAddonService
             $data['image'] = $this->uploadImage($data['image']);
         }
 
+        $recipes = $data['recipes'] ?? [];
+        unset($data['recipes']);
+
         $addon->update($data);
+
+        $this->syncRecipes($addon, $recipes);
+
         return $addon->fresh();
     }
 
@@ -129,6 +143,25 @@ class MenuAddonService
     {
         $addon->update(['status' => !$addon->status]);
         return $addon->fresh();
+    }
+
+    /**
+     * Sync addon recipes - delete existing and recreate
+     */
+    private function syncRecipes(MenuAddon $addon, array $recipes): void
+    {
+        $addon->recipes()->delete();
+
+        foreach ($recipes as $recipe) {
+            $ingredientId = $recipe['ingredient_id'] ?? null;
+            if (!empty($ingredientId) && !empty($recipe['quantity_required'])) {
+                $addon->recipes()->create([
+                    'ingredient_id' => $ingredientId,
+                    'quantity_required' => $recipe['quantity_required'],
+                    'unit_id' => $recipe['unit_id'] ?? null,
+                ]);
+            }
+        }
     }
 
     /**

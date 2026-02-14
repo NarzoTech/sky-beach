@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Modules\Menu\app\Http\Requests\MenuAddonRequest;
 use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Services\MenuAddonService;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Ingredient\app\Models\UnitType;
 
 class MenuAddonController extends Controller
 {
@@ -47,7 +49,10 @@ class MenuAddonController extends Controller
     {
         checkAdminHasPermissionAndThrowException('menu.addon.create');
 
-        return view('menu::admin.addons.create');
+        $ingredients = Ingredient::where('status', 1)->get();
+        $units = UnitType::where('status', 1)->get();
+
+        return view('menu::admin.addons.create', compact('ingredients', 'units'));
     }
 
     /**
@@ -88,7 +93,15 @@ class MenuAddonController extends Controller
     {
         checkAdminHasPermissionAndThrowException('menu.addon.edit');
 
-        return view('menu::admin.addons.edit', ['addon' => $menuAddon]);
+        $menuAddon->load('recipes.ingredient');
+        $ingredients = Ingredient::where('status', 1)->get();
+        $units = UnitType::where('status', 1)->get();
+
+        return view('menu::admin.addons.edit', [
+            'addon' => $menuAddon,
+            'ingredients' => $ingredients,
+            'units' => $units,
+        ]);
     }
 
     /**

@@ -52,6 +52,48 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Ingredients/Recipe -->
+                                            <div class="card mt-3">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h5><i class="bx bx-food-menu me-2"></i> {{ __('Ingredients (Recipe)') }}</h5>
+                                                    <button type="button" class="btn btn-sm btn-primary" id="add-ingredient">
+                                                        <i class="fas fa-plus"></i> {{ __('Add Ingredient') }}
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered" id="ingredients-table">
+                                                            <thead class="bg-light">
+                                                                <tr>
+                                                                    <th width="40%">{{ __('Ingredient') }}</th>
+                                                                    <th width="25%">{{ __('Quantity') }}</th>
+                                                                    <th width="15%">{{ __('Cost') }}</th>
+                                                                    <th width="10%">{{ __('Action') }}</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="ingredients-body">
+                                                                <tr id="no-ingredients-row">
+                                                                    <td colspan="4" class="text-center text-muted py-4">
+                                                                        <i class="fas fa-info-circle mr-2"></i>{{ __('No ingredients added yet. Click "Add Ingredient" to add.') }}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                            <tfoot class="bg-light">
+                                                                <tr>
+                                                                    <th colspan="2" class="text-right">{{ __('Total Ingredient Cost:') }}</th>
+                                                                    <th id="total-ingredient-cost">0.00</th>
+                                                                    <th></th>
+                                                                </tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-lightbulb mr-1"></i>
+                                                        {{ __('Add ingredients with the required quantity for making this add-on. Stock will be deducted when this add-on is sold.') }}
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="col-lg-4">
@@ -102,6 +144,10 @@
     <script>
         (function($) {
             "use strict";
+
+            var ingredients = @json($ingredients ?? []);
+            var ingredientIndex = 0;
+
             $(document).ready(function() {
                 // Image preview
                 $('#image').on('change', function() {
@@ -114,7 +160,104 @@
                         reader.readAsDataURL(file);
                     }
                 });
+
+                // Add ingredient row
+                $('#add-ingredient').on('click', function() {
+                    addIngredientRow();
+                });
+
+                // Remove ingredient row
+                $(document).on('click', '.remove-ingredient', function() {
+                    $(this).closest('tr').remove();
+                    calculateTotalCost();
+                    checkEmptyIngredients();
+                });
+
+                // Calculate cost when quantity or product changes
+                $(document).on('change', '.ingredient-product, .ingredient-quantity', function() {
+                    var row = $(this).closest('tr');
+                    calculateRowCost(row);
+                    calculateTotalCost();
+                });
             });
+
+            function addIngredientRow() {
+                $('#no-ingredients-row').hide();
+
+                var ingredientOptions = '<option value="">{{ __("Select Ingredient") }}</option>';
+                ingredients.forEach(function(ingredient) {
+                    var unitShort = ingredient.consumption_unit ? (ingredient.consumption_unit.ShortName || ingredient.consumption_unit.name) : (ingredient.unit ? (ingredient.unit.ShortName || ingredient.unit.name) : '');
+                    var cost = ingredient.consumption_unit_cost || ingredient.cost || 0;
+                    ingredientOptions += '<option value="' + ingredient.id + '" data-cost="' + cost + '" data-unit="' + unitShort + '" data-unit-id="' + (ingredient.consumption_unit_id || ingredient.unit_id || '') + '">' + ingredient.name + ' (' + cost + '/' + unitShort + ')</option>';
+                });
+
+                var row = `
+                    <tr class="ingredient-row">
+                        <td>
+                            <select name="recipes[${ingredientIndex}][ingredient_id]" class="form-control select2 ingredient-select ingredient-product" required>
+                                ${ingredientOptions}
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" name="recipes[${ingredientIndex}][quantity_required]" class="form-control ingredient-quantity" step="0.01" min="0.01" value="1" required>
+                                <input type="hidden" name="recipes[${ingredientIndex}][unit_id]" class="ingredient-unit-id">
+                                <div class="input-group-append">
+                                    <span class="input-group-text ingredient-unit-label" style="min-width: 50px;">-</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="ingredient-cost">0.00</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-ingredient">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                $('#ingredients-body').append(row);
+                ingredientIndex++;
+
+                $('#ingredients-body tr:last .ingredient-select').select2({
+                    width: '100%',
+                    placeholder: '{{ __("Search ingredient...") }}',
+                    allowClear: true
+                });
+            }
+
+            function calculateRowCost(row) {
+                var ingredientSelect = row.find('.ingredient-product');
+                var quantityInput = row.find('.ingredient-quantity');
+                var costCell = row.find('.ingredient-cost');
+                var unitLabel = row.find('.ingredient-unit-label');
+                var unitIdInput = row.find('.ingredient-unit-id');
+
+                var selectedOption = ingredientSelect.find(':selected');
+                var ingredientCost = parseFloat(selectedOption.data('cost')) || 0;
+                var unitName = selectedOption.data('unit') || '-';
+                var unitId = selectedOption.data('unit-id') || '';
+                var quantity = parseFloat(quantityInput.val()) || 0;
+                var totalCost = ingredientCost * quantity;
+
+                costCell.text(totalCost.toFixed(2));
+                unitLabel.text(unitName);
+                unitIdInput.val(unitId);
+            }
+
+            function calculateTotalCost() {
+                var total = 0;
+                $('.ingredient-cost').each(function() {
+                    total += parseFloat($(this).text()) || 0;
+                });
+                $('#total-ingredient-cost').text(total.toFixed(2));
+            }
+
+            function checkEmptyIngredients() {
+                if ($('.ingredient-row').length === 0) {
+                    $('#no-ingredients-row').show();
+                }
+            }
         })(jQuery);
     </script>
 @endpush

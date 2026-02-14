@@ -27,6 +27,10 @@ class MenuAddonRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'status' => 'required|boolean',
+            'recipes' => 'nullable|array',
+            'recipes.*.ingredient_id' => 'required_with:recipes|exists:ingredients,id',
+            'recipes.*.quantity_required' => 'required_with:recipes|numeric|min:0.01',
+            'recipes.*.unit_id' => 'nullable|exists:unit_types,id',
         ];
 
         return $rules;
