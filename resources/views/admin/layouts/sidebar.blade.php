@@ -32,6 +32,7 @@
         </li>
         @endif
 
+        @if (checkAdminHasPermission('pos.view') || checkAdminHasPermission('sales.view') || checkAdminHasPermission('menu.item.view') || checkAdminHasPermission('customer.view') || checkAdminHasPermission('membership.view') || checkAdminHasPermission('quotation.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Core Operations') }}</span></li>
         @if (Module::isEnabled('POS'))
             @include('pos::sidebar')
@@ -80,7 +81,9 @@
                 </ul>
             </li>
         @endif
+        @endif
 
+        @if (checkAdminHasPermission('ingredient.view') || checkAdminHasPermission('stock.view') || checkAdminHasPermission('purchase.view') || checkAdminHasPermission('supplier.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Inventory & Supply') }}</span></li>
         @if (Module::isEnabled('Ingredient'))
             @include('ingredient::sidebar')
@@ -111,7 +114,9 @@
         @if (Module::isEnabled('Supplier'))
             @include('supplier::sidebar')
         @endif
+        @endif
 
+        @if (checkAdminHasPermission('cash.flow.view') || checkAdminHasPermission('account.view') || checkAdminHasPermission('expense.view') || checkAdminHasPermission('asset.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Finance') }}</span></li>
         @if (Module::isEnabled('Accounts'))
             @include('accounts::sidebar')
@@ -147,13 +152,16 @@
                 </ul>
             </li>
         @endif
+        @endif
 
+        @if (checkAdminHasPermission('report.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Reports & Analytics') }}</span></li>
         @if (Module::isEnabled('Report'))
             @include('report::sidebar')
         @endif
+        @endif
 
-
+        @if (checkAdminHasPermission('employee.view') || checkAdminHasPermission('attendance.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('HR & Staff') }}</span></li>
         @if (Module::isEnabled('Employee'))
             @include('employee::sidebar')
@@ -162,12 +170,16 @@
         @if (Module::isEnabled('Attendance'))
             @include('attendance::sidebar')
         @endif
+        @endif
 
+        @if (checkAdminHasPermission('service.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Services') }}</span></li>
         @if (Module::isEnabled('Service'))
             @include('service::sidebar')
         @endif
+        @endif
 
+        @if (checkAdminHasPermission('setting.view') || checkAdminHasPermission('admin.view') || checkAdminHasPermission('role.view') || checkAdminHasPermission('cms.settings.view') || checkAdminHasPermission('restaurant.blog.view'))
         <li class="menu-header small text-uppercase"><span class="menu-header-text">{{ __('Administration') }}</span></li>
         @if(!auth('admin')->user()->hasRole('Waiter'))
         @if (Module::isEnabled('CMS') || Module::isEnabled('Website'))
@@ -381,6 +393,7 @@
                 </ul>
             </li>
 
+        @endif
         @endif
         <li class="mb-5"></li>
     </ul>
