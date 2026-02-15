@@ -49,6 +49,7 @@ class MenuItemRequest extends FormRequest
             'available_in_website' => 'nullable|boolean',
             'status' => 'required|boolean',
             'sku' => 'nullable|string|max:50',
+            'menu_serial' => 'nullable|string|max:50',
             'barcode' => 'nullable|string|max:50',
             'display_order' => 'nullable|integer|min:0',
         ];

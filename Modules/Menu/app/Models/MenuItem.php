@@ -41,6 +41,7 @@ class MenuItem extends Model
         'available_in_website',
         'status',
         'sku',
+        'menu_serial',
         'barcode',
         'display_order',
     ];

@@ -230,7 +230,8 @@ class POSController extends Controller
             if ($request->name) {
                 $menuItems = $menuItems->where(function ($q) use ($request) {
                     $q->where('name', 'LIKE', '%' . $request->name . '%')
-                        ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
+                        ->orWhere('sku', 'LIKE', '%' . $request->name . '%')
+                        ->orWhere('menu_serial', 'LIKE', '%' . $request->name . '%');
                 });
             }
 
@@ -348,7 +349,8 @@ class POSController extends Controller
             $menuItems = $menuItems->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', '%' . $request->name . '%')
                     ->orWhere('barcode', 'LIKE', '%' . $request->name . '%')
-                    ->orWhere('sku', 'LIKE', '%' . $request->name . '%');
+                    ->orWhere('sku', 'LIKE', '%' . $request->name . '%')
+                    ->orWhere('menu_serial', 'LIKE', '%' . $request->name . '%');
             });
         }
         if ($request->favorite == 1 || $request->featured == 1) {

@@ -210,6 +210,9 @@
     .search-box input {
         padding-left: 38px;
     }
+    .search-box input:focus {
+        padding-left: 42px;
+    }
     .item-price {
         font-size: 1rem;
         font-weight: 600;
@@ -633,7 +636,7 @@
                 <div class="row g-2" id="menu-items-grid">
                     @foreach($categories as $category)
                         @foreach($category->menuItems as $item)
-                        <div class="col-lg-3 col-md-4 col-6 menu-item-wrapper" data-category="{{ $category->id }}" data-name="{{ strtolower($item->name) }}">
+                        <div class="col-lg-3 col-md-4 col-6 menu-item-wrapper" data-category="{{ $category->id }}" data-name="{{ strtolower($item->name) }}" data-serial="{{ strtolower($item->menu_serial ?? '') }}">
                             <div class="card menu-item-card h-100" data-item-id="{{ $item->id }}" data-item='@json($item)'>
                                 <span class="badge bg-success cart-qty-badge" style="display: none;">
                                     <i class="bx bx-check"></i> <span class="qty-num">0</span>
@@ -863,16 +866,17 @@
     function searchItems(query) {
         query = query.toLowerCase().trim();
         document.querySelectorAll('.menu-item-wrapper').forEach(item => {
-            const name = item.dataset.name;
-            if (query === '' || (name && name.includes(query))) {
+            const name = item.dataset.name || '';
+            const serial = item.dataset.serial || '';
+            if (query === '' || name.includes(query) || serial.includes(query)) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';
             }
         });
         document.querySelectorAll('.combo-item-wrapper').forEach(item => {
-            const name = item.dataset.name;
-            if (query === '' || (name && name.includes(query))) {
+            const name = item.dataset.name || '';
+            if (query === '' || name.includes(query)) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';

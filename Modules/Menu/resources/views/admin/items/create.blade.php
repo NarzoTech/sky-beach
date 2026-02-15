@@ -79,6 +79,15 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <label for="menu_serial">{{ __('Menu Serial') }}</label>
+                                                                <input type="text" name="menu_serial" class="form-control" id="menu_serial" value="{{ old('menu_serial') }}" placeholder="{{ __('e.g., 001, A01') }}">
+                                                                @error('menu_serial')
+                                                                    <span class="text-danger">{{ $message }}</span>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
                                                         <div class="col-12">
                                                             <div class="form-group">
                                                                 <label for="short_description">{{ __('Short Description') }}</label>
