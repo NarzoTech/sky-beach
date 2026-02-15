@@ -293,6 +293,16 @@
     max-width: 1100px;
     margin-top: 0.5rem;
     margin-bottom: calc(var(--pos-footer-height, 70px) + 0.5rem);
+    transition: max-width 0.3s ease;
+}
+
+/* Success state - shrink to match POS checkout modal */
+.rop-dialog.rop-success-state {
+    max-width: 600px;
+}
+
+.rop-dialog.rop-success-state .modal-header {
+    display: none !important;
 }
 
 .rop-modal-content {
@@ -817,6 +827,10 @@ function showRopLoading(message) {
     contentEl.style.setProperty('display', 'none', 'important');
     successEl.style.setProperty('display', 'none', 'important');
     footerEl.style.setProperty('display', 'none', 'important');
+
+    // Reset modal size
+    const dialog = document.querySelector('#runningOrderPaymentModal .rop-dialog');
+    if (dialog) dialog.classList.remove('rop-success-state');
 }
 
 function showRopContent() {
@@ -829,6 +843,10 @@ function showRopContent() {
     contentEl.style.setProperty('display', 'block', 'important');
     successEl.style.setProperty('display', 'none', 'important');
     footerEl.style.setProperty('display', 'flex', 'important');
+
+    // Reset modal size
+    const dialog = document.querySelector('#runningOrderPaymentModal .rop-dialog');
+    if (dialog) dialog.classList.remove('rop-success-state');
 }
 
 function showRopSuccess(message) {
@@ -845,6 +863,10 @@ function showRopSuccess(message) {
     contentEl.style.setProperty('display', 'none', 'important');
     successEl.style.setProperty('display', 'flex', 'important');
     footerEl.style.setProperty('display', 'none', 'important');
+
+    // Shrink modal to match POS checkout success state
+    const dialog = document.querySelector('#runningOrderPaymentModal .rop-dialog');
+    if (dialog) dialog.classList.add('rop-success-state');
 }
 
 // Reset modal state when hidden
@@ -852,6 +874,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('runningOrderPaymentModal');
     if (modalEl) {
         modalEl.addEventListener('hidden.bs.modal', function() {
+            // If payment was completed, refresh the page/table
+            if (window.ropPaymentCompleted) {
+                window.ropPaymentCompleted = false;
+                if (typeof loadRunningOrders === 'function') {
+                    loadRunningOrders();
+                } else {
+                    // On sales page - reload to show updated data
+                    window.location.reload();
+                }
+            }
             // Reset to loading state for next open
             showRopLoading();
         });
@@ -1499,8 +1531,9 @@ function completeRunningOrderPayment() {
                 toastr.info('{{ __("Customer earned") }} ' + result.points_earned + ' {{ __("loyalty points!") }}');
             }
 
-            // Store for receipt
+            // Store for receipt and mark payment as completed
             window.lastCompletedOrderId = orderId;
+            window.ropPaymentCompleted = true;
 
             // Refresh running orders
             if (typeof loadRunningOrders === 'function') {
@@ -1538,6 +1571,9 @@ function printRunningOrderReceipt() {
     if (printWindow) {
         printWindow.focus();
     }
+
+    // Mark that table needs refresh after print
+    window.ropPaymentCompleted = true;
 }
 
 // Check membership by phone number
@@ -1577,11 +1613,10 @@ function checkRopMembership() {
         });
 }
 
-// Close and refresh
+// Close and refresh - the modal's hidden.bs.modal handler will trigger the actual refresh
 function closeAndRefresh() {
-    // Refresh the running orders list
-    if (typeof loadRunningOrders === 'function') {
-        loadRunningOrders();
-    }
+    // ropPaymentCompleted flag is already set after successful payment
+    // The hidden.bs.modal event will handle the refresh/reload
+    // data-bs-dismiss="modal" on the Done button triggers the modal close
 }
 </script>
