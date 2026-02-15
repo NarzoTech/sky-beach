@@ -17,9 +17,9 @@
     <div class="modal-dialog modal-xl rop-dialog">
         <div class="modal-content rop-modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
+                <h5 class="modal-title text-white">
                     <i class="bx bx-credit-card me-2"></i>{{ __('Checkout') }}
-                    <span class="badge bg-white bg-opacity-25 ms-2 fw-normal" id="ropTableBadge" style="font-size: 12px;">--</span>
+                    <span class="badge ms-2 fw-normal" id="ropTableBadge" style="font-size: 12px; background: rgba(255,255,255,0.2); color: #fff;">--</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -306,12 +306,26 @@
 }
 
 .rop-modal-content {
-    border-radius: 16px;
+    border-radius: 16px !important;
     border: none;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
     max-height: calc(100vh - var(--pos-footer-height, 70px) - 1rem);
+    overflow: visible !important;
+}
+
+#runningOrderPaymentModal .modal-header {
+    border-radius: 16px 16px 0 0;
+    padding: 1rem 1.25rem;
+}
+
+#runningOrderPaymentModal .modal-header .btn-close {
+    margin: 0 0 0 auto !important;
+}
+
+#runningOrderPaymentModal .modal-footer {
+    border-radius: 0 0 16px 16px;
 }
 
 #runningOrderPaymentModal .modal-body {
