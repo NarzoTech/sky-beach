@@ -32,9 +32,11 @@
                         <a href="{{ route('admin.reservations.index') }}" class="btn btn-primary">
                             <i class="bx bx-list-ul me-1"></i> {{ __('All Reservations') }}
                         </a>
+                        @adminCan('reservation.create')
                         <a href="{{ route('admin.reservations.create') }}" class="btn btn-success">
                             <i class="bx bx-plus me-1"></i> {{ __('New Reservation') }}
                         </a>
+                        @endadminCan
                     </div>
                 </div>
             </div>
@@ -130,6 +132,7 @@
                                         <a href="{{ route('admin.reservations.show', $reservation->id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bx bx-show"></i>
                                         </a>
+                                        @adminCan('reservation.status')
                                         @if ($reservation->status == 'pending')
                                             <button class="btn btn-sm btn-outline-info action-btn" data-action="confirm" data-id="{{ $reservation->id }}">
                                                 <i class="bx bx-check me-1"></i>{{ __('Confirm') }}
@@ -145,6 +148,7 @@
                                                 <i class="bx bx-check-double me-1"></i>{{ __('Complete') }}
                                             </button>
                                         @endif
+                                        @endadminCan
                                     </div>
                                 </div>
                             </div>
@@ -156,9 +160,11 @@
                     <div class="card-body text-center py-5">
                         <i class="bx bx-calendar-x text-muted mb-3" style="font-size: 4rem;"></i>
                         <h5 class="text-muted">{{ __('No reservations for today') }}</h5>
+                        @adminCan('reservation.create')
                         <a href="{{ route('admin.reservations.create') }}" class="btn btn-primary mt-3">
                             <i class="bx bx-plus me-1"></i> {{ __('Create Reservation') }}
                         </a>
+                        @endadminCan
                     </div>
                 </div>
             @endif

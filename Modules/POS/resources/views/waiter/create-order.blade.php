@@ -1555,7 +1555,7 @@
                     clearCartStorage();
 
                     // Show toastr success notification
-                    toastr.success('{{ __("Order") }} #' + response.order_id + ' {{ __("has been sent to the kitchen.") }}', '{{ __("Order Sent!") }}', {
+                    toastr.success('{{ __("Order") }} #' + response.order_id + ' {{ __("has been confirmed.") }}', '{{ __("Order Confirmed!") }}', {
                         timeOut: 5000,
                         closeButton: true,
                         progressBar: true

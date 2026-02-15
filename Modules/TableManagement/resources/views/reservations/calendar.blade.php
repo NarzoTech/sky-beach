@@ -84,9 +84,11 @@
                         <a href="{{ route('admin.reservations.index') }}" class="btn btn-primary">
                             <i class="fa fa-list"></i> {{ __('List View') }}
                         </a>
+                        @adminCan('reservation.create')
                         <a href="{{ route('admin.reservations.create') }}" class="btn btn-success">
                             <i class="fa fa-plus"></i> {{ __('New Reservation') }}
                         </a>
+                        @endadminCan
                     </div>
                 </div>
             </div>
