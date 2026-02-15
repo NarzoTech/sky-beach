@@ -129,7 +129,7 @@ class CheckoutController extends Controller
                     'customer_name' => $request->first_name . ' ' . $request->last_name,
                     'customer_email' => $request->email,
                     'customer_phone' => $request->phone,
-                    'source' => 'website',
+                    'source' => 1,
                 ]),
             ]);
 
@@ -155,7 +155,7 @@ class CheckoutController extends Controller
                         'addons_price' => 0,
                         'sub_total' => $cartItem->subtotal,
                         'note' => $cartItem->special_instructions,
-                        'source' => 'website',
+                        'source' => 1,
                     ]);
                 } else {
                     // Regular menu item
@@ -169,7 +169,7 @@ class CheckoutController extends Controller
                         'addons_price' => $addonsPrice,
                         'sub_total' => $cartItem->subtotal,
                         'note' => $cartItem->special_instructions,
-                        'source' => 'website',
+                        'source' => 1,
                     ]);
                 }
             }

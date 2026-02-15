@@ -16,6 +16,8 @@ use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Services\SaleService;
 use Illuminate\Support\Facades\DB;
 use Modules\TableManagement\app\Models\RestaurantTable;
+use App\Models\Stock;
+use Modules\Menu\app\Models\MenuAddon;
 
 class WaiterDashboardController extends Controller
 {
@@ -496,25 +498,117 @@ class WaiterDashboardController extends Controller
         $admin = Auth::guard('admin')->user();
         $employee = $admin->employee;
 
-        $order = Sale::where('id', $id)
+        $order = Sale::with('details')->where('id', $id)
             ->where('waiter_id', $employee?->id)
             ->whereIn('status', ['pending', 'confirmed', 'preparing'])
             ->firstOrFail();
 
-        // Release table
-        if ($order->table) {
-            $order->table->release($order->guest_count);
+        DB::beginTransaction();
+        try {
+            // Restore ingredient stock for all items in the order
+            foreach ($order->details as $detail) {
+                if (($detail->source ?? 1) == 1 && $detail->menu_item_id) {
+                    $menuItem = MenuItem::with('recipes.ingredient')->find($detail->menu_item_id);
+                    if ($menuItem) {
+                        foreach ($menuItem->recipes as $recipe) {
+                            $ingredient = $recipe->ingredient;
+                            if (!$ingredient) continue;
+
+                            $restoreQty = $recipe->quantity_required * $detail->quantity;
+                            $conversionRate = $ingredient->conversion_rate ?? 1;
+                            $restoreBase = $restoreQty / $conversionRate;
+
+                            $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                            Stock::create([
+                                'sale_id' => $order->id,
+                                'ingredient_id' => $ingredient->id,
+                                'unit_id' => $ingredient->consumption_unit_id,
+                                'date' => now(),
+                                'type' => 'Sale Reversal',
+                                'invoice' => $order->invoice ?? null,
+                                'in_quantity' => $restoreQty,
+                                'base_in_quantity' => $restoreBase,
+                                'out_quantity' => 0,
+                                'base_out_quantity' => 0,
+                                'sku' => $ingredient->sku,
+                                'purchase_price' => $ingredient->purchase_price ?? 0,
+                                'average_cost' => $ingredient->average_cost ?? 0,
+                                'created_by' => auth('admin')->id(),
+                            ]);
+                        }
+
+                        // Restore addon stock
+                        $addons = $detail->addons;
+                        if (is_string($addons)) {
+                            $addons = json_decode($addons, true);
+                        }
+                        if (!empty($addons) && is_array($addons)) {
+                            foreach ($addons as $addon) {
+                                $addonId = $addon['id'] ?? null;
+                                $addonQty = $addon['qty'] ?? 1;
+                                if (!$addonId) continue;
+
+                                $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                                if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                                $totalAddonQty = $addonQty * $detail->quantity;
+                                foreach ($addonModel->recipes as $recipe) {
+                                    $ingredient = $recipe->ingredient;
+                                    if (!$ingredient) continue;
+
+                                    $restoreQty = $recipe->quantity_required * $totalAddonQty;
+                                    $conversionRate = $ingredient->conversion_rate ?? 1;
+                                    $restoreBase = $restoreQty / $conversionRate;
+
+                                    $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                                    Stock::create([
+                                        'sale_id' => $order->id,
+                                        'ingredient_id' => $ingredient->id,
+                                        'unit_id' => $ingredient->consumption_unit_id,
+                                        'date' => now(),
+                                        'type' => 'Addon Sale Reversal',
+                                        'invoice' => $order->invoice ?? null,
+                                        'in_quantity' => $restoreQty,
+                                        'base_in_quantity' => $restoreBase,
+                                        'out_quantity' => 0,
+                                        'base_out_quantity' => 0,
+                                        'sku' => $ingredient->sku,
+                                        'purchase_price' => $ingredient->purchase_price ?? 0,
+                                        'average_cost' => $ingredient->average_cost ?? 0,
+                                        'created_by' => auth('admin')->id(),
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Release table
+            if ($order->table) {
+                $order->table->release($order->guest_count);
+            }
+
+            $order->update(['status' => 'cancelled']);
+
+            DB::commit();
+
+            // Print void ticket
+            $this->printService->printVoid($order);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order cancelled successfully.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel order.',
+            ], 500);
         }
-
-        $order->update(['status' => 'cancelled']);
-
-        // Print void ticket
-        $this->printService->printVoid($order);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order cancelled successfully.',
-        ]);
     }
 
     /**
@@ -546,6 +640,86 @@ class WaiterDashboardController extends Controller
 
         DB::beginTransaction();
         try {
+            // Restore ingredient stock before removing
+            if (($detail->source ?? 1) == 1 && $detail->menu_item_id) {
+                $menuItem = MenuItem::with('recipes.ingredient')->find($detail->menu_item_id);
+                if ($menuItem) {
+                    foreach ($menuItem->recipes as $recipe) {
+                        $ingredient = $recipe->ingredient;
+                        if (!$ingredient) continue;
+
+                        $restoreQty = $recipe->quantity_required * $detail->quantity;
+                        $conversionRate = $ingredient->conversion_rate ?? 1;
+                        $restoreBase = $restoreQty / $conversionRate;
+
+                        $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                        Stock::create([
+                            'sale_id' => $order->id,
+                            'ingredient_id' => $ingredient->id,
+                            'unit_id' => $ingredient->consumption_unit_id,
+                            'date' => now(),
+                            'type' => 'Sale Reversal',
+                            'invoice' => $order->invoice ?? null,
+                            'in_quantity' => $restoreQty,
+                            'base_in_quantity' => $restoreBase,
+                            'out_quantity' => 0,
+                            'base_out_quantity' => 0,
+                            'sku' => $ingredient->sku,
+                            'purchase_price' => $ingredient->purchase_price ?? 0,
+                            'average_cost' => $ingredient->average_cost ?? 0,
+                            'created_by' => auth('admin')->id(),
+                        ]);
+                    }
+
+                    // Restore addon stock
+                    $addons = $detail->addons;
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    if (!empty($addons) && is_array($addons)) {
+                        foreach ($addons as $addon) {
+                            $addonId = $addon['id'] ?? null;
+                            $addonQty = $addon['qty'] ?? 1;
+                            if (!$addonId) continue;
+
+                            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                            $totalAddonQty = $addonQty * $detail->quantity;
+
+                            foreach ($addonModel->recipes as $recipe) {
+                                $ingredient = $recipe->ingredient;
+                                if (!$ingredient) continue;
+
+                                $restoreQty = $recipe->quantity_required * $totalAddonQty;
+                                $conversionRate = $ingredient->conversion_rate ?? 1;
+                                $restoreBase = $restoreQty / $conversionRate;
+
+                                $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                                Stock::create([
+                                    'sale_id' => $order->id,
+                                    'ingredient_id' => $ingredient->id,
+                                    'unit_id' => $ingredient->consumption_unit_id,
+                                    'date' => now(),
+                                    'type' => 'Addon Sale Reversal',
+                                    'invoice' => $order->invoice ?? null,
+                                    'in_quantity' => $restoreQty,
+                                    'base_in_quantity' => $restoreBase,
+                                    'out_quantity' => 0,
+                                    'base_out_quantity' => 0,
+                                    'sku' => $ingredient->sku,
+                                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                                    'average_cost' => $ingredient->average_cost ?? 0,
+                                    'created_by' => auth('admin')->id(),
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
             $subtotalToRemove = $detail->sub_total;
             $detail->delete();
 

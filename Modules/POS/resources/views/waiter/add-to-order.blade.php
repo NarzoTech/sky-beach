@@ -964,12 +964,15 @@
 
         if (item.addons && item.addons.length > 0) {
             addonsSection.style.display = 'block';
-            addonsList.innerHTML = item.addons.map(addon => `
-                <div class="addon-item" data-addon-id="${addon.id}" onclick="toggleAddon(${addon.id}, '${addon.name.replace(/'/g, "\\'")}', ${addon.price})">
+            addonsList.innerHTML = item.addons.map(addon => {
+                const maxQty = (addon.pivot && addon.pivot.max_quantity) ? addon.pivot.max_quantity : 5;
+                return `
+                <div class="addon-item" data-addon-id="${addon.id}" data-max-qty="${maxQty}" onclick="toggleAddon(${addon.id}, '${addon.name.replace(/'/g, "\\'")}', ${addon.price}, ${maxQty})">
                     <div>
                         <i class="bx bx-square addon-check-icon text-muted me-2"></i>
                         <span>${addon.name}</span>
                         <span class="addon-price ms-2">+${currency}${parseFloat(addon.price).toFixed(2)}</span>
+                        ${maxQty > 1 ? `<span class="text-muted ms-1" style="font-size:0.75rem;">(max ${maxQty})</span>` : ''}
                     </div>
                     <div class="addon-qty-control" style="display: none;" onclick="event.stopPropagation();">
                         <button class="btn btn-outline-secondary addon-qty-btn" onclick="updateAddonQty(${addon.id}, -1)">-</button>
@@ -977,7 +980,7 @@
                         <button class="btn btn-outline-secondary addon-qty-btn" onclick="updateAddonQty(${addon.id}, 1)">+</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         } else {
             addonsSection.style.display = 'none';
             addonsList.innerHTML = '';
@@ -987,7 +990,8 @@
         new bootstrap.Modal(document.getElementById('itemModal')).show();
     }
 
-    function toggleAddon(addonId, addonName, addonPrice) {
+    function toggleAddon(addonId, addonName, addonPrice, maxQty) {
+        maxQty = maxQty || 5;
         const addonItem = document.querySelector(`.addon-item[data-addon-id="${addonId}"]`);
         const icon = addonItem.querySelector('.addon-check-icon');
         const qtyControl = addonItem.querySelector('.addon-qty-control');
@@ -1005,12 +1009,15 @@
                 id: addonId,
                 name: addonName,
                 price: addonPrice,
-                qty: 1
+                qty: 1,
+                maxQty: maxQty
             });
             addonItem.classList.add('selected');
             icon.classList.remove('bx-square', 'text-muted');
             icon.classList.add('bx-check-square', 'text-success');
-            qtyControl.style.display = 'flex';
+            if (maxQty > 1) {
+                qtyControl.style.display = 'flex';
+            }
         }
 
         updateModalTotal();
@@ -1020,7 +1027,8 @@
         const addon = currentItemData.addons.find(a => a.id === addonId);
         if (!addon) return;
 
-        addon.qty = Math.max(1, addon.qty + delta);
+        const maxQty = addon.maxQty || parseInt(document.querySelector(`.addon-item[data-addon-id="${addonId}"]`)?.dataset.maxQty) || 5;
+        addon.qty = Math.min(maxQty, Math.max(1, addon.qty + delta));
 
         const addonItem = document.querySelector(`.addon-item[data-addon-id="${addonId}"]`);
         addonItem.querySelector('.addon-qty-value').textContent = addon.qty;

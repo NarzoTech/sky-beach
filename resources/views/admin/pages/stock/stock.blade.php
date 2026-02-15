@@ -164,8 +164,8 @@
                                 <td>{{ $ingredient->name }}</td>
                                 <td>{{ $ingredient->avg_purchase_price }}</td>
                                 <td>{{ $ingredient->last_purchase_price }}</td>
-                                <td>{{ $ingredient->stockDetails->sum('in_quantity') }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
-                                <td>{{ $ingredient->stockDetails->sum('out_quantity') }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
+                                <td>{{ round($ingredient->stockDetails->sum('base_in_quantity'), 4) }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
+                                <td>{{ round($ingredient->stockDetails->sum('base_out_quantity'), 4) }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
                                 <td>{{ $ingredient->stock }} {{ $ingredient->purchaseUnit->ShortName ?? '' }}</td>
                                 <td>{{ remove_comma($stock) * remove_comma($ingredient->avg_purchase_price) }}</td>
                                 <td>

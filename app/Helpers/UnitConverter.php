@@ -139,11 +139,11 @@ class UnitConverter
 
         // Apply the conversion to base
         // If operator is '*', the child = base * value, so base = child / value
-        // If operator is '/', the child = base / value, so base = child * value
+        // If operator is '/', 1 base = operator_value children, so base = child / value
         if ($operator == '*') {
             return $quantity / $operatorValue;
         } elseif ($operator == '/') {
-            return $quantity * $operatorValue;
+            return $quantity / $operatorValue;
         }
 
         return (float) $quantity;
@@ -185,11 +185,11 @@ class UnitConverter
 
         // Reverse the conversion from base
         // If operator is '*', child = base * value
-        // If operator is '/', child = base / value
+        // If operator is '/', 1 base = operator_value children, so child = base * value
         if ($operator == '*') {
             return $baseQuantity * $operatorValue;
         } elseif ($operator == '/') {
-            return $baseQuantity / $operatorValue;
+            return $baseQuantity * $operatorValue;
         }
 
         return (float) $baseQuantity;

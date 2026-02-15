@@ -36,6 +36,9 @@ use Modules\Sales\app\Models\Sale;
 use Modules\Membership\app\Services\LoyaltyService;
 use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\POS\app\Services\PrintService;
+use App\Models\Stock;
+use Modules\Ingredient\app\Models\Ingredient;
+use Modules\Menu\app\Models\MenuAddon;
 
 class POSController extends Controller
 {
@@ -421,7 +424,8 @@ class POSController extends Controller
                 $html .= $addon->name . ' <span class="text-success">(+' . currency($addon->price) . ')</span>';
                 $html .= '</label>';
                 $html .= '</div>';
-                $html .= '<input type="number" min="1" value="' . $qty . '" class="form-control form-control-sm addon-qty-input" style="width: 60px;" data-addon-id="' . $addon->id . '">';
+                $maxQty = $addon->pivot->max_quantity ?? 5;
+                $html .= '<input type="number" min="1" max="' . $maxQty . '" value="' . min($qty, $maxQty) . '" class="form-control form-control-sm addon-qty-input" style="width: 60px;" data-addon-id="' . $addon->id . '" data-max-qty="' . $maxQty . '">';
                 $html .= '</div>';
             }
         } else {
@@ -454,6 +458,9 @@ class POSController extends Controller
         // Get the menu item's base price (without addons)
         $basePrice = $cartItem['base_price'] ?? $cartItem['price'];
 
+        // Load menu item with addons to get max_quantity from pivot
+        $menuItem = MenuItem::with('activeAddons')->find($menuItemId);
+
         // Calculate addons
         $addons = [];
         $addonsPrice = 0;
@@ -461,7 +468,14 @@ class POSController extends Controller
         if (!empty($addonIds)) {
             $addonModels = \Modules\Menu\app\Models\MenuAddon::whereIn('id', $addonIds)->where('status', 1)->get();
             foreach ($addonModels as $addon) {
-                $qty = isset($addonQtys[$addon->id]) ? max(1, intval($addonQtys[$addon->id])) : 1;
+                $maxQty = 5;
+                if ($menuItem) {
+                    $pivotAddon = $menuItem->activeAddons->where('id', $addon->id)->first();
+                    if ($pivotAddon) {
+                        $maxQty = $pivotAddon->pivot->max_quantity ?? 5;
+                    }
+                }
+                $qty = isset($addonQtys[$addon->id]) ? min($maxQty, max(1, intval($addonQtys[$addon->id]))) : 1;
                 $addons[] = [
                     'id' => $addon->id,
                     'name' => $addon->name,
@@ -504,6 +518,18 @@ class POSController extends Controller
 
         $cartItem = $cart[$rowId];
         $basePrice = $cartItem['base_price'] ?? $cartItem['price'];
+
+        // Enforce max_quantity from pivot
+        $menuItemId = $cartItem['id'] ?? null;
+        if ($menuItemId) {
+            $menuItem = MenuItem::with('activeAddons')->find($menuItemId);
+            if ($menuItem) {
+                $pivotAddon = $menuItem->activeAddons->where('id', $addonId)->first();
+                if ($pivotAddon) {
+                    $qty = min($qty, $pivotAddon->pivot->max_quantity ?? 5);
+                }
+            }
+        }
 
         // Update the addon quantity
         $addonsPrice = 0;
@@ -1915,7 +1941,29 @@ class POSController extends Controller
     {
         DB::beginTransaction();
         try {
-            $order = Sale::with('table')->findOrFail($id);
+            $order = Sale::with(['table', 'details'])->findOrFail($id);
+
+            // Restore ingredient stock for all items in the order
+            foreach ($order->details as $detail) {
+                if (($detail->source ?? 1) == 1 && $detail->menu_item_id) {
+                    $menuItem = MenuItem::with('recipes.ingredient')->find($detail->menu_item_id);
+                    if ($menuItem) {
+                        $this->adjustMenuItemStock($menuItem, -$detail->quantity, $order);
+
+                        $addons = $detail->addons;
+                        if (is_string($addons)) {
+                            $addons = json_decode($addons, true);
+                        }
+                        $this->adjustAddonStock($addons, -$detail->quantity, $order);
+                    }
+                } elseif (($detail->source ?? 1) == 1 && $detail->ingredient_id) {
+                    $product = Ingredient::find($detail->ingredient_id);
+                    if ($product) {
+                        $restoreQty = $detail->base_quantity ?? $detail->quantity;
+                        $product->addStock($restoreQty);
+                    }
+                }
+            }
 
             // Note: status column is integer - 0 = processing, 1 = completed, 2 = cancelled
             $order->update([
@@ -2010,8 +2058,40 @@ class POSController extends Controller
                 ->where('id', $detailId)
                 ->firstOrFail();
 
+            $oldQuantity = $detail->quantity;
             $oldSubtotal = $detail->sub_total;
             $newSubtotal = $detail->price * $quantity;
+            $qtyDiff = $quantity - $oldQuantity;
+
+            // Adjust ingredient stock for qty difference
+            if ($qtyDiff != 0 && $detail->source == 1) {
+                if ($detail->menu_item_id) {
+                    $menuItem = MenuItem::with('recipes.ingredient')->find($detail->menu_item_id);
+                    if ($menuItem) {
+                        $this->adjustMenuItemStock($menuItem, $qtyDiff, $order);
+
+                        // Adjust addon stock
+                        $addons = $detail->addons;
+                        if (is_string($addons)) {
+                            $addons = json_decode($addons, true);
+                        }
+                        $this->adjustAddonStock($addons, $qtyDiff, $order);
+                    }
+                } elseif ($detail->ingredient_id) {
+                    $product = Ingredient::find($detail->ingredient_id);
+                    if ($product) {
+                        $baseQtyDiff = abs($qtyDiff);
+                        if ($detail->unit_id && $detail->unit_id != $product->unit_id) {
+                            $baseQtyDiff = \App\Helpers\UnitConverter::safeConvert(abs($qtyDiff), $detail->unit_id, $product->unit_id);
+                        }
+                        if ($qtyDiff > 0) {
+                            $product->deductStock($baseQtyDiff);
+                        } else {
+                            $product->addStock($baseQtyDiff);
+                        }
+                    }
+                }
+            }
 
             $detail->update([
                 'quantity' => $quantity,
@@ -2062,6 +2142,29 @@ class POSController extends Controller
 
             $subtotalToRemove = $detail->sub_total;
 
+            // Restore ingredient stock before removing
+            if ($detail->source == 1) {
+                if ($detail->menu_item_id) {
+                    $menuItem = MenuItem::with('recipes.ingredient')->find($detail->menu_item_id);
+                    if ($menuItem) {
+                        $this->adjustMenuItemStock($menuItem, -$detail->quantity, $order);
+
+                        // Restore addon stock
+                        $addons = $detail->addons;
+                        if (is_string($addons)) {
+                            $addons = json_decode($addons, true);
+                        }
+                        $this->adjustAddonStock($addons, -$detail->quantity, $order);
+                    }
+                } elseif ($detail->ingredient_id) {
+                    $product = Ingredient::find($detail->ingredient_id);
+                    if ($product) {
+                        $restoreQty = $detail->base_quantity ?? $detail->quantity;
+                        $product->addStock($restoreQty);
+                    }
+                }
+            }
+
             // Delete the item
             $detail->delete();
 
@@ -2108,7 +2211,7 @@ class POSController extends Controller
             $price = $request->price;
             $variantId = $request->variant_id;
 
-            $menuItem = \Modules\Menu\app\Models\MenuItem::findOrFail($menuItemId);
+            $menuItem = MenuItem::with('recipes.ingredient')->findOrFail($menuItemId);
 
             if (!$price) {
                 $price = $menuItem->price;
@@ -2135,6 +2238,9 @@ class POSController extends Controller
                 'sub_total' => $subTotal,
                 'source' => 1,
             ]);
+
+            // Deduct ingredient stock based on menu item recipes
+            $this->adjustMenuItemStock($menuItem, $quantity, $order);
 
             // Update order totals
             $order->update([
@@ -2356,6 +2462,136 @@ class POSController extends Controller
                 'success' => false,
                 'message' => 'Error redeeming points: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Adjust ingredient stock for a menu item (positive = deduct, negative = restore)
+     */
+    private function adjustMenuItemStock(MenuItem $menuItem, int $qtyDiff, Sale $sale)
+    {
+        if ($qtyDiff == 0) return;
+
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            $quantity = $recipe->quantity_required * abs($qtyDiff);
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $baseQuantity = $quantity / $conversionRate;
+
+            if ($qtyDiff > 0) {
+                $ingredient->deductStock($quantity, $ingredient->consumption_unit_id);
+
+                Stock::create([
+                    'sale_id' => $sale->id,
+                    'ingredient_id' => $ingredient->id,
+                    'unit_id' => $ingredient->consumption_unit_id,
+                    'date' => now(),
+                    'type' => 'Sale',
+                    'invoice' => route('admin.sales.invoice', $sale->id),
+                    'out_quantity' => $quantity,
+                    'base_out_quantity' => $baseQuantity,
+                    'sku' => $ingredient->sku,
+                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                    'sale_price' => 0,
+                    'rate' => $ingredient->consumption_unit_cost ?? 0,
+                    'profit' => 0,
+                    'created_by' => auth('admin')->id(),
+                ]);
+            } else {
+                $ingredient->addStock($quantity, $ingredient->consumption_unit_id);
+
+                Stock::create([
+                    'sale_id' => $sale->id,
+                    'ingredient_id' => $ingredient->id,
+                    'unit_id' => $ingredient->consumption_unit_id,
+                    'date' => now(),
+                    'type' => 'Sale Reversal',
+                    'invoice' => $sale->invoice ?? null,
+                    'in_quantity' => $quantity,
+                    'base_in_quantity' => $baseQuantity,
+                    'out_quantity' => 0,
+                    'base_out_quantity' => 0,
+                    'sku' => $ingredient->sku,
+                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                    'average_cost' => $ingredient->average_cost ?? 0,
+                    'created_by' => auth('admin')->id(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Adjust addon ingredient stock (positive = deduct, negative = restore)
+     */
+    private function adjustAddonStock($addons, int $qtyDiff, Sale $sale)
+    {
+        if (empty($addons) || $qtyDiff == 0) return;
+
+        if (is_string($addons)) {
+            $addons = json_decode($addons, true);
+        }
+        if (!is_array($addons)) return;
+
+        foreach ($addons as $addon) {
+            $addonId = $addon['id'] ?? null;
+            $addonQty = $addon['qty'] ?? 1;
+            if (!$addonId) continue;
+
+            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+            $totalAddonQty = $addonQty * abs($qtyDiff);
+
+            foreach ($addonModel->recipes as $recipe) {
+                $ingredient = $recipe->ingredient;
+                if (!$ingredient) continue;
+
+                $quantity = $recipe->quantity_required * $totalAddonQty;
+                $conversionRate = $ingredient->conversion_rate ?? 1;
+                $baseQuantity = $quantity / $conversionRate;
+
+                if ($qtyDiff > 0) {
+                    $ingredient->deductStock($quantity, $ingredient->consumption_unit_id);
+
+                    Stock::create([
+                        'sale_id' => $sale->id,
+                        'ingredient_id' => $ingredient->id,
+                        'unit_id' => $ingredient->consumption_unit_id,
+                        'date' => now(),
+                        'type' => 'Addon Sale',
+                        'invoice' => route('admin.sales.invoice', $sale->id),
+                        'out_quantity' => $quantity,
+                        'base_out_quantity' => $baseQuantity,
+                        'sku' => $ingredient->sku,
+                        'purchase_price' => $ingredient->purchase_price ?? 0,
+                        'sale_price' => 0,
+                        'rate' => $ingredient->consumption_unit_cost ?? 0,
+                        'profit' => 0,
+                        'created_by' => auth('admin')->id(),
+                    ]);
+                } else {
+                    $ingredient->addStock($quantity, $ingredient->consumption_unit_id);
+
+                    Stock::create([
+                        'sale_id' => $sale->id,
+                        'ingredient_id' => $ingredient->id,
+                        'unit_id' => $ingredient->consumption_unit_id,
+                        'date' => now(),
+                        'type' => 'Addon Sale Reversal',
+                        'invoice' => $sale->invoice ?? null,
+                        'in_quantity' => $quantity,
+                        'base_in_quantity' => $baseQuantity,
+                        'out_quantity' => 0,
+                        'base_out_quantity' => 0,
+                        'sku' => $ingredient->sku,
+                        'purchase_price' => $ingredient->purchase_price ?? 0,
+                        'average_cost' => $ingredient->average_cost ?? 0,
+                        'created_by' => auth('admin')->id(),
+                    ]);
+                }
+            }
         }
     }
 }

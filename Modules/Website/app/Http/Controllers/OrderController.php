@@ -211,6 +211,57 @@ class OrderController extends Controller
                     // Handle regular menu item
                     $this->restoreIngredientStockFromRecipe($detail->menuItem, $detail->quantity, $order);
                 }
+
+                // Restore addon ingredient stock
+                $addons = $detail->addons;
+                if (!empty($addons)) {
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    if (is_array($addons)) {
+                        foreach ($addons as $addon) {
+                            $addonId = $addon['id'] ?? null;
+                            $addonQty = $addon['qty'] ?? 1;
+                            if (!$addonId) continue;
+
+                            $addonModel = \Modules\Menu\app\Models\MenuAddon::with('recipes.ingredient')->find($addonId);
+                            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                            $totalAddonQty = $addonQty * $detail->quantity;
+                            foreach ($addonModel->recipes as $recipe) {
+                                $ingredient = $recipe->ingredient;
+                                if (!$ingredient) continue;
+
+                                $restoreQty = $recipe->quantity_required * $totalAddonQty;
+                                $conversionRate = $ingredient->conversion_rate ?? 1;
+                                $restoreBase = $restoreQty / $conversionRate;
+
+                                $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                                $stockData = [
+                                    'sale_id' => $order->id,
+                                    'ingredient_id' => $ingredient->id,
+                                    'unit_id' => $ingredient->consumption_unit_id,
+                                    'date' => now(),
+                                    'type' => 'Addon Sale Reversal',
+                                    'invoice' => $order->invoice,
+                                    'in_quantity' => $restoreQty,
+                                    'base_in_quantity' => $restoreBase,
+                                    'out_quantity' => 0,
+                                    'base_out_quantity' => 0,
+                                    'sku' => $ingredient->sku,
+                                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                                    'average_cost' => $ingredient->average_cost ?? 0,
+                                    'created_by' => 1,
+                                ];
+                                if ($order->warehouse_id && \App\Models\Warehouse::find($order->warehouse_id)) {
+                                    $stockData['warehouse_id'] = $order->warehouse_id;
+                                }
+                                Stock::create($stockData);
+                            }
+                        }
+                    }
+                }
             }
         } catch (\Exception $e) {
             Log::error('Stock restoration error for cancelled order ' . $order->invoice . ': ' . $e->getMessage());

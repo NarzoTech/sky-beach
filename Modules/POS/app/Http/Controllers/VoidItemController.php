@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Modules\POS\app\Services\PrintService;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Sales\app\Models\Sale;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuAddon;
+use App\Models\Stock;
 
 class VoidItemController extends Controller
 {
@@ -56,6 +59,9 @@ class VoidItemController extends Controller
                 'kitchen_status' => 'cancelled',
                 'status_updated_at' => now(),
             ]);
+
+            // Restore ingredient stock for voided item
+            $this->restoreItemStock($item, $order);
 
             // Update order totals
             $order->subtotal -= $item->sub_total;
@@ -137,6 +143,9 @@ class VoidItemController extends Controller
                     'status_updated_at' => now(),
                 ]);
 
+                // Restore ingredient stock for voided item
+                $this->restoreItemStock($item, $order);
+
                 $totalVoided += $item->sub_total;
             }
 
@@ -217,6 +226,9 @@ class VoidItemController extends Controller
                 'status_updated_at' => now(),
             ]);
 
+            // Re-deduct ingredient stock for restored item
+            $this->deductItemStock($item, $order);
+
             // Update order totals
             $order->subtotal += $item->sub_total;
             $order->total += $item->sub_total;
@@ -248,6 +260,174 @@ class VoidItemController extends Controller
                 'success' => false,
                 'message' => 'Failed to restore item: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Restore ingredient stock for a voided item (return stock)
+     */
+    private function restoreItemStock(ProductSale $item, Sale $order)
+    {
+        if (!$item->menu_item_id) return;
+
+        $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
+        if (!$menuItem) return;
+
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            $restoreQty = $recipe->quantity_required * $item->quantity;
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $restoreBase = $restoreQty / $conversionRate;
+
+            $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+            Stock::create([
+                'sale_id' => $order->id,
+                'ingredient_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => now(),
+                'type' => 'Void Reversal',
+                'invoice' => $order->invoice ?? null,
+                'in_quantity' => $restoreQty,
+                'base_in_quantity' => $restoreBase,
+                'out_quantity' => 0,
+                'base_out_quantity' => 0,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'average_cost' => $ingredient->average_cost ?? 0,
+                'created_by' => auth('admin')->id(),
+            ]);
+        }
+
+        // Restore addon stock
+        $addons = $item->addons;
+        if (is_string($addons)) {
+            $addons = json_decode($addons, true);
+        }
+        if (!empty($addons) && is_array($addons)) {
+            foreach ($addons as $addon) {
+                $addonId = $addon['id'] ?? null;
+                $addonQty = $addon['qty'] ?? 1;
+                if (!$addonId) continue;
+
+                $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                $totalAddonQty = $addonQty * $item->quantity;
+                foreach ($addonModel->recipes as $recipe) {
+                    $ingredient = $recipe->ingredient;
+                    if (!$ingredient) continue;
+
+                    $restoreQty = $recipe->quantity_required * $totalAddonQty;
+                    $conversionRate = $ingredient->conversion_rate ?? 1;
+                    $restoreBase = $restoreQty / $conversionRate;
+
+                    $ingredient->addStock($restoreQty, $ingredient->consumption_unit_id);
+
+                    Stock::create([
+                        'sale_id' => $order->id,
+                        'ingredient_id' => $ingredient->id,
+                        'unit_id' => $ingredient->consumption_unit_id,
+                        'date' => now(),
+                        'type' => 'Addon Void Reversal',
+                        'invoice' => $order->invoice ?? null,
+                        'in_quantity' => $restoreQty,
+                        'base_in_quantity' => $restoreBase,
+                        'out_quantity' => 0,
+                        'base_out_quantity' => 0,
+                        'sku' => $ingredient->sku,
+                        'purchase_price' => $ingredient->purchase_price ?? 0,
+                        'average_cost' => $ingredient->average_cost ?? 0,
+                        'created_by' => auth('admin')->id(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Deduct ingredient stock for a restored item (re-deduct stock)
+     */
+    private function deductItemStock(ProductSale $item, Sale $order)
+    {
+        if (!$item->menu_item_id) return;
+
+        $menuItem = MenuItem::with('recipes.ingredient')->find($item->menu_item_id);
+        if (!$menuItem) return;
+
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            $deductQty = $recipe->quantity_required * $item->quantity;
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $deductBase = $deductQty / $conversionRate;
+
+            $ingredient->deductStock($deductQty, $ingredient->consumption_unit_id);
+
+            Stock::create([
+                'sale_id' => $order->id,
+                'ingredient_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => now(),
+                'type' => 'Sale',
+                'invoice' => $order->invoice ?? null,
+                'out_quantity' => $deductQty,
+                'base_out_quantity' => $deductBase,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'sale_price' => 0,
+                'rate' => $ingredient->consumption_unit_cost ?? 0,
+                'profit' => 0,
+                'created_by' => auth('admin')->id(),
+            ]);
+        }
+
+        // Deduct addon stock
+        $addons = $item->addons;
+        if (is_string($addons)) {
+            $addons = json_decode($addons, true);
+        }
+        if (!empty($addons) && is_array($addons)) {
+            foreach ($addons as $addon) {
+                $addonId = $addon['id'] ?? null;
+                $addonQty = $addon['qty'] ?? 1;
+                if (!$addonId) continue;
+
+                $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                $totalAddonQty = $addonQty * $item->quantity;
+                foreach ($addonModel->recipes as $recipe) {
+                    $ingredient = $recipe->ingredient;
+                    if (!$ingredient) continue;
+
+                    $deductQty = $recipe->quantity_required * $totalAddonQty;
+                    $conversionRate = $ingredient->conversion_rate ?? 1;
+                    $deductBase = $deductQty / $conversionRate;
+
+                    $ingredient->deductStock($deductQty, $ingredient->consumption_unit_id);
+
+                    Stock::create([
+                        'sale_id' => $order->id,
+                        'ingredient_id' => $ingredient->id,
+                        'unit_id' => $ingredient->consumption_unit_id,
+                        'date' => now(),
+                        'type' => 'Addon Sale',
+                        'invoice' => $order->invoice ?? null,
+                        'out_quantity' => $deductQty,
+                        'base_out_quantity' => $deductBase,
+                        'sku' => $ingredient->sku,
+                        'purchase_price' => $ingredient->purchase_price ?? 0,
+                        'sale_price' => 0,
+                        'rate' => $ingredient->consumption_unit_cost ?? 0,
+                        'profit' => 0,
+                        'created_by' => auth('admin')->id(),
+                    ]);
+                }
+            }
         }
     }
 }

@@ -55,8 +55,8 @@ class StockController extends Controller
         foreach ($allIngredients as $ingredient) {
             $stock = $ingredient->stock < 0 ? 0 : $ingredient->stock;
             $selling_price = $ingredient->selling_price ?? 0;
-            $totals['totalInQty'] += $ingredient->stockDetails->sum('in_quantity');
-            $totals['totalOutQty'] += $ingredient->stockDetails->sum('out_quantity');
+            $totals['totalInQty'] += $ingredient->stockDetails->sum('base_in_quantity');
+            $totals['totalOutQty'] += $ingredient->stockDetails->sum('base_out_quantity');
             $totals['totalStock'] += $ingredient->stock;
             $totals['totalStockPP'] += remove_comma($stock) * remove_comma($ingredient->avg_purchase_price);
             $totals['totalStockSP'] += remove_comma($stock) * remove_comma($selling_price);

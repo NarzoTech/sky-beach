@@ -35,8 +35,8 @@ class StockExport implements FromArray, WithHeadings, WithStyles, WithTitle
                 $product->name,                                                // Name
                 $product->avg_purchase_price ?? 0,                             // Avg P.P
                 $product->last_purchase_price ?? 0,                            // L. P.P
-                $product->stockDetails->sum('in_quantity') ?? 0,               // In Quantity
-                $product->stockDetails->sum('out_quantity') ?? 0,              // Out Quantity
+                round($product->stockDetails->sum('base_in_quantity'), 4) ?? 0,   // In Quantity
+                round($product->stockDetails->sum('base_out_quantity'), 4) ?? 0, // Out Quantity
                 $product->stock ?? 0,                                          // Stock
                 remove_comma($stock) * remove_comma($product->avg_purchase_price) ?? 0,  // Stock P.P
             ];
