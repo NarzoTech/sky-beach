@@ -692,7 +692,9 @@ class Ingredient extends Model
 
     public function getStockAttribute($value)
     {
-        return number_format($value, 0);
+        $val = (float) $value;
+        // Show up to 4 decimal places, trim trailing zeros, no thousands separator
+        return rtrim(rtrim(number_format($val, 4, '.', ''), '0'), '.');
     }
 
     public function orders()

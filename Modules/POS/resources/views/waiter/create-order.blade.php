@@ -315,10 +315,14 @@
     }
     .modal-qty-control input {
         width: 50px;
+        height: 36px;
         text-align: center;
         font-weight: 600;
+        font-size: 1rem;
         border: 1px solid #e9ecef;
         border-radius: 6px;
+        padding: 0;
+        line-height: 36px;
     }
     .addon-item {
         display: flex;
@@ -760,7 +764,7 @@
                         <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(-1)">
                             <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control guest-count-input" id="item-qty" value="1" min="1" readonly>
+                        <input type="number" class="form-control" id="item-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-primary" type="button" onclick="updateItemQty(1)">
                             <i class="bx bx-plus"></i>
                         </button>
@@ -821,7 +825,7 @@
                         <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(-1)">
                             <i class="bx bx-minus"></i>
                         </button>
-                        <input type="number" class="form-control guest-count-input" id="combo-qty" value="1" min="1" readonly>
+                        <input type="number" class="form-control" id="combo-qty" value="1" min="1" readonly>
                         <button class="btn btn-outline-primary" type="button" onclick="updateComboQty(1)">
                             <i class="bx bx-plus"></i>
                         </button>
