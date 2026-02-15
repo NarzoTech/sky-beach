@@ -68,8 +68,9 @@ class RolePermissionSeeder extends Seeder
             'waiter.order.view',
             'waiter.order.update',
             'waiter.order.cancel',
-            // Table viewing (read-only)
+            // Table viewing & status changes (release table etc.)
             'table.view',
+            'table.status',
             // Reservation viewing (read-only, no create/edit/delete)
             'reservation.view',
             // Menu viewing for taking orders
