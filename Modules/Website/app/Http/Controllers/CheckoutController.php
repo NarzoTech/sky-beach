@@ -76,12 +76,13 @@ class CheckoutController extends Controller
     public function processOrder(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'name' => 'required|string|max:200',
             'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
-            'payment_method' => 'required|in:cash,card',
+            'payment_method' => 'required|in:cash,bkash',
         ]);
+
+        $customerName = $request->name;
 
         $cartItems = WebsiteCart::getCart();
 
@@ -112,7 +113,7 @@ class CheckoutController extends Controller
                 'warehouse_id' => $this->getDefaultWarehouse(),
                 'quantity' => $cartItems->sum('quantity'),
                 'total_price' => $subtotal,
-                'order_type' => 'take_away',
+                'order_type' => 'website',
                 'status' => 'pending',
                 'payment_status' => $request->payment_method === 'cash' ? 'unpaid' : 'pending',
                 'payment_method' => [$request->payment_method],
@@ -124,12 +125,12 @@ class CheckoutController extends Controller
                 'delivery_address' => null,
                 'delivery_phone' => $request->phone,
                 'delivery_notes' => null,
-                'sale_note' => 'Website Order - ' . $request->first_name . ' ' . $request->last_name,
+                'sale_note' => 'Website Order - ' . $customerName,
                 'notes' => json_encode([
-                    'customer_name' => $request->first_name . ' ' . $request->last_name,
+                    'customer_name' => $customerName,
                     'customer_email' => $request->email,
                     'customer_phone' => $request->phone,
-                    'source' => 1,
+                    'source' => 'website',
                 ]),
             ]);
 
@@ -155,7 +156,7 @@ class CheckoutController extends Controller
                         'addons_price' => 0,
                         'sub_total' => $cartItem->subtotal,
                         'note' => $cartItem->special_instructions,
-                        'source' => 1,
+                        'source' => 'website',
                     ]);
                 } else {
                     // Regular menu item
@@ -169,7 +170,7 @@ class CheckoutController extends Controller
                         'addons_price' => $addonsPrice,
                         'sub_total' => $cartItem->subtotal,
                         'note' => $cartItem->special_instructions,
-                        'source' => 1,
+                        'source' => 'website',
                     ]);
                 }
             }
@@ -187,7 +188,7 @@ class CheckoutController extends Controller
             $this->saveCheckoutDataToCookie($request);
 
             // Handle loyalty points (after successful order)
-            $this->handleLoyaltyPoints($sale, $request->phone, $request->first_name . ' ' . $request->last_name);
+            $this->handleLoyaltyPoints($sale, $request->phone, $customerName);
 
             // Return success response
             if ($request->ajax()) {
@@ -314,8 +315,7 @@ class CheckoutController extends Controller
     private function saveCheckoutDataToCookie($request)
     {
         $checkoutData = [
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
+            'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
         ];

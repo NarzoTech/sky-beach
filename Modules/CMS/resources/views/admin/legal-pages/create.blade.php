@@ -41,7 +41,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label">{{ __('Content') }} <span class="text-danger">*</span></label>
-                                <textarea name="content" class="form-control summernote @error('content') is-invalid @enderror" rows="15" required>{{ old('content') }}</textarea>
+                                <textarea name="content" class="form-control summernote @error('content') is-invalid @enderror" rows="15">{{ old('content') }}</textarea>
                                 @error('content')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

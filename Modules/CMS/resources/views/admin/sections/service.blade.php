@@ -142,14 +142,17 @@ document.querySelectorAll('.toggle-section-status').forEach(function(checkbox) {
         })
         .then(response => response.json())
         .then(data => {
-            if (!data.success) {
+            if (data.success) {
+                toastr.success(data.message || 'Status updated successfully');
+            } else {
                 this.checked = !this.checked;
-                alert(data.message || 'Failed to update status');
+                toastr.error(data.message || 'Failed to update status');
             }
         })
         .catch(error => {
             console.error('Error:', error);
             this.checked = !this.checked;
+            toastr.error('Something went wrong');
         });
     });
 });

@@ -548,13 +548,10 @@ class SectionService
     public function toggleStatus(string $sectionName, string $pageName = 'home'): array
     {
         try {
-            $section = SiteSection::where('section_name', $sectionName)
-                ->where('page_name', $pageName)
-                ->first();
-
-            if (!$section) {
-                return ['success' => false, 'message' => 'Section not found'];
-            }
+            $section = SiteSection::firstOrCreate(
+                ['section_name' => $sectionName, 'page_name' => $pageName],
+                ['section_status' => true]
+            );
 
             $section->section_status = !$section->section_status;
             $section->save();
