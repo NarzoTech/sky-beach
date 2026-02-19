@@ -4,6 +4,7 @@ namespace Modules\Website\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Coupon extends Model
 {
@@ -23,6 +24,8 @@ class Coupon extends Model
         'valid_from',
         'valid_until',
         'is_active',
+        'loyalty_customer_id',
+        'is_loyalty_reward',
     ];
 
     protected $casts = [
@@ -32,6 +35,7 @@ class Coupon extends Model
         'valid_from' => 'date',
         'valid_until' => 'date',
         'is_active' => 'boolean',
+        'is_loyalty_reward' => 'boolean',
     ];
 
     const TYPE_PERCENTAGE = 'percentage';
@@ -43,6 +47,50 @@ class Coupon extends Model
     public function usages()
     {
         return $this->hasMany(CouponUsage::class);
+    }
+
+    /**
+     * Loyalty customer who redeemed points for this coupon
+     */
+    public function loyaltyCustomer()
+    {
+        return $this->belongsTo(\Modules\Membership\app\Models\LoyaltyCustomer::class);
+    }
+
+    /**
+     * Scope: Loyalty reward coupons
+     */
+    public function scopeLoyaltyRewards($query)
+    {
+        return $query->where('is_loyalty_reward', true);
+    }
+
+    /**
+     * Create a one-time coupon from loyalty points redemption
+     */
+    public static function createFromLoyaltyRedemption(int $loyaltyCustomerId, float $discountAmount): self
+    {
+        do {
+            $code = 'LR-' . strtoupper(Str::random(8));
+        } while (self::where('code', $code)->exists());
+
+        return self::create([
+            'code' => $code,
+            'name' => __('Loyalty Reward'),
+            'description' => __('Auto-generated from loyalty points redemption'),
+            'type' => self::TYPE_FIXED,
+            'value' => $discountAmount,
+            'min_order_amount' => 0,
+            'max_discount' => null,
+            'usage_limit' => 1,
+            'usage_limit_per_user' => 1,
+            'used_count' => 0,
+            'valid_from' => now(),
+            'valid_until' => now()->addHours(24),
+            'is_active' => true,
+            'loyalty_customer_id' => $loyaltyCustomerId,
+            'is_loyalty_reward' => true,
+        ]);
     }
 
     /**

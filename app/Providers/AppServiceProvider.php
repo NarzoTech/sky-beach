@@ -77,7 +77,7 @@ class AppServiceProvider extends ServiceProvider
          * this check will be perform on admin guard
          */
         $this->registerBladeDirectives();
-        Paginator::useBootstrapFour();
+        Paginator::useBootstrapFive();
     }
 
     protected function registerBladeDirectives()

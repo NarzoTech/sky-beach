@@ -12,17 +12,23 @@ use Illuminate\Support\Facades\Cache;
 use Modules\Website\app\Models\WebsiteCart;
 use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\ProductSale;
-use Modules\Membership\app\Models\LoyaltyCustomer;
-use Modules\Membership\app\Models\LoyaltyProgram;
+use Modules\Menu\app\Models\MenuItem;
+use Modules\Menu\app\Models\MenuAddon;
+use Modules\Menu\app\Models\Combo;
+use App\Models\Stock;
+use Modules\Membership\app\Services\LoyaltyService;
+use Modules\Website\app\Models\Coupon;
 use Illuminate\Support\Str;
 
 class BkashController extends Controller
 {
     protected $bkashService;
+    protected $loyaltyService;
 
-    public function __construct(BkashService $bkashService)
+    public function __construct(BkashService $bkashService, LoyaltyService $loyaltyService)
     {
         $this->bkashService = $bkashService;
+        $this->loyaltyService = $loyaltyService;
     }
 
     /**
@@ -48,8 +54,26 @@ class BkashController extends Controller
 
         // Calculate totals
         $subtotal = $cartItems->sum('subtotal');
-        $tax = $this->calculateTax($subtotal);
-        $grandTotal = $subtotal + $tax;
+
+        // Apply coupon discount
+        $couponDiscount = 0;
+        $appliedCoupon = session('applied_coupon');
+        $couponData = null;
+
+        if ($appliedCoupon) {
+            $coupon = Coupon::find($appliedCoupon['id']);
+            if ($coupon && $coupon->isValid()) {
+                $couponDiscount = $coupon->calculateDiscount($subtotal);
+                $couponData = [
+                    'id' => $coupon->id,
+                    'code' => $coupon->code,
+                    'discount' => $couponDiscount,
+                ];
+            }
+        }
+
+        $tax = $this->calculateTax($subtotal - $couponDiscount);
+        $grandTotal = $subtotal - $couponDiscount + $tax;
 
         // Generate temporary invoice number for payment reference
         $invoiceNumber = 'WEB' . now()->format('YmdHis') . rand(100, 999);
@@ -64,6 +88,8 @@ class BkashController extends Controller
                 'subtotal' => $subtotal,
                 'tax' => $tax,
                 'grand_total' => $grandTotal,
+                'coupon_discount' => $couponDiscount,
+                'coupon_data' => $couponData,
                 'invoice_number' => $invoiceNumber,
             ]
         ]);
@@ -167,18 +193,26 @@ class BkashController extends Controller
             $invoice = $this->generateInvoiceNumber();
             $uid = $this->generateUniqueUid();
 
+            // Get coupon data from session
+            $couponDiscount = $checkoutData['coupon_discount'] ?? 0;
+            $couponData = $checkoutData['coupon_data'] ?? null;
+
             // Create sale/order
             $sale = Sale::create([
                 'uid' => $uid,
                 'user_id' => 1, // System user for website orders
                 'customer_id' => Auth::id(),
+                'customer_phone' => $checkoutData['phone'],
                 'warehouse_id' => $this->getDefaultWarehouse(),
                 'quantity' => $cartItems->sum('quantity'),
                 'total_price' => $checkoutData['subtotal'],
-                'order_type' => 'take_away',
+                'order_type' => 'website',
                 'status' => 'pending',
                 'payment_status' => 'success',
                 'payment_method' => ['bkash'],
+                'order_discount' => $couponDiscount,
+                'coupon_code' => $couponData['code'] ?? null,
+                'coupon_id' => $couponData['id'] ?? null,
                 'payment_details' => json_encode([
                     'gateway' => 'bkash',
                     'payment_id' => $paymentResult['data']['paymentID'] ?? null,
@@ -246,10 +280,23 @@ class BkashController extends Controller
                 }
             }
 
+            // Deduct stock for all items in the order
+            $this->deductStockForWebsiteOrder($sale, $cartItems);
+
             // Clear the cart
             WebsiteCart::clearCart();
 
             DB::commit();
+
+            // Record coupon usage after successful order
+            if ($couponData && $couponDiscount > 0) {
+                $coupon = Coupon::find($couponData['id']);
+                if ($coupon) {
+                    $userIdentifier = Auth::check() ? 'user_' . Auth::id() : 'phone_' . preg_replace('/[\s\-]/', '', $checkoutData['phone']);
+                    $coupon->recordUsage($userIdentifier, $couponDiscount, $sale->id);
+                }
+                session()->forget('applied_coupon');
+            }
 
             // Handle loyalty points
             $this->handleLoyaltyPoints($sale, $checkoutData['phone'], $checkoutData['first_name'] . ' ' . $checkoutData['last_name']);
@@ -276,17 +323,13 @@ class BkashController extends Controller
     protected function saveCheckoutDataToCookie($checkoutData)
     {
         $cookieData = [
-            'first_name' => $checkoutData['first_name'],
-            'last_name' => $checkoutData['last_name'],
-            'email' => $checkoutData['email'],
-            'phone' => $checkoutData['phone'],
-            'address' => $checkoutData['address'],
-            'city' => $checkoutData['city'],
-            'postal_code' => $checkoutData['postal_code'],
+            'name' => ($checkoutData['first_name'] ?? '') . ' ' . ($checkoutData['last_name'] ?? ''),
+            'email' => $checkoutData['email'] ?? '',
+            'phone' => $checkoutData['phone'] ?? '',
         ];
 
-        // Cookie expires in 30 days (43200 minutes)
-        $cookie = cookie('checkout_data', json_encode($cookieData), 43200);
+        // Cookie expires in 1 year (525600 minutes)
+        $cookie = cookie('checkout_data', json_encode($cookieData), 525600);
 
         // Queue the cookie to be sent with the response
         cookie()->queue($cookie);
@@ -363,84 +406,153 @@ class BkashController extends Controller
                 return;
             }
 
-            // Normalize phone number
+            // Normalize phone number (remove dashes and spaces)
             $phone = preg_replace('/[\s\-]/', '', $phone);
 
-            // Find or create loyalty customer
-            $loyaltyCustomer = LoyaltyCustomer::where('phone', $phone)->first();
-
-            if (!$loyaltyCustomer) {
-                $loyaltyCustomer = LoyaltyCustomer::create([
-                    'phone' => $phone,
-                    'name' => $customerName,
-                    'status' => 'active',
-                    'total_points' => 0,
-                    'lifetime_points' => 0,
-                    'redeemed_points' => 0,
-                    'joined_at' => now(),
-                ]);
-            }
-
-            if (!$loyaltyCustomer || $loyaltyCustomer->status !== 'active') {
+            if (!$phone) {
                 return;
             }
 
-            // Get warehouse
-            $warehouseId = $sale->warehouse_id ?? $this->getDefaultWarehouse();
+            // Calculate points on subtotal after discount, before tax
+            $loyaltyAmount = ($sale->total_price ?? 0) - ($sale->order_discount ?? 0);
+            $saleContext = [
+                'amount' => max(0, $loyaltyAmount),
+                'sale_id' => $sale->id,
+                'items' => [],
+            ];
 
-            // Get active loyalty program
-            $program = LoyaltyProgram::where('warehouse_id', $warehouseId)
-                ->where('is_active', true)
-                ->first();
+            $loyaltyResult = $this->loyaltyService->handleSaleCompletion($phone, $sale->warehouse_id ?? 1, $saleContext);
 
-            if (!$program) {
-                $program = LoyaltyProgram::where('is_active', true)->first();
-            }
-
-            if (!$program) {
-                return;
-            }
-
-            // Calculate points
-            $pointsEarned = 0;
-            $amount = $sale->grand_total;
-
-            if ($program->earning_type === 'per_amount') {
-                $pointsEarned = floor($amount / max(1, $program->earning_rate));
-            } else {
-                $pointsEarned = $program->earning_rate;
-            }
-
-            if ($program->min_transaction_amount && $amount < $program->min_transaction_amount) {
-                $pointsEarned = 0;
-            }
-
-            if ($pointsEarned > 0) {
-                $loyaltyCustomer->increment('total_points', $pointsEarned);
-                $loyaltyCustomer->increment('lifetime_points', $pointsEarned);
-                $loyaltyCustomer->update(['last_purchase_at' => now()]);
-
-                $sale->update([
-                    'loyalty_customer_id' => $loyaltyCustomer->id,
-                    'points_earned' => $pointsEarned,
-                ]);
-
-                if (class_exists(\Modules\Membership\app\Models\LoyaltyTransaction::class)) {
-                    \Modules\Membership\app\Models\LoyaltyTransaction::create([
-                        'loyalty_customer_id' => $loyaltyCustomer->id,
-                        'warehouse_id' => $warehouseId,
-                        'transaction_type' => 'earn',
-                        'points_amount' => $pointsEarned,
-                        'points_balance_before' => $loyaltyCustomer->total_points - $pointsEarned,
-                        'points_balance_after' => $loyaltyCustomer->total_points,
-                        'source_type' => 'sale',
-                        'source_id' => $sale->id,
-                        'description' => 'Points earned from website order #' . $sale->invoice,
-                    ]);
+            if ($loyaltyResult['success'] ?? false) {
+                $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
+                if ($pointsEarned > 0) {
+                    $sale->update(['points_earned' => $pointsEarned]);
                 }
             }
         } catch (\Exception $e) {
             Log::error('Loyalty points error (bKash): ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deduct stock for website order
+     */
+    private function deductStockForWebsiteOrder(Sale $sale, $cartItems)
+    {
+        try {
+            foreach ($cartItems as $cartItem) {
+                if ($cartItem->combo_id) {
+                    $combo = Combo::with(['comboItems.menuItem.recipes.ingredient'])->find($cartItem->combo_id);
+                    if ($combo) {
+                        foreach ($combo->comboItems as $comboItem) {
+                            if ($comboItem->menuItem) {
+                                $totalQuantity = $comboItem->quantity * $cartItem->quantity;
+                                $this->deductIngredientStockFromRecipe($comboItem->menuItem, $totalQuantity, $sale);
+                            }
+                        }
+                    }
+                } else if ($cartItem->menu_item_id) {
+                    $menuItem = MenuItem::with(['recipes.ingredient'])->find($cartItem->menu_item_id);
+                    if ($menuItem) {
+                        $this->deductIngredientStockFromRecipe($menuItem, $cartItem->quantity, $sale);
+                    }
+                }
+
+                // Deduct addon ingredient stock
+                $addons = $cartItem->addons;
+                if (!empty($addons)) {
+                    if (is_string($addons)) {
+                        $addons = json_decode($addons, true);
+                    }
+                    if (is_array($addons)) {
+                        foreach ($addons as $addon) {
+                            $addonId = $addon['id'] ?? null;
+                            $addonQty = $addon['qty'] ?? 1;
+                            if (!$addonId) continue;
+
+                            $addonModel = MenuAddon::with('recipes.ingredient')->find($addonId);
+                            if (!$addonModel || $addonModel->recipes->isEmpty()) continue;
+
+                            $totalAddonQty = $addonQty * $cartItem->quantity;
+                            foreach ($addonModel->recipes as $recipe) {
+                                $ingredient = $recipe->ingredient;
+                                if (!$ingredient) continue;
+
+                                $deductQuantity = $recipe->quantity_required * $totalAddonQty;
+                                $conversionRate = $ingredient->conversion_rate ?? 1;
+                                $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+                                $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
+
+                                $stockData = [
+                                    'sale_id' => $sale->id,
+                                    'ingredient_id' => $ingredient->id,
+                                    'unit_id' => $ingredient->consumption_unit_id,
+                                    'date' => now(),
+                                    'type' => 'Addon Sale',
+                                    'invoice' => $sale->invoice,
+                                    'out_quantity' => $deductQuantity,
+                                    'base_out_quantity' => $deductInPurchaseUnit,
+                                    'sku' => $ingredient->sku,
+                                    'purchase_price' => $ingredient->purchase_price ?? 0,
+                                    'average_cost' => $ingredient->average_cost ?? 0,
+                                    'sale_price' => 0,
+                                    'rate' => $ingredient->consumption_unit_cost ?? 0,
+                                    'profit' => 0,
+                                    'created_by' => 1,
+                                ];
+                                if ($sale->warehouse_id && \App\Models\Warehouse::find($sale->warehouse_id)) {
+                                    $stockData['warehouse_id'] = $sale->warehouse_id;
+                                }
+                                Stock::create($stockData);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Stock deduction error for bKash order ' . $sale->invoice . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Deduct ingredient stock based on menu item recipe
+     */
+    private function deductIngredientStockFromRecipe(MenuItem $menuItem, $quantity, Sale $sale)
+    {
+        foreach ($menuItem->recipes as $recipe) {
+            $ingredient = $recipe->ingredient;
+            if (!$ingredient) continue;
+
+            $deductQuantity = $recipe->quantity_required * $quantity;
+            $conversionRate = $ingredient->conversion_rate ?? 1;
+            $deductInPurchaseUnit = $deductQuantity / $conversionRate;
+
+            $ingredient->deductStock($deductQuantity, $ingredient->consumption_unit_id);
+
+            $stockData = [
+                'sale_id' => $sale->id,
+                'ingredient_id' => $ingredient->id,
+                'unit_id' => $ingredient->consumption_unit_id,
+                'date' => now(),
+                'type' => 'Website Sale',
+                'invoice' => $sale->invoice,
+                'out_quantity' => $deductQuantity,
+                'base_out_quantity' => $deductInPurchaseUnit,
+                'sku' => $ingredient->sku,
+                'purchase_price' => $ingredient->purchase_price ?? 0,
+                'average_cost' => $ingredient->average_cost ?? 0,
+                'sale_price' => 0,
+                'rate' => $ingredient->consumption_unit_cost ?? 0,
+                'profit' => 0,
+                'created_by' => 1,
+            ];
+
+            if ($sale->warehouse_id && \App\Models\Warehouse::find($sale->warehouse_id)) {
+                $stockData['warehouse_id'] = $sale->warehouse_id;
+            }
+
+            Stock::create($stockData);
         }
     }
 }

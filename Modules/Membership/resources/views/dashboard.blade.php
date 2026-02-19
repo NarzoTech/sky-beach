@@ -157,17 +157,23 @@
                 </div>
                 <div class="card-body">
                     <a href="{{ route('membership.programs.index') }}" class="btn btn-primary me-2">
-                        <i class="fa fa-list"></i> {{ __('Manage Programs') }}
+                        <i class="fas fa-list me-1"></i> {{ __('Manage Programs') }}
                     </a>
                     <a href="{{ route('membership.customers.index') }}" class="btn btn-success me-2">
-                        <i class="fa fa-users"></i> {{ __('View Customers') }}
+                        <i class="fas fa-users me-1"></i> {{ __('View Customers') }}
                     </a>
                     <a href="{{ route('membership.transactions.index') }}" class="btn btn-info me-2">
-                        <i class="fa fa-exchange"></i> {{ __('View Transactions') }}
+                        <i class="fas fa-exchange-alt me-1"></i> {{ __('View Transactions') }}
                     </a>
-                    <a href="{{ route('membership.transactions.statistics') }}" class="btn btn-warning">
-                        <i class="fa fa-chart-bar"></i> {{ __('Statistics') }}
+                    <a href="{{ route('membership.transactions.statistics') }}" class="btn btn-warning me-2">
+                        <i class="fas fa-chart-bar me-1"></i> {{ __('Statistics') }}
                     </a>
+                    <form action="{{ route('membership.recalculate') }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('This will recalculate all customer points from transaction history. Continue?') }}')">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-sync me-1"></i> {{ __('Recalculate Points') }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

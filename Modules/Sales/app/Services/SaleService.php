@@ -71,6 +71,7 @@ class SaleService
 
         $isGuest = !$request->order_customer_id || $request->order_customer_id == 'walk-in-customer';
         $sale->customer_id = $isGuest ? null : $request->order_customer_id;
+        $sale->customer_phone = $request->customer_phone;
         $sale->warehouse_id = 1;
         $sale->quantity = 1;
         $sale->total_price = $request->sub_total;

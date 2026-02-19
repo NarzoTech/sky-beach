@@ -957,6 +957,15 @@ function populateRunningOrderModal(order) {
     };
     document.getElementById('ropOrderType').textContent = orderTypeLabels[order.order_type] || order.order_type;
 
+    // Auto-populate membership phone from order's stored phone or customer record
+    const ropPhoneInput = document.getElementById('ropCustomerPhone');
+    if (ropPhoneInput && !ropPhoneInput.value.trim()) {
+        const autoPhone = order.customer_phone || (order.customer && order.customer.phone) || '';
+        if (autoPhone) {
+            ropPhoneInput.value = autoPhone;
+        }
+    }
+
     // Populate items list
     const itemsList = document.getElementById('ropItemsList');
     let itemsHtml = '';
@@ -1487,8 +1496,11 @@ function completeRunningOrderPayment() {
     formData.append('receive_amount', document.getElementById('ropAmountReceived').value || 0);
     formData.append('total_amount', document.getElementById('ropTotalValue').value || 0);
 
-    // Membership phone for loyalty points
-    const ropPhone = document.getElementById('ropCustomerPhone')?.value?.trim();
+    // Membership phone for loyalty points - try input, then stored phone, then customer record
+    let ropPhone = document.getElementById('ropCustomerPhone')?.value?.trim();
+    if (!ropPhone) {
+        ropPhone = ropCurrentOrder?.customer_phone || ropCurrentOrder?.customer?.phone || '';
+    }
     if (ropPhone) {
         formData.append('customer_phone', ropPhone);
     }

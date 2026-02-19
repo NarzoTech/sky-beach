@@ -128,13 +128,39 @@
                                     @endforeach
                                 </div>
 
+                                <!-- Coupon Code -->
+                                <div class="coupon_section mb-3">
+                                    <div id="coupon-input-group" style="{{ $appliedCoupon ? 'display:none;' : '' }}">
+                                        <div class="input-group">
+                                            <input type="text" id="checkout-coupon-code" class="form-control" placeholder="{{ __('Coupon Code') }}" style="border: 1px solid #ddd; border-radius: 5px 0 0 5px; padding: 10px 15px; font-size: 14px;">
+                                            <button class="common_btn" type="button" onclick="applyCouponAtCheckout()" style="border-radius: 0 5px 5px 0; padding: 10px 20px; font-size: 14px;">{{ __('Apply') }}</button>
+                                        </div>
+                                        <small id="coupon-error-msg" class="text-danger mt-1" style="display:none;"></small>
+                                    </div>
+                                    <div id="coupon-applied-info" style="{{ $appliedCoupon ? '' : 'display:none;' }}">
+                                        <div class="d-flex justify-content-between align-items-center" style="background: rgba(15,144,67,0.08); padding: 10px 15px; border-radius: 5px; border: 1px dashed var(--colorGreen, #0F9043);">
+                                            <span style="color: var(--colorGreen, #0F9043); font-size: 14px;">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                <strong id="applied-coupon-code">{{ $appliedCoupon['code'] ?? '' }}</strong>
+                                                — {{ currency($couponDiscount ?? 0) }} {{ __('off') }}
+                                            </span>
+                                            <button class="btn btn-sm p-0" type="button" onclick="removeCouponAtCheckout()" style="color: var(--colorPrimary); font-size: 16px;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="cart_summery">
                                     <h6>{{ __('Order Summary') }}</h6>
                                     <p>{{ __('Subtotal') }}: <span>{{ currency($cartTotal) }}</span></p>
+                                    <p id="checkout-discount-row" style="{{ ($couponDiscount ?? 0) > 0 ? '' : 'display:none;' }}">
+                                        {{ __('Discount') }}: <span class="text-success" id="checkout-discount-amount">-{{ currency($couponDiscount ?? 0) }}</span>
+                                    </p>
                                     @if($taxEnabled)
                                     <p>{{ __('Tax') }} ({{ $taxRate }}%): <span id="tax-amount">{{ currency($calculatedTax) }}</span></p>
                                     @endif
-                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency($cartTotal + $calculatedTax) }}</span></p>
+                                    <p class="total"><span>{{ __('Total') }}:</span> <span id="order-total">{{ currency(($cartTotal - ($couponDiscount ?? 0)) + $calculatedTax) }}</span></p>
 
                                     <button type="submit" class="common_btn w-100" id="place-order-btn">
                                         <i class="fas fa-check-circle me-2"></i>{{ __('Place Order') }}
@@ -354,6 +380,17 @@
         color: var(--colorYellow);
     }
 
+    .coupon_section .common_btn {
+        background: var(--colorPrimary) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    .coupon_section .common_btn:hover::before,
+    .coupon_section .common_btn:hover::after {
+        display: none !important;
+    }
+
 </style>
 @endpush
 
@@ -527,6 +564,95 @@
             submitBtn.disabled = false;
             updateSubmitButton(paymentMethod);
         }
+
+    });
+
+    // Coupon functions
+    function applyCouponAtCheckout() {
+        const code = document.getElementById('checkout-coupon-code').value.trim();
+        const errorMsg = document.getElementById('coupon-error-msg');
+        if (!code) return;
+
+        errorMsg.style.display = 'none';
+
+        fetch('{{ route("website.cart.coupon") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('applied-coupon-code').textContent = code.toUpperCase();
+                document.getElementById('coupon-input-group').style.display = 'none';
+                const infoEl = document.getElementById('coupon-applied-info');
+                infoEl.style.display = 'block';
+                infoEl.querySelector('span').innerHTML =
+                    '<i class="fas fa-check-circle me-1"></i> <strong>' + code.toUpperCase() + '</strong> — ' + formatCurrency(data.discount) + ' {{ __("off") }}';
+                updateCheckoutTotals(data.discount);
+            } else {
+                errorMsg.textContent = data.message || '{{ __("Invalid coupon code.") }}';
+                errorMsg.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            errorMsg.textContent = '{{ __("Something went wrong.") }}';
+            errorMsg.style.display = 'block';
+        });
+    }
+
+    function removeCouponAtCheckout() {
+        fetch('{{ route("website.cart.coupon.remove") }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('coupon-input-group').style.display = '';
+            document.getElementById('coupon-applied-info').style.display = 'none';
+            document.getElementById('checkout-coupon-code').value = '';
+            updateCheckoutTotals(0);
+        })
+        .catch(() => {});
+    }
+
+    function updateCheckoutTotals(discount) {
+        const subtotal = {{ $cartTotal }};
+        const taxRate = {{ $taxEnabled ? $taxRate : 0 }};
+        const discountedSubtotal = subtotal - discount;
+        const tax = taxRate > 0 ? Math.round(discountedSubtotal * (taxRate / 100) * 100) / 100 : 0;
+        const total = discountedSubtotal + tax;
+
+        const discountRow = document.getElementById('checkout-discount-row');
+        const discountAmount = document.getElementById('checkout-discount-amount');
+        const taxEl = document.getElementById('tax-amount');
+        const totalEl = document.getElementById('order-total');
+
+        if (discount > 0) {
+            discountRow.style.display = '';
+            discountAmount.textContent = '-' + formatCurrency(discount);
+        } else {
+            discountRow.style.display = 'none';
+        }
+
+        if (taxEl) taxEl.textContent = formatCurrency(tax);
+        if (totalEl) totalEl.textContent = formatCurrency(total);
+    }
+
+    function formatCurrency(amount) {
+        return '{{ currency_icon() }}' + parseFloat(amount).toFixed(2);
+    }
+
+    // Apply coupon on Enter key
+    document.getElementById('checkout-coupon-code')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); applyCouponAtCheckout(); }
     });
 </script>
 @endpush

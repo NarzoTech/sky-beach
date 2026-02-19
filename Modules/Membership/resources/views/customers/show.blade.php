@@ -57,7 +57,7 @@
                         </tr>
                         <tr>
                             <th>{{ __('Total Earned') }}</th>
-                            <td class="text-success">{{ number_format($summary['total_earned'] ?? 0) }}</td>
+                            <td class="text-success">{{ number_format($summary['lifetime_earned'] ?? 0) }}</td>
                         </tr>
                         <tr>
                             <th>{{ __('Total Redeemed') }}</th>
@@ -133,7 +133,7 @@
                                                 <span class="badge bg-success">{{ __('Earned') }}</span>
                                             @elseif ($transaction->transaction_type == 'redeem')
                                                 <span class="badge bg-danger">{{ __('Redeemed') }}</span>
-                                            @elseif ($transaction->transaction_type == 'adjustment')
+                                            @elseif ($transaction->transaction_type == 'adjust')
                                                 <span class="badge bg-info">{{ __('Adjusted') }}</span>
                                             @else
                                                 <span class="badge bg-secondary">{{ $transaction->transaction_type }}</span>

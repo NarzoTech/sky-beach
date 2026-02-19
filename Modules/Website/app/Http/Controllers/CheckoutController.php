@@ -12,6 +12,8 @@ use Modules\Website\app\Models\WebsiteCart;
 use Modules\Sales\app\Models\Sale;
 use Modules\Sales\app\Models\ProductSale;
 use Modules\Membership\app\Services\LoyaltyService;
+use Modules\Website\app\Models\Coupon;
+use Modules\Website\app\Services\LoyaltyRewardService;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\MenuAddon;
 use Modules\Menu\app\Models\Combo;
@@ -21,10 +23,12 @@ use Illuminate\Support\Str;
 class CheckoutController extends Controller
 {
     protected $loyaltyService;
+    protected $loyaltyRewardService;
 
-    public function __construct(LoyaltyService $loyaltyService)
+    public function __construct(LoyaltyService $loyaltyService, LoyaltyRewardService $loyaltyRewardService)
     {
         $this->loyaltyService = $loyaltyService;
+        $this->loyaltyRewardService = $loyaltyRewardService;
     }
 
     /**
@@ -54,8 +58,22 @@ class CheckoutController extends Controller
         $taxEnabled = ($setting->website_tax_enabled ?? '1') == '1';
         $taxRate = $setting->website_tax_rate ?? 15;
 
-        // Calculate tax for display
-        $calculatedTax = $taxEnabled ? round($cartTotal * ($taxRate / 100), 2) : 0;
+        // Check for applied coupon
+        $appliedCoupon = session('applied_coupon');
+        $couponDiscount = 0;
+        if ($appliedCoupon) {
+            $coupon = Coupon::find($appliedCoupon['id']);
+            if ($coupon && $coupon->isValid()) {
+                $couponDiscount = $coupon->calculateDiscount($cartTotal);
+            } else {
+                session()->forget('applied_coupon');
+                $appliedCoupon = null;
+            }
+        }
+
+        // Calculate tax on discounted subtotal
+        $discountedSubtotal = $cartTotal - $couponDiscount;
+        $calculatedTax = $taxEnabled ? round($discountedSubtotal * ($taxRate / 100), 2) : 0;
 
         return view('website::checkout', compact(
             'cartItems',
@@ -66,7 +84,9 @@ class CheckoutController extends Controller
             'savedCheckoutData',
             'taxEnabled',
             'taxRate',
-            'calculatedTax'
+            'calculatedTax',
+            'appliedCoupon',
+            'couponDiscount'
         ));
     }
 
@@ -98,8 +118,30 @@ class CheckoutController extends Controller
         try {
             // Calculate totals
             $subtotal = $cartItems->sum('subtotal');
-            $tax = $this->calculateTax($subtotal);
-            $grandTotal = $subtotal + $tax;
+
+            // Apply coupon discount
+            $couponDiscount = 0;
+            $appliedCoupon = session('applied_coupon');
+            $couponCode = null;
+            $couponId = null;
+
+            if ($appliedCoupon) {
+                $coupon = Coupon::find($appliedCoupon['id']);
+                if ($coupon && $coupon->isValid()) {
+                    $userIdentifier = $this->getUserIdentifier($request);
+                    if ($coupon->canBeUsedBy($userIdentifier)) {
+                        $couponDiscount = $coupon->calculateDiscount($subtotal);
+                        $couponCode = $coupon->code;
+                        $couponId = $coupon->id;
+                    }
+                }
+                if ($couponDiscount <= 0) {
+                    session()->forget('applied_coupon');
+                }
+            }
+
+            $tax = $this->calculateTax($subtotal - $couponDiscount);
+            $grandTotal = $subtotal - $couponDiscount + $tax;
 
             // Generate invoice number and UID
             $invoice = $this->generateInvoiceNumber();
@@ -110,6 +152,7 @@ class CheckoutController extends Controller
                 'uid' => $uid,
                 'user_id' => 1, // System user for website orders
                 'customer_id' => Auth::id(),
+                'customer_phone' => $request->phone,
                 'warehouse_id' => $this->getDefaultWarehouse(),
                 'quantity' => $cartItems->sum('quantity'),
                 'total_price' => $subtotal,
@@ -117,6 +160,9 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'payment_status' => $request->payment_method === 'cash' ? 'unpaid' : 'pending',
                 'payment_method' => [$request->payment_method],
+                'order_discount' => $couponDiscount,
+                'coupon_code' => $couponCode,
+                'coupon_id' => $couponId,
                 'total_tax' => $tax,
                 'shipping_cost' => 0,
                 'grand_total' => $grandTotal,
@@ -183,6 +229,15 @@ class CheckoutController extends Controller
             WebsiteCart::clearCart();
 
             DB::commit();
+
+            // Record coupon usage after successful order
+            if ($couponId && $couponDiscount > 0) {
+                $coupon = Coupon::find($couponId);
+                if ($coupon) {
+                    $coupon->recordUsage($this->getUserIdentifier($request), $couponDiscount, $sale->id);
+                }
+                session()->forget('applied_coupon');
+            }
 
             // Save checkout data to cookies for returning customers
             $this->saveCheckoutDataToCookie($request);
@@ -367,6 +422,78 @@ class CheckoutController extends Controller
             // Log error but don't fail the order
             Log::error('Loyalty points error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * AJAX: Check loyalty points balance and available tiers
+     */
+    public function checkLoyaltyPoints(Request $request)
+    {
+        $request->validate(['phone' => 'required|string']);
+
+        $result = $this->loyaltyRewardService->getAvailableTiers($request->phone);
+
+        if (!($result['success'] ?? false)) {
+            return response()->json(['success' => false, 'message' => $result['error'] ?? __('Not found')], 400);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * AJAX: Redeem loyalty points and auto-apply coupon
+     */
+    public function redeemLoyaltyPoints(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'tier_index' => 'required|integer|min:0',
+        ]);
+
+        $result = $this->loyaltyRewardService->redeemForCoupon($request->phone, $request->tier_index);
+
+        if (!($result['success'] ?? false)) {
+            return response()->json(['success' => false, 'message' => $result['error'] ?? __('Redemption failed')], 400);
+        }
+
+        // Auto-apply the generated coupon to session
+        $coupon = $result['coupon'];
+        $cartTotal = WebsiteCart::getCartTotal();
+        $discountAmount = $coupon->calculateDiscount($cartTotal);
+
+        session([
+            'applied_coupon' => [
+                'id' => $coupon->id,
+                'code' => $coupon->code,
+                'name' => $coupon->name,
+                'type' => $coupon->type,
+                'value' => $coupon->value,
+                'discount_amount' => $discountAmount,
+            ]
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Points redeemed! Discount applied.'),
+            'coupon_code' => $coupon->code,
+            'discount_amount' => $discountAmount,
+            'remaining_points' => $result['remaining_points'],
+        ]);
+    }
+
+    /**
+     * Get user identifier for coupon tracking
+     */
+    private function getUserIdentifier(Request $request = null): string
+    {
+        if (Auth::check()) {
+            return 'user_' . Auth::id();
+        }
+        $phone = $request ? $request->phone : null;
+        if ($phone) {
+            return 'phone_' . preg_replace('/[\s\-]/', '', $phone);
+        }
+        return 'session_' . session()->getId();
     }
 
     /**

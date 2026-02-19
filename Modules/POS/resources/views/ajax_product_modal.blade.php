@@ -5,8 +5,9 @@
 .product-modal-header {
     position: relative;
     background: #696cff;
-    padding: 20px;
+    padding: 20px 24px;
     border-radius: 0;
+    border-bottom: none;
     color: #fff;
     display: flex;
     align-items: center;
@@ -14,26 +15,16 @@
     flex-wrap: wrap;
     padding-right: 50px;
 }
-.product-modal-close {
+.product-modal-header .btn-close {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 32px;
-    height: 32px;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    opacity: 0.8;
+    transition: opacity 0.2s;
 }
-.product-modal-close:hover {
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.1);
+.product-modal-header .btn-close:hover {
+    opacity: 1;
 }
 .product-modal-body {
     display: flex;
@@ -65,10 +56,13 @@
     min-width: 0;
 }
 .product-name {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #2d3748;
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 .product-description {
     color: #718096;
@@ -325,10 +319,8 @@
     <div class="product-modal-content">
         {{-- Header --}}
         <div class="product-modal-header">
-            <div class="product-name text-white">{{ $product->name }}</div>
-            <button type="button" class="product-modal-close" data-bs-dismiss="modal">
-                <i class="bx bx-x"></i>
-            </button>
+            <div class="product-name text-white"><i class="bx bx-package"></i> {{ $product->name }}</div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         {{-- Body --}}

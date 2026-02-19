@@ -2,6 +2,7 @@
 
 namespace Modules\Membership\app\Services;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Membership\app\Models\LoyaltyCustomer;
 use Modules\Membership\app\Models\LoyaltyProgram;
 use Modules\Membership\app\Models\LoyaltyTransaction;
@@ -13,6 +14,18 @@ class PointCalculationService
     public function __construct(RuleEngineService $ruleEngineService)
     {
         $this->ruleEngineService = $ruleEngineService;
+    }
+
+    /**
+     * Validate warehouse_id exists, return null if not
+     */
+    private function resolveWarehouseId($warehouseId)
+    {
+        if (!$warehouseId) {
+            return null;
+        }
+
+        return DB::table('warehouses')->where('id', $warehouseId)->exists() ? $warehouseId : null;
     }
 
     /**
@@ -39,38 +52,40 @@ class PointCalculationService
             ];
         }
 
-        // Record previous balance
-        $balanceBefore = $customer->total_points;
+        return DB::transaction(function () use ($customer, $pointsToEarn, $context, $evaluation) {
+            // Record previous balance
+            $balanceBefore = $customer->total_points;
 
-        // Update customer points
-        $customer->total_points += $pointsToEarn;
-        $customer->lifetime_points += $pointsToEarn;
-        $customer->last_purchase_at = now();
-        $customer->save();
+            // Update customer points
+            $customer->total_points += $pointsToEarn;
+            $customer->lifetime_points += $pointsToEarn;
+            $customer->last_purchase_at = now();
+            $customer->save();
 
-        // Create transaction record
-        $transaction = LoyaltyTransaction::create([
-            'loyalty_customer_id' => $customer->id,
-            'warehouse_id' => $context['warehouse_id'] ?? null,
-            'transaction_type' => 'earn',
-            'points_amount' => $pointsToEarn,
-            'points_balance_before' => $balanceBefore,
-            'points_balance_after' => $customer->total_points,
-            'source_type' => 'sale',
-            'source_id' => $context['sale_id'] ?? null,
-            'description' => $context['description'] ?? 'Points earned from sale',
-            'notes' => json_encode($evaluation['breakdown']),
-            'created_by' => $context['created_by'] ?? null,
-        ]);
+            // Create transaction record
+            $transaction = LoyaltyTransaction::create([
+                'loyalty_customer_id' => $customer->id,
+                'warehouse_id' => $this->resolveWarehouseId($context['warehouse_id'] ?? null),
+                'transaction_type' => 'earn',
+                'points_amount' => $pointsToEarn,
+                'points_balance_before' => $balanceBefore,
+                'points_balance_after' => $customer->total_points,
+                'source_type' => 'sale',
+                'source_id' => $context['sale_id'] ?? null,
+                'description' => $context['description'] ?? 'Points earned from sale',
+                'notes' => json_encode($evaluation['breakdown']),
+                'created_by' => $context['created_by'] ?? null,
+            ]);
 
-        return [
-            'success' => true,
-            'message' => 'Points earned successfully',
-            'points_earned' => $pointsToEarn,
-            'total_points' => $customer->total_points,
-            'breakdown' => $evaluation['breakdown'],
-            'transaction_id' => $transaction->id,
-        ];
+            return [
+                'success' => true,
+                'message' => 'Points earned successfully',
+                'points_earned' => $pointsToEarn,
+                'total_points' => $customer->total_points,
+                'breakdown' => $evaluation['breakdown'],
+                'transaction_id' => $transaction->id,
+            ];
+        });
     }
 
     /**
@@ -104,6 +119,12 @@ class PointCalculationService
         }
 
         // Calculate redemption value based on program settings
+        if (!$program->points_per_unit || $program->points_per_unit <= 0) {
+            return [
+                'valid' => false,
+                'error' => 'Invalid redemption rate configured',
+            ];
+        }
         $redemptionValue = $pointsToRedeem / $program->points_per_unit;
 
         return [
@@ -135,38 +156,40 @@ class PointCalculationService
             ];
         }
 
-        // Record previous balance
-        $balanceBefore = $customer->total_points;
+        return DB::transaction(function () use ($customer, $pointsToRedeem, $context) {
+            // Record previous balance
+            $balanceBefore = $customer->total_points;
 
-        // Deduct points
-        $customer->total_points -= $pointsToRedeem;
-        $customer->redeemed_points += $pointsToRedeem;
-        $customer->last_redemption_at = now();
-        $customer->save();
+            // Deduct points
+            $customer->total_points -= $pointsToRedeem;
+            $customer->redeemed_points += $pointsToRedeem;
+            $customer->last_redemption_at = now();
+            $customer->save();
 
-        // Create transaction record
-        $transaction = LoyaltyTransaction::create([
-            'loyalty_customer_id' => $customer->id,
-            'warehouse_id' => $context['warehouse_id'] ?? null,
-            'transaction_type' => 'redeem',
-            'points_amount' => -$pointsToRedeem,
-            'points_balance_before' => $balanceBefore,
-            'points_balance_after' => $customer->total_points,
-            'source_type' => 'sale',
-            'source_id' => $context['sale_id'] ?? null,
-            'redemption_method' => $context['redemption_type'] ?? null,
-            'redemption_value' => $context['redemption_value'] ?? null,
-            'description' => $context['description'] ?? 'Points redeemed',
-            'created_by' => $context['created_by'] ?? null,
-        ]);
+            // Create transaction record
+            $transaction = LoyaltyTransaction::create([
+                'loyalty_customer_id' => $customer->id,
+                'warehouse_id' => $this->resolveWarehouseId($context['warehouse_id'] ?? null),
+                'transaction_type' => 'redeem',
+                'points_amount' => -$pointsToRedeem,
+                'points_balance_before' => $balanceBefore,
+                'points_balance_after' => $customer->total_points,
+                'source_type' => 'sale',
+                'source_id' => $context['sale_id'] ?? null,
+                'redemption_method' => $context['redemption_type'] ?? null,
+                'redemption_value' => $context['redemption_value'] ?? null,
+                'description' => $context['description'] ?? 'Points redeemed',
+                'created_by' => $context['created_by'] ?? null,
+            ]);
 
-        return [
-            'success' => true,
-            'message' => 'Points redeemed successfully',
-            'points_redeemed' => $pointsToRedeem,
-            'remaining_points' => $customer->total_points,
-            'transaction_id' => $transaction->id,
-        ];
+            return [
+                'success' => true,
+                'message' => 'Points redeemed successfully',
+                'points_redeemed' => $pointsToRedeem,
+                'remaining_points' => $customer->total_points,
+                'transaction_id' => $transaction->id,
+            ];
+        });
     }
 
     /**
@@ -189,43 +212,45 @@ class PointCalculationService
             ];
         }
 
-        // Record previous balance
-        $balanceBefore = $customer->total_points;
+        return DB::transaction(function () use ($customer, $pointsAdjustment, $context) {
+            // Record previous balance
+            $balanceBefore = $customer->total_points;
 
-        // Apply adjustment
-        $customer->total_points += $pointsAdjustment;
+            // Apply adjustment
+            $customer->total_points += $pointsAdjustment;
 
-        // Update lifetime or redeemed points based on adjustment direction
-        if ($pointsAdjustment > 0) {
-            $customer->lifetime_points += $pointsAdjustment;
-        } else {
-            $customer->redeemed_points += abs($pointsAdjustment);
-        }
+            // Update lifetime or redeemed points based on adjustment direction
+            if ($pointsAdjustment > 0) {
+                $customer->lifetime_points += $pointsAdjustment;
+            } else {
+                $customer->redeemed_points += abs($pointsAdjustment);
+            }
 
-        $customer->save();
+            $customer->save();
 
-        // Create transaction record
-        $transaction = LoyaltyTransaction::create([
-            'loyalty_customer_id' => $customer->id,
-            'warehouse_id' => $context['warehouse_id'] ?? null,
-            'transaction_type' => 'adjust',
-            'points_amount' => $pointsAdjustment,
-            'points_balance_before' => $balanceBefore,
-            'points_balance_after' => $customer->total_points,
-            'source_type' => 'manual_adjust',
-            'description' => $context['reason'] ?? 'Manual points adjustment',
-            'notes' => $context['notes'] ?? null,
-            'created_by' => $context['created_by'] ?? null,
-        ]);
+            // Create transaction record
+            $transaction = LoyaltyTransaction::create([
+                'loyalty_customer_id' => $customer->id,
+                'warehouse_id' => $this->resolveWarehouseId($context['warehouse_id'] ?? null),
+                'transaction_type' => 'adjust',
+                'points_amount' => $pointsAdjustment,
+                'points_balance_before' => $balanceBefore,
+                'points_balance_after' => $customer->total_points,
+                'source_type' => 'manual_adjust',
+                'description' => $context['reason'] ?? 'Manual points adjustment',
+                'notes' => $context['notes'] ?? null,
+                'created_by' => $context['created_by'] ?? null,
+            ]);
 
-        return [
-            'success' => true,
-            'message' => 'Points adjusted successfully',
-            'adjustment' => $pointsAdjustment,
-            'previous_balance' => $balanceBefore,
-            'new_balance' => $customer->total_points,
-            'transaction_id' => $transaction->id,
-        ];
+            return [
+                'success' => true,
+                'message' => 'Points adjusted successfully',
+                'adjustment' => $pointsAdjustment,
+                'previous_balance' => $balanceBefore,
+                'new_balance' => $customer->total_points,
+                'transaction_id' => $transaction->id,
+            ];
+        });
     }
 
     /**

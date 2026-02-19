@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\Sales\app\Models\Sale;
 use Modules\Menu\app\Services\MenuStockService;
+use Modules\Accounts\app\Models\Account;
 use App\Models\Stock;
 use Modules\Menu\app\Models\Combo;
 
@@ -71,7 +72,11 @@ class WebsiteOrderController extends Controller
             'completed' => Sale::websiteOrders()->whereIn('status', ['delivered', 'completed'])->count(),
         ];
 
-        return view('website::admin.website-orders.index', compact('orders', 'stats'));
+        // Get accounts and POS settings for payment modal
+        $accounts = Account::with('bank')->get();
+        $posSettings = \Modules\POS\app\Models\PosSettings::first();
+
+        return view('website::admin.website-orders.index', compact('orders', 'stats', 'accounts', 'posSettings'));
     }
 
     /**

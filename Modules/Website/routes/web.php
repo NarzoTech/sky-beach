@@ -8,6 +8,7 @@ use Modules\Website\app\Http\Controllers\CheckoutController;
 use Modules\Website\app\Http\Controllers\BkashController;
 use Modules\Website\app\Http\Controllers\OrderController;
 use Modules\Website\app\Http\Controllers\ReservationController;
+use Modules\Website\app\Http\Controllers\RewardsController;
 use Modules\Website\app\Http\Controllers\Admin\WebsiteOrderController;
 use Modules\Website\app\Http\Controllers\Admin\CouponController;
 
@@ -64,6 +65,15 @@ Route::group([], function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/process', [CheckoutController::class, 'processOrder'])->name('process');
         Route::get('/success/{uid}', [CheckoutController::class, 'orderSuccess'])->name('success');
+        Route::post('/loyalty-check', [CheckoutController::class, 'checkLoyaltyPoints'])->name('loyalty.check');
+        Route::post('/loyalty-redeem', [CheckoutController::class, 'redeemLoyaltyPoints'])->middleware('throttle:5,1')->name('loyalty.redeem');
+    });
+
+    // Rewards / Loyalty Page
+    Route::prefix('rewards')->name('website.rewards.')->group(function() {
+        Route::get('/', [RewardsController::class, 'index'])->name('index');
+        Route::post('/check-points', [RewardsController::class, 'checkPoints'])->name('check');
+        Route::post('/redeem', [RewardsController::class, 'redeem'])->middleware('throttle:5,1')->name('redeem');
     });
 
     // bKash Payment Routes

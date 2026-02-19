@@ -223,7 +223,7 @@ class RuleEngineService
         }
 
         // per_amount type (legacy fallback)
-        return floor($amount / (1 / $program->earning_rate));
+        return floor($amount * $program->earning_rate);
     }
 
     /**

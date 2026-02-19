@@ -26,6 +26,7 @@ class Sale extends Model
         'uid',
         'user_id',
         'customer_id',
+        'customer_phone',
         'warehouse_id',
         'quantity',
         'total_price',
@@ -67,6 +68,12 @@ class Sale extends Model
         'return_amount',
         'original_table_id',
         'table_transfer_log',
+        'coupon_code',
+        'coupon_id',
+        'points_earned',
+        'points_redeemed',
+        'points_discount',
+        'loyalty_customer_id',
     ];
 
     const ORDER_TYPE_DINE_IN = 'dine_in';

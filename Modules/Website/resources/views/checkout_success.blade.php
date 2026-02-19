@@ -52,7 +52,7 @@
                                         <div class="info_item">
                                             <label>{{ __('Order Type') }}</label>
                                             <strong>
-                                                <i class="fas fa-shopping-bag me-1"></i>{{ __('Take Away') }}
+                                                <i class="fas fa-globe me-1"></i>{{ __('Website Order') }}
                                             </strong>
                                         </div>
                                     </div>

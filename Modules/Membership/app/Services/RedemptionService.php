@@ -235,6 +235,9 @@ class RedemptionService
      */
     public function getRedemptionValue(LoyaltyProgram $program, $points)
     {
+        if (!$program->points_per_unit || $program->points_per_unit <= 0) {
+            return 0;
+        }
         return round($points / $program->points_per_unit, 2);
     }
 

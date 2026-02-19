@@ -518,9 +518,19 @@ function initPaymentModal(options) {
         }
     });
 
-    // Reset membership phone
+    // Auto-populate membership phone from selected customer
     var phoneInput = document.getElementById('paymentCustomerPhone');
-    if (phoneInput) phoneInput.value = '';
+    if (phoneInput) {
+        phoneInput.value = '';
+        var customerSelect = document.getElementById('customer_id');
+        if (customerSelect && customerSelect.value && customerSelect.value !== 'walk-in-customer') {
+            var selectedOption = customerSelect.options[customerSelect.selectedIndex];
+            var customerPhone = selectedOption?.dataset?.phone || '';
+            if (customerPhone) {
+                phoneInput.value = customerPhone;
+            }
+        }
+    }
     var memberInfo = document.getElementById('paymentMembershipInfo');
     if (memberInfo) memberInfo.style.display = 'none';
 
@@ -963,6 +973,10 @@ function completePayment() {
     formData.append('waiter_id', document.getElementById('paymentWaiterId').value);
     formData.append('sale_date', new Date().toLocaleDateString('en-GB').replace(/\//g, '-')); // DD-MM-YYYY format
 
+    // Add customer ID from POS customer selector
+    const customerId = document.getElementById('order_customer_id')?.value || document.getElementById('customer_id')?.value || 'walk-in-customer';
+    formData.append('order_customer_id', customerId);
+
     // Add tax and discount data from POS summary
     formData.append('tax_rate', document.getElementById('taxRate')?.value || 0);
     formData.append('total_tax', document.getElementById('taxAmount')?.value || 0);
@@ -970,8 +984,15 @@ function completePayment() {
     formData.append('discount_amount', document.getElementById('discount_total_amount')?.value || 0);
     formData.append('sub_total', document.getElementById('subtotal')?.value || document.getElementById('total')?.value || 0);
 
-    // Membership phone for loyalty points
-    const memberPhone = document.getElementById('paymentCustomerPhone')?.value?.trim();
+    // Membership phone for loyalty points - try manual input first, then auto from customer selector
+    let memberPhone = document.getElementById('paymentCustomerPhone')?.value?.trim();
+    if (!memberPhone) {
+        const customerSelect = document.getElementById('customer_id');
+        if (customerSelect && customerSelect.value && customerSelect.value !== 'walk-in-customer') {
+            const selectedOption = customerSelect.options[customerSelect.selectedIndex];
+            memberPhone = selectedOption?.dataset?.phone || '';
+        }
+    }
     if (memberPhone) {
         formData.append('customer_phone', memberPhone);
     }

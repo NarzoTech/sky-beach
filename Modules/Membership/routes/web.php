@@ -21,6 +21,7 @@ use Modules\Membership\app\Http\Controllers\MembershipController;
 Route::middleware(['auth:admin'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('membership', [MembershipController::class, 'index'])->name('membership.index');
+    Route::post('membership/recalculate-points', [MembershipController::class, 'recalculatePoints'])->name('membership.recalculate');
 
     // Programs
     Route::resource('membership/programs', LoyaltyProgramController::class)->names([

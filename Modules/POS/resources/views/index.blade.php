@@ -4514,7 +4514,7 @@
 
         // Update item quantity in running order
         function updateItemQty(orderId, detailId, change) {
-            const qtyInput = $(`input.item-qty[data-detail-id="${detailId}"]`);
+            const qtyInput = $(`input.qty-input[data-detail-id="${detailId}"]`);
             let newQty = parseInt(qtyInput.val()) + change;
             if (newQty < 1) newQty = 1;
 
@@ -4523,7 +4523,7 @@
 
         function updateItemQtyDirect(orderId, detailId, quantity) {
             quantity = Math.max(1, parseInt(quantity));
-            const qtyInput = $(`input.item-qty[data-detail-id="${detailId}"]`);
+            const qtyInput = $(`input.qty-input[data-detail-id="${detailId}"]`);
             qtyInput.val(quantity);
 
             $.ajax({

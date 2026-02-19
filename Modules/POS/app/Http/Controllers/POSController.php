@@ -1075,17 +1075,21 @@ class POSController extends Controller
             // Award loyalty points server-side for paid orders
             $pointsEarned = 0;
             try {
-                // Use phone from request (checkout modal) or fall back to customer record
-                $customerPhone = $request->customer_phone ?? $sale->customer->phone ?? null;
+                // Use phone from: request → sale record → customer record
+                $customerPhone = $request->customer_phone ?: $sale->customer_phone;
+                if (!$customerPhone && $sale->customer_id) {
+                    $customerPhone = $sale->customer?->phone;
+                }
                 if ($customerPhone && ($sale->points_earned ?? 0) <= 0) {
                     // Calculate points on subtotal after discount, before tax
                     $loyaltyAmount = ($sale->total_price ?? 0) - ($sale->order_discount ?? 0);
                     $saleContext = [
                         'amount' => max(0, $loyaltyAmount),
                         'sale_id' => $sale->id,
+                        'warehouse_id' => $sale->warehouse_id ?? 1,
                         'items' => [],
                     ];
-                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, 1, $saleContext);
+                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, $sale->warehouse_id ?? 1, $saleContext);
                     if ($loyaltyResult['success'] ?? false) {
                         $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
                         $sale->update(['points_earned' => $pointsEarned]);
@@ -1840,17 +1844,25 @@ class POSController extends Controller
             // Award loyalty points server-side for completed running/waiter orders
             $pointsEarned = 0;
             try {
-                // Use phone from request (checkout modal) or fall back to customer record
-                $customerPhone = $request->customer_phone ?? $order->customer->phone ?? null;
+                // Use phone from: request → sale record → customer record
+                $customerPhone = $request->customer_phone ?: $order->customer_phone;
+                if (!$customerPhone && $order->customer_id) {
+                    $customerPhone = $order->customer?->phone;
+                }
+                // Save customer_phone on the order if provided now (e.g. entered at checkout time)
+                if ($request->customer_phone && !$order->customer_phone) {
+                    $order->update(['customer_phone' => $request->customer_phone]);
+                }
                 if ($customerPhone && ($order->points_earned ?? 0) <= 0) {
                     // Calculate points on subtotal after discount, before tax
                     $loyaltyAmount = ($order->total_price ?? 0) - ($order->order_discount ?? 0);
                     $saleContext = [
                         'amount' => max(0, $loyaltyAmount),
                         'sale_id' => $order->id,
+                        'warehouse_id' => $order->warehouse_id ?? 1,
                         'items' => [],
                     ];
-                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, 1, $saleContext);
+                    $loyaltyResult = $this->loyaltyService->handleSaleCompletion($customerPhone, $order->warehouse_id ?? 1, $saleContext);
                     if ($loyaltyResult['success'] ?? false) {
                         $pointsEarned = $loyaltyResult['points_earned'] ?? 0;
                         $order->update(['points_earned' => $pointsEarned]);
@@ -2306,7 +2318,11 @@ class POSController extends Controller
             $program = LoyaltyProgram::where('is_active', 1)->first();
 
             $redemptionRate = $program?->points_per_unit ?? 100;
-            $earningRate = $program?->earning_rate ?? 1;
+
+            // Calculate earning info from earning_rules for accuracy
+            $earningRules = $program?->earning_rules;
+            $spendAmount = $earningRules['spend_amount'] ?? null;
+            $pointsEarned = $earningRules['points_earned'] ?? null;
 
             return response()->json([
                 'success' => true,
@@ -2319,7 +2335,9 @@ class POSController extends Controller
                     'redeemed' => $loyaltyInfo['redeemed'],
                 ],
                 'redemption_rate' => $redemptionRate,
-                'earning_rate' => $earningRate,
+                'earning_rate' => $program?->earning_rate ?? 1,
+                'spend_amount' => $spendAmount,
+                'points_earned' => $pointsEarned,
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching loyalty info: ' . $e->getMessage());
@@ -2355,7 +2373,17 @@ class POSController extends Controller
             } else {
                 // per_amount - points based on spend
                 if ($orderTotal >= ($program->min_transaction_amount ?? 0)) {
-                    $pointsToEarn = floor($orderTotal / ($program->earning_rate ?: 1));
+                    $earningRules = $program->earning_rules;
+                    if ($earningRules && isset($earningRules['spend_amount'], $earningRules['points_earned'])) {
+                        $spendAmount = (float) $earningRules['spend_amount'];
+                        $pointsEarned = (int) $earningRules['points_earned'];
+                        if ($spendAmount > 0) {
+                            $pointsToEarn = floor($orderTotal / $spendAmount) * $pointsEarned;
+                        }
+                    } else {
+                        // Legacy fallback
+                        $pointsToEarn = floor($orderTotal * $program->earning_rate);
+                    }
                 }
             }
 
@@ -2445,6 +2473,12 @@ class POSController extends Controller
             }
 
             // Calculate discount value
+            if (!$program->points_per_unit || $program->points_per_unit <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid redemption rate configured'
+                ]);
+            }
             $discountValue = $pointsToRedeem / $program->points_per_unit;
 
             $result = $this->loyaltyService->handleRedemption($phone, 1, [
