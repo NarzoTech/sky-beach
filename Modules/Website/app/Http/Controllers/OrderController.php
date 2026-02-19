@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Modules\Sales\app\Models\Sale;
+use Modules\Membership\app\Services\LoyaltyService;
 use Modules\Website\app\Models\WebsiteCart;
 use Modules\Menu\app\Models\MenuItem;
 use Modules\Menu\app\Models\Combo;
@@ -14,6 +15,13 @@ use App\Models\Stock;
 
 class OrderController extends Controller
 {
+    protected $loyaltyService;
+
+    public function __construct(LoyaltyService $loyaltyService)
+    {
+        $this->loyaltyService = $loyaltyService;
+    }
+
     /**
      * Display user's orders list
      */
@@ -98,6 +106,8 @@ class OrderController extends Controller
         // Restore stock for cancelled order
         $this->restoreStockForCancelledOrder($order);
 
+        // Reverse loyalty points if any were earned
+        $this->reverseLoyaltyPoints($order);
 
         if ($request->ajax()) {
             return response()->json([
@@ -314,6 +324,39 @@ class OrderController extends Controller
             }
 
             Stock::create($stockData);
+        }
+    }
+
+    /**
+     * Reverse loyalty points earned on a cancelled order
+     */
+    private function reverseLoyaltyPoints(Sale $order)
+    {
+        try {
+            $pointsEarned = $order->points_earned ?? 0;
+            if ($pointsEarned <= 0) return;
+
+            $customerPhone = $order->customer_phone;
+            if (!$customerPhone && $order->customer_id) {
+                $customerPhone = $order->customer?->phone;
+            }
+            if (!$customerPhone) return;
+
+            $result = $this->loyaltyService->adjustCustomerPoints(
+                $customerPhone,
+                $order->warehouse_id ?? 1,
+                -$pointsEarned,
+                [
+                    'reason' => __('Points reversed - order cancelled'),
+                    'notes' => 'Order #' . $order->invoice . ' cancelled',
+                ]
+            );
+
+            if ($result['success'] ?? false) {
+                $order->update(['points_earned' => 0]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Loyalty points reversal failed for order #' . $order->id . ': ' . $e->getMessage());
         }
     }
 }

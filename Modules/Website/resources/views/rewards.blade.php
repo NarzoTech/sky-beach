@@ -37,11 +37,11 @@
 
                             <div class="row justify-content-center">
                                 <div class="col-md-8">
-                                    <div class="input-group mb-3">
-                                        <input type="text" id="rewards-phone" class="form-control form-control-lg"
+                                    <div class="input-group rewards_input_group">
+                                        <input type="text" id="rewards-phone" class="form-control"
                                                placeholder="{{ __('Enter your phone number') }}"
                                                @auth value="{{ auth()->user()->phone ?? '' }}" @endauth>
-                                        <button class="btn btn-primary btn-lg" onclick="checkRewardsPoints()" id="check-points-btn">
+                                        <button class="common_btn" onclick="checkRewardsPoints()" id="check-points-btn">
                                             <i class="fas fa-search me-1"></i> {{ __('Check') }}
                                         </button>
                                     </div>
@@ -76,7 +76,7 @@
                                 <p class="text-muted">{{ __('Use this code at checkout to get your discount.') }}</p>
                                 <div class="coupon_code_display">
                                     <span id="generated-coupon-code"></span>
-                                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyCouponCode()">
+                                    <button class="coupon_copy_btn" onclick="copyCouponCode()" title="{{ __('Copy') }}">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -108,13 +108,18 @@
         background: #fff;
         padding: 40px;
         border-radius: 15px;
-        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 30px rgba(0,0,0,0.08);
+    }
+
+    .rewards_card h3 {
+        color: var(--colorPrimary);
+        font-weight: 700;
     }
 
     .rewards_icon {
         width: 80px;
         height: 80px;
-        background: linear-gradient(135deg, var(--colorPrimary, #AB162C), var(--colorYellow, #F2A22A));
+        background: var(--colorPrimary);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -124,14 +129,51 @@
 
     .rewards_icon i {
         font-size: 36px;
+        color: var(--colorYellow);
+    }
+
+    .rewards_input_group {
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    .rewards_input_group:focus-within {
+        border-color: var(--colorPrimary);
+    }
+
+    .rewards_input_group .form-control {
+        border: none;
+        padding: 14px 20px;
+        font-size: 15px;
+        box-shadow: none !important;
+    }
+
+    .rewards_input_group .common_btn {
+        border-radius: 0;
+        padding: 14px 25px;
+    }
+
+    .rewards_input_group .common_btn:hover {
+        background: var(--colorPrimary);
         color: #fff;
     }
 
+    .rewards_input_group .common_btn::before,
+    .rewards_input_group .common_btn::after {
+        display: none !important;
+    }
+
     .points_balance_card {
-        background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
-        border: 2px solid var(--colorYellow, #F2A22A);
+        background: #fff;
+        border: 2px solid var(--colorYellow);
         border-radius: 15px;
         padding: 30px;
+    }
+
+    .points_balance_card h5 {
+        color: var(--colorPrimary);
     }
 
     .points_display {
@@ -142,7 +184,7 @@
         display: block;
         font-size: 48px;
         font-weight: 700;
-        color: var(--colorYellow, #F2A22A);
+        color: var(--colorPrimary);
         line-height: 1;
     }
 
@@ -151,22 +193,29 @@
         font-size: 14px;
         color: #666;
         margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .tiers_section h5 {
+        color: var(--colorPrimary);
+        font-weight: 700;
     }
 
     .tier_card {
         background: #fff;
         border: 2px solid #e9ecef;
         border-radius: 12px;
-        padding: 20px;
+        padding: 25px 20px;
         text-align: center;
         transition: all 0.3s ease;
         height: 100%;
     }
 
     .tier_card:hover {
-        border-color: var(--colorPrimary, #AB162C);
+        border-color: var(--colorYellow);
         transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
     }
 
     .tier_card.disabled {
@@ -174,16 +223,31 @@
         pointer-events: none;
     }
 
+    .tier_card .common_btn {
+        font-size: 12px;
+        padding: 8px 15px;
+    }
+
+    .tier_card .common_btn:hover {
+        background: var(--colorPrimary);
+        color: #fff;
+    }
+
+    .tier_card .common_btn::before,
+    .tier_card .common_btn::after {
+        display: none !important;
+    }
+
     .tier_points {
         font-size: 24px;
         font-weight: 700;
-        color: var(--colorYellow, #F2A22A);
+        color: var(--colorPrimary);
     }
 
     .tier_discount {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
-        color: var(--colorPrimary, #AB162C);
+        color: var(--colorYellow);
         margin: 10px 0;
     }
 
@@ -191,13 +255,18 @@
         background: #fff;
         padding: 40px;
         border-radius: 15px;
-        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 30px rgba(0,0,0,0.08);
+    }
+
+    .coupon_result_card h4 {
+        color: var(--colorPrimary);
+        font-weight: 700;
     }
 
     .result_icon {
         width: 80px;
         height: 80px;
-        background: var(--colorGreen, #0F9043);
+        background: var(--colorYellow);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -207,12 +276,12 @@
 
     .result_icon i {
         font-size: 40px;
-        color: #fff;
+        color: var(--colorPrimary);
     }
 
     .coupon_code_display {
-        background: #f8f9fa;
-        border: 2px dashed var(--colorPrimary, #AB162C);
+        background: rgba(171, 22, 44, 0.05);
+        border: 2px dashed var(--colorPrimary);
         border-radius: 10px;
         padding: 15px 25px;
         display: inline-flex;
@@ -225,18 +294,37 @@
         font-size: 24px;
         font-weight: 700;
         letter-spacing: 2px;
-        color: var(--colorPrimary, #AB162C);
+        color: var(--colorPrimary);
+    }
+
+    .coupon_copy_btn {
+        background: var(--colorYellow);
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        color: var(--colorBlack, #080521);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .coupon_copy_btn:hover {
+        background: var(--colorPrimary);
+        color: #fff;
     }
 
     .common_btn.btn_outline {
         background: transparent;
-        border: 2px solid var(--colorPrimary, #AB162C);
-        color: var(--colorPrimary, #AB162C);
+        border: 2px solid var(--colorYellow);
+        color: var(--colorBlack, #080521);
+    }
+
+    .common_btn.btn_outline::before,
+    .common_btn.btn_outline::after {
+        display: none;
     }
 
     .common_btn.btn_outline:hover {
-        background: var(--colorPrimary, #AB162C);
-        color: #fff;
+        background: var(--colorYellow);
     }
 
     @media (max-width: 768px) {

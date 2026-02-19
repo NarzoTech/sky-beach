@@ -1992,6 +1992,33 @@ class POSController extends Controller
 
             DB::commit();
 
+            // Reverse loyalty points if any were earned (after commit so order is already cancelled)
+            try {
+                $pointsEarned = $order->points_earned ?? 0;
+                if ($pointsEarned > 0) {
+                    $customerPhone = $order->customer_phone;
+                    if (!$customerPhone && $order->customer_id) {
+                        $customerPhone = $order->customer?->phone;
+                    }
+                    if ($customerPhone) {
+                        $result = $this->loyaltyService->adjustCustomerPoints(
+                            $customerPhone,
+                            $order->warehouse_id ?? 1,
+                            -$pointsEarned,
+                            [
+                                'reason' => 'Points reversed - order cancelled',
+                                'notes' => 'Order #' . $order->invoice . ' cancelled',
+                            ]
+                        );
+                        if ($result['success'] ?? false) {
+                            $order->update(['points_earned' => 0]);
+                        }
+                    }
+                }
+            } catch (\Exception $loyaltyEx) {
+                Log::warning('Loyalty points reversal failed for cancelled order #' . $order->id . ': ' . $loyaltyEx->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Order cancelled successfully'
